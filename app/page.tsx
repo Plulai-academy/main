@@ -26,7 +26,7 @@ const FEATURES = [
   { emoji:'🎮', title:'Gamified Like Duolingo',  desc:'XP points, daily streaks, skill trees, badges and level-ups keep kids motivated and coming back every day.',                                        color:'from-accent1/20 to-accent2/20', border:'border-accent1/20' },
   { emoji:'🌍', title:'Built for UAE & GCC',     desc:'Full Arabic RTL interface and bilingual AI coaching. Content designed for kids in Dubai, Riyadh, Doha, Kuwait City and Muscat.',                   color:'from-accent3/20 to-accent4/20', border:'border-accent3/20' },
   { emoji:'💻', title:'3 Power Tracks',          desc:'Master Coding, Artificial Intelligence and Entrepreneurship — the 3 skills every future leader in the GCC needs right now.',                        color:'from-accent5/20 to-accent1/20', border:'border-accent5/20' },
-  { emoji:'🏆', title:'Real Projects',           desc:'Kids don\'t just do exercises. They build real apps, AI projects and startup pitches — creating a portfolio they\'re proud of.',                   color:'from-accent2/20 to-accent3/20', border:'border-accent2/20' },
+  { emoji:'🏆', title:'Real Projects',           desc:"Kids don't just do exercises. They build real apps, AI projects and startup pitches — creating a portfolio they're proud of.",                      color:'from-accent2/20 to-accent3/20', border:'border-accent2/20' },
   { emoji:'📊', title:'Parent Dashboard',        desc:'Parents and teachers track progress, streaks, XP and badges in real time. Stay involved without hovering.',                                        color:'from-accent4/20 to-accent3/20', border:'border-accent4/20' },
 ]
 
@@ -67,12 +67,12 @@ const TRACKS = [
 ]
 
 const TESTIMONIALS = [
-  { name:'Ahmed K.',  age:13, country:'🇦🇪 Dubai',   text:'I built my first AI chatbot in 2 weeks! Plulai made it so easy and fun. My teacher was impressed.',       avatar:'🧑‍💻' },
-  { name:'Sara M.',   age:10, country:'🇸🇦 Riyadh',  text:"I love the streak system. I've learned coding for 21 days in a row! My parents are so proud.",             avatar:'👩‍🎨' },
-  { name:'Yousef A.', age:15, country:'🇶🇦 Doha',    text:'The AI coach explains things like a friend, not a boring textbook. I actually look forward to studying.',    avatar:'🧑‍🚀' },
-  { name:'Nour R.',   age:11, country:'🇰🇼 Kuwait',  text:"I won my school's startup competition using what I learned on Plulai! The entrepreneurship track is 🔥",     avatar:'🦸'   },
-  { name:'Zaid T.',   age:14, country:'🇦🇪 Abu Dhabi',text:'Finally an edtech app that feels like a game. I finished the whole Python track in 3 months.',              avatar:'🤖'   },
-  { name:'Lina K.',   age:9,  country:'🇧🇭 Bahrain', text:'I made a website for my mum\'s shop using what I learned. She was amazed that I could do that!',            avatar:'👩‍💻' },
+  { name:'Ahmed K.',  age:13, country:'🇦🇪 Dubai',    text:'I built my first AI chatbot in 2 weeks! Plulai made it so easy and fun. My teacher was impressed.',       avatar:'🧑‍💻' },
+  { name:'Sara M.',   age:10, country:'🇸🇦 Riyadh',   text:"I love the streak system. I've learned coding for 21 days in a row! My parents are so proud.",             avatar:'👩‍🎨' },
+  { name:'Yousef A.', age:15, country:'🇶🇦 Doha',     text:'The AI coach explains things like a friend, not a boring textbook. I actually look forward to studying.',   avatar:'🧑‍🚀' },
+  { name:'Nour R.',   age:11, country:'🇰🇼 Kuwait',   text:"I won my school's startup competition using what I learned on Plulai! The entrepreneurship track is 🔥",     avatar:'🦸'   },
+  { name:'Zaid T.',   age:14, country:'🇦🇪 Abu Dhabi', text:'Finally an edtech app that feels like a game. I finished the whole Python track in 3 months.',             avatar:'🤖'   },
+  { name:'Lina K.',   age:9,  country:'🇧🇭 Bahrain',  text:"I made a website for my mum's shop using what I learned. She was amazed that I could do that!",            avatar:'👩‍💻' },
 ]
 
 const GCC = [
@@ -90,7 +90,7 @@ const FAQ = [
   { q: 'What age is Plulai for?', a: 'Plulai is designed for children aged 6 to 18. The platform automatically adapts — Mini Explorers (6-8), Junior Creators (9-11), Pro Explorers (12-14) and Tech Experts (15-18) each get age-appropriate content.' },
   { q: 'Does Plulai support Arabic?', a: 'Yes! Plulai has a full Arabic right-to-left interface and an AI coach that teaches entirely in Arabic. It is the only edtech platform built region-first for the UAE, Saudi Arabia, Qatar and the wider GCC.' },
   { q: 'What does Plulai teach?', a: 'Plulai teaches three tracks: Coding (Python, web development, games), Artificial Intelligence (ML, AI projects, ethics) and Entrepreneurship (startup ideas, MVPs, pitching). Each track has 60+ lessons.' },
-  { q: 'How is Plulai different from other edtech apps?', a: 'Unlike generic global platforms, Plulai is built specifically for the GCC. The content references UAE culture and context, the AI coach speaks Arabic, and the curriculum is designed to prepare kids for the UAE\'s Vision 2031 economy.' },
+  { q: 'How is Plulai different from other edtech apps?', a: "Unlike generic global platforms, Plulai is built specifically for the GCC. The content references UAE culture and context, the AI coach speaks Arabic, and the curriculum is designed to prepare kids for the UAE's Vision 2031 economy." },
 ]
 
 export default function LandingPage() {
@@ -216,10 +216,10 @@ export default function LandingPage() {
       {/* ── GCC ── */}
       <section id="gcc" className="py-24 px-6 max-w-5xl mx-auto">
         <h2 className="font-fredoka text-4xl lg:text-5xl text-center mb-4">
-          The GCC's #1 Edtech Platform 🌍
+          The GCC&apos;s #1 Edtech Platform 🌍
         </h2>
         <p className="text-center text-muted font-semibold mb-16 text-lg max-w-2xl mx-auto">
-          The only kids' learning platform built region-first — culturally relevant, fully bilingual, and designed for the GCC's next generation.
+          The only kids&apos; learning platform built region-first — culturally relevant, fully bilingual, and designed for the GCC&apos;s next generation.
         </p>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mb-12">
           {GCC.map(c => (
