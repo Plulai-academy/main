@@ -61,7 +61,7 @@ export default function DashboardClient({
                 : lang === 'fr' ? `🎉 +${todayChallenge.xp_reward} XP! Défi terminé!`
                 : `🎉 +${todayChallenge.xp_reward} XP! Challenge complete!`
       showToast(msg)
-      if (result.data && result.data.leveledUp) setLevelUpMsg(`🎊 Level Up! You&apos;re now Level ${result.data.newLevel}!`)
+      if (result.data && result.data.leveledUp) setLevelUpMsg(`🎊 Level Up! You're now Level ${result.data.newLevel}!`)
       if (newBadges.length) setTimeout(() => showToast(`🏆 New badge: ${newBadges[0]}!`), 2500)
       router.refresh()
     })
@@ -227,7 +227,7 @@ export default function DashboardClient({
           <h2 className="font-fredoka text-xl mb-1">🌟 Your Dream Project</h2>
           <p className="text-sm font-semibold text-muted mb-4">Everything you learn is building toward this:</p>
           <div className="bg-black/20 rounded-2xl p-4 text-sm font-semibold leading-relaxed italic text-white/80 mb-5">
-            "{profile.dream_project || 'Not set yet — update your profile!'}"
+            &ldquo;{profile.dream_project || 'Not set yet — update your profile!'}&rdquo;
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/dashboard/coach" className="inline-block px-6 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent4 text-white hover:-translate-y-1 transition-all">
