@@ -183,7 +183,7 @@ export default function SignupPage() {
                 className="mt-0.5 w-4 h-4 accent-accent4 cursor-pointer"
               />
               <span className="text-xs text-muted font-semibold leading-relaxed group-hover:text-white transition-colors">
-                I agree to Plulai's{' '}
+                I agree to Plulai&apos;s{' '}
                 <a href="#" className="text-accent4 hover:underline">Terms of Service</a>
                 {' '}and{' '}
                 <a href="#" className="text-accent4 hover:underline">Privacy Policy</a>.
