@@ -73,7 +73,7 @@ export default function OnboardingFlow() {
       setUserId(user.id)
       if (user.user_metadata?.display_name) setName(user.user_metadata.display_name)
     })
-  }, [])
+  }, [router])
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
 
@@ -177,7 +177,7 @@ export default function OnboardingFlow() {
             />
             <button disabled={name.trim().length < 2} onClick={() => next(2)}
               className="w-full mt-7 py-4 rounded-2xl font-extrabold text-white text-lg bg-gradient-to-r from-accent4 to-accent5 hover:-translate-y-1 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-              Let's go! →
+              Let&apos;s go! →
             </button>
           </div>
         )}
@@ -343,7 +343,7 @@ export default function OnboardingFlow() {
             <div className="flex items-center gap-3 bg-accent2/8 border border-accent2/20 rounded-2xl px-4 py-3 mt-4 mb-6">
               <span className="text-2xl">🎁</span>
               <p className="text-sm font-bold">
-                You'll get <span className="text-accent2">+60 XP</span> + 2 exclusive founder badges +
+                You&apos;ll get <span className="text-accent2">+60 XP</span> + 2 exclusive founder badges +
                 <span className="text-accent4"> 14-day free trial</span>!
               </p>
             </div>

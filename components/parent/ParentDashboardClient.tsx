@@ -95,7 +95,7 @@ export default function ParentDashboardClient({ child, progress, lessons, badges
               </div>
               {child?.dream_project && (
                 <p className="mt-2 text-sm font-semibold text-white/80 italic">
-                  💭 "{child.dream_project}"
+                  💭 &ldquo;{child.dream_project}&rdquo;
                 </p>
               )}
             </div>
@@ -232,7 +232,7 @@ export default function ParentDashboardClient({ child, progress, lessons, badges
             {[
               { emoji: '🔥', tip: 'Ask about the streak', detail: 'Kids love talking about their daily streak. A simple "Did you keep your streak today?" keeps them engaged.' },
               { emoji: '🎯', tip: 'Celebrate badges', detail: 'When a new badge appears here, celebrate it together. Recognition is the most powerful motivator for kids.' },
-              { emoji: '🚀', tip: 'Discuss the dream project', detail: `${child?.display_name} dreams of: "${child?.dream_project || 'something amazing'}". Ask about their progress on it!` },
+              { emoji: '🚀', tip: 'Discuss the dream project', detail: `${child?.display_name ?? 'Your child'} dreams of: "${child?.dream_project || 'something amazing'}". Ask about their progress on it!` },
             ].map(tip => (
               <div key={tip.tip} className="bg-white/5 rounded-2xl p-4">
                 <div className="text-2xl mb-2">{tip.emoji}</div>
