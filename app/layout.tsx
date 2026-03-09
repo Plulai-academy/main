@@ -1,6 +1,7 @@
 // app/layout.tsx
 import type { ReactNode } from 'react'
 import type { Metadata, Viewport } from 'next'
+import { Analytics } from '@vercel/analytics/next'
 import { SEO_CONFIG } from '@/lib/seo/config'
 import './globals.css'
 
@@ -96,7 +97,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* eslint-disable-next-line react/no-danger */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(SEO_CONFIG.schema.course) }} />
       </head>
-      <body className="font-nunito bg-bg text-white antialiased">{children}</body>
+      <body className="font-nunito bg-bg text-white antialiased">
+        {children}
+        <Analytics />
+      </body>
     </html>
   )
 }
