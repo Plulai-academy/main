@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg:     #0d0d1a;
+  --card:   #16162a;
+  --card2:  #1e1e38;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Starfield background */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 10%, rgba(255,255,255,0.40) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 40%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 80%, rgba(255,255,255,0.30) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.20) 0%, transparent 100%),
+    radial-gradient(2px 2px at 20% 90%, rgba(255,255,255,0.20) 0%, transparent 100%),
+    radial-gradient(2px 2px at 70% 30%, rgba(255,255,255,0.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 45% 50%, rgba(255,255,255,0.20) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.30) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.font-fredoka { font-family: 'Fredoka One', cursive; }
+.font-nunito  { font-family: 'Nunito', sans-serif;  }
+
+/* Scrollbar */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--card); }
+::-webkit-scrollbar-thumb { background: #333366; border-radius: 99px; }
+
+/* XP bar shimmer */
+.xp-bar-fill {
+  background: linear-gradient(90deg, #4d96ff, #c77dff, #4d96ff);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* Skill node connector line */
+.skill-connector {
+  width: 2px;
+  background: linear-gradient(to bottom, rgba(77,150,255,0.4), rgba(77,150,255,0.1));
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(22, 22, 42, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+}
