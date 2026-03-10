@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 }
 
 const STATS = [
-  { value: '1,000+', label: 'Kids Learning',     emoji: '👦' },
+  // { value: '1,000+', label: 'Kids Learning',     emoji: '👦' },
   { value: '6',      label: 'GCC Countries',      emoji: '🌍' },
   { value: '200+',   label: 'Lessons',            emoji: '📚' },
   { value: '4.9★',   label: 'Average Rating',     emoji: '⭐' },
@@ -137,7 +137,7 @@ export default function LandingPage() {
           In <strong className="text-white">English and Arabic.</strong>
         </p>
         <p className="text-muted text-sm font-bold mb-10">
-          Trusted by 1,000+ kids across UAE, Saudi Arabia, Qatar, Kuwait, Bahrain & Oman
+          {/* Trusted by 1,000+ kids across UAE, Saudi Arabia, Qatar, Kuwait, Bahrain & Oman */}
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
@@ -298,7 +298,8 @@ export default function LandingPage() {
             Give Your Child the Skills of the Future
           </h2>
           <p className="text-muted font-semibold text-lg mb-3">
-            Join 1,000+ kids in UAE, Saudi Arabia, Qatar and Kuwait who are already learning coding, AI and entrepreneurship on Plulai.
+            {/* Join 1,000+ kids in UAE, Saudi Arabia, Qatar and Kuwait who are already learning coding, AI and entrepreneurship on Plulai. */}
+            Join kids in UAE, Saudi Arabia, Qatar and Kuwait who are already learning coding, AI, and entrepreneurship on Plulai.
           </p>
           <p className="text-muted text-sm font-bold mb-10">Free to start. No credit card. Arabic & English. Ages 6–18.</p>
           <Link
@@ -308,7 +309,8 @@ export default function LandingPage() {
             🎉 Join Free — Start Learning Today
           </Link>
           <p className="text-muted text-xs font-bold mt-6 opacity-70">
-            Trusted by parents & teachers across the GCC • COPPA compliant • Safe for kids
+            {/* Trusted by parents & teachers across the GCC • COPPA compliant • Safe for kids */}
+            Trusted by parents & teachers across the GCC • Safe for kids
           </p>
         </div>
       </section>
