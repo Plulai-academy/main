@@ -249,7 +249,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Testimonials ── */}
-      <section id="stories" className="py-24 px-6 max-w-5xl mx-auto">
+      {/* <section id="stories" className="py-24 px-6 max-w-5xl mx-auto">
         <h2 className="font-fredoka text-4xl lg:text-5xl text-center mb-4">
           Kids Across the GCC Love Plulai 💛
         </h2>
@@ -269,7 +269,7 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* ── FAQ ── (schema-marked for Google rich results) */}
       <section id="faq" className="py-24 px-6 max-w-3xl mx-auto">
