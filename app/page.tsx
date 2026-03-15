@@ -122,7 +122,6 @@ export default function LandingPage() {
           🌟 #1 Edtech Platform for Kids in the UAE & GCC
         </div>
 
-        {/* H1 — primary keyword target */}
         <h1 className="font-fredoka text-4xl sm:text-5xl lg:text-7xl leading-tight mb-5 md:mb-6">
           <span className="bg-gradient-to-r from-accent2 via-accent1 to-accent5 bg-clip-text text-transparent">
             Coding, AI & Entrepreneurship
@@ -136,13 +135,8 @@ export default function LandingPage() {
           through a personal <strong className="text-white">AI coach</strong>, 200+ lessons, and real projects.
           In <strong className="text-white">English and Arabic.</strong>
         </p>
-<<<<<<< HEAD
         <p className="text-muted text-xs md:text-sm font-bold mb-8 md:mb-10">
           Trusted by 1,000+ kids across UAE, Saudi Arabia, Qatar, Kuwait, Bahrain & Oman
-=======
-        <p className="text-muted text-sm font-bold mb-10">
-          {/* Trusted by 1,000+ kids across UAE, Saudi Arabia, Qatar, Kuwait, Bahrain & Oman */}
->>>>>>> 2e3a3cce5387c67fbd71b59ff61a18337f369af1
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 mb-12 md:mb-16">
@@ -254,13 +248,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── Testimonials ── */}
-<<<<<<< HEAD
       <section id="stories" className="py-16 md:py-24 px-4 md:px-6 max-w-5xl mx-auto">
         <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3 md:mb-4">
-=======
-      {/* <section id="stories" className="py-24 px-6 max-w-5xl mx-auto">
-        <h2 className="font-fredoka text-4xl lg:text-5xl text-center mb-4">
->>>>>>> 2e3a3cce5387c67fbd71b59ff61a18337f369af1
           Kids Across the GCC Love Plulai 💛
         </h2>
         <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-base md:text-lg">Real stories from real kids in UAE, Saudi Arabia, Qatar, Kuwait and Bahrain.</p>
@@ -279,9 +268,9 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
-      </section> */}
+      </section>
 
-      {/* ── FAQ ── (schema-marked for Google rich results) */}
+      {/* ── FAQ ── */}
       <section id="faq" className="py-16 md:py-24 px-4 md:px-6 max-w-3xl mx-auto">
         <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3 md:mb-4">
           Frequently Asked Questions
@@ -307,14 +296,8 @@ export default function LandingPage() {
           <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl mb-4 md:mb-5">
             Give Your Child the Skills of the Future
           </h2>
-<<<<<<< HEAD
           <p className="text-muted font-semibold text-base md:text-lg mb-3">
             Join 1,000+ kids in UAE, Saudi Arabia, Qatar and Kuwait who are already learning coding, AI and entrepreneurship on Plulai.
-=======
-          <p className="text-muted font-semibold text-lg mb-3">
-            {/* Join 1,000+ kids in UAE, Saudi Arabia, Qatar and Kuwait who are already learning coding, AI and entrepreneurship on Plulai. */}
-            Join kids in UAE, Saudi Arabia, Qatar and Kuwait who are already learning coding, AI, and entrepreneurship on Plulai.
->>>>>>> 2e3a3cce5387c67fbd71b59ff61a18337f369af1
           </p>
           <p className="text-muted text-xs md:text-sm font-bold mb-8 md:mb-10">Free to start. No credit card. Arabic & English. Ages 6–18.</p>
           <Link
@@ -323,14 +306,8 @@ export default function LandingPage() {
           >
             🎉 Join Free — Start Learning Today
           </Link>
-<<<<<<< HEAD
           <p className="text-muted text-xs font-bold mt-5 md:mt-6 opacity-70">
             Trusted by parents & teachers across the GCC • COPPA compliant • Safe for kids
-=======
-          <p className="text-muted text-xs font-bold mt-6 opacity-70">
-            {/* Trusted by parents & teachers across the GCC • COPPA compliant • Safe for kids */}
-            Trusted by parents & teachers across the GCC • Safe for kids
->>>>>>> 2e3a3cce5387c67fbd71b59ff61a18337f369af1
           </p>
         </div>
       </section>
