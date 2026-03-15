@@ -183,7 +183,7 @@ export default function PricingClient({ plans, isLoggedIn, profile, accessInfo }
                 )}
                 {plan.interval === 'month' && (
                   <div className="text-muted text-xs font-bold mt-1">
-                    {lang === 'ar' ? '≈ 8.80$ يومياً' : lang === 'fr' ? '≈ 8,80$/jour' : '≈ $8.80/day billed monthly'}
+                    {lang === 'ar' ? '≈ 2.63$ يومياً' : lang === 'fr' ? '≈ 8,80$/jour' : '≈ $2.63/day billed monthly'}
                   </div>
                 )}
                 {plan.interval === 'year' && (
