@@ -13,11 +13,11 @@ interface Props {
 }
 
 const FEELINGS = [
-  { id: 'easy',       emoji: '😴', en: 'Too easy',    ar: 'سهل جداً',  fr: 'Trop facile' },
-  { id: 'just_right', emoji: '🎯', en: 'Just right',  ar: 'مناسب تماماً', fr: 'Parfait' },
-  { id: 'hard',       emoji: '😅', en: 'Challenging', ar: 'صعب',       fr: 'Difficile' },
-  { id: 'boring',     emoji: '😑', en: 'Boring',      ar: 'ممل',       fr: 'Ennuyeux' },
-  { id: 'loved_it',   emoji: '🔥', en: 'Loved it!',   ar: 'أحببته!',   fr: 'Adoré !' },
+  { id: 'easy',       emoji: '😴', en: 'Too easy',    ar: 'سهل جداً',     fr: 'Trop facile' },
+  { id: 'just_right', emoji: '🎯', en: 'Just right',  ar: 'مناسب تماماً', fr: 'Parfait'     },
+  { id: 'hard',       emoji: '😅', en: 'Challenging', ar: 'صعب',          fr: 'Difficile'   },
+  { id: 'boring',     emoji: '😑', en: 'Boring',      ar: 'ممل',          fr: 'Ennuyeux'    },
+  { id: 'loved_it',   emoji: '🔥', en: 'Loved it!',   ar: 'أحببته!',      fr: 'Adoré !'     },
 ]
 
 const STARS_LABEL: Record<string, string[]> = {
@@ -67,19 +67,20 @@ export default function LessonFeedback({ userId, lessonId, lang, onDone, onSkip 
 
   return (
     <div className="animate-slide-up" dir={dir}>
-      <h3 className="font-fredoka text-xl mb-5 text-center">{t('title')}</h3>
+      <h3 className="font-fredoka text-lg md:text-xl mb-4 md:mb-5 text-center">{t('title')}</h3>
 
       {/* Star rating */}
-      <div className="mb-5">
-        <p className="text-sm font-bold text-muted mb-2">{t('rating')}</p>
-        <div className="flex gap-2 justify-center">
+      <div className="mb-4 md:mb-5">
+        <p className="text-sm font-bold text-muted mb-2 text-center">{t('rating')}</p>
+        {/* Stars: larger tap targets on mobile */}
+        <div className="flex gap-1 sm:gap-2 justify-center">
           {[1,2,3,4,5].map(s => (
             <button
               key={s}
               onClick={() => setRating(s)}
               onMouseEnter={() => setHover(s)}
               onMouseLeave={() => setHover(0)}
-              className="text-3xl transition-transform hover:scale-125"
+              className="text-3xl sm:text-3xl p-1.5 sm:p-0 transition-transform hover:scale-125 active:scale-110 touch-manipulation"
             >
               <span className={cn(
                 'transition-all',
@@ -95,16 +96,16 @@ export default function LessonFeedback({ userId, lessonId, lang, onDone, onSkip 
         )}
       </div>
 
-      {/* Feeling chips */}
-      <div className="mb-5">
-        <p className="text-sm font-bold text-muted mb-2">{t('feeling')}</p>
-        <div className="flex flex-wrap gap-2 justify-center">
+      {/* Feeling chips — 2-column grid on the smallest phones, wrapping flow on larger */}
+      <div className="mb-4 md:mb-5">
+        <p className="text-sm font-bold text-muted mb-2 text-center">{t('feeling')}</p>
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:justify-center">
           {FEELINGS.map(f => (
             <button
               key={f.id}
               onClick={() => setFeeling(f.id)}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-2 rounded-2xl text-sm font-bold border transition-all hover:-translate-y-0.5',
+                'flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-2xl text-sm font-bold border transition-all hover:-translate-y-0.5 active:scale-95 touch-manipulation',
                 feeling === f.id
                   ? 'bg-accent4/20 border-accent4/50 text-white'
                   : 'bg-card2 border-white/10 text-muted hover:text-white hover:border-white/25'
@@ -114,35 +115,37 @@ export default function LessonFeedback({ userId, lessonId, lang, onDone, onSkip 
               <span>{f[lang as 'en'|'ar'|'fr']}</span>
             </button>
           ))}
+          {/* 5 items in a 2-col grid leaves one orphan — center it by spanning both cols */}
+          <div className="col-span-2 sm:hidden" />
         </div>
       </div>
 
       {/* Optional comment */}
-      <div className="mb-5">
+      <div className="mb-4 md:mb-5">
         <p className="text-sm font-bold text-muted mb-2">{t('comment')}</p>
         <textarea
           value={comment}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value)}
           maxLength={300}
-          rows={2}
+          rows={3}
           className="w-full bg-card2 border border-white/10 focus:border-accent4 rounded-2xl px-4 py-3 text-sm font-semibold text-white outline-none resize-none transition-colors placeholder:text-muted"
           placeholder={lang === 'ar' ? 'اكتب ملاحظتك هنا...' : lang === 'fr' ? 'Écris ton commentaire ici...' : 'Write your thoughts here...'}
           dir={dir}
         />
       </div>
 
-      {/* Actions */}
+      {/* Actions — equal split, taller tap target on mobile */}
       <div className="flex gap-3">
         <button
           onClick={onSkip}
-          className="flex-1 py-3 rounded-2xl font-bold text-sm text-muted border border-white/10 hover:border-white/25 hover:text-white transition-all"
+          className="flex-1 py-3.5 md:py-3 rounded-2xl font-bold text-sm text-muted border border-white/10 hover:border-white/25 hover:text-white active:scale-95 transition-all touch-manipulation"
         >
           {t('skip')}
         </button>
         <button
           onClick={submit}
           disabled={!rating || !feeling || saving}
-          className="flex-2 flex-1 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent3 to-accent4 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+          className="flex-1 py-3.5 md:py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent3 to-accent4 text-white hover:-translate-y-0.5 hover:shadow-lg active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none touch-manipulation"
         >
           {saving ? '⏳' : t('submit')}
         </button>

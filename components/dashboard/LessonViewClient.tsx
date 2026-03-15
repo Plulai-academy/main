@@ -119,7 +119,7 @@ interface Section {
   embed_url?: string
   height?: number
   // external activity
-  platform?: string   // e.g. "Jupyter", "Code.org", "Replit", "Scratch"
+  platform?: string
   button_label?: string
 }
 
@@ -247,13 +247,10 @@ export default function LessonViewClient({
   }
 
   const getVideoEmbed = (url: string): string | null => {
-    // YouTube
     const yt = getYouTubeEmbed(url)
     if (yt) return yt
-    // Vimeo
     const vm = url.match(/vimeo\.com\/(\d+)/)
     if (vm) return `https://player.vimeo.com/video/${vm[1]}?byline=0&portrait=0`
-    // Already an embed URL
     if (url.includes('/embed/') || url.includes('player.')) return url
     return null
   }
@@ -265,7 +262,7 @@ export default function LessonViewClient({
       case 'intro':
       case 'reading':
         return (
-          <div key={idx} className="bg-card border border-white/8 rounded-2xl p-6">
+          <div key={idx} className="bg-card border border-white/8 rounded-2xl p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">📖</span>
               <span className="text-xs font-bold text-muted uppercase tracking-wider">{t.reading}</span>
@@ -277,7 +274,7 @@ export default function LessonViewClient({
       // ── ANALOGY ──────────────────────────────────────────
       case 'analogy':
         return (
-          <div key={idx} className="bg-gradient-to-br from-accent4/10 to-accent5/10 border border-accent4/25 rounded-2xl p-6">
+          <div key={idx} className="bg-gradient-to-br from-accent4/10 to-accent5/10 border border-accent4/25 rounded-2xl p-4 sm:p-6">
             <p className="font-extrabold text-sm mb-2 text-accent4">{t.analogy}</p>
             <p className="text-sm font-semibold leading-relaxed">{s.text}</p>
           </div>
@@ -286,7 +283,7 @@ export default function LessonViewClient({
       // ── TIP ──────────────────────────────────────────────
       case 'tip':
         return (
-          <div key={idx} className="bg-accent2/8 border border-accent2/25 rounded-2xl p-5 flex gap-3">
+          <div key={idx} className="bg-accent2/8 border border-accent2/25 rounded-2xl p-4 sm:p-5 flex gap-3">
             <span className="text-2xl flex-shrink-0">💡</span>
             <div>
               <p className="font-extrabold text-xs text-accent2 mb-1">{t.tip}</p>
@@ -299,21 +296,21 @@ export default function LessonViewClient({
       case 'code':
         return (
           <div key={idx} className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-3 px-5 py-3 border-b border-white/8 bg-white/3">
+            <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/3">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-red-500/70" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
                 <div className="w-3 h-3 rounded-full bg-green-500/70" />
               </div>
-              <span className="text-xs font-bold text-muted flex-1">{t.code} — {s.language ?? 'code'}</span>
+              <span className="text-xs font-bold text-muted flex-1 truncate">{t.code} — {s.language ?? 'code'}</span>
             </div>
             {s.instructions && (
-              <p className="px-5 pt-4 text-xs text-accent4/80 font-semibold italic">{s.instructions}</p>
+              <p className="px-4 sm:px-5 pt-4 text-xs text-accent4/80 font-semibold italic">{s.instructions}</p>
             )}
-            <pre className="px-5 py-4 text-sm font-mono text-green-400 leading-relaxed overflow-x-auto whitespace-pre-wrap break-words">
+            <pre className="px-4 sm:px-5 py-4 text-sm font-mono text-green-400 leading-relaxed overflow-x-auto whitespace-pre-wrap break-all max-w-full">
               {s.starter}
             </pre>
-            <div className="px-5 pb-4">
+            <div className="px-4 sm:px-5 pb-4">
               <Link
                 href={`/dashboard/coach?topic=${encodeURIComponent(lesson.title)}`}
                 className="inline-flex items-center gap-2 text-xs font-bold text-accent5 hover:text-white transition-colors"
@@ -325,22 +322,21 @@ export default function LessonViewClient({
         )
 
       // ── CODE VIEWER (read-only with copy) ─────────────────
-      // Replaces the old interactive code_editor — no execution needed
       case 'code_editor':
         return (
-          <div key={idx} className="bg-[#0b0b16] border border-emerald-500/20 rounded-2xl overflow-hidden">
+          <div key={idx} className="bg-[#0b0b16] border border-emerald-500/20 rounded-2xl overflow-hidden max-w-full">
             {/* Title bar */}
-            <div className="flex items-center gap-3 px-5 py-3 border-b border-white/8 bg-white/2">
-              <div className="flex gap-1.5">
+            <div className="flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/2">
+              <div className="flex gap-1.5 flex-shrink-0">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
                 <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
                 <div className="w-3 h-3 rounded-full bg-[#28c840]" />
               </div>
-              <span className="text-xs font-bold text-emerald-400 flex-1">{t.codeViewer}</span>
+              <span className="text-xs font-bold text-emerald-400 flex-1 truncate">{t.codeViewer}</span>
               <button
                 onClick={() => copyCode(s.starter ?? '', idx)}
                 className={cn(
-                  'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all',
+                  'flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex-shrink-0',
                   copiedIdx === idx
                     ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                     : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white border border-white/8'
@@ -352,7 +348,7 @@ export default function LessonViewClient({
 
             {/* Instructions banner */}
             {s.instructions && (
-              <div className="px-5 py-3 bg-emerald-500/5 border-b border-emerald-500/10">
+              <div className="px-4 sm:px-5 py-3 bg-emerald-500/5 border-b border-emerald-500/10">
                 <p className="text-xs text-emerald-300/80 font-semibold leading-relaxed">
                   📋 {s.instructions}
                 </p>
@@ -362,20 +358,20 @@ export default function LessonViewClient({
             {/* Code with line numbers */}
             <div className="flex overflow-x-auto">
               {/* Line numbers */}
-              <div className="select-none px-4 py-5 text-right border-r border-white/5 bg-white/1 flex-shrink-0">
+              <div className="select-none px-3 sm:px-4 py-5 text-right border-r border-white/5 bg-white/1 flex-shrink-0">
                 {(s.starter ?? '').split('\n').map((_, i) => (
                   <div key={i} className="text-xs font-mono text-white/15 leading-6">{i + 1}</div>
                 ))}
               </div>
               {/* Code */}
-              <pre className="flex-1 px-5 py-5 text-sm font-mono text-green-300 leading-6 whitespace-pre break-words min-w-0">
+              <pre className="flex-1 px-4 sm:px-5 py-5 text-sm font-mono text-green-300 leading-6 whitespace-pre-wrap break-all min-w-0 max-w-full overflow-x-auto">
                 {s.starter}
               </pre>
             </div>
 
             {/* Hint */}
             {s.hint && (
-              <div className="px-5 py-3 border-t border-white/5 bg-amber-500/5">
+              <div className="px-4 sm:px-5 py-3 border-t border-white/5 bg-amber-500/5">
                 <p className="text-xs text-amber-300/80 font-semibold">
                   💡 {s.hint}
                 </p>
@@ -383,7 +379,7 @@ export default function LessonViewClient({
             )}
 
             {/* Ask AI Coach */}
-            <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
+            <div className="px-4 sm:px-5 py-3 border-t border-white/5 flex items-center justify-between">
               <span className="text-xs text-white/20 font-mono">Python 3.10</span>
               <Link
                 href={`/dashboard/coach?topic=${encodeURIComponent(lesson.title)}`}
@@ -402,7 +398,7 @@ export default function LessonViewClient({
         const isWrong   = state.submitted && state.selected !== s.correct
         return (
           <div key={idx} className={cn(
-            'rounded-2xl p-6 border transition-all',
+            'rounded-2xl p-4 sm:p-6 border transition-all',
             isCorrect ? 'bg-accent3/8 border-accent3/30' :
             isWrong   ? 'bg-red-500/5 border-red-500/20' :
                         'bg-card border-accent5/25'
@@ -411,8 +407,8 @@ export default function LessonViewClient({
               <span className="text-xl">{isCorrect ? '✅' : isWrong ? '❌' : '❓'}</span>
               <span className="text-xs font-bold text-accent5 uppercase tracking-wider">{t.quiz}</span>
             </div>
-            <p className="font-extrabold text-sm mb-5 leading-relaxed">{s.question}</p>
-            <div className="space-y-3 mb-5">
+            <p className="font-extrabold text-sm mb-4 sm:mb-5 leading-relaxed">{s.question}</p>
+            <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
               {(s.options ?? []).map((opt, oi) => {
                 let cls = 'border-white/8 bg-card2 text-muted hover:border-white/25 hover:text-white cursor-pointer'
                 if (state.submitted) {
@@ -424,8 +420,8 @@ export default function LessonViewClient({
                 }
                 return (
                   <button key={oi} onClick={() => selectOption(idx, oi)} disabled={state.submitted}
-                    className={cn('w-full text-start px-5 py-3.5 rounded-xl text-sm font-bold border transition-all', cls)}>
-                    <span className="font-extrabold mr-3 text-muted/60">{String.fromCharCode(65 + oi)}.</span>
+                    className={cn('w-full text-start px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl text-sm font-bold border transition-all', cls)}>
+                    <span className="font-extrabold mr-2 sm:mr-3 text-muted/60">{String.fromCharCode(65 + oi)}.</span>
                     {opt}
                   </button>
                 )
@@ -433,7 +429,7 @@ export default function LessonViewClient({
             </div>
             {!state.submitted ? (
               <button onClick={() => submitQuiz(idx)} disabled={state.selected === null}
-                className="px-6 py-2.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                 {t.submit}
               </button>
             ) : (
@@ -450,7 +446,7 @@ export default function LessonViewClient({
                   )}
                 </div>
                 {s.explanation && (
-                  <div className="mt-3 bg-white/4 border border-white/8 rounded-xl p-4">
+                  <div className="mt-3 bg-white/4 border border-white/8 rounded-xl p-3 sm:p-4">
                     <p className="text-xs font-bold text-accent2 mb-1">
                       {lang === 'ar' ? 'الشرح' : lang === 'fr' ? 'Explication' : 'Explanation'}
                     </p>
@@ -466,15 +462,15 @@ export default function LessonViewClient({
       // ── STEPS ────────────────────────────────────────────
       case 'steps':
         return (
-          <div key={idx} className="bg-card border border-white/8 rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-5">
+          <div key={idx} className="bg-card border border-white/8 rounded-2xl p-4 sm:p-6">
+            <div className="flex items-center gap-2 mb-4 sm:mb-5">
               <span className="text-lg">🪜</span>
               <span className="text-xs font-bold text-muted uppercase tracking-wider">{t.steps}</span>
             </div>
             {s.text && <p className="text-sm font-semibold text-muted mb-4 leading-relaxed">{s.text}</p>}
             <ol className="space-y-3">
               {(s.items ?? []).map((item, i) => (
-                <li key={i} className="flex gap-4 items-start">
+                <li key={i} className="flex gap-3 sm:gap-4 items-start">
                   <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-accent4 to-accent5 flex items-center justify-center text-xs font-extrabold text-white">
                     {i + 1}
                   </span>
@@ -488,7 +484,7 @@ export default function LessonViewClient({
       // ── CHALLENGE ────────────────────────────────────────
       case 'challenge':
         return (
-          <div key={idx} className="bg-gradient-to-br from-accent2/8 to-accent1/8 border-2 border-accent2/30 rounded-2xl p-6">
+          <div key={idx} className="bg-gradient-to-br from-accent2/8 to-accent1/8 border-2 border-accent2/30 rounded-2xl p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xl">🎯</span>
               <span className="text-xs font-extrabold text-accent2 uppercase tracking-wider">{t.challenge}</span>
@@ -496,11 +492,11 @@ export default function LessonViewClient({
             {s.title && <p className="font-extrabold text-base mb-2">{s.title}</p>}
             <p className="text-sm font-semibold leading-relaxed mb-4">{s.text}</p>
             {s.expected_output && (
-              <div className="bg-[#0d1117] border border-white/10 rounded-xl p-4 mb-4">
+              <div className="bg-[#0d1117] border border-white/10 rounded-xl p-3 sm:p-4 mb-4">
                 <p className="text-xs font-bold text-muted mb-2">
                   {lang === 'ar' ? 'النتيجة المتوقعة:' : lang === 'fr' ? 'Résultat attendu :' : 'Expected output:'}
                 </p>
-                <pre className="text-sm font-mono text-green-400 whitespace-pre-wrap">{s.expected_output}</pre>
+                <pre className="text-sm font-mono text-green-400 whitespace-pre-wrap overflow-x-auto break-all max-w-full">{s.expected_output}</pre>
               </div>
             )}
             {s.hint && (
@@ -533,7 +529,7 @@ export default function LessonViewClient({
         }
         const st = styles[variant] ?? styles.note
         return (
-          <div key={idx} className={cn('rounded-2xl p-5 border flex gap-4', st.bg, st.border)}>
+          <div key={idx} className={cn('rounded-2xl p-4 sm:p-5 border flex gap-3 sm:gap-4', st.bg, st.border)}>
             <span className="text-2xl flex-shrink-0 mt-0.5">{st.icon}</span>
             <div>
               <p className={cn('font-extrabold text-xs mb-1.5 uppercase tracking-wider', st.text)}>{st.label}</p>
@@ -547,27 +543,28 @@ export default function LessonViewClient({
       case 'comparison':
         return (
           <div key={idx} className="bg-card border border-white/8 rounded-2xl overflow-hidden">
-            <div className="px-5 py-3 border-b border-white/8 flex items-center gap-2">
+            <div className="px-4 sm:px-5 py-3 border-b border-white/8 flex items-center gap-2">
               <span className="text-sm">🔄</span>
               <span className="text-xs font-bold text-muted uppercase tracking-wider">{t.comparison}</span>
             </div>
-            {s.text && <p className="px-5 pt-4 text-sm font-semibold text-muted leading-relaxed">{s.text}</p>}
+            {s.text && <p className="px-4 sm:px-5 pt-4 text-sm font-semibold text-muted leading-relaxed">{s.text}</p>}
+            {/* Stack vertically on mobile, side-by-side on sm+ */}
             <div className="grid grid-cols-1 sm:grid-cols-2">
-              <div className="p-5 border-b sm:border-b-0 sm:border-r border-white/8">
+              <div className="p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-white/8">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="w-5 h-5 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-xs">✗</span>
                   <span className="text-xs font-extrabold text-red-400 uppercase">{s.before_label ?? (lang === 'ar' ? 'قبل' : lang === 'fr' ? 'Avant' : 'Before')}</span>
                 </div>
-                <pre className="text-xs font-mono text-red-400/80 bg-red-500/5 border border-red-500/15 rounded-xl p-4 whitespace-pre-wrap break-words leading-relaxed">
+                <pre className="text-xs font-mono text-red-400/80 bg-red-500/5 border border-red-500/15 rounded-xl p-3 sm:p-4 whitespace-pre-wrap break-all leading-relaxed overflow-x-auto max-w-full">
                   {s.before}
                 </pre>
               </div>
-              <div className="p-5">
+              <div className="p-4 sm:p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="w-5 h-5 rounded-full bg-accent3/20 border border-accent3/40 flex items-center justify-center text-xs text-accent3">✓</span>
                   <span className="text-xs font-extrabold text-accent3 uppercase">{s.after_label ?? (lang === 'ar' ? 'بعد' : lang === 'fr' ? 'Après' : 'After')}</span>
                 </div>
-                <pre className="text-xs font-mono text-accent3/80 bg-accent3/5 border border-accent3/15 rounded-xl p-4 whitespace-pre-wrap break-words leading-relaxed">
+                <pre className="text-xs font-mono text-accent3/80 bg-accent3/5 border border-accent3/15 rounded-xl p-3 sm:p-4 whitespace-pre-wrap break-all leading-relaxed overflow-x-auto max-w-full">
                   {s.after}
                 </pre>
               </div>
@@ -582,7 +579,7 @@ export default function LessonViewClient({
         const allDone = checks.every((_, i) => states[i])
         return (
           <div key={idx} className={cn(
-            'rounded-2xl p-6 border transition-all',
+            'rounded-2xl p-4 sm:p-6 border transition-all',
             allDone ? 'bg-accent3/8 border-accent3/30' : 'bg-card border-white/8'
           )}>
             <div className="flex items-center gap-2 mb-4">
@@ -590,11 +587,11 @@ export default function LessonViewClient({
               <span className="text-xs font-bold text-muted uppercase tracking-wider">{t.checklist}</span>
             </div>
             {s.text && <p className="text-sm font-semibold text-muted mb-4 leading-relaxed">{s.text}</p>}
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {checks.map((item, i) => (
                 <button key={i} onClick={() => toggleCheck(idx, i, checks.length)}
                   className={cn(
-                    'w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold text-start transition-all',
+                    'w-full flex items-center gap-3 px-3 sm:px-4 py-3 rounded-xl border text-sm font-semibold text-start transition-all',
                     states[i]
                       ? 'bg-accent3/10 border-accent3/30 text-accent3'
                       : 'bg-card2 border-white/8 text-muted hover:border-white/20 hover:text-white'
@@ -623,11 +620,11 @@ export default function LessonViewClient({
         const embedUrl = s.url ? getVideoEmbed(s.url) : null
         return (
           <div key={idx} className="bg-card border border-white/8 rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-white/8">
+            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-white/8">
               <span className="text-sm">▶️</span>
               <span className="text-xs font-bold text-muted uppercase tracking-wider">{t.video}</span>
               {s.caption && (
-                <span className="text-xs text-muted/60 font-semibold ml-auto truncate max-w-[60%]">{s.caption}</span>
+                <span className="text-xs text-muted/60 font-semibold ml-auto truncate max-w-[50%] sm:max-w-[60%]">{s.caption}</span>
               )}
             </div>
             {embedUrl ? (
@@ -642,14 +639,13 @@ export default function LessonViewClient({
                 />
               </div>
             ) : (
-              // Non-embeddable URL — open in new tab
-              <div className="p-8 text-center">
+              <div className="p-6 sm:p-8 text-center">
                 <div className="text-5xl mb-4">▶️</div>
                 <p className="text-sm font-semibold text-muted mb-4">
                   {lang === 'ar' ? 'انقر لمشاهدة الفيديو' : lang === 'fr' ? 'Cliquez pour voir la vidéo' : 'Click to watch the video'}
                 </p>
                 <a href={s.url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm bg-red-600/20 text-red-400 border border-red-500/25 hover:bg-red-600/30 transition-all">
+                  className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-extrabold text-sm bg-red-600/20 text-red-400 border border-red-500/25 hover:bg-red-600/30 transition-all">
                   ▶️ {lang === 'ar' ? 'مشاهدة الفيديو' : lang === 'fr' ? 'Voir la vidéo' : 'Watch Video'} ↗
                 </a>
               </div>
@@ -659,45 +655,43 @@ export default function LessonViewClient({
       }
 
       // ── WEBSITE EMBED ─────────────────────────────────────
-      // Insert any URL — shows in an iframe inside the lesson.
-      // Use embed_url for the iframe src, url for the "open in new tab" fallback.
-      // Set height (default 500px). Not all sites allow embedding (X-Frame-Options).
       case 'website': {
         const iframeSrc  = s.embed_url ?? s.url ?? ''
+        // On mobile, cap height to avoid overwhelming the screen
         const frameHeight = s.height ?? 500
         return (
           <div key={idx} className="bg-card border border-white/8 rounded-2xl overflow-hidden">
             {/* Header bar */}
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-white/8 bg-card2">
-              <span className="text-sm">🔗</span>
-              <span className="text-xs font-bold text-muted uppercase tracking-wider flex-1">{t.website}</span>
+            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-white/8 bg-card2">
+              <span className="text-sm flex-shrink-0">🔗</span>
+              <span className="text-xs font-bold text-muted uppercase tracking-wider flex-1 truncate">{t.website}</span>
               {(s.url ?? s.embed_url) && (
                 <a
                   href={s.url ?? s.embed_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs font-bold text-accent5 hover:text-white transition-colors flex-shrink-0"
+                  className="flex items-center gap-1 text-xs font-bold text-accent5 hover:text-white transition-colors flex-shrink-0 ml-2"
                 >
-                  ↗ {t.openSite}
+                  ↗ <span className="hidden sm:inline">{t.openSite}</span>
                 </a>
               )}
             </div>
 
             {/* Title / caption */}
             {s.caption && (
-              <div className="px-5 py-2 border-b border-white/5 bg-white/1">
+              <div className="px-4 sm:px-5 py-2 border-b border-white/5 bg-white/1">
                 <p className="text-xs font-semibold text-muted">{s.caption}</p>
               </div>
             )}
 
             {/* Fake browser chrome */}
-            <div className="px-4 py-2 bg-white/3 border-b border-white/5 flex items-center gap-2">
-              <div className="flex gap-1.5">
+            <div className="px-3 sm:px-4 py-2 bg-white/3 border-b border-white/5 flex items-center gap-2">
+              <div className="flex gap-1.5 flex-shrink-0">
                 <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
                 <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
                 <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
               </div>
-              <div className="flex-1 bg-white/5 rounded-md px-3 py-1 text-xs font-mono text-muted/50 truncate">
+              <div className="flex-1 bg-white/5 rounded-md px-3 py-1 text-xs font-mono text-muted/50 truncate min-w-0 max-w-full overflow-hidden">
                 {iframeSrc}
               </div>
             </div>
@@ -707,7 +701,7 @@ export default function LessonViewClient({
               <iframe
                 src={iframeSrc}
                 style={{ height: frameHeight }}
-                className="w-full border-0 block"
+                className="w-full max-w-full border-0 block"
                 title={s.caption ?? 'Interactive resource'}
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                 loading="lazy"
@@ -720,7 +714,7 @@ export default function LessonViewClient({
 
             {/* Description */}
             {s.text && (
-              <div className="px-5 py-4 border-t border-white/5">
+              <div className="px-4 sm:px-5 py-4 border-t border-white/5">
                 <p className="text-xs font-semibold text-muted leading-relaxed">{s.text}</p>
               </div>
             )}
@@ -732,37 +726,32 @@ export default function LessonViewClient({
       case 'image':
         return (
           <div key={idx} className="bg-card border border-white/8 rounded-2xl overflow-hidden">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-white/8">
+            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-white/8">
               <span className="text-sm">🖼️</span>
               <span className="text-xs font-bold text-muted uppercase tracking-wider">{t.image}</span>
             </div>
-            <div className="p-4">
+            <div className="p-3 sm:p-4">
               {s.src ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={s.src}
                   alt={s.alt ?? 'Lesson diagram'}
-                  className="w-full rounded-xl border border-white/8 object-contain max-h-96"
+                  className="w-full rounded-xl border border-white/8 object-contain max-h-64 sm:max-h-96"
                 />
               ) : (
-                <div className="h-40 bg-card2 rounded-xl flex items-center justify-center text-muted text-sm font-semibold">
+                <div className="h-32 sm:h-40 bg-card2 rounded-xl flex items-center justify-center text-muted text-sm font-semibold">
                   🖼️ Image placeholder
                 </div>
               )}
             </div>
             {(s.alt || s.text) && (
-              <p className="px-5 pb-4 text-xs text-muted font-semibold">{s.alt ?? s.text}</p>
+              <p className="px-4 sm:px-5 pb-4 text-xs text-muted font-semibold">{s.alt ?? s.text}</p>
             )}
           </div>
         )
 
       // ── EXTERNAL ACTIVITY ────────────────────────────────
-      // For activities on Jupyter, Code.org, Replit, Scratch, etc.
-      // DB shape: { "type":"external", "url":"https://...", "platform":"Jupyter",
-      //             "title":"My Activity", "text":"Instructions...",
-      //             "button_label":"Open Notebook" }
       case 'external': {
-        // Pick a platform icon
         const platformIcons: Record<string, string> = {
           jupyter: '📓', replit: '💻', scratch: '🐱', 'code.org': '💡',
           colab: '📊', kaggle: '🏆', codepen: '✏️', glitch: '🎏',
@@ -776,47 +765,41 @@ export default function LessonViewClient({
         return (
           <div key={idx} className="rounded-2xl overflow-hidden border border-accent4/30 bg-gradient-to-br from-accent4/8 to-accent5/8">
             {/* Header */}
-            <div className="flex items-center gap-3 px-5 py-3 border-b border-white/8 bg-white/2">
-              <span className="text-base">{icon}</span>
+            <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/2">
+              <span className="text-base flex-shrink-0">{icon}</span>
               <span className="text-xs font-bold text-accent4 uppercase tracking-wider">{t.external}</span>
               {s.platform && (
-                <span className="ml-auto text-xs font-bold text-muted bg-white/5 border border-white/8 px-2.5 py-0.5 rounded-full">
+                <span className="ml-auto text-xs font-bold text-muted bg-white/5 border border-white/8 px-2 sm:px-2.5 py-0.5 rounded-full truncate max-w-[40%]">
                   {s.platform}
                 </span>
               )}
             </div>
 
-            <div className="p-6">
-              {/* Activity title */}
+            <div className="p-4 sm:p-6">
               {s.title && (
                 <h3 className="font-extrabold text-base mb-2">{s.title}</h3>
               )}
-
-              {/* Instructions */}
               {s.text && (
-                <p className="text-sm font-semibold text-muted leading-relaxed mb-5">{s.text}</p>
+                <p className="text-sm font-semibold text-muted leading-relaxed mb-4 sm:mb-5">{s.text}</p>
               )}
 
-              {/* The big CTA button */}
               <a
                 href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center gap-3 px-6 py-4 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent4 to-accent5 text-white hover:-translate-y-0.5 hover:shadow-xl hover:shadow-accent5/20 transition-all w-full justify-center"
+                className="group inline-flex items-center gap-3 px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent4 to-accent5 text-white hover:-translate-y-0.5 hover:shadow-xl hover:shadow-accent5/20 transition-all w-full justify-center"
               >
                 <span className="text-lg">{icon}</span>
-                {btnLabel}
-                <span className="opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">↗</span>
+                <span className="truncate">{btnLabel}</span>
+                <span className="opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all flex-shrink-0">↗</span>
               </a>
 
-              {/* Come-back reminder */}
               <p className="text-center text-xs text-muted font-semibold mt-4">
                 {t.externalDone}
               </p>
             </div>
 
-            {/* Info bar */}
-            <div className="px-5 py-3 border-t border-white/5 bg-white/1">
+            <div className="px-4 sm:px-5 py-3 border-t border-white/5 bg-white/1">
               <p className="text-xs text-muted/60 font-semibold">{t.externalDesc}</p>
             </div>
           </div>
@@ -837,10 +820,10 @@ export default function LessonViewClient({
   ]
 
   return (
-    <div className="p-6 lg:p-10 max-w-3xl" dir={dir}>
-      {/* Toast */}
+    <div className="p-4 sm:p-6 lg:p-10 max-w-3xl w-full overflow-x-hidden" dir={dir}>
+      {/* Toast — shifted on mobile so it doesn't overlap content awkwardly */}
       <div className={cn(
-        'fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl bg-card border border-accent2/30 text-accent2 font-bold text-sm shadow-xl transition-all duration-300',
+        'fixed top-4 left-4 right-4 sm:left-auto sm:top-6 sm:right-6 z-50 px-5 py-3 rounded-2xl bg-card border border-accent2/30 text-accent2 font-bold text-sm shadow-xl transition-all duration-300',
         toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'
       )}>
         {toast}
@@ -848,11 +831,11 @@ export default function LessonViewClient({
 
       {/* Level-up overlay */}
       {levelUp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setLevelUp(null)}>
-          <div className="bg-card border border-accent2/30 rounded-3xl p-10 text-center shadow-2xl">
-            <div className="text-7xl mb-4 animate-bounce">🎊</div>
-            <h2 className="font-fredoka text-4xl text-accent2 mb-2">{levelUp}</h2>
-            <p className="text-muted font-bold">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setLevelUp(null)}>
+          <div className="bg-card border border-accent2/30 rounded-3xl p-8 sm:p-10 text-center shadow-2xl w-full max-w-sm">
+            <div className="text-6xl sm:text-7xl mb-4 animate-bounce">🎊</div>
+            <h2 className="font-fredoka text-3xl sm:text-4xl text-accent2 mb-2">{levelUp}</h2>
+            <p className="text-muted font-bold text-sm">
               {lang === 'ar' ? 'استمر، أنت لا يُوقف!' : lang === 'fr' ? 'Continue — inarrêtable !' : 'Keep going — unstoppable!'}
             </p>
           </div>
@@ -860,42 +843,42 @@ export default function LessonViewClient({
       )}
 
       {/* Back */}
-      <Link href={`/dashboard/skills/${skill?.id}`} className="inline-flex items-center gap-1 text-muted font-bold text-sm hover:text-white transition-colors mb-6">
+      <Link href={`/dashboard/skills/${skill?.id}`} className="inline-flex items-center gap-1 text-muted font-bold text-sm hover:text-white transition-colors mb-5 sm:mb-6">
         {t.back}
       </Link>
 
-      {/* Header */}
-      <div className="flex items-start gap-4 mb-3">
-        <div className="text-5xl flex-shrink-0">{lesson.emoji}</div>
+      {/* Header — emoji + title stack nicely on mobile */}
+      <div className="flex items-start gap-3 sm:gap-4 mb-3">
+        <div className="text-4xl sm:text-5xl flex-shrink-0 leading-none mt-0.5">{lesson.emoji}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <span className="text-xs font-bold text-muted">{t.lesson} {lessonIndex}/{totalLessons}</span>
             {isDone && <span className="text-xs font-bold text-accent3 bg-accent3/10 border border-accent3/25 px-2.5 py-0.5 rounded-full">{t.completedBefore}</span>}
           </div>
-          <h1 className="font-fredoka text-2xl lg:text-3xl leading-tight">{lesson.title}</h1>
+          <h1 className="font-fredoka text-xl sm:text-2xl lg:text-3xl leading-tight">{lesson.title}</h1>
           <p className="text-muted font-semibold text-sm mt-1 leading-relaxed">{lesson.description}</p>
         </div>
       </div>
 
-      {/* Meta */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
+      {/* Meta badges */}
+      <div className="flex items-center gap-2 sm:gap-3 mb-4 flex-wrap">
         <span className="text-xs font-bold bg-accent2/15 text-accent2 border border-accent2/25 px-3 py-1 rounded-full">+{lesson.xp_reward} XP</span>
         <span className="text-xs font-bold text-muted">⏱ {lesson.duration_mins} min</span>
       </div>
 
       {/* Progress bar */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
         <div className="flex-1 h-2 bg-card2 rounded-full overflow-hidden">
           <div className="h-full bg-gradient-to-r from-accent4 to-accent5 rounded-full transition-all duration-700"
             style={{ width: `${Math.round((lessonIndex / totalLessons) * 100)}%` }} />
         </div>
-        <span className="text-xs font-bold text-muted">{Math.round((lessonIndex / totalLessons) * 100)}%</span>
+        <span className="text-xs font-bold text-muted flex-shrink-0">{Math.round((lessonIndex / totalLessons) * 100)}%</span>
       </div>
 
-      {/* AI Coach banner */}
-      <div className="bg-gradient-to-r from-accent5/10 to-accent1/10 border border-accent5/20 rounded-2xl p-4 mb-7 flex items-center justify-between gap-4 flex-wrap">
+      {/* AI Coach banner — stacks vertically on small phones */}
+      <div className="bg-gradient-to-r from-accent5/10 to-accent1/10 border border-accent5/20 rounded-2xl p-4 mb-6 sm:mb-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">🤖</span>
+          <span className="text-2xl flex-shrink-0">🤖</span>
           <div>
             <p className="font-extrabold text-sm">
               {lang === 'ar' ? 'لديك سؤال؟ مدربك الذكي هنا!' : lang === 'fr' ? 'Une question ? Ton Coach IA est là !' : 'Confused? Your AI Coach is here!'}
@@ -905,13 +888,13 @@ export default function LessonViewClient({
             </p>
           </div>
         </div>
-        <Link href={coachUrl} className="flex-shrink-0 px-5 py-2.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all">
+        <Link href={coachUrl} className="flex-shrink-0 px-5 py-2.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all text-center">
           {t.askCoach}
         </Link>
       </div>
 
       {/* Content sections */}
-      <div className="space-y-5 mb-10">
+      <div className="space-y-4 sm:space-y-5 mb-8 sm:mb-10">
         {sections.length > 0
           ? sections.map((s, i) => renderSection(s, i))
           : <div className="bg-card border border-white/8 rounded-2xl p-8 text-center">
@@ -922,7 +905,7 @@ export default function LessonViewClient({
 
       {/* Complete button */}
       {!isDone && (
-        <div className="bg-card border border-white/8 rounded-2xl p-6 mb-6 text-center">
+        <div className="bg-card border border-white/8 rounded-2xl p-5 sm:p-6 mb-5 sm:mb-6 text-center">
           {blockingItems.length > 0 && (
             <ul className="mb-4 space-y-1">
               {blockingItems.map((item, i) => (
@@ -936,7 +919,7 @@ export default function LessonViewClient({
             onClick={markComplete}
             disabled={isPending || !canComplete}
             className={cn(
-              'px-8 py-3.5 rounded-2xl font-extrabold text-sm transition-all',
+              'w-full sm:w-auto px-8 py-3.5 rounded-2xl font-extrabold text-sm transition-all',
               isPending ? 'opacity-50 cursor-not-allowed bg-card2 text-muted' :
               !canComplete
                 ? 'bg-card2 text-muted/60 cursor-not-allowed border border-white/5'
@@ -949,7 +932,7 @@ export default function LessonViewClient({
       )}
 
       {isDone && (
-        <div className="bg-accent3/8 border border-accent3/30 rounded-2xl p-6 mb-6 text-center">
+        <div className="bg-accent3/8 border border-accent3/30 rounded-2xl p-5 sm:p-6 mb-5 sm:mb-6 text-center">
           <div className="text-4xl mb-2">🎉</div>
           <p className="font-extrabold text-accent3">
             {lang === 'ar' ? 'درس مكتمل! أحسنت!' : lang === 'fr' ? 'Leçon complète ! Excellent !' : 'Lesson complete! Great work!'}
@@ -957,36 +940,35 @@ export default function LessonViewClient({
         </div>
       )}
 
-      {/* Prev / Next nav */}
-      <div className="flex items-center justify-between gap-4 pt-6 border-t border-white/5 flex-wrap">
+      {/* Prev / Next nav — full-width buttons on mobile */}
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-5 sm:pt-6 border-t border-white/5">
         {prevLesson ? (
           <Link href={`/dashboard/skills/${skill?.id}/lesson/${prevLesson.id}`}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl font-extrabold text-sm border border-white/10 text-muted hover:text-white hover:border-white/25 transition-all">
-            ← {prevLesson.emoji} {prevLesson.title}
+            className="flex items-center justify-center sm:justify-start gap-2 px-4 sm:px-5 py-3 rounded-xl font-extrabold text-sm border border-white/10 text-muted hover:text-white hover:border-white/25 transition-all truncate">
+            ← {prevLesson.emoji} <span className="truncate">{prevLesson.title}</span>
           </Link>
         ) : (
-          <Link href={`/dashboard/skills/${skill?.id}`} className="text-sm font-bold text-muted hover:text-white transition-colors">
+          <Link href={`/dashboard/skills/${skill?.id}`} className="text-sm font-bold text-muted hover:text-white transition-colors text-center sm:text-left">
             ← {t.back}
           </Link>
         )}
         {nextLesson ? (
           <Link href={`/dashboard/skills/${skill?.id}/lesson/${nextLesson.id}`}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent4 to-accent5 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all">
-            {nextLesson.emoji} {nextLesson.title} →
+            className="flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent4 to-accent5 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all truncate">
+            {nextLesson.emoji} <span className="truncate">{nextLesson.title}</span> →
           </Link>
         ) : (
           <Link href={`/dashboard/skills/${skill?.id}`}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent2 to-accent1 text-black hover:-translate-y-0.5 hover:shadow-lg transition-all">
+            className="flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent2 to-accent1 text-black hover:-translate-y-0.5 hover:shadow-lg transition-all">
             {t.finish}
           </Link>
         )}
       </div>
 
-      {/* Share card modal */}
       {/* Lesson Feedback Modal */}
       {showFeedback && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowFeedback(false)}>
-          <div className="bg-card border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl animate-slide-up" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4" onClick={() => setShowFeedback(false)}>
+          <div className="bg-card border border-white/10 rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-2xl animate-slide-up" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
             <LessonFeedback
               userId={userId}
               lessonId={lesson.id}

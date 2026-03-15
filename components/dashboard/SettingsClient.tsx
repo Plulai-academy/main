@@ -9,27 +9,27 @@ import { cn } from '@/lib/utils'
 const AVATARS = ['🧑‍🚀','👩‍💻','🧑‍🎨','👩‍🔬','🦸','🧙','🤖','🦊','🐉','🦄','🐱','🐸','🦁','🐯','🦋','🌟','🔥','💎','🎮','🎯']
 
 const COUNTRIES = [
-  { code:'AE', flag:'🇦🇪', name:'UAE',          nameAr:'الإمارات',     nameFr:'Émirats'      },
-  { code:'SA', flag:'🇸🇦', name:'Saudi Arabia',  nameAr:'السعودية',    nameFr:'Arabie Saoudite' },
-  { code:'KW', flag:'🇰🇼', name:'Kuwait',        nameAr:'الكويت',      nameFr:'Koweït'       },
-  { code:'QA', flag:'🇶🇦', name:'Qatar',         nameAr:'قطر',         nameFr:'Qatar'        },
-  { code:'BH', flag:'🇧🇭', name:'Bahrain',       nameAr:'البحرين',     nameFr:'Bahreïn'      },
-  { code:'OM', flag:'🇴🇲', name:'Oman',          nameAr:'عُمان',       nameFr:'Oman'         },
-  { code:'EG', flag:'🇪🇬', name:'Egypt',         nameAr:'مصر',         nameFr:'Égypte'       },
-  { code:'MA', flag:'🇲🇦', name:'Morocco',       nameAr:'المغرب',      nameFr:'Maroc'        },
-  { code:'FR', flag:'🇫🇷', name:'France',        nameAr:'فرنسا',       nameFr:'France'       },
-  { code:'GB', flag:'🇬🇧', name:'UK',            nameAr:'المملكة المتحدة', nameFr:'Royaume-Uni' },
-  { code:'US', flag:'🇺🇸', name:'USA',           nameAr:'الولايات المتحدة', nameFr:'États-Unis' },
-  { code:'OTHER', flag:'🌍', name:'Other',       nameAr:'أخرى',        nameFr:'Autre'        },
+  { code:'AE', flag:'🇦🇪', name:'UAE',          nameAr:'الإمارات',          nameFr:'Émirats'          },
+  { code:'SA', flag:'🇸🇦', name:'Saudi Arabia',  nameAr:'السعودية',          nameFr:'Arabie Saoudite'  },
+  { code:'KW', flag:'🇰🇼', name:'Kuwait',        nameAr:'الكويت',            nameFr:'Koweït'           },
+  { code:'QA', flag:'🇶🇦', name:'Qatar',         nameAr:'قطر',               nameFr:'Qatar'            },
+  { code:'BH', flag:'🇧🇭', name:'Bahrain',       nameAr:'البحرين',           nameFr:'Bahreïn'          },
+  { code:'OM', flag:'🇴🇲', name:'Oman',          nameAr:'عُمان',             nameFr:'Oman'             },
+  { code:'EG', flag:'🇪🇬', name:'Egypt',         nameAr:'مصر',               nameFr:'Égypte'           },
+  { code:'MA', flag:'🇲🇦', name:'Morocco',       nameAr:'المغرب',            nameFr:'Maroc'            },
+  { code:'FR', flag:'🇫🇷', name:'France',        nameAr:'فرنسا',             nameFr:'France'           },
+  { code:'GB', flag:'🇬🇧', name:'UK',            nameAr:'المملكة المتحدة',   nameFr:'Royaume-Uni'      },
+  { code:'US', flag:'🇺🇸', name:'USA',           nameAr:'الولايات المتحدة',  nameFr:'États-Unis'       },
+  { code:'OTHER', flag:'🌍', name:'Other',       nameAr:'أخرى',              nameFr:'Autre'            },
 ]
 
 const INTERESTS_LIST = [
-  { id:'coding',           emoji:'💻', en:'Coding',            ar:'البرمجة',        fr:'Programmation' },
-  { id:'ai',               emoji:'🧠', en:'AI',                ar:'الذكاء الاصطناعي', fr:'IA'           },
-  { id:'games',            emoji:'🎮', en:'Game Design',        ar:'تصميم الألعاب',  fr:'Jeux'          },
-  { id:'entrepreneurship', emoji:'💡', en:'Entrepreneurship',   ar:'ريادة الأعمال', fr:'Entrepreneuriat' },
-  { id:'art',              emoji:'🎨', en:'Digital Art',        ar:'الفن الرقمي',   fr:'Art numérique'  },
-  { id:'robots',           emoji:'🤖', en:'Robotics',           ar:'الروبوتات',     fr:'Robotique'      },
+  { id:'coding',           emoji:'💻', en:'Coding',           ar:'البرمجة',            fr:'Programmation'   },
+  { id:'ai',               emoji:'🧠', en:'AI',               ar:'الذكاء الاصطناعي',  fr:'IA'              },
+  { id:'games',            emoji:'🎮', en:'Game Design',       ar:'تصميم الألعاب',     fr:'Jeux'            },
+  { id:'entrepreneurship', emoji:'💡', en:'Entrepreneurship',  ar:'ريادة الأعمال',     fr:'Entrepreneuriat' },
+  { id:'art',              emoji:'🎨', en:'Digital Art',       ar:'الفن الرقمي',       fr:'Art numérique'   },
+  { id:'robots',           emoji:'🤖', en:'Robotics',          ar:'الروبوتات',         fr:'Robotique'       },
 ]
 
 const UI: Record<string, Record<string, string>> = {
@@ -67,7 +67,7 @@ const UI: Record<string, Record<string, string>> = {
     save: 'Enregistrer', saving: 'Enregistrement...', saved: '✅ Enregistré !',
     danger: 'Zone dangereuse', signOut: 'Se déconnecter', account: 'Compte',
     stats: 'Mes Stats', xp: 'XP total', streak: 'Meilleure série',
-    time: 'Temps d\'apprentissage', lessons: 'Jours d\'apprentissage',
+    time: "Temps d'apprentissage", lessons: "Jours d'apprentissage",
     security: 'Sécurité', changePass: 'Changer le mot de passe',
     passHint: 'On enverra un lien de réinitialisation à ton email',
     sendLink: 'Envoyer le lien', linkSent: '📧 Vérifie ton email !',
@@ -79,8 +79,8 @@ const getAgeGroup = (age: number) => age <= 8 ? 'mini' : age <= 11 ? 'junior' : 
 // ── Notification prefs sub-component ────────────────────────
 function NotificationPrefsSection({ userId, profile, lang }: { userId: string; profile: any; lang: string }) {
   const supabase = createClient()
-  const [streakAlert,  setStreakAlert]  = useState(profile?.email_streak_alerts  ?? true)
-  const [weeklyReport, setWeeklyReport] = useState(profile?.email_weekly_report  ?? true)
+  const [streakAlert,  setStreakAlert]  = useState(profile?.email_streak_alerts   ?? true)
+  const [weeklyReport, setWeeklyReport] = useState(profile?.email_weekly_report   ?? true)
   const [trialRemind,  setTrialRemind]  = useState(profile?.email_trial_reminders ?? true)
   const [saved, setSaved] = useState(false)
 
@@ -97,9 +97,9 @@ function NotificationPrefsSection({ userId, profile, lang }: { userId: string; p
   }
 
   const labels: Record<string, Record<string, string>> = {
-    en: { title: 'Email Notifications', streak: 'Streak at-risk alerts', streakDesc: 'Get a nudge at 8pm if you haven\'t learned today', weekly: 'Weekly parent report', weeklyDesc: 'Your parent gets a progress summary every Sunday', trial: 'Trial expiry reminders', trialDesc: 'Heads up before your free trial ends' },
+    en: { title: 'Email Notifications', streak: 'Streak at-risk alerts', streakDesc: "Get a nudge at 8pm if you haven't learned today", weekly: 'Weekly parent report', weeklyDesc: 'Your parent gets a progress summary every Sunday', trial: 'Trial expiry reminders', trialDesc: 'Heads up before your free trial ends' },
     ar: { title: 'إشعارات البريد الإلكتروني', streak: 'تنبيهات خطر السلسلة', streakDesc: 'تلقّ تذكيراً عند الساعة 8 مساءً إذا لم تتعلم اليوم', weekly: 'تقرير الوالدين الأسبوعي', weeklyDesc: 'يتلقى والدك ملخصاً أسبوعياً كل أحد', trial: 'تذكيرات انتهاء التجربة', trialDesc: 'تنبيه قبل انتهاء التجربة المجانية' },
-    fr: { title: 'Notifications email', streak: 'Alertes série en danger', streakDesc: 'Reçois un rappel à 20h si tu n\'as pas appris aujourd\'hui', weekly: 'Rapport hebdomadaire parent', weeklyDesc: 'Tes parents reçoivent un résumé chaque dimanche', trial: 'Rappels fin d\'essai', trialDesc: 'Prévenu avant la fin de ton essai gratuit' },
+    fr: { title: 'Notifications email', streak: 'Alertes série en danger', streakDesc: "Reçois un rappel à 20h si tu n'as pas appris aujourd'hui", weekly: 'Rapport hebdomadaire parent', weeklyDesc: 'Tes parents reçoivent un résumé chaque dimanche', trial: "Rappels fin d'essai", trialDesc: 'Prévenu avant la fin de ton essai gratuit' },
   }
   const l = labels[lang] ?? labels.en
 
@@ -110,22 +110,23 @@ function NotificationPrefsSection({ userId, profile, lang }: { userId: string; p
   ]
 
   return (
-    <section className="bg-card border border-white/8 rounded-3xl p-6 mb-6">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="font-fredoka text-xl">🔔 {l.title}</h2>
+    <section className="bg-card border border-white/8 rounded-3xl p-5 md:p-6 mb-5 md:mb-6">
+      <div className="flex items-center justify-between mb-4 md:mb-5">
+        <h2 className="font-fredoka text-lg md:text-xl">🔔 {l.title}</h2>
         {saved && <span className="text-xs font-bold text-accent3 animate-fade-in">✅ Saved</span>}
       </div>
       <div className="space-y-4">
         {prefs.map(p => (
-          <div key={p.key} className="flex items-center justify-between gap-4">
+          <div key={p.key} className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-bold text-sm mb-0.5">{p.label}</p>
-              <p className="text-xs text-muted font-semibold">{p.desc}</p>
+              <p className="text-xs text-muted font-semibold leading-snug">{p.desc}</p>
             </div>
+            {/* Toggle — adequate tap target via padding trick */}
             <button
               onClick={() => toggle(p.key, p.val, p.set)}
               className={cn(
-                'relative w-12 h-6 rounded-full transition-all flex-shrink-0 border-2',
+                'relative w-12 h-6 rounded-full transition-all shrink-0 border-2 touch-manipulation',
                 p.val ? 'bg-accent3 border-accent3' : 'bg-card2 border-white/15'
               )}
               aria-pressed={p.val}
@@ -144,15 +145,14 @@ function NotificationPrefsSection({ userId, profile, lang }: { userId: string; p
 
 // ── Parent share sub-component ───────────────────────────────
 function ParentShareSection({ hasParentEmail, lang, t }: { hasParentEmail: boolean; lang: string; t: Record<string,string> }) {
-  const [loading, setLoading]   = useState(false)
+  const [loading,   setLoading]   = useState(false)
   const [magicLink, setMagicLink] = useState<string | null>(null)
-  const [error, setError]       = useState<string | null>(null)
-  const [copied, setCopied]     = useState(false)
+  const [error,     setError]     = useState<string | null>(null)
+  const [copied,    setCopied]    = useState(false)
 
   const generate = async () => {
     if (!hasParentEmail) return
-    setLoading(true)
-    setError(null)
+    setLoading(true); setError(null)
     try {
       const res  = await fetch('/api/parent/token', { method: 'POST' })
       const data = await res.json()
@@ -180,9 +180,9 @@ function ParentShareSection({ hasParentEmail, lang, t }: { hasParentEmail: boole
   const l = labels[lang] ?? labels.en
 
   return (
-    <section className="bg-card border border-accent5/20 rounded-3xl p-6 mb-6">
-      <h2 className="font-fredoka text-xl mb-2">{l.title}</h2>
-      <p className="text-muted text-sm font-semibold mb-5 leading-relaxed">{l.desc}</p>
+    <section className="bg-card border border-accent5/20 rounded-3xl p-5 md:p-6 mb-5 md:mb-6">
+      <h2 className="font-fredoka text-lg md:text-xl mb-2">{l.title}</h2>
+      <p className="text-muted text-sm font-semibold mb-4 md:mb-5 leading-relaxed">{l.desc}</p>
 
       {!hasParentEmail ? (
         <p className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">{l.need}</p>
@@ -190,16 +190,20 @@ function ParentShareSection({ hasParentEmail, lang, t }: { hasParentEmail: boole
         <button
           onClick={generate}
           disabled={loading}
-          className="px-6 py-3 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-50"
+          className="w-full sm:w-auto px-6 py-3 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-50 touch-manipulation"
         >
           {loading ? '⏳ Generating...' : `🔗 ${l.btn}`}
         </button>
       ) : (
         <div className="space-y-3">
           <label className="text-xs font-bold text-muted uppercase tracking-wider block">{l.link}</label>
-          <div className="flex items-center gap-3 bg-card2 border border-white/10 rounded-xl px-4 py-3">
+          {/* Magic link row — stacks on very small screens */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-card2 border border-white/10 rounded-xl px-4 py-3">
             <span className="text-xs font-mono text-accent5 flex-1 truncate">{magicLink}</span>
-            <button onClick={copy} className="text-xs font-extrabold text-muted hover:text-white transition-colors flex-shrink-0">
+            <button
+              onClick={copy}
+              className="text-xs font-extrabold text-muted hover:text-white transition-colors shrink-0 touch-manipulation"
+            >
               {copied ? l.copied : l.copy}
             </button>
           </div>
@@ -244,10 +248,7 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
         interests: interests as any, dream_project: dream,
         country, parent_email: parentEmail || undefined,
       })
-      if (error) {
-        console.error('[SettingsClient] Profile save failed:', error.message)
-        return
-      }
+      if (error) { console.error('[SettingsClient] Profile save failed:', error.message); return }
       await updateUserLanguage(userId, language as 'en' | 'ar' | 'fr')
       setSavedMsg(true)
       setTimeout(() => setSavedMsg(false), 3000)
@@ -271,58 +272,58 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
   }
 
   const totalMins = progress?.total_time_mins ?? 0
-  const timeStr = totalMins >= 60
-    ? `${Math.floor(totalMins / 60)}h ${totalMins % 60}m`
-    : `${totalMins}m`
+  const timeStr   = totalMins >= 60 ? `${Math.floor(totalMins / 60)}h ${totalMins % 60}m` : `${totalMins}m`
 
   const getCountryName = (c: typeof COUNTRIES[0]) =>
     lang === 'ar' ? c.nameAr : lang === 'fr' ? c.nameFr : c.name
 
   return (
-    <div className="p-6 lg:p-10 max-w-3xl" dir={dir}>
-      <h1 className="font-fredoka text-3xl mb-8">{t.title}</h1>
+    <div className="p-4 md:p-6 lg:p-10 max-w-3xl" dir={dir}>
+      <h1 className="font-fredoka text-2xl md:text-3xl mb-6 md:mb-8">{t.title}</h1>
 
-      {/* ── Stats summary ───────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-3 mb-8">
+      {/* ── Stats summary ── */}
+      {/* 2×2 on mobile, 4-wide on sm+ */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3 mb-6 md:mb-8">
         {[
           { label: t.xp,     value: (progress?.xp ?? 0).toLocaleString(), emoji: '⚡' },
           { label: t.streak, value: `${progress?.longest_streak ?? 0}d`,  emoji: '🔥' },
           { label: t.time,   value: timeStr,                               emoji: '⏱' },
           { label: 'Level',  value: `L${progress?.level ?? 1}`,            emoji: '🌟' },
         ].map(s => (
-          <div key={s.label} className="bg-card border border-white/8 rounded-2xl p-4 text-center">
-            <div className="text-xl mb-1">{s.emoji}</div>
+          <div key={s.label} className="bg-card border border-white/8 rounded-2xl p-3 md:p-4 text-center">
+            <div className="text-lg md:text-xl mb-1">{s.emoji}</div>
             <div className="font-extrabold text-sm">{s.value}</div>
             <div className="text-muted text-xs font-bold">{s.label}</div>
           </div>
         ))}
       </div>
 
-      {/* ── Profile section ─────────────────────────────────── */}
-      <section className="bg-card border border-white/8 rounded-3xl p-6 mb-6">
-        <h2 className="font-fredoka text-xl mb-6">{t.profile}</h2>
+      {/* ── Profile section ── */}
+      <section className="bg-card border border-white/8 rounded-3xl p-5 md:p-6 mb-5 md:mb-6">
+        <h2 className="font-fredoka text-lg md:text-xl mb-5 md:mb-6">{t.profile}</h2>
 
         {/* Avatar picker */}
-        <div className="mb-6">
+        <div className="mb-5 md:mb-6">
           <label className="text-xs font-bold text-muted uppercase tracking-wider block mb-3">{t.avatar}</label>
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-16 h-16 rounded-2xl bg-card2 border-2 border-accent4/40 flex items-center justify-center text-4xl">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-card2 border-2 border-accent4/40 flex items-center justify-center text-3xl md:text-4xl shrink-0">
               {avatar}
             </div>
             <div className="text-sm font-semibold text-muted">
               {lang === 'ar' ? 'صورتك الحالية' : lang === 'fr' ? 'Ton avatar actuel' : 'Current avatar'}
             </div>
           </div>
-          <div className="grid grid-cols-10 gap-2">
+          {/* 10-col grid on md+, 5-col on mobile so each emoji is a comfortable tap size */}
+          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
             {AVATARS.map(a => (
               <button
                 key={a}
                 onClick={() => setAvatar(a)}
                 className={cn(
-                  'aspect-square rounded-xl text-2xl flex items-center justify-center transition-all',
+                  'aspect-square rounded-xl text-xl sm:text-2xl flex items-center justify-center transition-all touch-manipulation',
                   avatar === a
                     ? 'bg-accent4/20 border-2 border-accent4 scale-110'
-                    : 'bg-card2 border-2 border-transparent hover:border-white/20 hover:scale-105'
+                    : 'bg-card2 border-2 border-transparent hover:border-white/20 hover:scale-105 active:scale-95'
                 )}
               >{a}</button>
             ))}
@@ -334,14 +335,14 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
           <label className="text-xs font-bold text-muted uppercase tracking-wider block mb-2">{t.name}</label>
           <input
             value={name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setName(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             maxLength={50}
             className="w-full bg-card2 border-2 border-white/8 focus:border-accent4 rounded-xl px-4 py-3 text-white font-semibold text-sm outline-none transition-all"
           />
         </div>
 
-        {/* Age + Country row */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        {/* Age + Country — stacked on mobile, side-by-side on sm+ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-4">
           <div>
             <label className="text-xs font-bold text-muted uppercase tracking-wider block mb-2">{t.age}</label>
             <input
@@ -350,16 +351,16 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
               className="w-full bg-card2 border-2 border-white/8 focus:border-accent4 rounded-xl px-4 py-3 text-white font-semibold text-sm outline-none transition-all"
             />
             <p className="text-xs text-muted font-bold mt-1">
-              {getAgeGroup(age) === 'mini' ? '🌱 Mini Explorer' :
+              {getAgeGroup(age) === 'mini'   ? '🌱 Mini Explorer'  :
                getAgeGroup(age) === 'junior' ? '🛠️ Junior Creator' :
-               getAgeGroup(age) === 'pro' ? '🗺️ Pro Explorer' : '🚀 Tech Expert'}
+               getAgeGroup(age) === 'pro'    ? '🗺️ Pro Explorer'   : '🚀 Tech Expert'}
             </p>
           </div>
           <div>
             <label className="text-xs font-bold text-muted uppercase tracking-wider block mb-2">{t.country}</label>
             <select
               value={country}
-              onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setCountry(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCountry(e.target.value)}
               className="w-full bg-card2 border-2 border-white/8 focus:border-accent4 rounded-xl px-4 py-3 text-white font-semibold text-sm outline-none transition-all"
             >
               {COUNTRIES.map(c => (
@@ -369,35 +370,37 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
           </div>
         </div>
 
-        {/* Language */}
-        <div className="mb-6">
+        {/* Language selector */}
+        <div className="mb-5 md:mb-6">
           <label className="text-xs font-bold text-muted uppercase tracking-wider block mb-3">{t.language}</label>
-          <div className="flex gap-3">
+          <div className="flex gap-2 md:gap-3">
             {[
-              { code: 'en', flag: '🇬🇧', label: 'English'   },
-              { code: 'ar', flag: '🇦🇪', label: 'العربية'   },
-              { code: 'fr', flag: '🇫🇷', label: 'Français'  },
+              { code: 'en', flag: '🇬🇧', label: 'English'  },
+              { code: 'ar', flag: '🇦🇪', label: 'العربية'  },
+              { code: 'fr', flag: '🇫🇷', label: 'Français' },
             ].map(l => (
               <button
                 key={l.code}
                 onClick={() => setLanguage(l.code)}
                 className={cn(
-                  'flex-1 py-3 rounded-xl font-extrabold text-sm border-2 transition-all flex items-center justify-center gap-2',
+                  'flex-1 py-2.5 md:py-3 rounded-xl font-extrabold text-xs md:text-sm border-2 transition-all flex items-center justify-center gap-1.5 md:gap-2 touch-manipulation',
                   language === l.code
                     ? 'bg-accent4/15 border-accent4 text-accent4'
                     : 'bg-card2 border-white/8 text-muted hover:border-white/25'
                 )}
               >
-                {l.flag} {l.label}
+                <span>{l.flag}</span>
+                {/* Hide text label on very narrow screens, show from xs up */}
+                <span className="hidden xs:inline">{l.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Interests */}
-        <div className="mb-6">
+        {/* Interests — 2-col on mobile, 3-col on sm+ */}
+        <div className="mb-5 md:mb-6">
           <label className="text-xs font-bold text-muted uppercase tracking-wider block mb-3">{t.interests}</label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {INTERESTS_LIST.map(int => {
               const label = lang === 'ar' ? int.ar : lang === 'fr' ? int.fr : int.en
               return (
@@ -405,13 +408,14 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
                   key={int.id}
                   onClick={() => toggleInterest(int.id)}
                   className={cn(
-                    'py-3 px-3 rounded-xl text-sm font-bold border-2 transition-all text-start flex items-center gap-2',
+                    'py-2.5 md:py-3 px-3 rounded-xl text-xs md:text-sm font-bold border-2 transition-all text-start flex items-center gap-2 touch-manipulation active:scale-95',
                     interests.includes(int.id)
                       ? 'bg-accent5/15 border-accent5/60 text-accent5'
                       : 'bg-card2 border-white/8 text-muted hover:border-white/20'
                   )}
                 >
-                  <span>{int.emoji}</span> {label}
+                  <span>{int.emoji}</span>
+                  <span className="truncate">{label}</span>
                 </button>
               )
             })}
@@ -419,11 +423,11 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
         </div>
 
         {/* Dream project */}
-        <div className="mb-6">
+        <div className="mb-5 md:mb-6">
           <label className="text-xs font-bold text-muted uppercase tracking-wider block mb-2">{t.dream} 🌟</label>
           <textarea
             value={dream}
-            onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setDream(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDream(e.target.value)}
             rows={3}
             maxLength={500}
             placeholder={lang === 'ar' ? 'أخبرنا عن مشروع أحلامك...' : lang === 'fr' ? "Parle-nous de ton projet de rêve..." : 'Tell us about your dream project...'}
@@ -432,12 +436,12 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
         </div>
 
         {/* Parent email */}
-        <div className="mb-8">
+        <div className="mb-7 md:mb-8">
           <label className="text-xs font-bold text-muted uppercase tracking-wider block mb-2">{t.parent} 👨‍👩‍👧</label>
           <input
             type="email"
             value={parentEmail}
-            onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setParentEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setParentEmail(e.target.value)}
             placeholder="parent@example.com"
             className="w-full bg-card2 border-2 border-white/8 focus:border-accent4 rounded-xl px-4 py-3 text-white font-semibold text-sm outline-none transition-all"
           />
@@ -449,7 +453,7 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
           onClick={save}
           disabled={isPending}
           className={cn(
-            'w-full py-4 rounded-2xl font-extrabold text-sm transition-all',
+            'w-full py-3.5 md:py-4 rounded-2xl font-extrabold text-sm transition-all touch-manipulation active:scale-[0.98]',
             savedMsg
               ? 'bg-accent3/20 text-accent3 border border-accent3/30'
               : 'bg-gradient-to-r from-accent4 to-accent5 text-white hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50'
@@ -459,24 +463,21 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
         </button>
       </section>
 
-      {/* ── Parent share section ────────────────────────────── */}
+      {/* ── Parent share section ── */}
       <ParentShareSection
         hasParentEmail={!!parentEmail || !!profile?.parent_email}
         lang={lang}
         t={t}
       />
 
-      {/* ── Notification preferences ────────────────────────── */}
-      <NotificationPrefsSection
-        userId={userId}
-        profile={profile}
-        lang={lang}
-      />
+      {/* ── Notification preferences ── */}
+      <NotificationPrefsSection userId={userId} profile={profile} lang={lang} />
 
-      {/* ── Security section ─────────────────────────────────── */}
-      <section className="bg-card border border-white/8 rounded-3xl p-6 mb-6">
-        <h2 className="font-fredoka text-xl mb-5">{t.security}</h2>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+      {/* ── Security section ── */}
+      <section className="bg-card border border-white/8 rounded-3xl p-5 md:p-6 mb-5 md:mb-6">
+        <h2 className="font-fredoka text-lg md:text-xl mb-4 md:mb-5">{t.security}</h2>
+        {/* Stacked on mobile, inline on sm+ */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <p className="font-bold text-sm mb-0.5">{t.changePass}</p>
             <p className="text-xs text-muted font-semibold">{t.passHint}</p>
@@ -484,7 +485,7 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
           <button
             onClick={sendPasswordReset}
             className={cn(
-              'px-5 py-2.5 rounded-xl font-extrabold text-sm transition-all flex-shrink-0',
+              'w-full sm:w-auto px-5 py-2.5 rounded-xl font-extrabold text-sm transition-all shrink-0 touch-manipulation',
               linkSent
                 ? 'bg-accent3/15 text-accent3 border border-accent3/30'
                 : 'bg-card2 border border-white/10 text-muted hover:text-white hover:border-white/25'
@@ -494,14 +495,16 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
           </button>
         </div>
         <div className="mt-4 pt-4 border-t border-white/5">
-          <p className="text-xs text-muted font-semibold">{t.account}: <span className="text-white">{profile?.email}</span></p>
+          <p className="text-xs text-muted font-semibold break-all">
+            {t.account}: <span className="text-white">{profile?.email}</span>
+          </p>
         </div>
       </section>
 
-      {/* ── Danger zone ─────────────────────────────────────── */}
-      <section className="bg-red-500/5 border border-red-500/20 rounded-3xl p-6">
-        <h2 className="font-fredoka text-xl text-red-400 mb-4">{t.danger}</h2>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+      {/* ── Danger zone ── */}
+      <section className="bg-red-500/5 border border-red-500/20 rounded-3xl p-5 md:p-6">
+        <h2 className="font-fredoka text-lg md:text-xl text-red-400 mb-3 md:mb-4">{t.danger}</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <p className="font-bold text-sm mb-0.5">{t.signOut}</p>
             <p className="text-xs text-muted font-semibold">
@@ -510,7 +513,7 @@ export default function SettingsClient({ userId, profile, progress }: Props) {
           </div>
           <button
             onClick={signOut}
-            className="px-5 py-2.5 rounded-xl font-extrabold text-sm border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-extrabold text-sm border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all touch-manipulation"
           >
             {t.signOut} →
           </button>
