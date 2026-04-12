@@ -61,7 +61,7 @@ const FAQS: FAQ[] = [
   { q: "What age is Sharkid for?",                   a: "Kids aged 11–17. The program adapts to each child's level — whether they have zero coding experience or have already built their first app." },
   { q: "Does my child need prior coding experience?", a: "No. Week 1 starts from absolute zero. By week 4 they will have built a working app using AI tools. The vibe coding approach means any motivated kid can build real things fast." },
   { q: "What language is the program in?",            a: "Bilingual — Arabic and English. Sessions are delivered in Arabic with full English support. Perfect for GCC families." },
-  { q: "How long are the weekly sessions?",           a: "2 hours per week, online via Zoom. Plus in-person sessions for the Month 2 Mid-Showcase and the Month 3 Demo Day in Dubai." },
+  { q: "How long are the weekly sessions?",           a: "12 hours per week." },
   { q: "Who teaches the program?",                    a: "The founder of Plulai — a Python developer who has personally coached 250 young entrepreneurs. Two guest sessions feature real investors and engineers from the Dubai tech ecosystem." },
   { q: "What happens on Demo Day?",                   a: "Each child delivers a 5-minute live pitch to a panel of real investors, with parents and guests in the audience. Every graduate receives a Sharkid completion certificate." },
   { q: "How much does it cost?",                      a: "Early founder price: AED 2,500 for the first 10 families. Full price: AED 3,500. Both include full platform access to Plulai for the duration of the bootcamp." },
@@ -293,7 +293,7 @@ export default function SharkidPage() {
         </h1>
 
         <p className="text-muted text-base md:text-lg lg:text-xl font-semibold max-w-2xl mx-auto mb-3 leading-relaxed">
-          A <strong className="text-white">3-month bootcamp</strong> where kids aged 11–17 learn vibe coding,
+          A <strong className="text-white">1-month bootcamp</strong> where kids aged 11–17 learn vibe coding,
           prompt engineering and entrepreneurship — then pitch their startup to{" "}
           <strong className="text-white">real investors</strong> on Demo Day.
         </p>
@@ -342,7 +342,7 @@ export default function SharkidPage() {
             { num: "250", label: "Kids coached",   sub: "By your instructor"},
             { num: "12",  label: "Live sessions",  sub: "2h each week"      },
             { num: "1",   label: "Demo Day",       sub: "Live in Dubai"     },
-            { num: "5+",  label: "Real investors", sub: "Judging your pitch"},
+            { num: "3+",  label: "Real investors", sub: "Judging your pitch"},
           ] as const).map((s, i) => (
             <div key={i} className="bg-card border border-white/5 rounded-2xl p-4 md:p-5 text-center hover:border-white/15 transition-all">
               <div className="font-fredoka text-2xl md:text-3xl text-white mb-1">{s.num}</div>
@@ -356,10 +356,10 @@ export default function SharkidPage() {
       {/* ── CURRICULUM ── */}
       <section id="curriculum" className="py-16 md:py-24 px-4 md:px-6 max-w-4xl mx-auto">
         <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3 md:mb-4">
-          3 Months. 3 Superpowers. 🏆
+          4 Weeks. 4 Superpowers. 🏆
         </h2>
         <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-base md:text-lg max-w-2xl mx-auto">
-          Every session builds on the last. By week 12 your child has a working startup and has pitched it to real investors.
+          Every session builds on the last. By week 4 your child has a working startup and has pitched it to real investors.
         </p>
         <div className="flex flex-col gap-4">
           {MONTHS.map((m, i) => (
@@ -405,7 +405,7 @@ export default function SharkidPage() {
             <p className="text-xs font-extrabold uppercase tracking-widest text-accent4 mb-3">Your Instructor</p>
             <h2 className="font-fredoka text-3xl md:text-4xl mb-4">Built by someone who actually teaches kids</h2>
             <p className="text-muted font-semibold leading-relaxed mb-6 text-sm md:text-base">
-              The founder of Plulai is a Python developer who has personally coached 250 young entrepreneurs —
+              The founder of Plulai is a who has personally coached 250 young entrepreneurs —
               and then built an AI platform to scale that teaching to the entire GCC.
             </p>
             <ul className="space-y-3">
@@ -428,7 +428,7 @@ export default function SharkidPage() {
             <div className="font-fredoka text-2xl text-white mb-2">Plulai Founder</div>
             <div className="text-muted text-sm font-bold mb-6">Python Developer · EdTech Founder · DTEC Dubai</div>
             <div className="flex flex-wrap gap-2 justify-center">
-              {(["250 kids coached", "Python dev", "AI builder", "Arab founder"] as const).map((t) => (
+              {(["250 kids coached", "Python dev", "AI builder", "YC startup school alumni" , ""] as const).map((t) => (
                 <span key={t} className="bg-accent4/20 text-accent4 border border-accent4/30 rounded-full px-3 py-1 text-xs font-extrabold">{t}</span>
               ))}
             </div>
