@@ -109,6 +109,13 @@ export default function LandingPage() {
           <a href="#faq"      className="hover:text-white transition-colors">FAQ</a>
         </div>
         <div className="flex items-center gap-2 md:gap-3">
+          {/* ── Sharkid button — visible on all screen sizes ── */}
+          <Link
+            href="/sharkid"
+            className="flex items-center gap-1.5 px-3 py-2 md:px-4 md:py-2 rounded-xl font-extrabold text-xs md:text-sm text-white bg-gradient-to-r from-accent2 to-accent1 hover:-translate-y-0.5 transition-all shadow-lg shadow-accent2/20 whitespace-nowrap"
+          >
+            🦈 Sharkid
+          </Link>
           <Link href="/auth/login"  className="hidden md:block text-sm font-bold text-muted hover:text-white transition-colors">Log In</Link>
           <Link href="/auth/signup" className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-accent4 to-accent5 hover:-translate-y-0.5 transition-all shadow-lg shadow-accent4/20">
             Start Free →
@@ -152,6 +159,13 @@ export default function LandingPage() {
           >
             ▶ See the Curriculum
           </a>
+          {/* ── Sharkid CTA in hero ── */}
+          <Link
+            href="/sharkid"
+            className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 rounded-2xl font-extrabold text-base md:text-lg text-white bg-gradient-to-r from-accent2 to-accent1 shadow-[0_0_40px_rgba(255,180,0,0.2)] hover:-translate-y-1 transition-all"
+          >
+            🦈 Join Sharkid
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -163,6 +177,25 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* ── Sharkid Banner ── */}
+      <section className="px-4 md:px-6 max-w-6xl mx-auto mb-8">
+        <Link
+          href="/sharkid"
+          className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-accent2/10 to-accent1/10 border border-accent2/25 rounded-3xl px-6 py-5 md:px-8 md:py-6 hover:-translate-y-0.5 transition-all group"
+        >
+          <div className="flex items-center gap-4">
+            <span className="text-4xl">🦈</span>
+            <div className="text-left">
+              <div className="font-fredoka text-xl md:text-2xl text-white">Sharkid — Startup Bootcamp for Kids</div>
+              <div className="text-muted text-sm font-semibold">3 months · July 2026 · Dubai · Only 17 spots left</div>
+            </div>
+          </div>
+          <span className="shrink-0 px-5 py-2.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-accent2 to-accent1 group-hover:-translate-y-0.5 transition-all">
+            Apply Now →
+          </span>
+        </Link>
       </section>
 
       {/* ── Tracks ── */}
@@ -330,6 +363,7 @@ export default function LandingPage() {
                   <a href="#features" className="block hover:text-white transition-colors">Features</a>
                   <Link href="/pricing"       className="block hover:text-white transition-colors">Pricing</Link>
                   <Link href="/auth/signup"   className="block hover:text-white transition-colors">Sign Up Free</Link>
+                  <Link href="/sharkid"       className="block hover:text-white transition-colors">🦈 Sharkid</Link>
                 </div>
               </div>
               <div>
