@@ -30,6 +30,7 @@ export async function middleware(request: NextRequest) {
   const isPublicPath =
     pathname === '/' ||
     pathname === '/pricing' ||
+    pathname === '/sharkkid' ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/parent/') ||
     pathname.startsWith('/api/') ||
