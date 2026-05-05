@@ -60,7 +60,7 @@ const WEEKS: Week[] = [
       { session: "Session 11", title: "Dress Rehearsal",               desc: "Full simulation of Demo Day. Investor Q&A practice. Filmed run-through. Final polish of product and deck." },
       { session: "Session 12", title: "DEMO DAY 🎤",                   desc: "Live 5-minute pitch to real investors in front of parents, guests and press. Awards ceremony. You earned this." },
     ],
-    deliverable: "A 5-minute live investor pitch. A Sharkid certificate. A Plulai Pro subscription. A story for life.",
+    deliverable: "A 5-minute live investor pitch. A Sharkkid certificate. A Plulai Pro subscription. A story for life.",
   },
 ];
 
@@ -83,7 +83,7 @@ const AWARDS = [
 ];
 
 const FAQS: FAQ[] = [
-  { q: "What age is Sharkid for?",                    a: "Kids aged 11–17. The program runs two parallel tracks — Junior (11–13) and Senior (14–17) — so every student works at the right level of complexity." },
+  { q: "What age is Sharkkid for?",                    a: "Kids aged 11–17. The program runs two parallel tracks — Junior (11–13) and Senior (14–17) — so every student works at the right level of complexity." },
   { q: "Does my child need prior coding experience?", a: "Zero experience needed. Session 1 starts from absolute scratch using vibe coding tools. By session 3 they will have built and deployed a real working app." },
   { q: "Is it online or in-person?",                  a: "Fully in-person at a partnered training center in Dubai. 3 sessions per week, 4 hours each, over 1 month. A real classroom environment with real peers." },
   { q: "What language is the program in?",            a: "Bilingual — Arabic and English. Sessions are delivered in Arabic with full English support. Built specifically for GCC families." },
@@ -278,7 +278,7 @@ export default function SharkidPage() {
       <nav className={`fixed top-0 inset-x-0 z-50 flex items-center justify-between px-4 lg:px-12 py-3 md:py-4 border-b transition-all ${scrolled ? "glass border-white/5" : "border-transparent bg-transparent"}`}>
         <div className="font-fredoka text-2xl bg-gradient-to-r from-accent2 to-accent4 bg-clip-text text-transparent flex items-center gap-2">
           Plulai
-          <span className="text-xs font-extrabold bg-accent4/20 text-accent4 border border-accent4/30 rounded-full px-2 py-0.5">Sharkid</span>
+          <span className="text-xs font-extrabold bg-accent4/20 text-accent4 border border-accent4/30 rounded-full px-2 py-0.5">Sharkkid</span>
         </div>
         <div className="hidden md:flex items-center gap-8 text-sm font-bold text-muted">
           {(["Program","Curriculum","Demo Day","FAQ"] as const).map((l, i) => (
@@ -554,7 +554,7 @@ export default function SharkidPage() {
       {/* ── FAQ ── */}
       <section id="faq" className="py-16 md:py-24 px-4 md:px-6 max-w-3xl mx-auto">
         <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3 md:mb-4">Questions Parents Ask</h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-base md:text-lg">Everything you need to know about Sharkid.</p>
+        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-base md:text-lg">Everything you need to know about Sharkkid.</p>
         <div className="space-y-3 md:space-y-4">
           {FAQS.map((f, i) => <FAQItem key={i} item={f} />)}
         </div>
@@ -632,7 +632,7 @@ export default function SharkidPage() {
                 disabled={submitStatus === "loading"}
                 className="w-full py-4 rounded-xl font-extrabold text-lg text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_40px_rgba(107,203,119,0.3)] hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {submitStatus === "loading" ? "Submitting… ⏳" : "Apply for Sharkid → 🦈"}
+                {submitStatus === "loading" ? "Submitting… ⏳" : "Apply for Sharkkid → 🦈"}
               </button>
 
               <p className="text-muted text-xs font-bold text-center mt-4 opacity-70">
@@ -649,7 +649,7 @@ export default function SharkidPage() {
           <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8">
             <div>
               <div className="font-fredoka text-2xl bg-gradient-to-r from-accent2 to-accent4 bg-clip-text text-transparent mb-2">
-                Plulai × Sharkid
+                Plulai × Sharkkid
               </div>
               <p className="text-muted text-xs font-bold max-w-xs leading-relaxed">
                 The first Arabic startup bootcamp for kids in the GCC · July & August 2026 · Dubai
