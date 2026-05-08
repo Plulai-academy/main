@@ -13,7 +13,7 @@ const UI: Record<string, Record<string, string>> = {
   en: {
     back: '← Lessons', complete: '✅ Mark Complete', completed: '✅ Done!',
     next: 'Next Lesson', finish: '🎉 Finish Skill!', quiz: 'Quick Check',
-    correct: '✅ Correct! Great job!', wrong: '❌ Not quite — try again!',
+    correct: '✅ Correct! Great job!', wrong: '❌ Not quite — think it over!',
     xpEarned: 'XP earned!', levelUp: 'Level Up!', tryAgain: 'Try Again',
     submit: 'Submit Answer', askCoach: '🤖 Ask AI Coach',
     reading: 'Reading', code: 'Code Example', analogy: '💡 Think of it this way',
@@ -36,7 +36,7 @@ const UI: Record<string, Record<string, string>> = {
   ar: {
     back: '← الدروس', complete: '✅ علّم كمكتمل', completed: '✅ تم!',
     next: 'الدرس التالي', finish: '🎉 أكمل المهارة!', quiz: 'اختبار سريع',
-    correct: '✅ صحيح! عمل رائع!', wrong: '❌ ليس تماماً — حاول مجدداً!',
+    correct: '✅ صحيح! عمل رائع!', wrong: '❌ ليس تماماً — فكّر مجدداً!',
     xpEarned: 'XP مكتسب!', levelUp: 'ترقية المستوى!', tryAgain: 'حاول مجدداً',
     submit: 'أرسل الإجابة', askCoach: '🤖 اسأل المدرب الذكي',
     reading: 'قراءة', code: 'مثال كودي', analogy: '💡 فكر بهذه الطريقة',
@@ -59,7 +59,7 @@ const UI: Record<string, Record<string, string>> = {
   fr: {
     back: '← Leçons', complete: '✅ Marquer terminé', completed: '✅ Fait !',
     next: 'Leçon suivante', finish: '🎉 Terminer !', quiz: 'Vérification rapide',
-    correct: '✅ Correct ! Super boulot !', wrong: '❌ Pas tout à fait — réessaie !',
+    correct: '✅ Correct ! Super boulot !', wrong: '❌ Pas tout à fait — réfléchis encore !',
     xpEarned: 'XP gagné !', levelUp: 'Niveau supérieur !', tryAgain: 'Réessayer',
     submit: 'Soumettre', askCoach: '🤖 Demander au Coach IA',
     reading: 'Lecture', code: 'Exemple de code', analogy: '💡 Imagine ça ainsi',
@@ -151,6 +151,8 @@ export default function LessonViewClient({
   const [copiedIdx, setCopied]    = useState<number | null>(null)
   const [justCompleted, setJustCompleted] = useState(false)
   const [showFeedback, setShowFeedback]   = useState(false)
+  // ── Penalty timer: secIdx → seconds remaining ──────────
+  const [penaltyTimer, setPenaltyTimer] = useState<Record<number, number>>({})
 
   const lang  = language || 'en'
   const t     = UI[lang] ?? UI.en
@@ -168,11 +170,36 @@ export default function LessonViewClient({
   } catch { sections = [] }
 
   const selectOption = (secIdx: number, optIdx: number) => {
+    // Block selection while penalty is active or already submitted correctly
     if (quizState[secIdx]?.submitted) return
+    if ((penaltyTimer[secIdx] ?? 0) > 0) return
     setQuiz((prev: Record<number, { selected: number | null; submitted: boolean }>) => ({ ...prev, [secIdx]: { selected: optIdx, submitted: false } }))
   }
-  const submitQuiz = (secIdx: number) => {
-    setQuiz((prev: Record<number, { selected: number | null; submitted: boolean }>) => ({ ...prev, [secIdx]: { ...prev[secIdx], submitted: true } }))
+
+  // ── Submit quiz — starts 20s penalty on wrong answer ───
+  const submitQuiz = (secIdx: number, correct: number) => {
+    const selected = quizState[secIdx]?.selected ?? null
+    setQuiz((prev: Record<number, { selected: number | null; submitted: boolean }>) => ({
+      ...prev,
+      [secIdx]: { ...prev[secIdx], submitted: true },
+    }))
+
+    if (selected !== correct) {
+      // Start 20-second penalty
+      setPenaltyTimer(prev => ({ ...prev, [secIdx]: 20 }))
+      const interval = setInterval(() => {
+        setPenaltyTimer(prev => {
+          const remaining = (prev[secIdx] ?? 1) - 1
+          if (remaining <= 0) {
+            clearInterval(interval)
+            // Auto-reset so the student can try again with a fresh slate
+            setQuiz(p => ({ ...p, [secIdx]: { selected: null, submitted: false } }))
+            return { ...prev, [secIdx]: 0 }
+          }
+          return { ...prev, [secIdx]: remaining }
+        })
+      }, 1000)
+    }
   }
 
   const toggleCheck = (secIdx: number, itemIdx: number, total: number) => {
@@ -391,11 +418,13 @@ export default function LessonViewClient({
           </div>
         )
 
-      // ── QUIZ (MODIFIED: does NOT reveal correct answer on wrong submission) ──
+      // ── QUIZ ─────────────────────────────────────────────
       case 'quiz': {
         const state     = quizState[idx] ?? { selected: null, submitted: false }
+        const penalty   = penaltyTimer[idx] ?? 0
         const isCorrect = state.submitted && state.selected === s.correct
         const isWrong   = state.submitted && state.selected !== s.correct
+        const isLocked  = penalty > 0  // during countdown, everything is locked
 
         return (
           <div key={idx} className={cn(
@@ -414,53 +443,78 @@ export default function LessonViewClient({
                 let cls = 'border-white/8 bg-card2 text-muted hover:border-white/25 hover:text-white cursor-pointer'
 
                 if (state.submitted) {
-                  if (isCorrect) {
-                    // If the answer is correct: highlight the correct option in green, and show user's selection (same) as green.
-                    if (oi === s.correct) {
-                      cls = 'border-accent3/60 bg-accent3/15 text-accent3 cursor-default'
-                    } else {
-                      cls = 'border-white/5 bg-card2/50 text-muted/50 cursor-default'
-                    }
+                  if (oi === s.correct && state.selected === oi) {
+                    // ✅ Student picked the correct answer — show green
+                    cls = 'border-accent3/60 bg-accent3/15 text-accent3 cursor-default'
+                  } else if (state.selected === oi) {
+                    // ❌ Student's wrong pick — show red, but do NOT reveal the correct one
+                    cls = 'border-red-500/40 bg-red-500/10 text-red-400 cursor-default'
                   } else {
-                    // WRONG answer: only highlight the user's selected option (in red), do NOT reveal correct answer.
-                    if (oi === state.selected) {
-                      cls = 'border-red-500/40 bg-red-500/10 text-red-400 cursor-default'
-                    } else {
-                      cls = 'border-white/5 bg-card2/50 text-muted/50 cursor-default'
-                    }
+                    // All other options stay neutral/dimmed — no green hint
+                    cls = 'border-white/5 bg-card2/50 text-muted/50 cursor-default'
                   }
                 } else if (state.selected === oi) {
                   cls = 'border-accent5/50 bg-accent5/15 text-white cursor-pointer'
                 }
 
+                // During penalty cooldown every option looks dimmed & unclickable
+                if (isLocked) {
+                  cls = 'border-white/5 bg-card2/30 text-muted/30 cursor-not-allowed'
+                }
+
                 return (
-                  <button key={oi} onClick={() => selectOption(idx, oi)} disabled={state.submitted}
-                    className={cn('w-full text-start px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl text-sm font-bold border transition-all', cls)}>
+                  <button
+                    key={oi}
+                    onClick={() => selectOption(idx, oi)}
+                    disabled={state.submitted || isLocked}
+                    className={cn('w-full text-start px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl text-sm font-bold border transition-all', cls)}
+                  >
                     <span className="font-extrabold mr-2 sm:mr-3 text-muted/60">{String.fromCharCode(65 + oi)}.</span>
                     {opt}
                   </button>
                 )
               })}
             </div>
-            {!state.submitted ? (
-              <button onClick={() => submitQuiz(idx)} disabled={state.selected === null}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+
+            {/* Bottom action area */}
+            {!state.submitted && !isLocked ? (
+              // Normal submit button
+              <button
+                onClick={() => submitQuiz(idx, s.correct!)}
+                disabled={state.selected === null}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
                 {t.submit}
               </button>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <p className={cn('text-sm font-extrabold', isCorrect ? 'text-accent3' : 'text-red-400')}>
-                    {isCorrect ? t.correct : t.wrong}
-                  </p>
-                  {isWrong && (
-                    <button onClick={() => setQuiz((prev: Record<number, { selected: number | null; submitted: boolean }>) => ({ ...prev, [idx]: { selected: null, submitted: false } }))}
-                      className="text-xs font-bold text-muted hover:text-white px-3 py-1.5 rounded-lg bg-white/5 transition-all">
-                      ↩ {t.tryAgain}
-                    </button>
-                  )}
+            ) : isWrong && isLocked ? (
+              // ── Penalty countdown ───────────────────────────
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 flex-1">
+                  {/* Animated hourglass */}
+                  <span className="text-xl animate-pulse">⏳</span>
+                  <div className="flex-1">
+                    <p className="text-xs font-extrabold text-red-400 mb-0.5">
+                      {lang === 'ar' ? 'إجابة خاطئة — فكّر جيداً!' : lang === 'fr' ? 'Mauvaise réponse — réfléchis bien !' : 'Wrong answer — think it over!'}
+                    </p>
+                    <p className="text-xs text-red-400/70 font-semibold">
+                      {lang === 'ar'
+                        ? `يمكنك المحاولة مجدداً خلال ${penalty} ثانية`
+                        : lang === 'fr'
+                        ? `Tu pourras réessayer dans ${penalty}s`
+                        : `You can try again in ${penalty}s`}
+                    </p>
+                  </div>
+                  {/* Countdown circle */}
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full border-2 border-red-500/40 bg-red-500/10 flex items-center justify-center">
+                    <span className="text-sm font-extrabold text-red-400 tabular-nums">{penalty}</span>
+                  </div>
                 </div>
-                {isCorrect && s.explanation && (
+              </div>
+            ) : isCorrect ? (
+              // ── Correct answer feedback ─────────────────────
+              <div className="space-y-2">
+                <p className="text-sm font-extrabold text-accent3">{t.correct}</p>
+                {s.explanation && (
                   <div className="mt-3 bg-white/4 border border-white/8 rounded-xl p-3 sm:p-4">
                     <p className="text-xs font-bold text-accent2 mb-1">
                       {lang === 'ar' ? 'الشرح' : lang === 'fr' ? 'Explication' : 'Explanation'}
@@ -469,7 +523,7 @@ export default function LessonViewClient({
                   </div>
                 )}
               </div>
-            )}
+            ) : null}
           </div>
         )
       }
@@ -672,7 +726,6 @@ export default function LessonViewClient({
       // ── WEBSITE EMBED ─────────────────────────────────────
       case 'website': {
         const iframeSrc  = s.embed_url ?? s.url ?? ''
-        // On mobile, cap height to avoid overwhelming the screen
         const frameHeight = s.height ?? 500
         return (
           <div key={idx} className="bg-card border border-white/8 rounded-2xl overflow-hidden">
@@ -836,7 +889,7 @@ export default function LessonViewClient({
 
   return (
     <div className="p-4 sm:p-6 lg:p-10 max-w-3xl w-full overflow-x-hidden" dir={dir}>
-      {/* Toast — shifted on mobile so it doesn't overlap content awkwardly */}
+      {/* Toast */}
       <div className={cn(
         'fixed top-4 left-4 right-4 sm:left-auto sm:top-6 sm:right-6 z-50 px-5 py-3 rounded-2xl bg-card border border-accent2/30 text-accent2 font-bold text-sm shadow-xl transition-all duration-300',
         toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'
@@ -862,7 +915,7 @@ export default function LessonViewClient({
         {t.back}
       </Link>
 
-      {/* Header — emoji + title stack nicely on mobile */}
+      {/* Header */}
       <div className="flex items-start gap-3 sm:gap-4 mb-3">
         <div className="text-4xl sm:text-5xl flex-shrink-0 leading-none mt-0.5">{lesson.emoji}</div>
         <div className="flex-1 min-w-0">
@@ -890,7 +943,7 @@ export default function LessonViewClient({
         <span className="text-xs font-bold text-muted flex-shrink-0">{Math.round((lessonIndex / totalLessons) * 100)}%</span>
       </div>
 
-      {/* AI Coach banner — stacks vertically on small phones */}
+      {/* AI Coach banner */}
       <div className="bg-gradient-to-r from-accent5/10 to-accent1/10 border border-accent5/20 rounded-2xl p-4 mb-6 sm:mb-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-3">
           <span className="text-2xl flex-shrink-0">🤖</span>
@@ -955,7 +1008,7 @@ export default function LessonViewClient({
         </div>
       )}
 
-      {/* Prev / Next nav — full-width buttons on mobile */}
+      {/* Prev / Next nav */}
       <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-5 sm:pt-6 border-t border-white/5">
         {prevLesson ? (
           <Link href={`/dashboard/skills/${skill?.id}/lesson/${prevLesson.id}`}
