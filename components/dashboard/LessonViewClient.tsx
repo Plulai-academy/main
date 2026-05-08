@@ -391,11 +391,12 @@ export default function LessonViewClient({
           </div>
         )
 
-      // ── QUIZ ─────────────────────────────────────────────
+      // ── QUIZ (MODIFIED: does NOT reveal correct answer on wrong submission) ──
       case 'quiz': {
         const state     = quizState[idx] ?? { selected: null, submitted: false }
         const isCorrect = state.submitted && state.selected === s.correct
         const isWrong   = state.submitted && state.selected !== s.correct
+
         return (
           <div key={idx} className={cn(
             'rounded-2xl p-4 sm:p-6 border transition-all',
@@ -411,13 +412,27 @@ export default function LessonViewClient({
             <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
               {(s.options ?? []).map((opt, oi) => {
                 let cls = 'border-white/8 bg-card2 text-muted hover:border-white/25 hover:text-white cursor-pointer'
+
                 if (state.submitted) {
-                  if (oi === s.correct)           cls = 'border-accent3/60 bg-accent3/15 text-accent3 cursor-default'
-                  else if (state.selected === oi) cls = 'border-red-500/40 bg-red-500/10 text-red-400 cursor-default'
-                  else                            cls = 'border-white/5 bg-card2/50 text-muted/50 cursor-default'
+                  if (isCorrect) {
+                    // If the answer is correct: highlight the correct option in green, and show user's selection (same) as green.
+                    if (oi === s.correct) {
+                      cls = 'border-accent3/60 bg-accent3/15 text-accent3 cursor-default'
+                    } else {
+                      cls = 'border-white/5 bg-card2/50 text-muted/50 cursor-default'
+                    }
+                  } else {
+                    // WRONG answer: only highlight the user's selected option (in red), do NOT reveal correct answer.
+                    if (oi === state.selected) {
+                      cls = 'border-red-500/40 bg-red-500/10 text-red-400 cursor-default'
+                    } else {
+                      cls = 'border-white/5 bg-card2/50 text-muted/50 cursor-default'
+                    }
+                  }
                 } else if (state.selected === oi) {
                   cls = 'border-accent5/50 bg-accent5/15 text-white cursor-pointer'
                 }
+
                 return (
                   <button key={oi} onClick={() => selectOption(idx, oi)} disabled={state.submitted}
                     className={cn('w-full text-start px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl text-sm font-bold border transition-all', cls)}>
@@ -445,7 +460,7 @@ export default function LessonViewClient({
                     </button>
                   )}
                 </div>
-                {s.explanation && (
+                {isCorrect && s.explanation && (
                   <div className="mt-3 bg-white/4 border border-white/8 rounded-xl p-3 sm:p-4">
                     <p className="text-xs font-bold text-accent2 mb-1">
                       {lang === 'ar' ? 'الشرح' : lang === 'fr' ? 'Explication' : 'Explanation'}
