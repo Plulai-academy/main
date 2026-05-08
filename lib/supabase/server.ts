@@ -1,4 +1,4 @@
-// lib/supabase/server.ts
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { createServerClient } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
