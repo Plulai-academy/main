@@ -514,12 +514,32 @@ export default function PlulaiTunisiaPage() {
 const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
 function RegisterForm() {
-  const [form, setForm] = useState({ childName: "", age: "", parentName: "", email: "", phone: "" });
+  const [form, setForm] = useState({ childName: "", age: "", parentName: "", email: "", phone: "", school: "", discount: "" });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [discountStatus, setDiscountStatus] = useState<"idle" | "valid" | "invalid">("idle");
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+  // ── Discount codes — add/edit yours here ──────────────────────
+  const DISCOUNT_CODES: Record<string, { label: string; off: number }> = {
+    "SCHOOL10": { label: "School partner discount",  off: 10 },
+    "PLULAI20": { label: "Early bird special",        off: 20 },
+    "FREE100":  { label: "Full scholarship",          off: 100 },
+  };
+
+  const BASE_FEE = 10;
+  const discountData = DISCOUNT_CODES[form.discount.trim().toUpperCase()];
+  const finalFee = discountData ? Math.max(0, BASE_FEE - (BASE_FEE * discountData.off / 100)) : BASE_FEE;
+
+  const checkDiscount = () => {
+    const code = form.discount.trim().toUpperCase();
+    if (!code) { setDiscountStatus("idle"); return; }
+    setDiscountStatus(DISCOUNT_CODES[code] ? "valid" : "invalid");
+  };
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(f => ({ ...f, [k]: e.target.value }));
+    if (k === "discount") setDiscountStatus("idle");
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -527,23 +547,24 @@ function RegisterForm() {
     setErrorMsg("");
 
     try {
-      // Google Apps Script requires no-cors mode — it returns opaque response
-      // We treat any network success as a successful write
       await fetch(GOOGLE_SHEET_WEBHOOK, {
         method: "POST",
-        mode: "no-cors",               // required for Apps Script webhooks
+        mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          childName:  form.childName,
-          age:        form.age,
-          parentName: form.parentName,
-          email:      form.email,
-          phone:      form.phone || "—",
-          timestamp:  new Date().toISOString(),
-          source:     "plulai-tunisia-page",
+          childName:      form.childName,
+          age:            form.age,
+          parentName:     form.parentName,
+          email:          form.email,
+          phone:          form.phone || "—",
+          school:         form.school || "—",
+          discountCode:   form.discount.trim().toUpperCase() || "—",
+          discountLabel:  discountData?.label || "—",
+          finalFee:       `${finalFee} DT`,
+          timestamp:      new Date().toISOString(),
+          source:         "plulai-tunisia-page",
         }),
       });
-      // no-cors gives opaque response — if fetch didn't throw, the request reached Google
       setStatus("success");
     } catch {
       setStatus("error");
