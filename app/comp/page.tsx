@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 // ── Countdown hook ──────────────────────────────────────────────────────────
 function useCountdown(target: Date) {
-  const calc = () => {
+  const getTime = () => {
     const diff = target.getTime() - Date.now();
     if (diff <= 0) return { days: 0, hours: 0, mins: 0, secs: 0 };
     return {
@@ -14,10 +14,11 @@ function useCountdown(target: Date) {
       secs:  Math.floor((diff % 60000)    / 1000),
     };
   };
-  const [t, setT] = useState(calc());
+  const [t, setT] = useState(getTime);
   useEffect(() => {
-    const id = setInterval(() => setT(calc()), 1000);
+    const id = setInterval(() => setT(getTime()), 1000);
     return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return t;
 }
@@ -589,7 +590,7 @@ function RegisterForm() {
       animation: "fadeUp 0.5s ease both",
     }}>
       <div style={{ fontSize: "3.5rem", marginBottom: 20 }}>🎉</div>
-      <div style={{ fontWeight: 800, fontSize: "1.4rem", color: "#fff", marginBottom: 10 }}>You're registered!</div>
+      <div style={{ fontWeight: 800, fontSize: "1.4rem", color: "#fff", marginBottom: 10 }}>You&apos;re registered!</div>
       <div style={{ fontFamily: "'Noto Serif Arabic', serif", color: "#86efac", fontSize: "1rem", marginBottom: 16, direction: "rtl" }}>تم تسجيلك بنجاح!</div>
       <div style={{ fontSize: "0.88rem", color: "#94a3b8", lineHeight: 1.7, marginBottom: 20 }}>
         Your registration has been saved. ✅<br />
@@ -632,14 +633,14 @@ function RegisterForm() {
       </div>
 
       <div>
-        <label style={labelStyle}>Child's Full Name · اسم الطفل</label>
+        <label style={labelStyle}>Child&apos;s Full Name · اسم الطفل</label>
         <input required style={inputStyle} placeholder="e.g. Ahmed Ben Ali" value={form.childName} onChange={set("childName")}
           onFocus={e => (e.target.style.borderColor = "#6366f1")}
           onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
       </div>
 
       <div>
-        <label style={labelStyle}>Child's Age · عمر الطفل</label>
+        <label style={labelStyle}>Child&apos;s Age · عمر الطفل</label>
         <select required style={{ ...inputStyle, appearance: "none" }} value={form.age} onChange={set("age")}>
           <option value="">Select age / اختر السن</option>
           {Array.from({ length: 13 }, (_, i) => i + 6).map(a => (
@@ -686,7 +687,7 @@ function RegisterForm() {
           onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
         />
         <div style={{ fontSize: "0.73rem", color: "#6b7280", marginTop: 6 }}>
-          Enter your child's school to appear on the certificate · اختياري — يظهر على الشهادة
+          Enter your child&apos;s school to appear on the certificate · اختياري — يظهر على الشهادة
         </div>
       </div>
 
@@ -818,7 +819,7 @@ function RegisterForm() {
       </button>
 
       <div style={{ fontSize: "0.75rem", color: "#6b7280", textAlign: "center", lineHeight: 1.6 }}>
-        By registering you confirm your child is aged 6–18 and agrees to Plulai's Terms.
+        By registering you confirm your child is aged 6–18 and agrees to Plulai&apos;s Terms.
         بالتسجيل تؤكد أن عمر طفلك بين 6 و 18 سنة.
       </div>
     </form>
