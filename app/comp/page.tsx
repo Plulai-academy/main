@@ -42,6 +42,7 @@ const DEADLINE        = new Date("2025-05-22T23:59:59");
 const BASE_FEE        = 20;
 const POOL_PRIZE      = 5000;
 const GOOGLE_WEBHOOK  = "https://script.google.com/macros/s/AKfycbwCHHHcjfjdTkGWKPWn5FRZWF7PzUlO985Dek5LZnw-Y_oxEH9ycfOqo-6OKdm5hV0I/exec";
+const FALLBACK_FORM_URL = "https://forms.gle/LsZACjr1fUBNUMXt7";
 
 const DISCOUNT_CODES: Record<string, { label: string; off: number }> = {
   "DOUBLED":  { label: "Partner — 50% off", off: 50 },
@@ -628,7 +629,7 @@ function RegisterForm() {
       setStatus("success");
     } catch {
       setStatus("error");
-      setErrorMsg("Connection failed. Please try again or email hello@plulai.com");
+      setErrorMsg("Connection failed. Please try again or use the backup Google Forms link below.");
     }
   };
 
@@ -750,7 +751,37 @@ function RegisterForm() {
         {status === "loading" ? "⏳ Registering..." : `🎯 Register & Pay ${finalFee} DT · سجّل الآن`}
       </button>
 
-      <div style={{ fontSize: "0.72rem", color: "#3d6665", textAlign: "center", lineHeight: 1.6 }}>
+      {/* ── FALLBACK BUTTON: Google Forms backup (only when submission is not sent) ── */}
+      {status !== "success" && (
+        <div style={{ marginTop: 12, textAlign: "center", borderTop: `1px solid ${C.border}`, paddingTop: 18 }}>
+          <div style={{ marginBottom: 8 }}>
+            <span style={{ fontSize: "0.7rem", color: C.muted, background: C.bg2, padding: "0 8px", letterSpacing: "0.5px" }}>⚠️ Alternative Registration</span>
+          </div>
+          <a
+            href={FALLBACK_FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "rgba(64,177,172,0.02)", border: `1px solid ${C.teal}`,
+              borderRadius: 999, padding: "10px 22px", color: C.teal,
+              textDecoration: "none", fontSize: "0.8rem", fontWeight: 600,
+              fontFamily: "'Space Grotesk', sans-serif",
+              transition: "all 0.2s ease",
+              cursor: "pointer"
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = `rgba(64,177,172,0.12)`)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(64,177,172,0.02)")}
+          >
+            📋 Register via Google Forms (backup) →
+          </a>
+          <div style={{ fontSize: "0.65rem", color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+            If the form above fails, use our official Google Forms backup to complete registration.
+          </div>
+        </div>
+      )}
+
+      <div style={{ fontSize: "0.72rem", color: "#3d6665", textAlign: "center", lineHeight: 1.6, marginTop: 4 }}>
         By registering you confirm your child is aged 6–18 and agrees to Plulai&apos;s Terms.<br />
         بالتسجيل تؤكد موافقتك على الشروط وأن عمر طفلك بين 6 و 18 سنة.
       </div>
