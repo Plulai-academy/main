@@ -24,7 +24,8 @@ function useCountdown(target: Date) {
 }
 
 // ── Data ────────────────────────────────────────────────────────────────────
-const DEADLINE = new Date("2025-06-15T23:59:59");
+// Registration deadline: day before competition start (22 May 2025, 23:59)
+const DEADLINE = new Date("2025-05-22T23:59:59");
 
 const DAYS = [
   { day: 1,  emoji: "🤔", title: "What is AI?",           desc: "Discover how AI already runs your phone, your music, and your city." },
@@ -44,7 +45,7 @@ const FAQ = [
   { q: "هل أحتاج خبرة مسبقة؟ / Do I need experience?", a: "Zero experience required. Day 1 starts from absolute scratch and builds step by step." },
   { q: "كيف تتم المنافسة؟ / How does it work?",        a: "10 daily online lessons on Plulai. Each day unlocks at 9 AM. Complete activities, earn XP, and submit your Day 10 project." },
   { q: "ما هو الجائزة؟ / What is the prize?",          a: "The winner receives an official trophy and certificate, plus a 1-year free Plulai Pro subscription." },
-  { q: "كيف أدفع؟ / How do I pay?",                    a: "Payment of 10 DT is made online at registration via secure payment link. You receive a confirmation email immediately." },
+  { q: "كيف أدفع؟ / How do I pay?",                    a: "Payment of 20 DT (or 10 DT with discount code) is made online after registration via secure link. You receive a confirmation email immediately." },
   { q: "هل يمكن للوالدين المتابعة؟ / Can parents follow?", a: "Yes. Parents receive a weekly progress report by email and can view the live leaderboard on this page." },
 ];
 
@@ -274,8 +275,9 @@ export default function PlulaiTunisiaPage() {
             lineHeight: 1.75, marginBottom: 40,
             animation: "fadeUp 0.6s 0.2s ease both",
           }}>
-            10 days · 100% online · Ages 6–18 · Only <strong style={{ color: "#fff" }}>10 DT</strong> to participate.<br />
-            Learn AI from zero, build a real project, and win the prize. 🏆
+            10 days · 100% online · Ages 6–18 · <strong style={{ color: "#fff" }}>20 DT</strong> to participate<br />
+            (<strong>50% discount</strong> for schools – use code <strong style={{ color: "#86efac" }}>DOUBLED</strong> or <strong style={{ color: "#86efac" }}>SCHOOL50</strong>)<br />
+            🏁 Competition: <strong>23 May → 5 June 2025</strong>
           </p>
 
           {/* CTA buttons */}
@@ -314,7 +316,7 @@ export default function PlulaiTunisiaPage() {
             {[
               { val: "6–18", lab: "Age / السن" },
               { val: "10", lab: "Days / أيام" },
-              { val: "10 DT", lab: "Entry fee / رسوم" },
+              { val: "20 DT", lab: "Entry fee / رسوم" },
               { val: "100%", lab: "Online / أونلاين" },
               { val: "🏆", lab: "Prize / جائزة" },
             ].map((s, i) => (
@@ -349,7 +351,10 @@ export default function PlulaiTunisiaPage() {
               <CountBlock value={secs}  label="Sec / ثواني" />
             </div>
             <div style={{ marginTop: 20, fontSize: "0.82rem", color: "#6b7280" }}>
-              Deadline: June 15, 2025 · آخر موعد: 15 يونيو 2025
+              Deadline: May 22, 2025 · آخر موعد: 22 ماي 2025
+            </div>
+            <div style={{ fontSize: "0.7rem", color: "#4b5563", marginTop: 8 }}>
+              Competition runs 23 May – 5 June 2025
             </div>
           </div>
         </section>
@@ -363,7 +368,7 @@ export default function PlulaiTunisiaPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
             {[
-              { step: "01", emoji: "📝", title: "Register & Pay 10 DT", ar: "سجّل وادفع 10 دينار", desc: "Fill out the form below, pay 10 DT online, and receive your confirmation email instantly." },
+              { step: "01", emoji: "📝", title: "Register & Pay 20 DT", ar: "سجّل وادفع 20 دينار", desc: "Fill out the form below, pay 20 DT online (or 10 DT with discount code), and receive your confirmation email instantly." },
               { step: "02", emoji: "💻", title: "Complete 10 Daily Lessons", ar: "أكمل 10 دروس يومية", desc: "Log in to Plulai each day. Each lesson takes 30–45 minutes. Build skills, earn XP, climb the leaderboard." },
               { step: "03", emoji: "🏆", title: "Submit & Win", ar: "قدّم مشروعك واربح", desc: "On Day 10, submit your AI project. A jury selects the top 3. The winner gets the prize!" },
             ].map((s, i) => (
@@ -387,7 +392,7 @@ export default function PlulaiTunisiaPage() {
           <div style={{ textAlign: "center", marginBottom: 48 }}>
             <div style={{ fontFamily: "monospace", fontSize: "0.65rem", letterSpacing: "0.15em", color: "#6366f1", marginBottom: 12, textTransform: "uppercase" }}>البرنامج · Schedule</div>
             <h2 style={{ fontWeight: 800, fontSize: "clamp(1.6rem,4vw,2.4rem)", letterSpacing: "-0.03em", color: "#fff" }}>The 10 Days of AI</h2>
-            <p style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: 12 }}>30–45 minutes per day · كل يوم 30 إلى 45 دقيقة</p>
+            <p style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: 12 }}>First lesson unlocks 23 May 2025 · 30–45 minutes per day</p>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
@@ -453,7 +458,7 @@ export default function PlulaiTunisiaPage() {
               { icon: "📊", title: "Weekly Reports", ar: "تقارير أسبوعية", desc: "You receive a detailed progress email every week showing exactly what your child learned." },
               { icon: "🎯", title: "Real Skills", ar: "مهارات حقيقية", desc: "Python, AI concepts, logical thinking. Skills that schools don't yet teach — but employers demand." },
               { icon: "🏅", title: "Certificate", ar: "شهادة إتمام", desc: "Every participant who completes all 10 days receives an official completion certificate." },
-              { icon: "💳", title: "Only 10 DT", ar: "10 دينار فقط", desc: "That is the cost of one coffee. No hidden fees, no monthly subscription required to participate." },
+              { icon: "💳", title: "Only 20 DT", ar: "20 دينار فقط", desc: "That is less than a meal. Use discount code DOUBLED or SCHOOL50 to get 50% off (10 DT). No hidden fees." },
             ].map((c, i) => (
               <div key={i} style={{
                 background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)",
@@ -483,7 +488,7 @@ export default function PlulaiTunisiaPage() {
           <div style={{ textAlign: "center", marginBottom: 40 }}>
             <div style={{ fontFamily: "monospace", fontSize: "0.65rem", letterSpacing: "0.15em", color: "#6366f1", marginBottom: 12, textTransform: "uppercase" }}>التسجيل · Registration</div>
             <h2 style={{ fontWeight: 800, fontSize: "clamp(1.5rem,4vw,2.2rem)", letterSpacing: "-0.02em", color: "#fff" }}>Join the Competition</h2>
-            <p style={{ color: "#94a3b8", fontSize: "0.88rem", marginTop: 10 }}>انضم إلى البطولة — سجّل طفلك في 2 دقيقة</p>
+            <p style={{ color: "#94a3b8", fontSize: "0.88rem", marginTop: 10 }}>انضم إلى البطولة — سجّل طفلك في 2 دقيقة. Base fee 20 DT (50% discount with code DOUBLED or SCHOOL50)</p>
           </div>
 
           <RegisterForm />
@@ -519,15 +524,16 @@ function RegisterForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [discountStatus, setDiscountStatus] = useState<"idle" | "valid" | "invalid">("idle");
+  const [submittedFee, setSubmittedFee] = useState<number | null>(null);
 
   // ── Discount codes — add/edit yours here ──────────────────────
   const DISCOUNT_CODES: Record<string, { label: string; off: number }> = {
-    "SCHOOL10": { label: "School partner discount",  off: 10 },
-    "PLULAI20": { label: "Early bird special",        off: 20 },
-    "FREE100":  { label: "Full scholarship",          off: 100 },
+    "DOUBLED":   { label: "School partner discount (50%)", off: 50 },
+    "SCHOOL50":  { label: "School partner discount (50%)", off: 50 },
+    "DOUBLED50": { label: "School partner discount (50%)", off: 50 },
   };
 
-  const BASE_FEE = 10;
+  const BASE_FEE = 20;
   const discountData = DISCOUNT_CODES[form.discount.trim().toUpperCase()];
   const finalFee = discountData ? Math.max(0, BASE_FEE - (BASE_FEE * discountData.off / 100)) : BASE_FEE;
 
@@ -537,7 +543,7 @@ function RegisterForm() {
     setDiscountStatus(DISCOUNT_CODES[code] ? "valid" : "invalid");
   };
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const setField = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(f => ({ ...f, [k]: e.target.value }));
     if (k === "discount") setDiscountStatus("idle");
   };
@@ -546,6 +552,9 @@ function RegisterForm() {
     e.preventDefault();
     setStatus("loading");
     setErrorMsg("");
+    // store final fee used for success display
+    const usedFee = discountData ? Math.max(0, BASE_FEE - (BASE_FEE * discountData.off / 100)) : BASE_FEE;
+    setSubmittedFee(usedFee);
 
     try {
       await fetch(GOOGLE_SHEET_WEBHOOK, {
@@ -561,7 +570,7 @@ function RegisterForm() {
           school:         form.school || "—",
           discountCode:   form.discount.trim().toUpperCase() || "—",
           discountLabel:  discountData?.label || "—",
-          finalFee:       `${finalFee} DT`,
+          finalFee:       `${usedFee} DT`,
           timestamp:      new Date().toISOString(),
           source:         "plulai-tunisia-page",
         }),
@@ -594,9 +603,9 @@ function RegisterForm() {
       <div style={{ fontFamily: "'Noto Serif Arabic', serif", color: "#86efac", fontSize: "1rem", marginBottom: 16, direction: "rtl" }}>تم تسجيلك بنجاح!</div>
       <div style={{ fontSize: "0.88rem", color: "#94a3b8", lineHeight: 1.7, marginBottom: 20 }}>
         Your registration has been saved. ✅<br />
-        We will send you the payment link (10 DT) at <strong style={{ color: "#e2e8f0" }}>hello@plulai.com</strong> within 24 hours.<br /><br />
+        We will send you the payment link for <strong style={{ color: "#e2e8f0" }}>{submittedFee} DT</strong> at <strong>hello@plulai.com</strong> within 24 hours.<br /><br />
         <span style={{ fontFamily: "'Noto Serif Arabic', serif", direction: "rtl", display: "block" }}>
-          تم حفظ تسجيلك. سنرسل لك رابط الدفع (10 دينار) خلال 24 ساعة.
+          تم حفظ تسجيلك. سنرسل لك رابط الدفع بقيمة {submittedFee} دينار خلال 24 ساعة.
         </span>
       </div>
       <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
@@ -627,21 +636,21 @@ function RegisterForm() {
       }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#fff" }}>Entry Fee / رسوم الاشتراك</div>
-          <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Pay after registering via payment link</div>
+          <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Pay after registering via payment link. Schools use code DOUBLED or SCHOOL50 for 50% off</div>
         </div>
-        <div style={{ fontWeight: 800, fontSize: "1.5rem", color: "#a5b4fc" }}>10 DT</div>
+        <div style={{ fontWeight: 800, fontSize: "1.5rem", color: "#a5b4fc" }}>20 DT</div>
       </div>
 
       <div>
         <label style={labelStyle}>Child&apos;s Full Name · اسم الطفل</label>
-        <input required style={inputStyle} placeholder="e.g. Ahmed Ben Ali" value={form.childName} onChange={set("childName")}
+        <input required style={inputStyle} placeholder="e.g. Ahmed Ben Ali" value={form.childName} onChange={setField("childName")}
           onFocus={e => (e.target.style.borderColor = "#6366f1")}
           onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
       </div>
 
       <div>
         <label style={labelStyle}>Child&apos;s Age · عمر الطفل</label>
-        <select required style={{ ...inputStyle, appearance: "none" }} value={form.age} onChange={set("age")}>
+        <select required style={{ ...inputStyle, appearance: "none" }} value={form.age} onChange={setField("age")}>
           <option value="">Select age / اختر السن</option>
           {Array.from({ length: 13 }, (_, i) => i + 6).map(a => (
             <option key={a} value={a}>{a} years / {a} سنوات</option>
@@ -651,21 +660,21 @@ function RegisterForm() {
 
       <div>
         <label style={labelStyle}>Parent / Guardian Name · اسم الوالد</label>
-        <input required style={inputStyle} placeholder="e.g. Mohamed Ben Ali" value={form.parentName} onChange={set("parentName")}
+        <input required style={inputStyle} placeholder="e.g. Mohamed Ben Ali" value={form.parentName} onChange={setField("parentName")}
           onFocus={e => (e.target.style.borderColor = "#6366f1")}
           onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
       </div>
 
       <div>
         <label style={labelStyle}>Email Address · البريد الإلكتروني</label>
-        <input required type="email" style={inputStyle} placeholder="parent@email.com" value={form.email} onChange={set("email")}
+        <input required type="email" style={inputStyle} placeholder="parent@email.com" value={form.email} onChange={setField("email")}
           onFocus={e => (e.target.style.borderColor = "#6366f1")}
           onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
       </div>
 
       <div>
         <label style={labelStyle}>Phone Number (optional) · رقم الهاتف</label>
-        <input style={inputStyle} placeholder="+216 XX XXX XXX" value={form.phone} onChange={set("phone")}
+        <input style={inputStyle} placeholder="+216 XX XXX XXX" value={form.phone} onChange={setField("phone")}
           onFocus={e => (e.target.style.borderColor = "#6366f1")}
           onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
       </div>
@@ -682,7 +691,7 @@ function RegisterForm() {
           style={inputStyle}
           placeholder="e.g. Lycée de Sfax / مدرسة..."
           value={form.school}
-          onChange={set("school")}
+          onChange={setField("school")}
           onFocus={e => (e.target.style.borderColor = "#6366f1")}
           onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
         />
@@ -710,9 +719,9 @@ function RegisterForm() {
               letterSpacing: "0.08em",
               fontFamily: "monospace",
             }}
-            placeholder="e.g. SCHOOL10"
+            placeholder="Enter DOUBLED or SCHOOL50"
             value={form.discount}
-            onChange={set("discount")}
+            onChange={setField("discount")}
             onFocus={e => (e.target.style.borderColor = "#6366f1")}
             onBlur={e => {
               checkDiscount();
@@ -753,7 +762,7 @@ function RegisterForm() {
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "0.72rem", color: "#6b7280", textDecoration: "line-through" }}>10 DT</div>
+              <div style={{ fontSize: "0.72rem", color: "#6b7280", textDecoration: "line-through" }}>20 DT</div>
               <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#86efac" }}>{finalFee} DT</div>
             </div>
           </div>
@@ -765,7 +774,7 @@ function RegisterForm() {
             border: "1px solid rgba(239,68,68,0.25)", borderRadius: 10,
             padding: "10px 14px", fontSize: "0.82rem", color: "#fca5a5",
           }}>
-            ❌ Invalid code — الكود غير صحيح. Try again or leave it blank.
+            ❌ Invalid code — الكود غير صحيح. Try DOUBLED or SCHOOL50, or leave it blank.
           </div>
         )}
       </div>
@@ -792,7 +801,7 @@ function RegisterForm() {
         </div>
         <div style={{ textAlign: "right" }}>
           {discountStatus === "valid" && (
-            <div style={{ fontSize: "0.75rem", color: "#6b7280", textDecoration: "line-through" }}>10 DT</div>
+            <div style={{ fontSize: "0.75rem", color: "#6b7280", textDecoration: "line-through" }}>20 DT</div>
           )}
           <div style={{ fontWeight: 800, fontSize: "1.6rem", color: discountStatus === "valid" ? "#86efac" : "#a5b4fc" }}>
             {finalFee} DT
