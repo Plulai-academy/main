@@ -387,23 +387,8 @@ export default function PlulaiTunisiaPage() {
             <div style={{ fontWeight: 800, fontSize: "clamp(2rem,5vw,3rem)", letterSpacing: "-0.04em", background: grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 6 }}>5,000 DT</div>
             <div style={{ fontFamily: "'Noto Serif Arabic', serif", fontSize: "1rem", color: C.muted, marginBottom: 32, direction: "rtl" }}>موزّعة على أفضل 3 مشاركين</div>
 
-            {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 12, maxWidth: 600, margin: "0 auto" }}>
-              {[
-                { place: "🥇", rank: "1st Place", prize: "3,000 DT", color: "#fbbf24" },
-                { place: "🥈", rank: "2nd Place", prize: "1,200 DT", color: "#94a3b8" },
-                { place: "🥉", rank: "3rd Place", prize: "800 DT",   color: "#cd7c2e" },
-              ].map((p, i) => (
-                <div key={i} style={{ background: "rgba(0,0,0,0.25)", border: `1px solid rgba(255,255,255,0.07)`, borderRadius: 16, padding: "20px 16px" }}>
-                  <div style={{ fontSize: "1.8rem", marginBottom: 8 }}>{p.place}</div>
-                  <div style={{ fontFamily: "monospace", fontSize: "0.62rem", color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>{p.rank}</div>
-                  <div style={{ fontWeight: 800, fontSize: "1.4rem", color: p.color }}>{p.prize}</div>
-                </div>
-              ))}
-            </div> */}
-
             <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 10, maxWidth: 420, margin: "28px auto 0" }}>
               {[
-                // { icon: "🏅", text: "Official Trophy for all top 3" },
                 { icon: "📜", text: "Certificate for every participant who completes all 10 days" },
                 { icon: "🎓", text: "1-Year Plulai Pro for the winner" },
                 { icon: "📢", text: "Featured on Plulai & partners social channels" },
@@ -751,35 +736,33 @@ function RegisterForm() {
         {status === "loading" ? "⏳ Registering..." : `🎯 Register & Pay ${finalFee} DT · سجّل الآن`}
       </button>
 
-      {/* ── FALLBACK BUTTON: Google Forms backup (only when submission is not sent) ── */}
-      {status !== "success" && (
-        <div style={{ marginTop: 12, textAlign: "center", borderTop: `1px solid ${C.border}`, paddingTop: 18 }}>
-          <div style={{ marginBottom: 8 }}>
-            <span style={{ fontSize: "0.7rem", color: C.muted, background: C.bg2, padding: "0 8px", letterSpacing: "0.5px" }}>⚠️ Alternative Registration</span>
-          </div>
-          <a
-            href={FALLBACK_FORM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              background: "rgba(64,177,172,0.02)", border: `1px solid ${C.teal}`,
-              borderRadius: 999, padding: "10px 22px", color: C.teal,
-              textDecoration: "none", fontSize: "0.8rem", fontWeight: 600,
-              fontFamily: "'Space Grotesk', sans-serif",
-              transition: "all 0.2s ease",
-              cursor: "pointer"
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = `rgba(64,177,172,0.12)`)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(64,177,172,0.02)")}
-          >
-            📋 Register via Google Forms (backup) →
-          </a>
-          <div style={{ fontSize: "0.65rem", color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
-            If the form above fails, use our official Google Forms backup to complete registration.
-          </div>
+      {/* ── FALLBACK BUTTON: Google Forms backup (shown when form is not submitted successfully) ── */}
+      <div style={{ marginTop: 12, textAlign: "center", borderTop: `1px solid ${C.border}`, paddingTop: 18 }}>
+        <div style={{ marginBottom: 8 }}>
+          <span style={{ fontSize: "0.7rem", color: C.muted, background: C.bg2, padding: "0 8px", letterSpacing: "0.5px" }}>⚠️ Alternative Registration</span>
         </div>
-      )}
+        <a
+          href={FALLBACK_FORM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "rgba(64,177,172,0.02)", border: `1px solid ${C.teal}`,
+            borderRadius: 999, padding: "10px 22px", color: C.teal,
+            textDecoration: "none", fontSize: "0.8rem", fontWeight: 600,
+            fontFamily: "'Space Grotesk', sans-serif",
+            transition: "all 0.2s ease",
+            cursor: "pointer"
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = `rgba(64,177,172,0.12)`)}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(64,177,172,0.02)")}
+        >
+          📋 Register via Google Forms (backup) →
+        </a>
+        <div style={{ fontSize: "0.65rem", color: C.muted, marginTop: 6, lineHeight: 1.5 }}>
+          If the form above fails, use our official Google Forms backup to complete registration.
+        </div>
+      </div>
 
       <div style={{ fontSize: "0.72rem", color: "#3d6665", textAlign: "center", lineHeight: 1.6, marginTop: 4 }}>
         By registering you confirm your child is aged 6–18 and agrees to Plulai&apos;s Terms.<br />
