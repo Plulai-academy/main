@@ -517,7 +517,7 @@ export default function PlulaiTunisiaPage() {
 
 // ── Registration Form ──────────────────────────────────────────────────────
 // 👉 Paste your Google Apps Script Web App URL here after deploying it
-const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbxFzXl8YbMAoN_W8vTwZ6I5ClzLFSwP6lUkVuNRe2VXTFilqReqM2Rc8ILffQRNcD7p/exec";
+const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbyLYUX0dvPU4vSRWWvSGgXtEcRT1OzfY9YuAME0g4zvU5Z-8rSslUt8QANCjpCZ37XI/exec";
 
 function RegisterForm() {
   const [form, setForm] = useState({ childName: "", age: "", parentName: "", email: "", phone: "", school: "", discount: "" });
