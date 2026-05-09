@@ -82,16 +82,16 @@ const AWARDS = [
   { icon: "❤️", title: "People's Choice",        desc: "Voted by parents in the room on Demo Day"                  },
 ];
 
-const FAQS: FAQ[] = [
-  { q: "What age is Sharkkid for?",                    a: "Kids aged 11–17. The program runs two parallel tracks — Junior (11–13) and Senior (14–17) — so every student works at the right level of complexity." },
-  { q: "Does my child need prior coding experience?", a: "Zero experience needed. Session 1 starts from absolute scratch using vibe coding tools. By session 3 they will have built and deployed a real working app." },
-  { q: "Is it online or in-person?",                  a: "Fully in-person at a partnered training center in Dubai. 3 sessions per week, 4 hours each, over 1 month. A real classroom environment with real peers." },
-  { q: "What language is the program in?",            a: "Bilingual — Arabic and English. Sessions are delivered in Arabic with full English support. Built specifically for GCC families." },
-  { q: "How long are the sessions?",                  a: "4 hours per session, 3 sessions per week — 12 sessions total including Demo Day. That's 48 hours of intensive learning in one month." },
-  { q: "When are the cohorts?",                       a: "Cohort 1 starts July 2026. Cohort 2 starts August 2026. Both cohorts are capped at 20 students. Applications close when spots fill." },
-  { q: "What happens on Demo Day?",                   a: "Each student delivers a 5-minute live pitch to a panel of real investors, with parents and press in the audience. There's an awards ceremony, group photos, and every graduate receives a Plulai Pro subscription." },
-  { q: "How much does it cost?",                      a: "AED 3,500 per student. This includes all 12 sessions, Plulai platform access throughout the bootcamp, Demo Day entry, and a completion certificate. No hidden fees." },
-];
+// const FAQS: FAQ[] = [
+//   { q: "What age is Sharkkid for?",                    a: "Kids aged 11–17. The program runs two parallel tracks — Junior (11–13) and Senior (14–17) — so every student works at the right level of complexity." },
+//   { q: "Does my child need prior coding experience?", a: "Zero experience needed. Session 1 starts from absolute scratch using vibe coding tools. By session 3 they will have built and deployed a real working app." },
+//   { q: "Is it online or in-person?",                  a: "Fully in-person at a partnered training center in Dubai. 3 sessions per week, 4 hours each, over 1 month. A real classroom environment with real peers." },
+//   { q: "What language is the program in?",            a: "Bilingual — Arabic and English. Sessions are delivered in Arabic with full English support. Built specifically for GCC families." },
+//   { q: "How long are the sessions?",                  a: "4 hours per session, 3 sessions per week — 12 sessions total including Demo Day. That's 48 hours of intensive learning in one month." },
+//   { q: "When are the cohorts?",                       a: "Cohort 1 starts July 2026. Cohort 2 starts August 2026. Both cohorts are capped at 20 students. Applications close when spots fill." },
+//   { q: "What happens on Demo Day?",                   a: "Each student delivers a 5-minute live pitch to a panel of real investors, with parents and press in the audience. There's an awards ceremony, group photos, and every graduate receives a Plulai Pro subscription." },
+//   { q: "How much does it cost?",                      a: "AED 3,500 per student. This includes all 12 sessions, Plulai platform access throughout the bootcamp, Demo Day entry, and a completion certificate. No hidden fees." },
+// ];
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
@@ -296,7 +296,7 @@ export default function SharkidPage() {
       {/* ── HERO ── */}
       <section className="pt-28 md:pt-36 pb-16 md:pb-24 px-4 md:px-6 text-center max-w-5xl mx-auto">
         <div className="inline-flex items-center gap-2 bg-accent2/10 border border-accent2/25 rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs font-bold text-accent2 mb-6 md:mb-8">
-          🦈 First in the Arab World · July 2026 · Dubai · In-Person
+          🦈 First in the Arab World · July 2026 · GCC · In-Person
         </div>
 
         <h1 className="font-fredoka text-4xl sm:text-5xl lg:text-7xl leading-tight mb-5 md:mb-6">
@@ -312,9 +312,9 @@ export default function SharkidPage() {
           prompt engineering and entrepreneurship — then pitch their startup to{" "}
           <strong className="text-white">real investors</strong> on Demo Day.
         </p>
-        <p className="text-muted text-xs md:text-sm font-bold mb-8 md:mb-10">
+        {/* <p className="text-muted text-xs md:text-sm font-bold mb-8 md:mb-10">
           In-person · Dubai · 3 sessions/week · 4 hours each · 48 hours total
-        </p>
+        </p> */}
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 mb-12 md:mb-16">
           <button
@@ -474,7 +474,7 @@ export default function SharkidPage() {
                 { icon: "👨‍💻", text: "Python developer — builds real software"    },
                 { icon: "👦",   text: "Coached 250 kids in entrepreneurship"       },
                 { icon: "🤖",   text: "Built Plulai — 200+ AI-powered lessons"     },
-                { icon: "🏢",   text: "Based at DTEC, Dubai Silicon Oasis"         },
+                // { icon: "🏢",   text: "Based at DTEC, Dubai Silicon Oasis"         },
                 { icon: "🌍",   text: "Arab founder building for Arab kids"         },
               ] as const).map((c, i) => (
                 <li key={i} className="flex items-center gap-3 text-sm font-bold">
@@ -487,7 +487,7 @@ export default function SharkidPage() {
           <div className="bg-gradient-to-br from-accent4/10 to-accent3/10 border border-accent4/20 rounded-3xl p-8 md:p-10 text-center">
             <div className="text-6xl mb-5">👨‍💻</div>
             <div className="font-fredoka text-2xl text-white mb-2">Plulai Founder</div>
-            <div className="text-muted text-sm font-bold mb-6">Python Developer · EdTech Founder · DTEC Dubai</div>
+            {/* <div className="text-muted text-sm font-bold mb-6">Python Developer · EdTech Founder · DTEC Dubai</div> */}
             <div className="flex flex-wrap gap-2 justify-center">
               {(["250 kids coached", "Python dev", "AI builder", "Arab founder"] as const).map((t) => (
                 <span key={t} className="bg-accent4/20 text-accent4 border border-accent4/30 rounded-full px-3 py-1 text-xs font-extrabold">{t}</span>
@@ -571,7 +571,7 @@ export default function SharkidPage() {
             Only {SPOTS_LEFT} spots for Cohort 1 (July). We&apos;ll reply within 24 hours on WhatsApp.
           </p>
           <p className="text-muted text-xs md:text-sm font-bold mb-8 md:mb-10">
-            No payment needed to apply · Arabic &amp; English · Ages 11–17 · In-person Dubai
+            No payment needed to apply · Arabic &amp; English · Ages 11–17 · {/* In-person Dubai */}
           </p>
 
           {submitStatus === "success" ? (
@@ -652,7 +652,7 @@ export default function SharkidPage() {
                 Plulai × Sharkkid
               </div>
               <p className="text-muted text-xs font-bold max-w-xs leading-relaxed">
-                The first Arabic startup bootcamp for kids in the GCC · July & August 2026 · Dubai
+                The first Arabic startup bootcamp for kids in the GCC · July & August 2026 · GCC
               </p>
             </div>
             <div className="grid grid-cols-2 gap-8 text-xs font-bold text-muted w-full md:w-auto">

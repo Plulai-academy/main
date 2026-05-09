@@ -10,15 +10,15 @@ export const SEO_CONFIG = {
   keywords: [
     // High-intent English — UAE/GCC
     'edtech UAE', 'edtech GCC', 'edtech startup UAE',
-    'coding for kids UAE', 'coding for kids Dubai', 'coding for kids Abu Dhabi',
-    'kids coding app UAE', 'coding classes for kids Dubai',
+    'coding for kids UAE', 'coding for GCC kids ', 'coding for kids Abu Dhabi',
+    'kids coding app UAE', 'coding classes for GCC kids  ',
     'AI learning for kids', 'AI for kids UAE', 'AI education kids GCC',
     'learn AI kids', 'artificial intelligence for kids',
     'entrepreneurship for kids UAE', 'entrepreneurship for kids GCC',
-    'kids entrepreneurship program Dubai',
+    'kids entrepreneurship program }' ,
     'online coding kids', 'programming for children',
     'STEM education UAE', 'STEM for kids GCC',
-    'kids tech education Dubai', 'tech skills kids Saudi Arabia',
+    'kids tech education GCC', 'tech skills kids Saudi Arabia',
     'coding for kids Qatar', 'coding for kids Kuwait',
     'kids programming Riyadh', 'kids programming Doha',
     'gamified learning kids', 'Duolingo for coding',
@@ -45,7 +45,7 @@ export const SEO_CONFIG = {
       url: 'https://plulai.com',
       logo: 'https://plulai.com/logo.png',
       description: 'The #1 AI, Coding & Entrepreneurship learning platform for kids aged 6-18 in the UAE and GCC.',
-      foundingLocation: { '@type': 'Place', addressCountry: 'AE', addressLocality: 'Dubai' },
+      // foundingLocation: { '@type': 'Place', addressCountry: 'AE', addressLocality: 'Dubai' },
       areaServed: [
         { '@type': 'Country', name: 'United Arab Emirates' },
         { '@type': 'Country', name: 'Saudi Arabia' },

@@ -52,8 +52,8 @@ export const metadata: Metadata = {
     languages: { 'en-AE': `${SITE}`, 'ar-AE': `${SITE}/ar`, 'x-default': SITE },
   },
   other: {
-    'geo.region':    'AE',
-    'geo.placename': 'Dubai, UAE',
+    'geo.region':    'AE,SA,QA,KW,BH,OM',
+    'geo.placename': 'GCC',
     'geo.position':  '25.2048;55.2708',
     ICBM:            '25.2048, 55.2708',
     rating:          'general',

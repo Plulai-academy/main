@@ -24,7 +24,7 @@ const STATS = [
 const FEATURES = [
   { emoji:'🤖', title:'Personal AI Coach',       desc:'Your child gets their own AI mentor that speaks their language, adapts to their age, and explains things like a patient tutor — available 24/7.',   color:'from-accent4/20 to-accent5/20', border:'border-accent4/20' },
   { emoji:'🎮', title:'Gamified Like Duolingo',  desc:'XP points, daily streaks, skill trees, badges and level-ups keep kids motivated and coming back every day.',                                        color:'from-accent1/20 to-accent2/20', border:'border-accent1/20' },
-  { emoji:'🌍', title:'Built for UAE & GCC',     desc:'Full Arabic RTL interface and bilingual AI coaching. Content designed for kids in Dubai, Riyadh, Doha, Kuwait City and Muscat.',                   color:'from-accent3/20 to-accent4/20', border:'border-accent3/20' },
+  { emoji:'🌍', title:'Built for UAE & GCC',     desc:'Full Arabic RTL interface and bilingual AI coaching. Content designed for GCC kids in Dubai, Riyadh, Doha, Kuwait City and Muscat.',                   color:'from-accent3/20 to-accent4/20', border:'border-accent3/20' },
   { emoji:'💻', title:'3 Power Tracks',          desc:'Master Coding, Artificial Intelligence and Entrepreneurship — the 3 skills every future leader in the GCC needs right now.',                        color:'from-accent5/20 to-accent1/20', border:'border-accent5/20' },
   { emoji:'🏆', title:'Real Projects',           desc:"Kids don't just do exercises. They build real apps, AI projects and startup pitches — creating a portfolio they're proud of.",                      color:'from-accent2/20 to-accent3/20', border:'border-accent2/20' },
   { emoji:'📊', title:'Parent Dashboard',        desc:'Parents and teachers track progress, streaks, XP and badges in real time. Stay involved without hovering.',                                        color:'from-accent4/20 to-accent3/20', border:'border-accent4/20' },
@@ -189,7 +189,7 @@ export default function LandingPage() {
             <span className="text-4xl">🦈</span>
             <div className="text-left">
               <div className="font-fredoka text-xl md:text-2xl text-white">Sharkkid — Startup Bootcamp for Kids</div>
-              <div className="text-muted text-sm font-semibold">3 months · July 2026 · Dubai · Only 17 spots left</div>
+              <div className="text-muted text-sm font-semibold">3 months · July 2026 · GCC · Only 17 spots left</div>
             </div>
           </div>
           <span className="shrink-0 px-5 py-2.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-accent2 to-accent1 group-hover:-translate-y-0.5 transition-all">
