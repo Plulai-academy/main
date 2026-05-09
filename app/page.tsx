@@ -125,9 +125,9 @@ export default function LandingPage() {
 
       {/* ── Hero ── */}
       <section className="pt-28 md:pt-36 pb-16 md:pb-24 px-4 md:px-6 text-center max-w-5xl mx-auto">
-        <div className="inline-flex items-center gap-2 bg-accent2/10 border border-accent2/25 rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs font-bold text-accent2 mb-6 md:mb-8">
+        {/* <div className="inline-flex items-center gap-2 bg-accent2/10 border border-accent2/25 rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs font-bold text-accent2 mb-6 md:mb-8">
           🌟 #1 Edtech Platform for Kids in the UAE & GCC
-        </div>
+        </div> */}
 
         <h1 className="font-fredoka text-4xl sm:text-5xl lg:text-7xl leading-tight mb-5 md:mb-6">
           <span className="bg-gradient-to-r from-accent2 via-accent1 to-accent5 bg-clip-text text-transparent">
