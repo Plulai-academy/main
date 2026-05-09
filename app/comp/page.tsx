@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 // ── Colors ───────────────────────────────────────────────────────────────────
 const C = {
   teal:    "#40B1AC",
-  pink:    "#FB75BF",
+  pink:    "#FB752F",
   dark:    "#00AEAB",
   bg:      "#030d0d",
   bg2:     "#071414",
@@ -41,7 +41,7 @@ function useCountdown(target: Date) {
 const DEADLINE        = new Date("2025-05-22T23:59:59");
 const BASE_FEE        = 20;
 const POOL_PRIZE      = 5000;
-const GOOGLE_WEBHOOK  = "https://script.google.com/macros/s/AKfycbynOBE0GHena3ditGAtDdOd_U7NZlGpGBUxy_UOQ-EYwNUhAcAz_WL7tpwo-h8HVTGw/exec";
+const GOOGLE_WEBHOOK  = "https://script.google.com/macros/s/AKfycbxFzXl8YbMAoN_W8vTwZ6I5ClzLFSwP6lUkVuNRe2VXTFilqReqM2Rc8ILffQRNcD7p/exec";
 
 const DISCOUNT_CODES: Record<string, { label: string; off: number }> = {
   "DOUBLED":  { label: "Partner — 50% off", off: 50 },
@@ -68,7 +68,7 @@ const FAQ = [
   { q: "هل أحتاج خبرة مسبقة؟ / Do I need experience?",  a: "None at all. Day 1 starts from absolute zero and builds up step by step." },
   { q: "متى تبدأ المنافسة؟ / When does it start?",       a: "May 23 to June 5, 2025. Each daily lesson unlocks at 9 AM Tunisia time." },
   { q: "ما هو الجائزة؟ / What is the prize?",           a: "A prize pool of 5,000 DT distributed across the top 3 winners, plus trophies and certificates." },
-  { q: "كيف أدفع؟ / How do I pay?",                     a: "Entry fee is 20 DT. Schools and partners pay 10 DT with a discount code. In Sfax you can pay in person at Lingoville Center, Rte Tunis. Otherwise payment link is sent after registration." },
+  { q: "كيف أدفع؟ / How do I pay?",                     a: "Entry fee is 20 DT. Schools and partners benefit from an exclusive 50% discount — contact us to receive your code. In Sfax you can pay in person at Lingoville Center, Rte Tunis. Otherwise a payment link is sent after registration." },
   { q: "هل يمكن للوالدين المتابعة؟ / Can parents follow?", a: "Yes. Parents receive weekly progress reports by email and can follow along the entire journey." },
   { q: "من ينظّم هذه المنافسة؟ / Who organises this?",  a: "Plulai in partnership with Lingoville and Business Success. Hosted at Lingoville Center, Rte Tunis, Sfax." },
 ];
@@ -232,17 +232,20 @@ export default function PlulaiTunisiaPage() {
             <div style={{ fontSize: "0.72rem", color: C.muted, fontFamily: "monospace" }}>Hosted by <span style={{ color: C.teal, fontWeight: 700 }}>Lingoville</span> × <span style={{ color: C.pink, fontWeight: 700 }}>Business Success</span></div>
           </div>
 
-          {/* Prize pill */}
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 28,
-            background: `linear-gradient(135deg, rgba(251,117,191,0.15), rgba(64,177,172,0.15))`,
-            border: `1px solid rgba(251,117,191,0.35)`,
-            borderRadius: 999, padding: "10px 24px",
+            background: `linear-gradient(135deg, rgba(251,117,47,0.18), rgba(64,177,172,0.18))`,
+            border: `1px solid rgba(251,117,47,0.4)`,
+            borderRadius: 999, padding: "12px 28px",
             animation: "fadeUp 0.5s 0.06s ease both",
+            boxShadow: "0 0 40px rgba(251,117,47,0.15)",
           }}>
-            <span style={{ fontSize: "1.2rem" }}>🏆</span>
-            <span style={{ fontWeight: 800, fontSize: "1.05rem", background: grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Prize Pool: {POOL_PRIZE.toLocaleString()} DT</span>
-            <span style={{ fontSize: "1.2rem" }}>🏆</span>
+            <span style={{ fontSize: "1.4rem" }}>🏆</span>
+            <div>
+              <div style={{ fontFamily: "monospace", fontSize: "0.58rem", letterSpacing: "0.15em", textTransform: "uppercase", color: C.muted, marginBottom: 2 }}>Prize Pool · مجموع الجوائز</div>
+              <div style={{ fontWeight: 800, fontSize: "1.5rem", letterSpacing: "-0.03em", background: `linear-gradient(135deg, ${C.pink}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1 }}>{POOL_PRIZE.toLocaleString()} DT</div>
+            </div>
+            <span style={{ fontSize: "1.4rem" }}>🏆</span>
           </div>
 
           {/* Arabic headline */}
@@ -257,7 +260,7 @@ export default function PlulaiTunisiaPage() {
 
           <p style={{ maxWidth: 580, color: C.muted, fontSize: "clamp(0.92rem, 2vw, 1rem)", lineHeight: 1.8, marginBottom: 36, animation: "fadeUp 0.5s 0.2s ease both" }}>
             10 days · 100% online · Ages 6–18 · <strong style={{ color: "#fff" }}>20 DT</strong> entry<br />
-            Schools &amp; partners: <strong style={{ color: C.teal }}>50% off</strong> with discount code<br />
+            Schools &amp; partners: <strong style={{ color: C.teal }}>50% off</strong> — contact us for your exclusive code<br />
             <strong style={{ color: C.text }}>📅 23 May → 5 June 2025</strong>
           </p>
 
@@ -436,7 +439,7 @@ export default function PlulaiTunisiaPage() {
               { icon: "📊", title: "Weekly Reports",  ar: "تقارير أسبوعية",    desc: "You receive a detailed progress email every week showing exactly what was learned." },
               { icon: "🎯", title: "Real Skills",     ar: "مهارات حقيقية",     desc: "Python, AI, logical thinking. Skills schools don't teach — but employers demand." },
               { icon: "🏅", title: "Certificate",     ar: "شهادة إتمام",       desc: "Every child who completes all 10 days receives an official certificate." },
-              { icon: "💳", title: "From 10 DT",      ar: "من 10 دينار فقط",   desc: "Schools pay only 10 DT with discount code. No hidden fees whatsoever." },
+              { icon: "💳", title: "From 10 DT",      ar: "من 10 دينار فقط",   desc: "Schools and partners pay only 10 DT with an exclusive discount code. Contact us to get yours. No hidden fees." },
             ].map((c, i) => (
               <div key={i} style={{ background: "rgba(64,177,172,0.03)", border: `1px solid ${C.border}`, borderRadius: 16, padding: "22px 18px", animation: "fadeUp 0.5s ease both", animationDelay: `${i * 0.07}s` }}>
                 <div style={{ fontSize: "1.5rem", marginBottom: 10 }}>{c.icon}</div>
@@ -445,6 +448,77 @@ export default function PlulaiTunisiaPage() {
                 <div style={{ fontSize: "0.78rem", color: C.muted, lineHeight: 1.6 }}>{c.desc}</div>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* ══════════ OUR PARTNERS ══════════ */}
+        <section style={{ padding: "0 20px 90px", maxWidth: 860, margin: "0 auto" }}>
+          <SectionLabel>شركاؤنا · Our Partners</SectionLabel>
+          <h2 style={sectionH2}>Made possible by</h2>
+          <p style={{ color: C.muted, fontSize: "0.86rem", marginTop: 10, marginBottom: 40, textAlign: "center" }}>
+            This championship is built on three pillars of excellence
+          </p>
+
+          {/* Main partner cards */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 24 }}>
+            {[
+              {
+                emoji: "🏢",
+                name: "Lingoville",
+                tag: "Venue Partner · Sfax",
+                color: C.teal,
+                desc: "Lingoville Center on Route Tunis, Sfax is our official venue. Sfax-based participants can register and pay in person directly at the center.",
+                detail: "📍 Route Tunis, Sfax",
+              },
+              {
+                emoji: "📈",
+                name: "Business Success",
+                tag: "Strategic Partner",
+                color: C.pink,
+                desc: "Business Success brings entrepreneurship expertise, prize logistics, and strategic support to make this championship a landmark event in Tunisia.",
+                detail: "🤝 Strategy & Operations",
+              },
+              {
+                emoji: "🚀",
+                name: "Plulai",
+                tag: "Technology Partner",
+                color: "#a78bfa",
+                desc: "Plulai provides the full 10-day AI curriculum, the AI Coach, live leaderboard, automated certificates, and the entire technical platform.",
+                detail: "💻 plulai.com",
+              },
+            ].map((p, i) => (
+              <div key={i} style={{
+                background: `linear-gradient(160deg, rgba(64,177,172,0.05), rgba(64,177,172,0.02))`,
+                border: `1px solid ${C.border}`,
+                borderRadius: 20, padding: "28px 24px",
+                display: "flex", flexDirection: "column", gap: 14,
+                animation: "fadeUp 0.5s ease both", animationDelay: `${i * 0.1}s`,
+                position: "relative", overflow: "hidden",
+              }}>
+                {/* Top accent bar */}
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${p.color}, transparent)`, borderRadius: "20px 20px 0 0" }} />
+                <div style={{ fontSize: "2.4rem" }}>{p.emoji}</div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: "1.2rem", color: "#fff", marginBottom: 4 }}>{p.name}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: "0.62rem", color: p.color, letterSpacing: "0.1em", textTransform: "uppercase" }}>{p.tag}</div>
+                </div>
+                <div style={{ fontSize: "0.82rem", color: C.muted, lineHeight: 1.65, flex: 1 }}>{p.desc}</div>
+                <div style={{ fontFamily: "monospace", fontSize: "0.7rem", color: "#3d6665", background: "rgba(64,177,172,0.05)", border: `1px solid ${C.border}`, borderRadius: 8, padding: "7px 12px", display: "inline-block" }}>{p.detail}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Sfax in-person payment callout */}
+          <div style={{ background: `linear-gradient(135deg, rgba(251,117,47,0.07), rgba(64,177,172,0.05))`, border: `1px solid rgba(251,117,47,0.25)`, borderRadius: 18, padding: "22px 24px", display: "flex", gap: 16, alignItems: "flex-start" }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(251,117,47,0.15)", border: "1px solid rgba(251,117,47,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", flexShrink: 0 }}>📍</div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#fff", marginBottom: 6 }}>
+                Paying in Sfax? · أنت من صفاقس؟
+              </div>
+              <div style={{ fontSize: "0.82rem", color: C.muted, lineHeight: 1.7 }}>
+                Come directly to <strong style={{ color: C.text }}>Lingoville Center, Route Tunis, Sfax</strong> to register and pay in person. Bring your child&apos;s name, age, and your contact details. A receipt and confirmation are issued immediately on the spot.
+              </div>
+            </div>
           </div>
         </section>
 
@@ -507,7 +581,7 @@ function ProgressBar() {
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
-  return <div style={{ position: "fixed", top: 0, left: 0, height: "2px", width: `${pct}%`, background: `linear-gradient(90deg, #40B1AC, #FB75BF)`, zIndex: 300, transition: "width 0.1s linear" }} />;
+  return <div style={{ position: "fixed", top: 0, left: 0, height: "2px", width: `${pct}%`, background: `linear-gradient(90deg, #40B1AC, #FB752F)`, zIndex: 300, transition: "width 0.1s linear" }} />;
 }
 
 // ── RegisterForm ──────────────────────────────────────────────────────────────
@@ -628,18 +702,15 @@ function RegisterForm() {
       </div>
 
       <div>
-        <label style={lbl}>🎟️ Discount Code · كود التخفيض (optional)</label>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input
-            style={{ ...inp, borderColor: discountStatus === "valid" ? "rgba(64,177,172,0.6)" : discountStatus === "invalid" ? "rgba(239,68,68,0.5)" : C.border, flex: 1, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "monospace" }}
-            placeholder="DOUBLED / SCHOOLS / DIANA75C"
-            value={form.discount} onChange={set("discount")}
-            onFocus={focus} onBlur={e => { checkDiscount(); blur(e); }} maxLength={20}
-          />
-          <button type="button" onClick={checkDiscount}
-            style={{ background: "rgba(64,177,172,0.12)", border: `1px solid ${C.border}`, borderRadius: 12, padding: "0 18px", color: C.teal, fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: "0.8rem", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
-            Apply
-          </button>
+        <label style={lbl}>🎟️ Exclusive Discount Code · كود التخفيض (if you have one)</label>
+        <input
+          style={{ ...inp, borderColor: discountStatus === "valid" ? "rgba(64,177,172,0.6)" : discountStatus === "invalid" ? "rgba(239,68,68,0.5)" : C.border, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "monospace" }}
+          placeholder="Enter your exclusive code here"
+          value={form.discount} onChange={set("discount")}
+          onFocus={focus} onBlur={e => { checkDiscount(); blur(e); }} maxLength={20}
+        />
+        <div style={{ fontSize: "0.7rem", color: "#3d6665", marginTop: 6 }}>
+          Codes are exclusive — distributed to schools &amp; partners only. <a href="mailto:hello@plulai.com" style={{ color: C.teal, textDecoration: "none" }}>Contact us</a> to get yours.
         </div>
         {discountStatus === "valid" && discountData && (
           <div style={{ marginTop: 10, background: "rgba(64,177,172,0.08)", border: `1px solid rgba(64,177,172,0.25)`, borderRadius: 10, padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -655,7 +726,7 @@ function RegisterForm() {
         )}
         {discountStatus === "invalid" && (
           <div style={{ marginTop: 10, background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "10px 14px", fontSize: "0.8rem", color: "#fca5a5" }}>
-            ❌ Invalid code · كود غير صحيح. Try: DOUBLED, SCHOOLS, or DIANA75C
+            ❌ Invalid code · كود غير صحيح. Codes are exclusive — <a href="mailto:hello@plulai.com" style={{ color: C.teal }}>contact us</a> to get yours.
           </div>
         )}
       </div>
