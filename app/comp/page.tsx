@@ -174,9 +174,6 @@ export default function PlulaiTunisiaPage() {
       0%,100% { transform: translateY(0); }
       50%      { transform: translateY(-8px); }
     }
-    @keyframes spin-slow {
-      to { transform: rotate(360deg); }
-    }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #0d0d1a; }
     ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 3px; }
@@ -483,15 +480,38 @@ export default function PlulaiTunisiaPage() {
           {FAQ.map((f, i) => <FaqItem key={i} item={f} i={i} />)}
         </section>
 
-        {/* ══════════ REGISTER FORM ══════════ */}
-        <section id="register" style={{ padding: "0 20px 120px", maxWidth: 560, margin: "0 auto", scrollMarginTop: 80 }}>
+        {/* ══════════ REGISTER FORM (GOOGLE FORM IFRAME) ══════════ */}
+        <section id="register" style={{ padding: "0 20px 120px", maxWidth: 800, margin: "0 auto", scrollMarginTop: 80 }}>
           <div style={{ textAlign: "center", marginBottom: 40 }}>
             <div style={{ fontFamily: "monospace", fontSize: "0.65rem", letterSpacing: "0.15em", color: "#6366f1", marginBottom: 12, textTransform: "uppercase" }}>التسجيل · Registration</div>
             <h2 style={{ fontWeight: 800, fontSize: "clamp(1.5rem,4vw,2.2rem)", letterSpacing: "-0.02em", color: "#fff" }}>Join the Competition</h2>
-            <p style={{ color: "#94a3b8", fontSize: "0.88rem", marginTop: 10 }}>انضم إلى البطولة — سجّل طفلك في 2 دقيقة. Base fee 20 DT (50% discount with code DOUBLED or SCHOOL50)</p>
+            <p style={{ color: "#94a3b8", fontSize: "0.88rem", marginTop: 10 }}>
+              انضم إلى البطولة — سجّل طفلك في 2 دقيقة. Base fee 20 DT (50% discount with code DOUBLED or SCHOOL50)
+            </p>
           </div>
 
-          <RegisterForm />
+          {/* Google Form Iframe */}
+          <div style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 24,
+            padding: "12px",
+            backdropFilter: "blur(4px)",
+          }}>
+            <iframe
+              src="https://docs.google.com/forms/d/e/1FAIpQLSfUsme8kAsqZMeJniIYgC_ydGWRGo7k2f3uSGEHQxch_0eytA/viewform?embedded=true"
+              width="100%"
+              height="800"
+              style={{ border: 0, borderRadius: "16px" }}
+              title="Registration Form"
+            >
+              Loading…
+            </iframe>
+          </div>
+          <p style={{ textAlign: "center", fontSize: "0.75rem", color: "#6b7280", marginTop: 16 }}>
+            By registering you confirm your child is aged 6–18 and agrees to Plulai&apos;s Terms.<br />
+            بالتسجيل تؤكد أن عمر طفلك بين 6 و 18 سنة.
+          </p>
         </section>
 
         {/* ══════════ FOOTER ══════════ */}
@@ -512,325 +532,5 @@ export default function PlulaiTunisiaPage() {
 
       </main>
     </>
-  );
-}
-
-// ── Registration Form ──────────────────────────────────────────────────────
-// 👉 Paste your Google Apps Script Web App URL here after deploying it
-const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbyLYUX0dvPU4vSRWWvSGgXtEcRT1OzfY9YuAME0g4zvU5Z-8rSslUt8QANCjpCZ37XI/exec";
-
-function RegisterForm() {
-  const [form, setForm] = useState({ childName: "", age: "", parentName: "", email: "", phone: "", school: "", discount: "" });
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [discountStatus, setDiscountStatus] = useState<"idle" | "valid" | "invalid">("idle");
-  const [submittedFee, setSubmittedFee] = useState<number | null>(null);
-
-  // ── Discount codes — add/edit yours here ──────────────────────
-  const DISCOUNT_CODES: Record<string, { label: string; off: number }> = {
-    "DOUBLED":   { label: "School partner discount (50%)", off: 50 },
-    "SCHOOL50":  { label: "School partner discount (50%)", off: 50 },
-    "DOUBLED50": { label: "School partner discount (50%)", off: 50 },
-  };
-
-  const BASE_FEE = 20;
-  const discountData = DISCOUNT_CODES[form.discount.trim().toUpperCase()];
-  const finalFee = discountData ? Math.max(0, BASE_FEE - (BASE_FEE * discountData.off / 100)) : BASE_FEE;
-
-  const checkDiscount = () => {
-    const code = form.discount.trim().toUpperCase();
-    if (!code) { setDiscountStatus("idle"); return; }
-    setDiscountStatus(DISCOUNT_CODES[code] ? "valid" : "invalid");
-  };
-
-  const setField = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm(f => ({ ...f, [k]: e.target.value }));
-    if (k === "discount") setDiscountStatus("idle");
-  };
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus("loading");
-    setErrorMsg("");
-    // store final fee used for success display
-    const usedFee = discountData ? Math.max(0, BASE_FEE - (BASE_FEE * discountData.off / 100)) : BASE_FEE;
-    setSubmittedFee(usedFee);
-
-    try {
-      await fetch(GOOGLE_SHEET_WEBHOOK, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          childName:      form.childName,
-          age:            form.age,
-          parentName:     form.parentName,
-          email:          form.email,
-          phone:          form.phone || "—",
-          school:         form.school || "—",
-          discountCode:   form.discount.trim().toUpperCase() || "—",
-          discountLabel:  discountData?.label || "—",
-          finalFee:       `${usedFee} DT`,
-          timestamp:      new Date().toISOString(),
-          source:         "plulai-tunisia-page",
-        }),
-      });
-      setStatus("success");
-    } catch {
-      setStatus("error");
-      setErrorMsg("Connection failed. Please try again or email us at hello@plulai.com");
-    }
-  };
-
-  const inputStyle = {
-    width: "100%", background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12,
-    padding: "14px 16px", color: "#e2e8f0", fontSize: "0.9rem",
-    fontFamily: "'Space Grotesk', sans-serif", outline: "none",
-    transition: "border-color 0.2s",
-  };
-
-  const labelStyle = { display: "block", fontSize: "0.78rem", fontWeight: 600, color: "#94a3b8", marginBottom: 7, letterSpacing: "0.04em" };
-
-  if (status === "success") return (
-    <div style={{
-      background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)",
-      borderRadius: 24, padding: "52px 32px", textAlign: "center",
-      animation: "fadeUp 0.5s ease both",
-    }}>
-      <div style={{ fontSize: "3.5rem", marginBottom: 20 }}>🎉</div>
-      <div style={{ fontWeight: 800, fontSize: "1.4rem", color: "#fff", marginBottom: 10 }}>You&apos;re registered!</div>
-      <div style={{ fontFamily: "'Noto Serif Arabic', serif", color: "#86efac", fontSize: "1rem", marginBottom: 16, direction: "rtl" }}>تم تسجيلك بنجاح!</div>
-      <div style={{ fontSize: "0.88rem", color: "#94a3b8", lineHeight: 1.7, marginBottom: 20 }}>
-        Your registration has been saved. ✅<br />
-        We will send you the payment link for <strong style={{ color: "#e2e8f0" }}>{submittedFee} DT</strong> at <strong>hello@plulai.com</strong> within 24 hours.<br /><br />
-        <span style={{ fontFamily: "'Noto Serif Arabic', serif", direction: "rtl", display: "block" }}>
-          تم حفظ تسجيلك. سنرسل لك رابط الدفع بقيمة {submittedFee} دينار خلال 24 ساعة.
-        </span>
-      </div>
-      <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
-        Reference: <span style={{ fontFamily: "monospace", color: "#a5b4fc" }}>PLU-TN-{Date.now().toString(36).toUpperCase()}</span>
-      </div>
-    </div>
-  );
-
-  return (
-    <form onSubmit={submit} style={{
-      background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 24, padding: "36px 32px", display: "flex", flexDirection: "column", gap: 18,
-    }}>
-      {/* Error banner */}
-      {status === "error" && (
-        <div style={{
-          background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
-          borderRadius: 12, padding: "14px 18px", fontSize: "0.85rem", color: "#fca5a5",
-        }}>
-          ⚠️ {errorMsg}
-        </div>
-      )}
-      {/* Fee banner */}
-      <div style={{
-        background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)",
-        borderRadius: 12, padding: "14px 18px",
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-      }}>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#fff" }}>Entry Fee / رسوم الاشتراك</div>
-          <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Pay after registering via payment link. Schools use code DOUBLED or SCHOOL50 for 50% off</div>
-        </div>
-        <div style={{ fontWeight: 800, fontSize: "1.5rem", color: "#a5b4fc" }}>20 DT</div>
-      </div>
-
-      <div>
-        <label style={labelStyle}>Child&apos;s Full Name · اسم الطفل</label>
-        <input required style={inputStyle} placeholder="e.g. Ahmed Ben Ali" value={form.childName} onChange={setField("childName")}
-          onFocus={e => (e.target.style.borderColor = "#6366f1")}
-          onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
-      </div>
-
-      <div>
-        <label style={labelStyle}>Child&apos;s Age · عمر الطفل</label>
-        <select required style={{ ...inputStyle, appearance: "none" }} value={form.age} onChange={setField("age")}>
-          <option value="">Select age / اختر السن</option>
-          {Array.from({ length: 13 }, (_, i) => i + 6).map(a => (
-            <option key={a} value={a}>{a} years / {a} سنوات</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label style={labelStyle}>Parent / Guardian Name · اسم الوالد</label>
-        <input required style={inputStyle} placeholder="e.g. Mohamed Ben Ali" value={form.parentName} onChange={setField("parentName")}
-          onFocus={e => (e.target.style.borderColor = "#6366f1")}
-          onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
-      </div>
-
-      <div>
-        <label style={labelStyle}>Email Address · البريد الإلكتروني</label>
-        <input required type="email" style={inputStyle} placeholder="parent@email.com" value={form.email} onChange={setField("email")}
-          onFocus={e => (e.target.style.borderColor = "#6366f1")}
-          onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
-      </div>
-
-      <div>
-        <label style={labelStyle}>Phone Number (optional) · رقم الهاتف</label>
-        <input style={inputStyle} placeholder="+216 XX XXX XXX" value={form.phone} onChange={setField("phone")}
-          onFocus={e => (e.target.style.borderColor = "#6366f1")}
-          onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")} />
-      </div>
-
-      {/* ── Divider ── */}
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", margin: "4px 0" }} />
-
-      {/* ── School name ── */}
-      <div>
-        <label style={labelStyle}>
-          🏫 School Name (optional) · اسم المدرسة
-        </label>
-        <input
-          style={inputStyle}
-          placeholder="e.g. Lycée de Sfax / مدرسة..."
-          value={form.school}
-          onChange={setField("school")}
-          onFocus={e => (e.target.style.borderColor = "#6366f1")}
-          onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.1)")}
-        />
-        <div style={{ fontSize: "0.73rem", color: "#6b7280", marginTop: 6 }}>
-          Enter your child&apos;s school to appear on the certificate · اختياري — يظهر على الشهادة
-        </div>
-      </div>
-
-      {/* ── Discount code ── */}
-      <div>
-        <label style={labelStyle}>
-          🎟️ Discount Code (optional) · كود التخفيض
-        </label>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input
-            style={{
-              ...inputStyle,
-              borderColor: discountStatus === "valid"
-                ? "rgba(34,197,94,0.5)"
-                : discountStatus === "invalid"
-                  ? "rgba(239,68,68,0.5)"
-                  : "rgba(255,255,255,0.1)",
-              flex: 1,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              fontFamily: "monospace",
-            }}
-            placeholder="Enter DOUBLED or SCHOOL50"
-            value={form.discount}
-            onChange={setField("discount")}
-            onFocus={e => (e.target.style.borderColor = "#6366f1")}
-            onBlur={e => {
-              checkDiscount();
-              e.target.style.borderColor = "rgba(255,255,255,0.1)";
-            }}
-            maxLength={20}
-          />
-          <button
-            type="button"
-            onClick={checkDiscount}
-            style={{
-              background: "rgba(99,102,241,0.15)",
-              border: "1px solid rgba(99,102,241,0.3)",
-              borderRadius: 12, padding: "0 18px",
-              color: "#a5b4fc", fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 700, fontSize: "0.82rem", cursor: "pointer",
-              whiteSpace: "nowrap", transition: "background 0.2s",
-              flexShrink: 0,
-            }}
-          >
-            Apply
-          </button>
-        </div>
-
-        {/* Discount feedback */}
-        {discountStatus === "valid" && discountData && (
-          <div style={{
-            marginTop: 10, background: "rgba(34,197,94,0.08)",
-            border: "1px solid rgba(34,197,94,0.25)", borderRadius: 10,
-            padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center",
-          }}>
-            <div>
-              <div style={{ fontSize: "0.82rem", color: "#86efac", fontWeight: 700 }}>
-                ✅ Code applied — {discountData.label}
-              </div>
-              <div style={{ fontSize: "0.73rem", color: "#6b7280", marginTop: 2 }}>
-                تم تطبيق الكود بنجاح
-              </div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "0.72rem", color: "#6b7280", textDecoration: "line-through" }}>20 DT</div>
-              <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#86efac" }}>{finalFee} DT</div>
-            </div>
-          </div>
-        )}
-
-        {discountStatus === "invalid" && (
-          <div style={{
-            marginTop: 10, background: "rgba(239,68,68,0.08)",
-            border: "1px solid rgba(239,68,68,0.25)", borderRadius: 10,
-            padding: "10px 14px", fontSize: "0.82rem", color: "#fca5a5",
-          }}>
-            ❌ Invalid code — الكود غير صحيح. Try DOUBLED or SCHOOL50, or leave it blank.
-          </div>
-        )}
-      </div>
-
-      {/* ── Dynamic fee summary ── */}
-      <div style={{
-        background: discountStatus === "valid"
-          ? "rgba(34,197,94,0.06)"
-          : "rgba(99,102,241,0.06)",
-        border: `1px solid ${discountStatus === "valid" ? "rgba(34,197,94,0.2)" : "rgba(99,102,241,0.2)"}`,
-        borderRadius: 12, padding: "14px 18px",
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        transition: "all 0.3s ease",
-      }}>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "#fff" }}>
-            Total to Pay · المبلغ الإجمالي
-          </div>
-          <div style={{ fontSize: "0.73rem", color: "#6b7280", marginTop: 2 }}>
-            {discountStatus === "valid"
-              ? `Discount applied: -${discountData?.off}% · تم تطبيق الخصم`
-              : "Paid after registration via payment link · يُدفع بعد التسجيل"}
-          </div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          {discountStatus === "valid" && (
-            <div style={{ fontSize: "0.75rem", color: "#6b7280", textDecoration: "line-through" }}>20 DT</div>
-          )}
-          <div style={{ fontWeight: 800, fontSize: "1.6rem", color: discountStatus === "valid" ? "#86efac" : "#a5b4fc" }}>
-            {finalFee} DT
-          </div>
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        style={{
-          background: status === "loading" ? "rgba(99,102,241,0.5)" : "linear-gradient(135deg,#6366f1,#8b5cf6)",
-          color: "#fff", border: "none", borderRadius: 12, padding: "16px",
-          fontFamily: "'Space Grotesk', sans-serif", fontWeight: 800, fontSize: "1rem",
-          cursor: status === "loading" ? "not-allowed" : "pointer",
-          boxShadow: "0 8px 28px rgba(99,102,241,0.35)",
-          transition: "opacity 0.2s, transform 0.2s",
-          marginTop: 4,
-        }}
-      >
-        {status === "loading"
-          ? "⏳ Registering..."
-          : `🎯 Register & Pay ${finalFee} DT · سجّل الآن`}
-      </button>
-
-      <div style={{ fontSize: "0.75rem", color: "#6b7280", textAlign: "center", lineHeight: 1.6 }}>
-        By registering you confirm your child is aged 6–18 and agrees to Plulai&apos;s Terms.
-        بالتسجيل تؤكد أن عمر طفلك بين 6 و 18 سنة.
-      </div>
-    </form>
   );
 }
