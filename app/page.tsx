@@ -256,7 +256,7 @@ export default function PlulaiTunisiaPage() {
 
           {/* English headline */}
           <h2 style={{ fontWeight: 800, fontSize: "clamp(1.1rem, 3vw, 1.7rem)", letterSpacing: "-0.02em", marginBottom: 20, animation: "fadeUp 0.5s 0.15s ease both", background: grad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            Tunisia AI Championship for Kids
+            Tunisia AI Championship for Youth
           </h2>
 
           <p style={{ maxWidth: 580, color: C.muted, fontSize: "clamp(0.92rem, 2vw, 1rem)", lineHeight: 1.8, marginBottom: 36, animation: "fadeUp 0.5s 0.2s ease both" }}>
