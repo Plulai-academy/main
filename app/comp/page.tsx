@@ -499,7 +499,7 @@ export default function PlulaiTunisiaPage() {
           <div style={{ fontSize: "0.78rem", color: C.muted }}>AI Championship for Kids · Tunisia 2025</div>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
             <a href="mailto:hello@plulai.com" style={{ fontSize: "0.78rem", color: C.teal, textDecoration: "none" }}>hello@plulai.com</a>
-            <a href="https://plulai.com"      style={{ fontSize: "0.78rem", color: C.teal, textDecoration: "none" }}>plulai.com</a>
+            {/* <a href="https://plulai.com"      style={{ fontSize: "0.78rem", color: C.teal, textDecoration: "none" }}>plulai.com</a> */}
           </div>
           <div style={{ fontSize: "0.7rem", color: "#1c3433" }}>© 2025 Plulai · All rights reserved</div>
         </footer>
