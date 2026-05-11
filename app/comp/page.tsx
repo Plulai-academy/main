@@ -557,7 +557,6 @@ function RegisterForm() {
     if (k === "discount") setDiscountStatus("idle");
   };
 
-  // ── FIXED submit: removed mode:"no-cors", now reads JSON response properly ──
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
@@ -565,7 +564,6 @@ function RegisterForm() {
     try {
       const res = await fetch(GOOGLE_WEBHOOK, {
         method: "POST",
-        // Content-Type: text/plain avoids a CORS preflight — Apps Script handles it fine
         headers: { "Content-Type": "text/plain" },
         body: JSON.stringify({
           childName:     form.childName,
@@ -581,7 +579,6 @@ function RegisterForm() {
         }),
       });
 
-      // Apps Script always returns HTTP 200 — real success/failure is in the JSON body
       const json = await res.json();
       if (json.ok) {
         setStatus("success");
@@ -591,11 +588,16 @@ function RegisterForm() {
     } catch (err: unknown) {
       setStatus("error");
       const msg = err instanceof Error ? err.message : String(err);
-      setErrorMsg(
-        msg.includes("Failed to fetch")
-          ? "Could not reach the server. Check your connection or use the Google Forms backup below."
-          : msg
-      );
+      // Provide a more helpful error message that points to the likely cause
+      if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+        setErrorMsg(
+          "⚠️ Could not reach the registration server. This usually means the Google Apps Script is not deployed correctly or the URL has changed.\n\n" +
+          "🔧 Fix: Open your Apps Script project → Deploy → New deployment → Web app → Execute as: Me → Access: Anyone → Copy the new URL and paste it into the GOOGLE_WEBHOOK constant in this file.\n\n" +
+          "📋 Until fixed, please use the Google Forms backup below."
+        );
+      } else {
+        setErrorMsg(msg);
+      }
     }
   };
 
@@ -631,7 +633,7 @@ function RegisterForm() {
     <form onSubmit={submit} style={{ background: "rgba(64,177,172,0.03)", border: `1px solid ${C.border}`, borderRadius: 24, padding: "36px 30px", display: "flex", flexDirection: "column", gap: 16 }}>
 
       {status === "error" && (
-        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 12, padding: "13px 16px", fontSize: "0.83rem", color: "#fca5a5" }}>
+        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 12, padding: "13px 16px", fontSize: "0.83rem", color: "#fca5a5", whiteSpace: "pre-line" }}>
           ⚠️ {errorMsg}
         </div>
       )}
@@ -786,3 +788,4 @@ function RegisterForm() {
     </form>
   );
 }
+
