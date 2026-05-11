@@ -41,7 +41,7 @@ function useCountdown(target: Date) {
 const DEADLINE        = new Date("2025-05-22T23:59:59");
 const BASE_FEE        = 20;
 const POOL_PRIZE      = 5000;
-const GOOGLE_WEBHOOK  = "https://script.google.com/macros/s/AKfycbyn3IZnpQBCUv55ZPJLtaL2YMgBY9kc-X3xmwbbS1DigyS0yBgKjwQf3j2Z1fhkETlA/exec";
+const GOOGLE_WEBHOOK  = "https://script.google.com/macros/s/AKfycbwCHHHcjfjdTkGWKPWn5FRZWF7PzUlO985Dek5LZnw-Y_oxEH9ycfOqo-6OKdm5hV0I/exec";
 const FALLBACK_FORM_URL = "https://forms.gle/LsZACjr1fUBNUMXt7";
 
 const DISCOUNT_CODES: Record<string, { label: string; off: number }> = {
@@ -378,6 +378,7 @@ export default function PlulaiTunisiaPage() {
           <h2 style={sectionH2}>Prize Pool: 5,000 DT</h2>
 
           <div style={{ position: "relative", background: `linear-gradient(135deg, rgba(64,177,172,0.1), rgba(251,117,191,0.08))`, border: `1px solid ${C.border}`, borderRadius: 28, padding: "52px 36px", marginTop: 36, overflow: "hidden" }}>
+            {/* Pulse rings */}
             {[180, 130].map((size, i) => (
               <div key={i} style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: size, height: size, borderRadius: "50%", border: `2px solid rgba(64,177,172,${0.1 + i * 0.05})`, animation: `pulse 3s ${i * 1}s ease-out infinite`, pointerEvents: "none" }} />
             ))}
@@ -444,13 +445,43 @@ export default function PlulaiTunisiaPage() {
             This championship is built on three pillars of excellence
           </p>
 
+          {/* Main partner cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 24 }}>
             {[
-              { emoji: "🏢", name: "Lingoville", tag: "Venue Partner · Sfax", color: C.teal, desc: "Lingoville Center on Route Tunis, Sfax is our official venue. Sfax-based participants can register and pay in person directly at the center.", detail: "📍 Route Tunis, Sfax" },
-              { emoji: "📈", name: "Business Success", tag: "Strategic Partner", color: C.pink, desc: "Business Success brings entrepreneurship expertise, prize logistics, and strategic support to make this championship a landmark event in Tunisia.", detail: "🤝 Strategy & Operations" },
-              { emoji: "🚀", name: "Plulai", tag: "Technology Partner", color: "#a78bfa", desc: "Plulai provides the full 10-day AI curriculum, the AI Coach, live leaderboard, automated certificates, and the entire technical platform.", detail: "💻 plulai.com" },
+              {
+                emoji: "🏢",
+                name: "Lingoville",
+                tag: "Venue Partner · Sfax",
+                color: C.teal,
+                desc: "Lingoville Center on Route Tunis, Sfax is our official venue. Sfax-based participants can register and pay in person directly at the center.",
+                detail: "📍 Route Tunis, Sfax",
+              },
+              {
+                emoji: "📈",
+                name: "Business Success",
+                tag: "Strategic Partner",
+                color: C.pink,
+                desc: "Business Success brings entrepreneurship expertise, prize logistics, and strategic support to make this championship a landmark event in Tunisia.",
+                detail: "🤝 Strategy & Operations",
+              },
+              {
+                emoji: "🚀",
+                name: "Plulai",
+                tag: "Technology Partner",
+                color: "#a78bfa",
+                desc: "Plulai provides the full 10-day AI curriculum, the AI Coach, live leaderboard, automated certificates, and the entire technical platform.",
+                detail: "💻 plulai.com",
+              },
             ].map((p, i) => (
-              <div key={i} style={{ background: `linear-gradient(160deg, rgba(64,177,172,0.05), rgba(64,177,172,0.02))`, border: `1px solid ${C.border}`, borderRadius: 20, padding: "28px 24px", display: "flex", flexDirection: "column", gap: 14, animation: "fadeUp 0.5s ease both", animationDelay: `${i * 0.1}s`, position: "relative", overflow: "hidden" }}>
+              <div key={i} style={{
+                background: `linear-gradient(160deg, rgba(64,177,172,0.05), rgba(64,177,172,0.02))`,
+                border: `1px solid ${C.border}`,
+                borderRadius: 20, padding: "28px 24px",
+                display: "flex", flexDirection: "column", gap: 14,
+                animation: "fadeUp 0.5s ease both", animationDelay: `${i * 0.1}s`,
+                position: "relative", overflow: "hidden",
+              }}>
+                {/* Top accent bar */}
                 <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${p.color}, transparent)`, borderRadius: "20px 20px 0 0" }} />
                 <div style={{ fontSize: "2.4rem" }}>{p.emoji}</div>
                 <div>
@@ -463,10 +494,13 @@ export default function PlulaiTunisiaPage() {
             ))}
           </div>
 
+          {/* Sfax in-person payment callout */}
           <div style={{ background: `linear-gradient(135deg, rgba(251,117,47,0.07), rgba(64,177,172,0.05))`, border: `1px solid rgba(251,117,47,0.25)`, borderRadius: 18, padding: "22px 24px", display: "flex", gap: 16, alignItems: "flex-start" }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(251,117,47,0.15)", border: "1px solid rgba(251,117,47,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", flexShrink: 0 }}>📍</div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#fff", marginBottom: 6 }}>Paying in Sfax? · أنت من صفاقس؟</div>
+              <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#fff", marginBottom: 6 }}>
+                Paying in Sfax? · أنت من صفاقس؟
+              </div>
               <div style={{ fontSize: "0.82rem", color: C.muted, lineHeight: 1.7 }}>
                 Come directly to <strong style={{ color: C.text }}>Lingoville Center, Route Tunis, Sfax</strong> to register and pay in person. Bring your child&apos;s name, age, and your contact details. A receipt and confirmation are issued immediately on the spot.
               </div>
@@ -499,7 +533,7 @@ export default function PlulaiTunisiaPage() {
           <div style={{ fontSize: "0.78rem", color: C.muted }}>AI Championship for Kids · Tunisia 2025</div>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
             <a href="mailto:hello@plulai.com" style={{ fontSize: "0.78rem", color: C.teal, textDecoration: "none" }}>hello@plulai.com</a>
-            {/* <a href="https://plulai.com"      style={{ fontSize: "0.78rem", color: C.teal, textDecoration: "none" }}>plulai.com</a> */}
+            <a href="https://plulai.com"      style={{ fontSize: "0.78rem", color: C.teal, textDecoration: "none" }}>plulai.com</a>
           </div>
           <div style={{ fontSize: "0.7rem", color: "#1c3433" }}>© 2025 Plulai · All rights reserved</div>
         </footer>
@@ -538,9 +572,9 @@ function ProgressBar() {
 
 // ── RegisterForm ──────────────────────────────────────────────────────────────
 function RegisterForm() {
-  const [form, setForm]     = useState({ childName: "", age: "", parentName: "", email: "", phone: "", school: "", discount: "" });
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [errorMsg, setErrorMsg]             = useState("");
+  const [form, setForm]               = useState({ childName: "", age: "", parentName: "", email: "", phone: "", school: "", discount: "" });
+  const [status, setStatus]           = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg]       = useState("");
   const [discountStatus, setDiscountStatus] = useState<"idle" | "valid" | "invalid">("idle");
 
   const discountData = DISCOUNT_CODES[form.discount.trim().toUpperCase()];
@@ -559,11 +593,10 @@ function RegisterForm() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("loading");
-    setErrorMsg("");
+    setStatus("loading"); setErrorMsg("");
     try {
-      const res = await fetch(GOOGLE_WEBHOOK, {
-        method: "POST",
+      await fetch(GOOGLE_WEBHOOK, {
+        method: "POST", mode: "no-cors",
         headers: { "Content-Type": "text/plain" },
         body: JSON.stringify({
           childName:     form.childName,
@@ -578,26 +611,10 @@ function RegisterForm() {
           timestamp:     new Date().toISOString(),
         }),
       });
-
-      const json = await res.json();
-      if (json.ok) {
-        setStatus("success");
-      } else {
-        throw new Error(json.error || "Unknown error from server");
-      }
-    } catch (err: unknown) {
+      setStatus("success");
+    } catch {
       setStatus("error");
-      const msg = err instanceof Error ? err.message : String(err);
-      // Provide a more helpful error message that points to the likely cause
-      if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
-        setErrorMsg(
-          "⚠️ Could not reach the registration server. This usually means the Google Apps Script is not deployed correctly or the URL has changed.\n\n" +
-          "🔧 Fix: Open your Apps Script project → Deploy → New deployment → Web app → Execute as: Me → Access: Anyone → Copy the new URL and paste it into the GOOGLE_WEBHOOK constant in this file.\n\n" +
-          "📋 Until fixed, please use the Google Forms backup below."
-        );
-      } else {
-        setErrorMsg(msg);
-      }
+      setErrorMsg("Connection failed. Please try again or use the backup Google Forms link below.");
     }
   };
 
@@ -633,9 +650,7 @@ function RegisterForm() {
     <form onSubmit={submit} style={{ background: "rgba(64,177,172,0.03)", border: `1px solid ${C.border}`, borderRadius: 24, padding: "36px 30px", display: "flex", flexDirection: "column", gap: 16 }}>
 
       {status === "error" && (
-        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 12, padding: "13px 16px", fontSize: "0.83rem", color: "#fca5a5", whiteSpace: "pre-line" }}>
-          ⚠️ {errorMsg}
-        </div>
+        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 12, padding: "13px 16px", fontSize: "0.83rem", color: "#fca5a5" }}>⚠️ {errorMsg}</div>
       )}
 
       {/* Fee banner */}
@@ -650,35 +665,19 @@ function RegisterForm() {
         </div>
       </div>
 
-      <div>
-        <label style={lbl}>Child&apos;s Full Name · اسم الطفل</label>
-        <input required style={inp} placeholder="e.g. Ahmed Ben Ali" value={form.childName} onChange={set("childName")} onFocus={focus} onBlur={blur} />
-      </div>
+      <div><label style={lbl}>Child&apos;s Full Name · اسم الطفل</label><input required style={inp} placeholder="e.g. Ahmed Ben Ali" value={form.childName} onChange={set("childName")} onFocus={focus} onBlur={blur} /></div>
 
       <div>
         <label style={lbl}>Child&apos;s Age · عمر الطفل</label>
         <select required style={{ ...inp, appearance: "none" }} value={form.age} onChange={set("age")} onFocus={focus} onBlur={blur}>
           <option value="">Select age / اختر السن</option>
-          {Array.from({ length: 13 }, (_, i) => i + 6).map(a => (
-            <option key={a} value={a}>{a} years / {a} سنوات</option>
-          ))}
+          {Array.from({ length: 13 }, (_, i) => i + 6).map(a => <option key={a} value={a}>{a} years / {a} سنوات</option>)}
         </select>
       </div>
 
-      <div>
-        <label style={lbl}>Parent / Guardian Name · اسم الوالد</label>
-        <input required style={inp} placeholder="e.g. Mohamed Ben Ali" value={form.parentName} onChange={set("parentName")} onFocus={focus} onBlur={blur} />
-      </div>
-
-      <div>
-        <label style={lbl}>Email Address · البريد الإلكتروني</label>
-        <input required type="email" style={inp} placeholder="parent@email.com" value={form.email} onChange={set("email")} onFocus={focus} onBlur={blur} />
-      </div>
-
-      <div>
-        <label style={lbl}>Phone · رقم الهاتف (optional)</label>
-        <input style={inp} placeholder="+216 XX XXX XXX" value={form.phone} onChange={set("phone")} onFocus={focus} onBlur={blur} />
-      </div>
+      <div><label style={lbl}>Parent / Guardian Name · اسم الوالد</label><input required style={inp} placeholder="e.g. Mohamed Ben Ali" value={form.parentName} onChange={set("parentName")} onFocus={focus} onBlur={blur} /></div>
+      <div><label style={lbl}>Email Address · البريد الإلكتروني</label><input required type="email" style={inp} placeholder="parent@email.com" value={form.email} onChange={set("email")} onFocus={focus} onBlur={blur} /></div>
+      <div><label style={lbl}>Phone · رقم الهاتف (optional)</label><input style={inp} placeholder="+216 XX XXX XXX" value={form.phone} onChange={set("phone")} onFocus={focus} onBlur={blur} /></div>
 
       <div style={{ borderTop: `1px solid ${C.border}`, margin: "2px 0" }} />
 
@@ -691,21 +690,13 @@ function RegisterForm() {
       <div>
         <label style={lbl}>🎟️ Exclusive Discount Code · كود التخفيض (if you have one)</label>
         <input
-          style={{
-            ...inp,
-            borderColor: discountStatus === "valid" ? "rgba(64,177,172,0.6)" : discountStatus === "invalid" ? "rgba(239,68,68,0.5)" : C.border,
-            textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "monospace",
-          }}
+          style={{ ...inp, borderColor: discountStatus === "valid" ? "rgba(64,177,172,0.6)" : discountStatus === "invalid" ? "rgba(239,68,68,0.5)" : C.border, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "monospace" }}
           placeholder="Enter your exclusive code here"
-          value={form.discount}
-          onChange={set("discount")}
-          onFocus={focus}
-          onBlur={e => { checkDiscount(); blur(e); }}
-          maxLength={20}
+          value={form.discount} onChange={set("discount")}
+          onFocus={focus} onBlur={e => { checkDiscount(); blur(e); }} maxLength={20}
         />
         <div style={{ fontSize: "0.7rem", color: "#3d6665", marginTop: 6 }}>
-          Codes are exclusive — distributed to schools &amp; partners only.{" "}
-          <a href="mailto:hello@plulai.com" style={{ color: C.teal, textDecoration: "none" }}>Contact us</a> to get yours.
+          Codes are exclusive — distributed to schools &amp; partners only. <a href="mailto:hello@plulai.com" style={{ color: C.teal, textDecoration: "none" }}>Contact us</a> to get yours.
         </div>
         {discountStatus === "valid" && discountData && (
           <div style={{ marginTop: 10, background: "rgba(64,177,172,0.08)", border: `1px solid rgba(64,177,172,0.25)`, borderRadius: 10, padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -721,8 +712,7 @@ function RegisterForm() {
         )}
         {discountStatus === "invalid" && (
           <div style={{ marginTop: 10, background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10, padding: "10px 14px", fontSize: "0.8rem", color: "#fca5a5" }}>
-            ❌ Invalid code · كود غير صحيح.{" "}
-            <a href="mailto:hello@plulai.com" style={{ color: C.teal }}>Contact us</a> to get yours.
+            ❌ Invalid code · كود غير صحيح. Codes are exclusive — <a href="mailto:hello@plulai.com" style={{ color: C.teal }}>contact us</a> to get yours.
           </div>
         )}
       </div>
@@ -737,25 +727,16 @@ function RegisterForm() {
         </div>
         <div style={{ textAlign: "right" }}>
           {discountStatus === "valid" && <div style={{ fontSize: "0.7rem", color: C.muted, textDecoration: "line-through" }}>20 DT</div>}
-          <div style={{ fontWeight: 800, fontSize: "1.6rem", color: C.teal }}>{finalFee} DT</div>
+          <div style={{ fontWeight: 800, fontSize: "1.6rem", color: discountStatus === "valid" ? C.teal : C.teal }}>{finalFee} DT</div>
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        style={{
-          background: status === "loading" ? "rgba(64,177,172,0.4)" : `linear-gradient(135deg, ${C.teal}, ${C.pink})`,
-          color: "#fff", border: "none", borderRadius: 12, padding: "15px",
-          fontFamily: "'Space Grotesk', sans-serif", fontWeight: 800, fontSize: "1rem",
-          cursor: status === "loading" ? "not-allowed" : "pointer",
-          boxShadow: `0 8px 28px rgba(64,177,172,0.3)`, marginTop: 4, transition: "opacity 0.2s",
-        }}
-      >
+      <button type="submit" disabled={status === "loading"}
+        style={{ background: status === "loading" ? "rgba(64,177,172,0.4)" : `linear-gradient(135deg, ${C.teal}, ${C.pink})`, color: "#fff", border: "none", borderRadius: 12, padding: "15px", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 800, fontSize: "1rem", cursor: status === "loading" ? "not-allowed" : "pointer", boxShadow: `0 8px 28px rgba(64,177,172,0.3)`, marginTop: 4, transition: "opacity 0.2s" }}>
         {status === "loading" ? "⏳ Registering..." : `🎯 Register & Pay ${finalFee} DT · سجّل الآن`}
       </button>
 
-      {/* Fallback Google Forms link */}
+      {/* ── FALLBACK BUTTON: Google Forms backup (shown when form is not submitted successfully) ── */}
       <div style={{ marginTop: 12, textAlign: "center", borderTop: `1px solid ${C.border}`, paddingTop: 18 }}>
         <div style={{ marginBottom: 8 }}>
           <span style={{ fontSize: "0.7rem", color: C.muted, background: C.bg2, padding: "0 8px", letterSpacing: "0.5px" }}>⚠️ Alternative Registration</span>
@@ -769,10 +750,12 @@ function RegisterForm() {
             background: "rgba(64,177,172,0.02)", border: `1px solid ${C.teal}`,
             borderRadius: 999, padding: "10px 22px", color: C.teal,
             textDecoration: "none", fontSize: "0.8rem", fontWeight: 600,
-            fontFamily: "'Space Grotesk', sans-serif", transition: "all 0.2s ease", cursor: "pointer",
+            fontFamily: "'Space Grotesk', sans-serif",
+            transition: "all 0.2s ease",
+            cursor: "pointer"
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = `rgba(64,177,172,0.12)`)}
-          onMouseLeave={e => (e.currentTarget.style.background = "rgba(64,177,172,0.02)")}
+          onMouseEnter={(e) => (e.currentTarget.style.background = `rgba(64,177,172,0.12)`)}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(64,177,172,0.02)")}
         >
           📋 Register via Google Forms (backup) →
         </a>
@@ -788,4 +771,3 @@ function RegisterForm() {
     </form>
   );
 }
-
