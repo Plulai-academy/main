@@ -432,6 +432,8 @@ export default function PlulaiTunisiaPage() {
             <a href="mailto:hello@plulai.com" style={{ color: C.teal, textDecoration: "none" }}>hello@plulai.com</a>
             <span style={{ color: "#3d6665" }}>·</span>
             <a href="https://plulai.com" style={{ color: C.teal, textDecoration: "none" }}>plulai.com</a>
+            <span style={{ color: "#3d6665" }}>·</span>
+            <a href="https://plulai.com" style={{ color: C.teal, textDecoration: "none" }}>+216 26 616 500</a>
           </div>
         </section>
 
