@@ -41,7 +41,7 @@ function useCountdown(target: Date) {
 const DEADLINE        = new Date("2025-05-22T23:59:59");
 const BASE_FEE        = 20;
 const POOL_PRIZE      = 5000;
-const GOOGLE_WEBHOOK  = "https://script.google.com/macros/s/AKfycbwpQyidnOQOKLrorP3Iq2NaXyLIQkG8uKIAjPljXqb9U7jcf_sCbCaU9l1BnpDXdb4_/exec";
+const GOOGLE_WEBHOOK  = "https://script.google.com/macros/s/AKfycbzGFHAs0plhjLfuJVuKiizcI3_ONivtLaEFZtUIUgjy8q8AkK4GSUKk8w1z5Sz_Lp2R/exec";
 const FALLBACK_FORM_URL = "https://forms.gle/LsZACjr1fUBNUMXt7";
 
 const DISCOUNT_CODES: Record<string, { label: string; off: number }> = {
