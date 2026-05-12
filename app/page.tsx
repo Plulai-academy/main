@@ -262,7 +262,7 @@ export default function PlulaiTunisiaPage() {
           <p style={{ maxWidth: 580, color: C.muted, fontSize: "clamp(0.92rem, 2vw, 1rem)", lineHeight: 1.8, marginBottom: 36, animation: "fadeUp 0.5s 0.2s ease both" }}>
             10 days · 100% online · Ages 6–18 · <strong style={{ color: "#fff" }}>20 DT</strong> entry<br />
             Schools &amp; partners: <strong style={{ color: C.teal }}>50% off</strong> — contact us for your exclusive code<br />
-            <strong style={{ color: C.text }}>📅 23 May → 5 June 2025</strong>
+            <strong style={{ color: C.text }}>📅 23 May → 5 June 2026</strong>
           </p>
 
           {/* CTA row */}
@@ -346,7 +346,7 @@ export default function PlulaiTunisiaPage() {
               Deadline: <strong style={{ color: C.text }}>22 May 2025</strong> · آخر موعد: 22 مايو 2025
             </div>
             <div style={{ marginTop: 6, fontSize: "0.7rem", color: "#3d6665" }}>
-              Competition: 23 May – 5 June 2025
+              Competition: 23 May – 5 June 2026
             </div>
           </div>
         </section>
