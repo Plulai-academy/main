@@ -654,7 +654,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Partners ── */}
-      <section id="partners" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
+      {/* <section id="partners" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
         <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Trusted &amp; recognised by</p>
         <h2 className="font-fredoka text-3xl md:text-4xl text-center mb-3">Our Partners &amp; Supporters 🤝</h2>
         <p className="text-center text-muted font-semibold mb-10 md:mb-14 text-sm md:text-base max-w-xl mx-auto">
@@ -683,7 +683,7 @@ export default function LandingPage() {
             🤝 Become a Partner
           </a>
         </div>
-      </section>
+      </section> */}
 
       {/* ── GCC ── */}
       <section id="gcc" className="py-16 md:py-24 px-4 md:px-6 max-w-5xl mx-auto">
@@ -761,7 +761,7 @@ export default function LandingPage() {
             Join 1,247 kids across UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman who are already building the skills that matter.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-bold text-muted mb-8 md:mb-10">
-            {['✅ Free forever plan','✅ No credit card','✅ Arabic & English','✅ Ages 6–18','✅ COPPA certified','✅ No ads ever','✅ Cancel anytime','✅ Any device'].map(t => (
+            {['✅ Free forever plan','✅ No credit card','✅ Arabic & English','✅ Ages 6–18','✅ No ads ever','✅ Cancel anytime','✅ Any device'].map(t => (
               <span key={t} className="bg-card border border-white/5 rounded-full px-3 py-1">{t}</span>
             ))}
           </div>
@@ -772,7 +772,7 @@ export default function LandingPage() {
             🎉 Claim Your Free Account — Start in 60 Seconds
           </Link>
           <p className="text-muted text-xs font-bold mt-5 opacity-70">
-            Trusted by parents &amp; teachers across the GCC · COPPA compliant · Safe for kids · No ads
+            Trusted by parents &amp; teachers across the GCC ·  {/*COPPA compliant ·*/} Safe for kids · No ads 
           </p>
         </div>
       </section>
@@ -783,7 +783,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8">
             <div>
               <div className="font-fredoka text-2xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent mb-2">Plulai</div>
-              <p className="text-muted text-xs font-bold max-w-xs leading-relaxed">The #1 edtech platform for kids in the UAE &amp; GCC. Coding, AI &amp; Entrepreneurship for ages 6–18.</p>
+              {/* <p className="text-muted text-xs font-bold max-w-xs leading-relaxed">The #1 edtech platform for kids in the UAE &amp; GCC. Coding, AI &amp; Entrepreneurship for ages 6–18.</p> */}
             </div>
             <div className="grid grid-cols-3 gap-8 text-xs font-bold text-muted w-full md:w-auto">
               <div>
@@ -815,7 +815,7 @@ export default function LandingPage() {
           </div>
           <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-muted text-xs font-bold text-center md:text-left">
-              © {new Date().getFullYear()} Plulai. Built with ❤️ in the UAE. The #1 edtech platform for kids in the GCC.
+              © {new Date().getFullYear()} Plulai. Built with ❤️. The #1 edtech platform for kids in the GCC.
             </p>
             <a href="mailto:hello@plulai.com" className="text-muted text-xs font-bold hover:text-white transition-colors">hello@plulai.com</a>
           </div>
