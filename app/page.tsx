@@ -206,7 +206,7 @@ export default function LandingPage() {
 
         {/* NEUROMARKETING: Headline leads with aspiration, not product name */}
         <h1 className="font-fredoka text-4xl sm:text-5xl lg:text-7xl leading-tight mb-5 md:mb-6">
-          <span className="text-white">Your Child's Future</span>
+          <span className="text-white">Your Child&apos;s Future</span>
           <br />
           <span className="bg-gradient-to-r from-accent2 via-accent1 to-accent5 bg-clip-text text-transparent">
             Needs More Than Good Grades
@@ -235,7 +235,7 @@ export default function LandingPage() {
             href="#tracks"
             className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 rounded-2xl font-extrabold text-base md:text-lg text-muted bg-card border border-white/10 hover:text-white transition-all"
           >
-            ▶ See What They'll Learn
+            ▶ See What They&apos;ll Learn
           </a>
           <Link
             href="/sharkkid"
@@ -310,7 +310,7 @@ export default function LandingPage() {
           Our Partners & Supporters 🤝
         </h2>
         <p className="text-center text-muted font-semibold mb-10 md:mb-14 text-sm md:text-base max-w-xl mx-auto">
-          From government bodies to global tech giants — the institutions shaping the GCC's future stand behind Plulai.
+          From government bodies to global tech giants — the institutions shaping the GCC&apos;s future stand behind Plulai.
         </p>
 
         {/* Partner grid — grouped by category */}
