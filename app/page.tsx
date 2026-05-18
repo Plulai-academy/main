@@ -87,7 +87,7 @@ const FEATURES = [
   { emoji:'🌍', title:'Built for GCC, not copy-pasted',   desc:'Full Arabic RTL + bilingual AI coach. Every example is set in Dubai, Riyadh, Doha, Kuwait City. Not a US product translated — built here first.',               color:'from-accent3/20 to-accent4/20', border:'border-accent3/20' },
   { emoji:'📊', title:'Parent dashboard & weekly report', desc:'Track streaks, XP, badges and lesson completion in real time. Weekly email summary. Stay involved without hovering.',                                              color:'from-accent5/20 to-accent1/20', border:'border-accent5/20' },
   { emoji:'🏆', title:'Real portfolio, not just a cert',  desc:'By month 3 your child has 3 real projects — an app, an AI tool and a pitch deck. A portfolio, not a participation certificate.',                                   color:'from-accent2/20 to-accent3/20', border:'border-accent2/20' },
-  { emoji:'🔒', title:'Child-safe by design',             desc:'No ads. Ever. COPPA certified. AI responses filtered for child safety. Parent controls the account. Zero data sold. Built to KHDA standards.',                      color:'from-accent4/20 to-accent3/20', border:'border-accent4/20' },
+  // { emoji:'🔒', title:'Child-safe by design',             desc:'No ads. Ever. COPPA certified. AI responses filtered for child safety. Parent controls the account. Zero data sold. Built to KHDA standards.',                      color:'from-accent4/20 to-accent3/20', border:'border-accent4/20' },
 ]
 
 const TRACKS = [
@@ -368,7 +368,7 @@ export default function LandingPage() {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-bold text-muted mb-10">
-          {['✅ Free forever plan', '✅ No credit card', '✅ Arabic & English', '✅ No ads ever', '✅ Cancel anytime', '✅ COPPA certified'].map(t => (
+          {['✅ Free forever plan', '✅ No credit card', '✅ Arabic & English', '✅ No ads ever', '✅ Cancel anytime'].map(t => (
             <span key={t} className="bg-card border border-white/5 rounded-full px-3 py-1">{t}</span>
           ))}
         </div>
@@ -390,7 +390,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Press / Awards ── */}
-      <section className="px-4 md:px-6 max-w-4xl mx-auto mb-8 md:mb-16">
+      {/* <section className="px-4 md:px-6 max-w-4xl mx-auto mb-8 md:mb-16">
         <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-5">As seen in</p>
         <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
           {PRESS.map(p => (
@@ -400,10 +400,10 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* ── Sharkkid Banner ── */}
-      <section className="px-4 md:px-6 max-w-6xl mx-auto mb-8">
+      {/* <section className="px-4 md:px-6 max-w-6xl mx-auto mb-8">
         <Link
           href="/sharkkid"
           className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-accent2/10 to-accent1/10 border border-accent2/25 rounded-3xl px-6 py-5 md:px-8 md:py-6 hover:-translate-y-0.5 transition-all group"
@@ -421,7 +421,7 @@ export default function LandingPage() {
             Apply Now →
           </span>
         </Link>
-      </section>
+      </section> */}
 
       {/* ── Quiz Funnel ── */}
       <section id="quiz" className="py-16 md:py-24 px-4 md:px-6 max-w-2xl mx-auto">
