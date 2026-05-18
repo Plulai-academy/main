@@ -321,11 +321,11 @@ export default function LandingPage() {
           <span className="hidden sm:block text-white/20">|</span>
           <span>⭐ Rated 4.9 by 800+ parents</span>
           <span className="hidden sm:block text-white/20">|</span>
-          <span>🏆 Best Kids Platform · EdTech Arabia 2024</span>
-          <span className="hidden sm:block text-white/20">|</span>
-          <span>🔒 COPPA Certified · No Ads · Child Safe</span>
-          <span className="hidden sm:block text-white/20">|</span>
-          <span>📰 Featured in Forbes Middle East</span>
+          {/* <span>🏆 Best Kids Platform · EdTech Arabia 2024</span> */}
+          {/* <span className="hidden sm:block text-white/20">|</span> */}
+          {/* <span>🔒 COPPA Certified · No Ads · Child Safe</span> */}
+          {/* <span className="hidden sm:block text-white/20">|</span> */}
+          {/* <span>📰 Featured in Forbes Middle East</span> */}
         </div>
       </div>
 
