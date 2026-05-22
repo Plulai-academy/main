@@ -96,10 +96,10 @@ function TrackQuiz() {
   if (step === 0) return (
     <div style={{ textAlign:'center', padding:'32px 0' }}>
       <div style={{ fontSize:'3rem', marginBottom:16 }}>🎯</div>
-      <h3 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.4rem,3vw,2rem)', color:'var(--ink)', marginBottom:12, fontWeight:900, letterSpacing:'-0.03em' }}>Find your child's track</h3>
+      <h3 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.4rem,3vw,2rem)', color:'var(--ink)', marginBottom:12, fontWeight:900, letterSpacing:'-0.03em' }}>Find your child&apos;s track</h3>
       <p style={{ color:'var(--ink-muted)', fontSize:'0.9rem', marginBottom:28, fontWeight:500 }}>3 questions · 60 seconds · personalised plan</p>
       <button onClick={() => setStep(1)} style={{ background:'var(--lime)', color:'var(--ink)', padding:'14px 36px', borderRadius:999, fontWeight:900, fontSize:'1rem', border:'none', cursor:'pointer', letterSpacing:'-0.01em' }}>
-        Build my child's plan →
+        Build my child&apos;s plan →
       </button>
     </div>
   )
@@ -467,7 +467,7 @@ export default function LandingPage() {
                 }}>{p.track}</span>
                 <span style={{ fontFamily:'var(--font-ui)', fontSize:'0.72rem', color:'var(--ink-muted)', fontWeight:700 }}>Week {p.weeks}</span>
               </div>
-              <p style={{ fontFamily:'var(--font-body)', fontSize:'1rem', fontWeight:700, color:'var(--ink)', marginBottom:16, lineHeight:1.4, fontStyle:'italic' }}>"{p.project}"</p>
+              <p style={{ fontFamily:'var(--font-body)', fontSize:'1rem', fontWeight:700, color:'var(--ink)', marginBottom:16, lineHeight:1.4, fontStyle:'italic' }}>&ldquo;{p.project}&rdquo;</p>
               <div style={{ display:'flex', gap:8, fontFamily:'var(--font-ui)', fontSize:'0.72rem', color:'var(--ink-muted)', fontWeight:700 }}>
                 <span>{p.country}</span><span>·</span><span>Age {p.age}</span>
               </div>
@@ -479,7 +479,7 @@ export default function LandingPage() {
           <Link href="/auth/signup" className="cta-pill" style={{ fontSize:'1rem', padding:'18px 48px' }}>
             Start building — free →
           </Link>
-          <p style={{ fontFamily:'var(--font-ui)', fontSize:'0.72rem', color:'var(--ink-muted)', marginTop:12, fontWeight:600 }}>Your child's first project is ready by end of week 2.</p>
+          <p style={{ fontFamily:'var(--font-ui)', fontSize:'0.72rem', color:'var(--ink-muted)', marginTop:12, fontWeight:600 }}>Your child&apos;s first project is ready by end of week 2.</p>
         </div>
       </section>
 
@@ -526,7 +526,7 @@ export default function LandingPage() {
               <div style={{ display:'inline-flex', alignItems:'center', gap:6, background: i === 1 ? 'var(--lime)' : 'var(--ink)', color: i === 1 ? 'var(--ink)' : 'var(--paper)', borderRadius:999, padding:'4px 12px', marginBottom:20 }}>
                 <span style={{ fontFamily:'var(--font-ui)', fontSize:'0.68rem', fontWeight:800, letterSpacing:'0.06em' }}>✓ {t.result}</span>
               </div>
-              <p style={{ fontFamily:'var(--font-body)', fontSize:'1rem', color: i === 1 ? 'rgba(245,240,232,0.85)' : 'var(--ink)', lineHeight:1.65, marginBottom:24, fontStyle:'italic' }}>"{t.text}"</p>
+              <p style={{ fontFamily:'var(--font-body)', fontSize:'1rem', color: i === 1 ? 'rgba(245,240,232,0.85)' : 'var(--ink)', lineHeight:1.65, marginBottom:24, fontStyle:'italic' }}>&ldquo;{t.text}&rdquo;</p>
               <div style={{ fontFamily:'var(--font-ui)', fontSize:'0.78rem', fontWeight:800, color: i === 1 ? 'var(--lime)' : 'var(--ink-muted)' }}>{t.name}, age {t.age} · {t.country}</div>
             </div>
           ))}
@@ -539,7 +539,7 @@ export default function LandingPage() {
                 <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'var(--ink)', color:'var(--paper)', borderRadius:999, padding:'4px 12px', marginBottom:16 }}>
                   <span style={{ fontFamily:'var(--font-ui)', fontSize:'0.68rem', fontWeight:800 }}>✓ {t.result}</span>
                 </div>
-                <p style={{ fontFamily:'var(--font-body)', fontSize:'0.95rem', color:'var(--ink)', lineHeight:1.65, marginBottom:16, fontStyle:'italic' }}>"{t.text}"</p>
+                <p style={{ fontFamily:'var(--font-body)', fontSize:'0.95rem', color:'var(--ink)', lineHeight:1.65, marginBottom:16, fontStyle:'italic' }}>&ldquo;{t.text}&rdquo;</p>
                 <div style={{ fontFamily:'var(--font-ui)', fontSize:'0.78rem', fontWeight:800, color:'var(--ink-muted)' }}>{t.name}, age {t.age} · {t.country}</div>
               </div>
             </div>
@@ -554,10 +554,10 @@ export default function LandingPage() {
             <div>
               <p style={{ fontFamily:'var(--font-ui)', fontSize:'0.65rem', fontWeight:800, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', marginBottom:16 }}>Built for the region</p>
               <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(3rem,6vw,6rem)', lineHeight:0.9, color:'#f5f0e8', marginBottom:32 }}>
-                THE GCC'S<br />#1 EDTECH<br />PLATFORM
+                THE GCC&apos;S<br />#1 EDTECH<br />PLATFORM
               </h2>
               <p style={{ fontFamily:'var(--font-body)', fontSize:'1rem', color:'rgba(245,240,232,0.6)', lineHeight:1.7, fontStyle:'italic', marginBottom:36 }}>
-                The only kids' platform built region-first — culturally relevant, fully bilingual, designed for the GCC's next generation. Real Arabic, not translated.
+                The only kids&apos; platform built region-first — culturally relevant, fully bilingual, designed for the GCC&apos;s next generation. Real Arabic, not translated.
               </p>
               <Link href="/auth/signup" className="cta-pill lime" style={{ fontSize:'0.95rem' }}>Join the region →</Link>
             </div>
@@ -614,7 +614,7 @@ export default function LandingPage() {
               <div style={{ position:'absolute', top:20, right:20, background:'var(--lime)', color:'var(--ink)', fontFamily:'var(--font-ui)', fontSize:'0.62rem', fontWeight:900, padding:'4px 12px', borderRadius:999, letterSpacing:'0.08em' }}>MOST POPULAR</div>
               <div style={{ fontSize:'2rem', marginBottom:16 }}>🎁</div>
               <div style={{ fontFamily:'var(--font-display)', fontSize:'2rem', color:'#f5f0e8', marginBottom:4 }}>FREE</div>
-              <div style={{ fontFamily:'var(--font-display)', fontSize:'4rem', color:'#f5f0e8', lineHeight:1, marginBottom:4 }}>AED 0</div>
+              <div style={{ fontFamily:'var(--font-display)', fontSize:'4rem', color:'#f5f0e8', lineHeight:1, marginBottom:4 }}>$0</div>
               <div style={{ fontFamily:'var(--font-ui)', fontSize:'0.72rem', color:'rgba(245,240,232,0.4)', fontWeight:600, marginBottom:32 }}>forever · no card needed</div>
               {['First module of each track','Personal AI coach','XP & streak system','Parent dashboard','Arabic & English','Any device'].map(f => (
                 <div key={f} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
@@ -629,7 +629,7 @@ export default function LandingPage() {
             <div style={{ background:'var(--paper)', border:'1px solid rgba(0,0,0,0.1)', borderRadius:24, padding:40, opacity:0.85 }}>
               <div style={{ fontSize:'2rem', marginBottom:16 }}>⚡</div>
               <div style={{ fontFamily:'var(--font-display)', fontSize:'2rem', color:'var(--ink)', marginBottom:4 }}>PRO</div>
-              <div style={{ fontFamily:'var(--font-display)', fontSize:'4rem', color:'var(--ink)', lineHeight:1, marginBottom:4 }}>AED 79</div>
+              <div style={{ fontFamily:'var(--font-display)', fontSize:'4rem', color:'var(--ink)', lineHeight:1, marginBottom:4 }}>$79</div>
               <div style={{ fontFamily:'var(--font-ui)', fontSize:'0.72rem', color:'var(--ink-muted)', fontWeight:600, marginBottom:32 }}>per month · cancel anytime</div>
               {['All 200+ lessons','Advanced AI coaching','Full portfolio system','Live project feedback','Completion certificate','Priority support'].map(f => (
                 <div key={f} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
