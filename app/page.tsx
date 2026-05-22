@@ -139,8 +139,8 @@ const PARTNERS = [
 { abbr: 'LingoVille',        name: 'LingoVille',           logo: '/partners/lingo.png',    category: 'Schools' },
 { abbr: 'The intelligent inventor',        name: 'The intelligent inventor',           logo: '/partners/tie.png',    category: 'Schools' },
 { abbr: 'Pinacle',        name: 'Pinacle',           logo: '/partners/gems.png',    category: 'Schools' },
-{ abbr: 'Les elites Juniors',        name: 'Les elites Juniors',           logo: '/partners/gems.png',    category: 'Schools' },
-{ abbr: 'La coupole',        name: 'La coupole',           logo: '/partners/gems.png',    category: 'Schools' },
+{ abbr: 'Les elites Juniors',        name: 'Les elites Juniors',           logo: '/partners/elites.png',    category: 'Schools' },
+{ abbr: 'La coupole',        name: 'La coupole',           logo: '/partners/lacoupole.png',    category: 'Schools' },
 { abbr: 'FSC',        name: 'First skills club',           logo: '/partners/gems.png',    category: 'Schools' },
 ]
 
