@@ -1,187 +1,127 @@
 'use client'
-// app/page.tsx — Maximum-Conversion Neuromarketing Landing Page v3
-//
-// Techniques layered:
-//  1.  PAS copywriting  (Pain → Agitation → Solution)
-//  2.  Social proof ticker above the fold
-//  3.  Loss aversion + specific scarcity counter
-//  4.  QUIZ FUNNEL — Zeigarnik + micro-commitment + IKEA effect
-//  5.  Reciprocity — free GCC Skills Report lead magnet
-//  6.  Contrast principle — "What Kids Build" (outputs, not features)
-//  7.  Authority stacking — press, awards, partners
-//  8.  Decoy pricing anchor — show Pro to make Free feel extraordinary
-//  9.  Progress principle — 3-step onboarding roadmap (feels easy)
-// 10.  Separate parent + kid testimonials (parent = buyer)
-// 11.  Risk reversal chips at every CTA
-// 12.  In-section CTAs at peak emotional engagement
-// 13.  Identity + loss-aversion language in final CTA
-// 14.  Outcome badges on testimonials (result first, story second)
+// Plulai Landing Page — Custom Brand Identity
+// Design direction: Bold Geometric Editorial
+// Color palette: Electric Blue (#1CB0F6), Cyan (#14D4F4), Navy (#2B70C9), Gold (#FAA918), Red (#D33131)
+// NOT Duolingo. A confident GCC tech brand with sharp geometry, editorial rhythm, and deliberate restraint.
 
-import type { Metadata } from 'next'
-import Link from 'next/link'
 import { useState } from 'react'
+import Link from 'next/link'
 
-// ─── Quiz funnel ──────────────────────────────────────────────────────────────
-
+// ─── Quiz Data ────────────────────────────────────────────────────────────────
 const QUIZ_STEPS = [
   {
     id: 'age',
     question: "How old is your child?",
     options: [
-      { label: '6–8 years',   value: 'mini',   emoji: '🌱', desc: 'Mini Explorer track' },
-      { label: '9–11 years',  value: 'junior', emoji: '🚀', desc: 'Junior Creator track' },
-      { label: '12–14 years', value: 'pro',    emoji: '⚡', desc: 'Pro Explorer track'  },
-      { label: '15–18 years', value: 'expert', emoji: '🔥', desc: 'Tech Expert track'   },
+      { label: '6–8 yrs',   value: 'mini',   tag: 'Mini Explorer'   },
+      { label: '9–11 yrs',  value: 'junior', tag: 'Junior Creator'  },
+      { label: '12–14 yrs', value: 'pro',    tag: 'Pro Explorer'    },
+      { label: '15–18 yrs', value: 'expert', tag: 'Tech Expert'     },
     ],
   },
   {
     id: 'interest',
     question: "What excites your child most?",
     options: [
-      { label: 'Building apps & games', value: 'coding', emoji: '💻', desc: 'Coding track'         },
-      { label: 'AI & smart tech',        value: 'ai',     emoji: '🧠', desc: 'AI track'             },
-      { label: 'Starting a business',    value: 'bizz',   emoji: '💡', desc: 'Entrepreneurship track'},
-      { label: 'All of the above!',      value: 'all',    emoji: '🏆', desc: 'Full curriculum'       },
+      { label: 'Apps & Games',     value: 'coding', tag: 'Coding' },
+      { label: 'AI & Smart Tech',  value: 'ai',     tag: 'AI'     },
+      { label: 'Starting a Business', value: 'bizz', tag: 'Entrepreneurship' },
+      { label: 'All of the Above', value: 'all',    tag: 'Full Curriculum' },
     ],
   },
   {
     id: 'goal',
     question: "What matters most to you?",
     options: [
-      { label: 'Screen time with purpose', value: 'screen', emoji: '📱', desc: '' },
-      { label: 'Future career advantage',  value: 'career', emoji: '💼', desc: '' },
-      { label: 'Building confidence',      value: 'conf',   emoji: '💪', desc: '' },
-      { label: 'Real skills, not theory',  value: 'skills', emoji: '🔧', desc: '' },
+      { label: 'Screen time with purpose', value: 'screen', tag: '' },
+      { label: 'Future career advantage',  value: 'career', tag: '' },
+      { label: 'Building confidence',      value: 'conf',   tag: '' },
+      { label: 'Real skills, not theory',  value: 'skills', tag: '' },
     ],
   },
 ]
 
-const TRACK_RESULT: Record<string, { title: string; desc: string; emoji: string }> = {
-  coding: { emoji: '💻', title: 'Coding Track',           desc: 'Python, web dev & game design. Builds real apps in week 2.' },
-  ai:     { emoji: '🧠', title: 'AI Track',               desc: 'Machine learning, AI ethics & their own AI project by month 2.' },
-  bizz:   { emoji: '💡', title: 'Entrepreneurship Track', desc: 'Startup thinking, MVP building & pitching — UAE style.' },
-  all:    { emoji: '🏆', title: 'Full Curriculum',        desc: 'All 3 tracks — the complete future-skills package.' },
+const TRACK_RESULT = {
+  coding: { label: 'CODING TRACK',           desc: 'Python, web dev & game design. Real apps from week 2.' },
+  ai:     { label: 'AI TRACK',               desc: 'Machine learning, AI ethics & their own AI project by month 2.' },
+  bizz:   { label: 'ENTREPRENEURSHIP TRACK', desc: 'Startup thinking, MVP building & investor-ready pitches.' },
+  all:    { label: 'FULL CURRICULUM',        desc: 'All 3 tracks — the complete future-skills package.' },
 }
 
-// ─── Page data ────────────────────────────────────────────────────────────────
-
-const STATS = [
-  { value: '1,247', label: 'Kids online right now', live: true  },
-  { value: '6',     label: 'GCC countries',          live: false },
-  { value: '200+',  label: 'Lessons',                live: false },
-  { value: '4.9★',  label: 'Parent rating',          live: false },
-]
-
+// ─── Page Data ────────────────────────────────────────────────────────────────
 const PROJECTS = [
-  { age: 9,  country: '🇦🇪', project: 'A working calculator app in Python',     track: 'Coding', weeks: 3 },
-  { age: 11, country: '🇸🇦', project: 'An AI chatbot that answers school Qs',   track: 'AI',     weeks: 6 },
-  { age: 13, country: '🇶🇦', project: 'A startup pitch that won school finals',  track: 'Bizz',   weeks: 8 },
-  { age: 10, country: '🇰🇼', project: 'A website for their mum\'s business',     track: 'Coding', weeks: 4 },
-  { age: 14, country: '🇦🇪', project: 'An ML model that sorts recycling photos', track: 'AI',     weeks: 7 },
-  { age: 12, country: '🇧🇭', project: 'A fully-pitched mobile app idea to VCs',  track: 'Bizz',   weeks: 9 },
+  { age: 9,  country: 'UAE',    project: 'A working calculator app in Python',      track: 'Coding', weeks: 3 },
+  { age: 11, country: 'KSA',    project: 'An AI chatbot answering school questions', track: 'AI',     weeks: 6 },
+  { age: 13, country: 'Qatar',  project: 'A startup pitch that won school finals',   track: 'Bizz',   weeks: 8 },
+  { age: 10, country: 'Kuwait', project: "A website for their mum's business",       track: 'Coding', weeks: 4 },
+  { age: 14, country: 'UAE',    project: 'An ML model that sorts recycling photos',  track: 'AI',     weeks: 7 },
+  { age: 12, country: 'Bahrain','project': 'A fully-pitched mobile app idea to VCs', track: 'Bizz',   weeks: 9 },
 ]
 
 const FEATURES = [
-  { emoji:'🤖', title:'Personal AI coach, 24/7',           desc:'Adapts to your child\'s exact level. Explains the same concept 10 different ways — no frustration, no judgment. Like a private tutor who never sleeps.',       color:'from-accent4/20 to-accent5/20', border:'border-accent4/20' },
-  { emoji:'🎮', title:'Addictive as their favourite game', desc:'XP, daily streaks, skill trees, badges, level-ups. Kids open Plulai on their own — parents are stunned. Average session: 28 minutes.',                          color:'from-accent1/20 to-accent2/20', border:'border-accent1/20' },
-  { emoji:'🌍', title:'Built for GCC, not copy-pasted',   desc:'Full Arabic RTL + bilingual AI coach. Every example is set in Dubai, Riyadh, Doha, Kuwait City. Not a US product translated — built here first.',               color:'from-accent3/20 to-accent4/20', border:'border-accent3/20' },
-  { emoji:'📊', title:'Parent dashboard & weekly report', desc:'Track streaks, XP, badges and lesson completion in real time. Weekly email summary. Stay involved without hovering.',                                              color:'from-accent5/20 to-accent1/20', border:'border-accent5/20' },
-  { emoji:'🏆', title:'Real portfolio, not just a cert',  desc:'By month 3 your child has 3 real projects — an app, an AI tool and a pitch deck. A portfolio, not a participation certificate.',                                   color:'from-accent2/20 to-accent3/20', border:'border-accent2/20' },
-  // { emoji:'🔒', title:'Child-safe by design',             desc:'No ads. Ever. COPPA certified. AI responses filtered for child safety. Parent controls the account. Zero data sold. Built to KHDA standards.',                      color:'from-accent4/20 to-accent3/20', border:'border-accent4/20' },
+  { icon: '◈', title: 'Personal AI Coach, 24/7',           desc: 'Adapts to your child\'s exact level. Explains the same concept 10 different ways — no frustration, no judgment.', accent: '#1CB0F6' },
+  { icon: '◉', title: 'Addictive Learning Engine',          desc: 'XP, daily streaks, skill trees, badges, level-ups. Kids open Plulai on their own. Average session: 28 minutes.', accent: '#FAA918' },
+  { icon: '◎', title: 'Built for GCC, Not Copy-Pasted',    desc: 'Full Arabic RTL + bilingual AI coach. Every example is set in Dubai, Riyadh, Doha, Kuwait City — built here first.', accent: '#14D4F4' },
+  { icon: '◆', title: 'Parent Dashboard & Weekly Report',   desc: 'Track streaks, XP, badges and lesson completion in real time. Stay involved without hovering.', accent: '#2B70C9' },
+  { icon: '◇', title: 'Real Portfolio, Not Just a Cert',    desc: 'By month 3: an app, an AI tool and a pitch deck. A portfolio that exists in the world — not a participation certificate.', accent: '#FAA918' },
+  { icon: '▣', title: 'Child-Safe by Design',               desc: 'No ads. Ever. AI responses filtered for child safety. Parent controls the account. Zero data sold.', accent: '#1CB0F6' },
 ]
 
 const TRACKS = [
   {
-    id: 'coding', emoji: '💻', title: 'Coding Track', subtitle: 'For future developers',
-    outcome: 'In 3 months: a real web app + game portfolio',
-    desc: 'From zero to building real apps and games. Python, HTML, logical thinking — explained simply, practised daily. Week 2 kids write their first working program.',
+    id: 'coding', label: 'CODING TRACK', title: 'Build Apps & Games',
+    outcome: 'Real web app + game portfolio in 3 months',
+    desc: 'From zero to building real apps and games. Python, HTML, logical thinking — explained simply, practised daily. Week 2: first working program.',
     skills: ['Python Basics', 'Web Development', 'Game Design', 'App Building'],
-    color: 'from-accent4/10 to-accent5/10', border: 'border-accent4/30',
+    color: '#1CB0F6',
   },
   {
-    id: 'ai', emoji: '🧠', title: 'AI Track', subtitle: 'For future innovators',
-    outcome: 'In 3 months: a working AI project they built',
-    desc: 'Not watching AI videos — actually building AI. By month 2, your child has their own machine learning project. Understanding what peers only read about on the news.',
+    id: 'ai', label: 'AI TRACK', title: 'Build Intelligent Systems',
+    outcome: 'A working AI project they built themselves',
+    desc: 'Not watching AI videos — actually building AI. By month 2, your child has their own machine learning project.',
     skills: ['What is AI?', 'Machine Learning', 'AI Ethics', 'Build an AI Project'],
-    color: 'from-accent5/10 to-accent1/10', border: 'border-accent5/30',
+    color: '#FAA918',
   },
   {
-    id: 'entrepreneurship', emoji: '💡', title: 'Entrepreneurship Track', subtitle: 'For future founders',
-    outcome: 'In 3 months: a full startup pitch + MVP',
-    desc: 'From first idea to polished investor pitch. Same startup thinking used in DIFC — adapted for young minds. Three graduates have already won school competitions.',
+    id: 'entrepreneurship', label: 'ENTREPRENEURSHIP TRACK', title: 'Launch Real Ventures',
+    outcome: 'Full startup pitch + MVP in 3 months',
+    desc: 'From first idea to polished investor pitch. Same startup thinking used in DIFC — adapted for young minds.',
     skills: ['Idea Generation', 'Market Research', 'Build a MVP', 'Pitch Your Startup'],
-    color: 'from-accent3/10 to-accent4/10', border: 'border-accent3/30',
+    color: '#14D4F4',
   },
 ]
 
 const KID_TESTIMONIALS = [
-  { name:'Ahmed K.',  age:13, country:'🇦🇪 Dubai',     text:'I built my first AI chatbot in 2 weeks. My teacher shared it with the whole class. I never thought I could actually do something like that.', avatar:'🧑‍💻', result:'Built an AI chatbot in 2 weeks'  },
-  { name:'Sara M.',   age:10, country:'🇸🇦 Riyadh',    text:'21-day streak! I learn for 20 mins every night instead of watching YouTube. My parents cannot believe the change.',                           avatar:'👩‍🎨', result:'21-day streak and counting'     },
-  { name:'Yousef A.', age:15, country:'🇶🇦 Doha',      text:'The AI explains things like a friend. I ask the same question 5 times and it never gets frustrated. No human teacher does that.',            avatar:'🧑‍🚀', result:'Finished full Python track'     },
-  { name:'Nour R.',   age:11, country:'🇰🇼 Kuwait',    text:'I won my school startup competition with what I learned here. The judges said they could not believe an 11-year-old made that pitch.',        avatar:'🦸',   result:'Won school competition'         },
-  { name:'Zaid T.',   age:14, country:'🇦🇪 Abu Dhabi', text:'Finished Python in 3 months. Now on AI. My dad says I am more consistent than he is at the gym.',                                            avatar:'🤖',   result:'Completed Python + started AI'  },
-  { name:'Lina K.',   age:9,  country:'🇧🇭 Bahrain',   text:'I made a real website for my mum\'s shop. She showed all her friends. I almost cried I was so proud.',                                       avatar:'👩‍💻', result:'Launched a live website'        },
+  { name: 'Ahmed K.',  age: 13, location: 'Dubai, UAE',    quote: 'I built my first AI chatbot in 2 weeks. My teacher shared it with the whole class.', result: 'AI chatbot in 2 weeks' },
+  { name: 'Sara M.',   age: 10, location: 'Riyadh, KSA',   quote: '21-day streak! I learn for 20 mins every night instead of watching YouTube.', result: '21-day streak' },
+  { name: 'Nour R.',   age: 11, location: 'Kuwait City',   quote: 'I won my school startup competition. The judges couldn\'t believe an 11-year-old made that pitch.', result: 'Won school competition' },
 ]
 
 const PARENT_TESTIMONIALS = [
-  { name:'Fatima Al-Mansoori', role:'Mother of two · Dubai',    text:'I tried 4 other apps. None of them worked. My kids open Plulai by themselves, without me asking. That has never happened before.' },
-  { name:'Khalid Al-Rashidi',  role:'Father · Riyadh',          text:'The Arabic support is real — not Google Translate. My son finally understood recursion because the AI explained it in proper Fusha. Night and day.' },
-  { name:'Noura Al-Kuwari',    role:'Mother · Doha',            text:"My daughter used to be glued to TikTok. Now she says she's building her portfolio. I don't care what it's called — it's a miracle." },
-]
-
-const PRESS = [
-  { name: 'Forbes Middle East',  note: '"The edtech startup fixing the GCC skills gap"' },
-  { name: 'Gulf News',           note: '"Arabic-first learning done right"'              },
-  { name: 'Wamda',               note: '"One to watch: GCC EdTech 2024"'                },
-  { name: 'EdTech Arabia Award', note: '🏆 Best Kids Platform 2024'                      },
-]
-
-const PARTNERS = [
-  { abbr:'MoE UAE',             logo:'🏛️', category:'Government'  },
-  { abbr:'KHDA',                logo:'📋', category:'Government'  },
-  { abbr:'Dubai Future Foundation', logo:'🔭', category:'Government' },
-  { abbr:'GEMS Education',      logo:'💎', category:'Schools'     },
-  { abbr:'Taaleem',             logo:'🏫', category:'Schools'     },
-  { abbr:'Repton Dubai',        logo:'🎓', category:'Schools'     },
-  { abbr:'Microsoft Edu',       logo:'🪟', category:'Technology'  },
-  { abbr:'Google Edu',          logo:'🔍', category:'Technology'  },
-  { abbr:'AWS Educate',         logo:'☁️', category:'Technology'  },
-  { abbr:'Hub71 Abu Dhabi',     logo:'🚀', category:'Accelerator' },
-  { abbr:'in5 Tech Dubai',      logo:'5️⃣', category:'Accelerator' },
-]
-
-const GCC = [
-  { flag:'🇦🇪', name:'UAE',          city:'Dubai & Abu Dhabi' },
-  { flag:'🇸🇦', name:'Saudi Arabia', city:'Riyadh & Jeddah'  },
-  { flag:'🇶🇦', name:'Qatar',        city:'Doha'              },
-  { flag:'🇰🇼', name:'Kuwait',       city:'Kuwait City'       },
-  { flag:'🇧🇭', name:'Bahrain',      city:'Manama'            },
-  { flag:'🇴🇲', name:'Oman',         city:'Muscat'            },
+  { name: 'Fatima Al-Mansoori', role: 'Mother of two · Dubai',  quote: 'I tried 4 other apps. None worked. My kids open Plulai by themselves, without me asking.' },
+  { name: 'Khalid Al-Rashidi',  role: 'Father · Riyadh',        quote: 'The Arabic support is real — not Google Translate. Night and day difference.' },
+  { name: 'Noura Al-Kuwari',    role: 'Mother · Doha',          quote: 'My daughter used to be glued to TikTok. Now she says she\'s building her portfolio.' },
 ]
 
 const FAQ = [
-  { q:'What exactly is Plulai?',                        a:'Plulai is the #1 edtech platform for kids aged 6–18 in the GCC. Kids learn coding, AI and entrepreneurship through a personal AI coach, 200+ lessons, and real projects — in English and Arabic. Think Duolingo, but for the skills that actually matter.' },
-  { q:'Is it really free?',                             a:'Yes — genuinely free, not a 7-day trial. The free plan has no credit card requirement, no expiry, and covers the first module of each track. Pro unlocks all 200+ lessons, advanced AI coaching and the full portfolio system.' },
-  { q:'What age is Plulai for?',                        a:'Ages 6–18. The platform auto-adapts: Mini Explorers (6–8), Junior Creators (9–11), Pro Explorers (12–14) and Tech Experts (15–18) each get age-appropriate content, pacing and difficulty.' },
-  { q:'Does it actually support Arabic?',               a:'Real Arabic — not Google Translate. Full RTL interface and an AI coach that teaches natively in Arabic. The only edtech platform built region-first for the GCC.' },
-  { q:'How long are the lessons?',                      a:'15–25 minutes each. Designed to fit after school, without replacing homework time. The streak system encourages one lesson per day — most kids end up doing two.' },
-  { q:'How is it different from Scratch or Code.org?',  a:'Those are great starters. Plulai goes further: a personalised AI coach, Arabic support, GCC cultural context, a real project portfolio, and an entrepreneurship track — none of which those platforms offer.' },
-  { q:'Is it safe for my child?',                       a:"Yes. No ads — ever. COPPA-certified. AI responses are filtered for child safety. Parents control the account and receive weekly summaries. Built to KHDA standards. Your child's data is never sold." },
+  { q: 'What exactly is Plulai?',                       a: 'Plulai is the #1 edtech platform for kids aged 6–18 in the GCC. Kids learn coding, AI and entrepreneurship through a personal AI coach, 200+ lessons, and real projects — in English and Arabic.' },
+  { q: 'Is it really free?',                            a: 'Yes — genuinely free. No credit card, no expiry. The free plan covers the first module of each track. Pro unlocks all 200+ lessons, advanced AI coaching and the full portfolio system.' },
+  { q: 'What age is Plulai for?',                       a: 'Ages 6–18. The platform auto-adapts: Mini Explorers (6–8), Junior Creators (9–11), Pro Explorers (12–14) and Tech Experts (15–18) — each with age-appropriate content and pacing.' },
+  { q: 'Does it actually support Arabic?',              a: 'Real Arabic — not Google Translate. Full RTL interface and an AI coach that teaches natively in Arabic. The only platform built region-first for the GCC.' },
+  { q: 'How long are the lessons?',                     a: '15–25 minutes each. Designed to fit after school without replacing homework time. Most kids end up doing two lessons instead of one.' },
+  { q: 'How is it different from Scratch or Code.org?', a: 'Those are great starters. Plulai goes further: personalised AI coaching, Arabic support, GCC cultural context, a real project portfolio, and an entrepreneurship track — none of which those platforms offer.' },
 ]
 
 // ─── Quiz Component ───────────────────────────────────────────────────────────
-
 function TrackQuiz() {
   const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [selected, setSelected] = useState<string | null>(null)
+  const [answers, setAnswers] = useState({})
+  const [selected, setSelected] = useState(null)
 
   const currentQ = QUIZ_STEPS[step - 1]
   const progress = step === 0 ? 0 : Math.round((step / QUIZ_STEPS.length) * 100)
   const trackKey = answers.interest ?? 'coding'
   const result = TRACK_RESULT[trackKey]
-
-  function pick(value: string) { setSelected(value) }
 
   function next() {
     if (!selected) return
@@ -191,636 +131,1101 @@ function TrackQuiz() {
     setStep(step < QUIZ_STEPS.length ? step + 1 : 4)
   }
 
-  if (step === 0) {
-    return (
-      <div className="text-center py-6">
-        <div className="text-5xl mb-4">🎯</div>
-        <h3 className="font-fredoka text-2xl md:text-3xl mb-3 text-white">Find Your Child&apos;s Perfect Track</h3>
-        <p className="text-muted font-semibold text-sm md:text-base mb-6 max-w-sm mx-auto">
-          3 quick questions. We&apos;ll build a personalised learning plan — free, takes 60 seconds.
-        </p>
-        <div className="w-full max-w-xs mx-auto bg-white/5 rounded-full h-2 mb-2 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-accent3 to-accent4 rounded-full" style={{ width: '0%' }} />
-        </div>
-        <p className="text-muted text-xs font-bold mb-6">0% complete — start your child&apos;s profile</p>
-        <button
-          onClick={() => setStep(1)}
-          className="px-8 py-4 rounded-2xl font-extrabold text-base text-white bg-gradient-to-r from-accent3 to-accent4 hover:-translate-y-0.5 transition-all shadow-lg shadow-accent3/20"
-        >
-          Build My Child&apos;s Plan →
-        </button>
-      </div>
-    )
-  }
+  if (step === 0) return (
+    <div className="text-center py-4">
+      <p className="quiz-eyebrow">60 seconds · 3 questions · personalised result</p>
+      <h3 className="quiz-title">Find Your Child's Perfect Track</h3>
+      <p className="quiz-sub">Tell us a little about your child — we'll match them to the right curriculum.</p>
+      <button onClick={() => setStep(1)} className="btn-primary-lg mt-6">Build My Child's Plan →</button>
+    </div>
+  )
 
-  if (step === 4) {
-    return (
-      <div className="text-center py-6">
-        <div className="text-5xl mb-4">🎉</div>
-        <p className="text-muted text-xs font-extrabold uppercase tracking-widest mb-2">Your child&apos;s personalised plan is ready</p>
-        <h3 className="font-fredoka text-2xl md:text-3xl mb-2 text-white">{result.emoji} {result.title}</h3>
-        <p className="text-muted font-semibold text-sm mb-6 max-w-xs mx-auto">{result.desc}</p>
-        <div className="w-full max-w-xs mx-auto bg-white/5 rounded-full h-2.5 mb-2 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-accent3 to-accent4 rounded-full transition-all duration-700" style={{ width: '75%' }} />
-        </div>
-        <p className="text-accent2 text-xs font-extrabold mb-6">
-          75% complete — create your free account to unlock the full plan
-        </p>
-        <Link
-          href="/auth/signup"
-          className="block w-full max-w-xs mx-auto px-8 py-4 rounded-2xl font-extrabold text-base text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_30px_rgba(107,203,119,0.3)] hover:-translate-y-1 transition-all mb-3"
-        >
-          🚀 Unlock My Child&apos;s Plan — Free
-        </Link>
-        <p className="text-muted text-xs font-bold">No credit card · Takes 60 seconds</p>
-        <button
-          onClick={() => { setStep(0); setAnswers({}); setSelected(null) }}
-          className="mt-4 text-muted text-xs underline hover:text-white transition-colors"
-        >
-          Start over
-        </button>
+  if (step === 4) return (
+    <div className="text-center py-4">
+      <p className="quiz-eyebrow">Your personalised plan is ready</p>
+      <div className="result-tag">{result.label}</div>
+      <p className="quiz-sub mt-3 max-w-xs mx-auto">{result.desc}</p>
+      <div className="progress-track mt-6 mb-2">
+        <div className="progress-fill" style={{ width: '75%' }} />
       </div>
-    )
-  }
+      <p className="text-xs font-bold" style={{ color: '#FAA918' }}>
+        75% complete — create your free account to unlock the full plan
+      </p>
+      <Link href="/auth/signup" className="btn-primary-lg block max-w-xs mx-auto mt-5">
+        Unlock My Child's Plan — Free →
+      </Link>
+      <p className="quiz-eyebrow mt-3">No credit card · Takes 60 seconds</p>
+      <button onClick={() => { setStep(0); setAnswers({}); setSelected(null) }} className="mt-4 text-xs underline" style={{ color: '#6F6F6F' }}>
+        Start over
+      </button>
+    </div>
+  )
 
   return (
-    <div className="py-4">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex-1 bg-white/5 rounded-full h-2 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-accent3 to-accent4 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
-        </div>
-        <span className="text-muted text-xs font-extrabold shrink-0">{progress}%</span>
+    <div className="py-2">
+      <div className="progress-track mb-5">
+        <div className="progress-fill" style={{ width: `${progress}%` }} />
       </div>
-      <p className="text-muted text-xs font-extrabold uppercase tracking-widest mb-2">Step {step} of {QUIZ_STEPS.length}</p>
-      <h3 className="font-fredoka text-xl md:text-2xl mb-5 text-white">{currentQ.question}</h3>
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <p className="quiz-eyebrow mb-1">Step {step} of {QUIZ_STEPS.length}</p>
+      <h3 className="quiz-title mb-5">{currentQ.question}</h3>
+      <div className="quiz-grid">
         {currentQ.options.map(opt => (
           <button
             key={opt.value}
-            onClick={() => pick(opt.value)}
-            className={`text-left rounded-2xl p-4 border transition-all ${
-              selected === opt.value
-                ? 'border-accent3 bg-accent3/10 shadow-lg shadow-accent3/10'
-                : 'border-white/10 bg-card hover:border-white/25 hover:bg-card2'
-            }`}
+            onClick={() => setSelected(opt.value)}
+            className={`quiz-option ${selected === opt.value ? 'quiz-option-active' : ''}`}
           >
-            <div className="text-2xl mb-2">{opt.emoji}</div>
-            <div className="font-extrabold text-sm text-white leading-tight">{opt.label}</div>
-            {opt.desc && <div className="text-muted text-xs font-bold mt-1">{opt.desc}</div>}
+            <span className="font-bold text-sm">{opt.label}</span>
+            {opt.tag && <span className="option-tag">{opt.tag}</span>}
           </button>
         ))}
       </div>
-      <button
-        onClick={next}
-        disabled={!selected}
-        className={`w-full py-3.5 rounded-2xl font-extrabold text-base transition-all ${
-          selected
-            ? 'text-white bg-gradient-to-r from-accent3 to-accent4 hover:-translate-y-0.5 shadow-lg shadow-accent3/20'
-            : 'text-muted bg-white/5 cursor-not-allowed'
-        }`}
-      >
-        {step === QUIZ_STEPS.length ? "See My Child\u2019s Plan \u2192" : 'Next \u2192'}
+      <button onClick={next} disabled={!selected} className={`btn-primary-lg w-full mt-5 ${!selected ? 'btn-disabled' : ''}`}>
+        {step === QUIZ_STEPS.length ? 'See My Child\'s Plan →' : 'Next →'}
       </button>
     </div>
   )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Accordion Item ────────────────────────────────────────────────────────────
+function AccordionItem({ q, a, index }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="accordion-item">
+      <button className="accordion-trigger" onClick={() => setOpen(!open)}>
+        <span className="accordion-num">0{index + 1}</span>
+        <span className="flex-1 text-left font-bold text-sm">{q}</span>
+        <span className={`accordion-arrow ${open ? 'open' : ''}`}>↓</span>
+      </button>
+      {open && <p className="accordion-body">{a}</p>}
+    </div>
+  )
+}
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   return (
-    <div className="relative z-10 min-h-screen">
+    <>
+      <style>{`
+        /* ── Brand Tokens ── */
+        :root {
+          --blue:   #1CB0F6;
+          --cyan:   #14D4F4;
+          --navy:   #2B70C9;
+          --gold:   #FAA918;
+          --red:    #D33131;
+          --light:  #F5F5F5;
+          --muted:  #6F6F6F;
+          --dark:   #0A0E1A;
+          --card:   #0E1422;
+          --card2:  #131929;
+          --border: rgba(255,255,255,0.07);
+          --font-display: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
+        }
 
-      {/* ── Nav ── */}
-      <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-4 lg:px-12 py-3 md:py-4 glass border-b border-white/5">
-        <div className="font-fredoka text-2xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent">Plulai</div>
-        <div className="hidden md:flex items-center gap-8 text-sm font-bold text-muted">
-          <a href="#quiz"     className="hover:text-white transition-colors">Find a Track</a>
-          <a href="#projects" className="hover:text-white transition-colors">Projects</a>
-          <a href="#partners" className="hover:text-white transition-colors">Partners</a>
-          <a href="#faq"      className="hover:text-white transition-colors">FAQ</a>
-        </div>
-        <div className="flex items-center gap-2 md:gap-3">
-          <Link href="/sharkkid" className="flex items-center gap-1.5 px-3 py-2 md:px-4 md:py-2 rounded-xl font-extrabold text-xs md:text-sm text-white bg-gradient-to-r from-accent2 to-accent1 hover:-translate-y-0.5 transition-all shadow-lg shadow-accent2/20 whitespace-nowrap">
-            🦈 Sharkkid
-          </Link>
-          <Link href="/auth/login"  className="hidden md:block text-sm font-bold text-muted hover:text-white transition-colors">Log In</Link>
-          <Link href="/auth/signup" className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-accent4 to-accent5 hover:-translate-y-0.5 transition-all shadow-lg shadow-accent4/20">
-            Start Free →
-          </Link>
-        </div>
-      </nav>
+        /* ── Reset & Base ── */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--dark); color: var(--light); font-family: var(--font-display); }
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; border: none; background: none; font-family: inherit; color: inherit; }
 
-      {/* ── Social proof ticker ── */}
-      <div className="pt-16 bg-gradient-to-r from-accent4/5 to-accent5/5 border-b border-white/5">
-        <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-center gap-4 md:gap-8 flex-wrap text-xs font-bold text-muted">
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-accent3 animate-pulse" />
-            <span className="text-white">1,247 kids</span>&nbsp;learning right now
-          </span>
-          <span className="hidden sm:block text-white/20">|</span>
-          <span>⭐ Rated 4.9 by 800+ parents</span>
-          <span className="hidden sm:block text-white/20">|</span>
-          {/* <span>🏆 Best Kids Platform · EdTech Arabia 2024</span> */}
-          {/* <span className="hidden sm:block text-white/20">|</span> */}
-          {/* <span>🔒 COPPA Certified · No Ads · Child Safe</span> */}
-          {/* <span className="hidden sm:block text-white/20">|</span> */}
-          {/* <span>📰 Featured in Forbes Middle East</span> */}
-        </div>
+        /* ── Geometric Background ── */
+        .geo-bg {
+          position: fixed; inset: 0; z-index: 0; pointer-events: none;
+          background:
+            radial-gradient(ellipse 800px 600px at 10% 20%, rgba(28,176,246,0.06) 0%, transparent 60%),
+            radial-gradient(ellipse 600px 400px at 90% 80%, rgba(250,169,24,0.05) 0%, transparent 60%),
+            var(--dark);
+        }
+        .geo-lines {
+          position: absolute; inset: 0;
+          background-image:
+            linear-gradient(rgba(28,176,246,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(28,176,246,0.04) 1px, transparent 1px);
+          background-size: 80px 80px;
+        }
+        .geo-accent {
+          position: absolute; top: -200px; right: -200px; width: 600px; height: 600px;
+          border: 1px solid rgba(28,176,246,0.08);
+          transform: rotate(15deg);
+        }
+        .geo-accent-2 {
+          position: absolute; bottom: 20%; left: -150px; width: 400px; height: 400px;
+          border: 1px solid rgba(250,169,24,0.06);
+          transform: rotate(-8deg);
+        }
+
+        /* ── Nav ── */
+        .nav {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 24px; height: 64px;
+          background: rgba(10,14,26,0.92);
+          border-bottom: 1px solid var(--border);
+          backdrop-filter: blur(20px);
+        }
+        .nav-logo {
+          font-size: 22px; font-weight: 900; letter-spacing: -0.5px;
+          color: var(--light);
+        }
+        .nav-logo span { color: var(--blue); }
+        .nav-links { display: flex; align-items: center; gap: 32px; }
+        .nav-link { font-size: 13px; font-weight: 600; color: var(--muted); transition: color 0.2s; }
+        .nav-link:hover { color: var(--light); }
+        .nav-actions { display: flex; align-items: center; gap: 10px; }
+
+        /* ── Buttons ── */
+        .btn-primary {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 10px 20px; font-size: 13px; font-weight: 700;
+          background: var(--blue); color: #fff;
+          border-radius: 6px; transition: all 0.2s;
+        }
+        .btn-primary:hover { background: #0a9de0; transform: translateY(-1px); }
+        .btn-ghost {
+          display: inline-flex; align-items: center;
+          padding: 10px 16px; font-size: 13px; font-weight: 600;
+          color: var(--muted); border-radius: 6px;
+          border: 1px solid var(--border); transition: all 0.2s;
+        }
+        .btn-ghost:hover { color: var(--light); border-color: rgba(255,255,255,0.15); }
+        .btn-gold {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 10px 20px; font-size: 13px; font-weight: 700;
+          background: var(--gold); color: #0A0E1A;
+          border-radius: 6px; transition: all 0.2s;
+        }
+        .btn-gold:hover { background: #e89c0f; transform: translateY(-1px); }
+        .btn-primary-lg {
+          display: inline-flex; align-items: center; justify-content: center;
+          padding: 16px 32px; font-size: 15px; font-weight: 700;
+          background: var(--blue); color: #fff;
+          border-radius: 6px; transition: all 0.2s; border: none;
+        }
+        .btn-primary-lg:hover { background: #0a9de0; transform: translateY(-2px); }
+        .btn-outline-lg {
+          display: inline-flex; align-items: center; justify-content: center;
+          padding: 15px 32px; font-size: 15px; font-weight: 700;
+          color: var(--light); border: 1px solid var(--border);
+          border-radius: 6px; transition: all 0.2s;
+        }
+        .btn-outline-lg:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); }
+        .btn-disabled { opacity: 0.35; cursor: not-allowed; }
+        .btn-disabled:hover { transform: none; background: var(--blue); }
+
+        /* ── Page Layout ── */
+        .page { position: relative; z-index: 1; min-height: 100vh; }
+        .container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+        .container-sm { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+
+        /* ── Ticker ── */
+        .ticker {
+          margin-top: 64px;
+          background: rgba(28,176,246,0.06);
+          border-bottom: 1px solid rgba(28,176,246,0.12);
+          padding: 10px 24px;
+          display: flex; align-items: center; justify-content: center;
+          gap: 24px; flex-wrap: wrap;
+          font-size: 12px; font-weight: 600; color: var(--muted);
+        }
+        .ticker-live { display: flex; align-items: center; gap: 6px; }
+        .pulse-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #22c55e;
+          animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .ticker strong { color: var(--light); }
+        .ticker-div { color: rgba(255,255,255,0.1); }
+
+        /* ── Hero ── */
+        .hero {
+          padding: 80px 24px 100px;
+          text-align: center;
+          max-width: 1120px; margin: 0 auto;
+        }
+        .hero-eyebrow {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 6px 14px; border-radius: 4px;
+          background: rgba(209,49,49,0.12); border: 1px solid rgba(209,49,49,0.25);
+          font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+          color: #f87171; text-transform: uppercase; margin-bottom: 28px;
+        }
+        .hero-title {
+          font-size: clamp(44px, 7vw, 88px);
+          font-weight: 900; line-height: 1.0;
+          letter-spacing: -2px; margin-bottom: 24px;
+          color: var(--light);
+        }
+        .hero-title-accent {
+          display: block;
+          background: linear-gradient(135deg, var(--blue), var(--cyan));
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .hero-sub {
+          font-size: 17px; font-weight: 500; line-height: 1.6;
+          color: var(--muted); max-width: 580px; margin: 0 auto 32px;
+        }
+        .hero-sub strong { color: var(--light); font-weight: 700; }
+        .hero-chips {
+          display: flex; flex-wrap: wrap; justify-content: center;
+          gap: 8px; margin-bottom: 40px;
+        }
+        .hero-chip {
+          padding: 5px 12px; border-radius: 4px;
+          border: 1px solid var(--border);
+          font-size: 11px; font-weight: 600; color: var(--muted);
+        }
+        .hero-actions {
+          display: flex; align-items: center; justify-content: center;
+          gap: 12px; flex-wrap: wrap; margin-bottom: 64px;
+        }
+        .stats-row {
+          display: grid; grid-template-columns: repeat(4, 1fr);
+          gap: 2px; border: 1px solid var(--border); border-radius: 8px;
+          overflow: hidden;
+        }
+        .stat-cell {
+          background: var(--card); padding: 24px 20px; text-align: center;
+        }
+        .stat-value {
+          font-size: 28px; font-weight: 900; letter-spacing: -1px;
+          color: var(--light); margin-bottom: 4px;
+        }
+        .stat-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+        .stat-live {
+          display: flex; align-items: center; justify-content: center;
+          gap: 5px; margin-bottom: 4px;
+          font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+          color: #22c55e; text-transform: uppercase;
+        }
+
+        /* ── Section Headers ── */
+        .section { padding: 100px 24px; }
+        .eyebrow {
+          font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--blue);
+          margin-bottom: 12px;
+        }
+        .section-title {
+          font-size: clamp(28px, 4vw, 48px);
+          font-weight: 900; letter-spacing: -1.5px;
+          line-height: 1.05; margin-bottom: 16px; color: var(--light);
+        }
+        .section-sub {
+          font-size: 15px; font-weight: 500; line-height: 1.6;
+          color: var(--muted); max-width: 540px;
+        }
+
+        /* ── Quiz Section ── */
+        .quiz-panel {
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 40px;
+        }
+        .quiz-panel-header {
+          border-bottom: 1px solid var(--border);
+          padding-bottom: 24px; margin-bottom: 28px;
+          display: flex; align-items: center; gap: 16px;
+        }
+        .quiz-panel-dot {
+          width: 10px; height: 10px; border-radius: 50%; background: var(--blue);
+        }
+        .quiz-eyebrow {
+          font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+          text-transform: uppercase; color: var(--muted);
+        }
+        .quiz-title {
+          font-size: 22px; font-weight: 800; letter-spacing: -0.5px;
+          color: var(--light); margin: 6px 0;
+        }
+        .quiz-sub { font-size: 13px; font-weight: 500; color: var(--muted); }
+        .quiz-grid {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+        .quiz-option {
+          display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+          padding: 16px; border-radius: 8px;
+          border: 1px solid var(--border);
+          background: rgba(255,255,255,0.02);
+          transition: all 0.15s; text-align: left;
+          color: var(--light);
+        }
+        .quiz-option:hover { border-color: rgba(28,176,246,0.3); background: rgba(28,176,246,0.04); }
+        .quiz-option-active {
+          border-color: var(--blue) !important;
+          background: rgba(28,176,246,0.08) !important;
+        }
+        .option-tag {
+          font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+          text-transform: uppercase; color: var(--blue);
+        }
+        .progress-track {
+          height: 3px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden;
+        }
+        .progress-fill {
+          height: 100%; background: var(--blue); border-radius: 99px;
+          transition: width 0.5s ease;
+        }
+        .result-tag {
+          display: inline-block; margin-top: 12px;
+          padding: 8px 20px; border-radius: 4px;
+          background: rgba(28,176,246,0.12); border: 1px solid rgba(28,176,246,0.25);
+          font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+          text-transform: uppercase; color: var(--blue);
+        }
+
+        /* ── Projects Grid ── */
+        .projects-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 2px;
+          border: 1px solid var(--border);
+          border-radius: 10px; overflow: hidden;
+        }
+        .project-card {
+          background: var(--card); padding: 28px 24px;
+          transition: background 0.2s;
+        }
+        .project-card:hover { background: var(--card2); }
+        .project-track-badge {
+          display: inline-block; padding: 3px 10px; border-radius: 3px;
+          font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+          text-transform: uppercase; margin-bottom: 12px;
+        }
+        .project-quote {
+          font-size: 14px; font-weight: 600; line-height: 1.5;
+          color: var(--light); margin-bottom: 16px;
+        }
+        .project-meta { font-size: 11px; font-weight: 600; color: var(--muted); }
+
+        /* ── Features ── */
+        .features-grid {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+          border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+        }
+        .feature-card {
+          background: var(--card); padding: 32px 28px;
+          border-right: 1px solid var(--border);
+          transition: background 0.2s;
+        }
+        .feature-card:hover { background: var(--card2); }
+        .feature-icon {
+          font-size: 24px; margin-bottom: 16px; display: block;
+        }
+        .feature-title {
+          font-size: 15px; font-weight: 800; color: var(--light);
+          margin-bottom: 10px; letter-spacing: -0.2px;
+        }
+        .feature-desc { font-size: 13px; font-weight: 500; line-height: 1.6; color: var(--muted); }
+
+        /* ── Tracks ── */
+        .tracks-layout {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+        }
+        .track-card {
+          border: 1px solid var(--border);
+          border-radius: 10px; overflow: hidden;
+          display: flex; flex-direction: column;
+        }
+        .track-header {
+          padding: 28px 24px 20px;
+          border-bottom: 1px solid var(--border);
+        }
+        .track-label {
+          font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+          text-transform: uppercase; margin-bottom: 6px;
+        }
+        .track-title {
+          font-size: 20px; font-weight: 900; letter-spacing: -0.5px;
+          color: var(--light); margin-bottom: 10px;
+        }
+        .track-outcome {
+          display: inline-flex; padding: 5px 12px; border-radius: 4px;
+          font-size: 11px; font-weight: 700;
+          background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+          color: var(--light);
+        }
+        .track-body { padding: 20px 24px; flex: 1; background: var(--card); }
+        .track-desc { font-size: 13px; font-weight: 500; line-height: 1.6; color: var(--muted); margin-bottom: 16px; }
+        .track-skills { display: flex; flex-direction: column; gap: 8px; }
+        .track-skill {
+          display: flex; align-items: center; gap: 8px;
+          font-size: 12px; font-weight: 600; color: var(--light);
+        }
+        .track-skill-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+        /* ── Steps ── */
+        .steps-layout {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+          border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+        }
+        .step-card { background: var(--card); padding: 36px 28px; position: relative; }
+        .step-num {
+          font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--blue); margin-bottom: 20px;
+        }
+        .step-title {
+          font-size: 17px; font-weight: 800; letter-spacing: -0.3px;
+          color: var(--light); margin-bottom: 10px;
+        }
+        .step-desc { font-size: 13px; font-weight: 500; line-height: 1.6; color: var(--muted); }
+        .step-time {
+          display: inline-block; margin-top: 16px;
+          padding: 4px 10px; border-radius: 3px;
+          background: rgba(28,176,246,0.08); border: 1px solid rgba(28,176,246,0.15);
+          font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+          text-transform: uppercase; color: var(--blue);
+        }
+        .step-arrow {
+          position: absolute; top: 50%; right: -16px;
+          transform: translateY(-50%);
+          font-size: 18px; color: var(--muted); z-index: 2;
+          background: var(--dark); padding: 0 2px;
+        }
+
+        /* ── Testimonials ── */
+        .testimonials-grid {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+        }
+        .testimonial-card {
+          background: var(--card); border: 1px solid var(--border);
+          border-radius: 10px; padding: 28px 24px;
+          display: flex; flex-direction: column;
+        }
+        .testimonial-result {
+          display: inline-block; padding: 4px 10px; border-radius: 3px;
+          font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+          text-transform: uppercase; color: var(--blue);
+          background: rgba(28,176,246,0.08); border: 1px solid rgba(28,176,246,0.15);
+          margin-bottom: 16px; align-self: flex-start;
+        }
+        .testimonial-quote {
+          font-size: 13px; font-weight: 500; line-height: 1.65;
+          color: var(--light); font-style: italic; flex: 1; margin-bottom: 20px;
+        }
+        .testimonial-name { font-size: 13px; font-weight: 700; color: var(--light); }
+        .testimonial-role { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 2px; }
+
+        .parent-grid {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+        }
+        .parent-card {
+          background: rgba(43,112,201,0.05);
+          border: 1px solid rgba(43,112,201,0.12);
+          border-radius: 10px; padding: 24px;
+        }
+        .parent-quote {
+          font-size: 13px; font-weight: 500; line-height: 1.65;
+          color: var(--light); font-style: italic; margin-bottom: 16px;
+        }
+        .parent-name { font-size: 12px; font-weight: 700; color: var(--light); }
+        .parent-role { font-size: 11px; font-weight: 600; color: var(--muted); }
+
+        /* ── Pricing ── */
+        .pricing-layout {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 680px; margin: 0 auto;
+        }
+        .pricing-card {
+          background: var(--card); border: 1px solid var(--border);
+          border-radius: 10px; padding: 32px 28px;
+        }
+        .pricing-card-featured { border-color: var(--blue); }
+        .pricing-badge {
+          display: inline-block; margin-bottom: 16px;
+          padding: 4px 10px; border-radius: 3px;
+          background: rgba(28,176,246,0.1); border: 1px solid rgba(28,176,246,0.2);
+          font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+          text-transform: uppercase; color: var(--blue);
+        }
+        .pricing-plan { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+        .pricing-price {
+          font-size: 44px; font-weight: 900; letter-spacing: -2px;
+          color: var(--light); line-height: 1; margin-bottom: 4px;
+        }
+        .pricing-price span { font-size: 16px; font-weight: 600; color: var(--muted); }
+        .pricing-note { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 24px; }
+        .pricing-divider { height: 1px; background: var(--border); margin: 20px 0; }
+        .pricing-features { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+        .pricing-feature {
+          display: flex; align-items: center; gap: 8px;
+          font-size: 13px; font-weight: 600; color: var(--light);
+        }
+        .pricing-check { width: 16px; height: 16px; flex-shrink: 0; }
+
+        /* ── GCC ── */
+        .gcc-grid {
+          display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px;
+          border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+          margin-bottom: 24px;
+        }
+        .gcc-cell {
+          background: var(--card); padding: 20px 12px; text-align: center;
+        }
+        .gcc-flag { font-size: 28px; margin-bottom: 6px; }
+        .gcc-name { font-size: 12px; font-weight: 700; color: var(--light); }
+        .gcc-lang-cards {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        }
+        .gcc-lang-card {
+          background: var(--card); border: 1px solid var(--border);
+          border-radius: 10px; padding: 28px 24px;
+        }
+        .gcc-lang-icon { font-size: 24px; margin-bottom: 12px; display: block; }
+        .gcc-lang-title { font-size: 16px; font-weight: 800; color: var(--light); margin-bottom: 8px; }
+        .gcc-lang-desc { font-size: 13px; font-weight: 500; line-height: 1.6; color: var(--muted); }
+
+        /* ── Urgency Band ── */
+        .urgency-band {
+          background: rgba(28,176,246,0.05);
+          border-top: 1px solid rgba(28,176,246,0.1);
+          border-bottom: 1px solid rgba(28,176,246,0.1);
+          padding: 60px 24px; text-align: center;
+        }
+        .urgency-title {
+          font-size: clamp(22px, 3.5vw, 36px);
+          font-weight: 900; letter-spacing: -1px;
+          color: var(--light); margin-bottom: 12px;
+        }
+        .urgency-sub { font-size: 15px; font-weight: 500; color: var(--muted); max-width: 480px; margin: 0 auto 28px; }
+
+        /* ── Lead Magnet ── */
+        .magnet-panel {
+          background: var(--card);
+          border: 1px solid rgba(250,169,24,0.2);
+          border-radius: 12px; padding: 40px;
+          display: flex; align-items: center; gap: 40px;
+        }
+        .magnet-left { flex: 1; }
+        .magnet-icon { font-size: 40px; margin-bottom: 12px; }
+        .magnet-title { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; color: var(--light); margin-bottom: 8px; }
+        .magnet-desc { font-size: 13px; font-weight: 500; line-height: 1.6; color: var(--muted); }
+        .magnet-right { flex-shrink: 0; }
+
+        /* ── FAQ ── */
+        .accordion-item {
+          border-bottom: 1px solid var(--border);
+        }
+        .accordion-trigger {
+          display: flex; align-items: center; gap: 16px;
+          width: 100%; padding: 20px 0; text-align: left;
+          color: var(--light);
+        }
+        .accordion-num {
+          font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+          color: var(--blue); width: 28px; flex-shrink: 0;
+        }
+        .accordion-arrow {
+          font-size: 14px; color: var(--muted); flex-shrink: 0;
+          transition: transform 0.2s; display: inline-block;
+        }
+        .accordion-arrow.open { transform: rotate(180deg); }
+        .accordion-body {
+          padding: 0 0 20px 44px;
+          font-size: 13px; font-weight: 500; line-height: 1.7; color: var(--muted);
+        }
+
+        /* ── Final CTA ── */
+        .final-cta {
+          padding: 120px 24px; text-align: center;
+        }
+        .final-title {
+          font-size: clamp(36px, 6vw, 72px);
+          font-weight: 900; letter-spacing: -2px; line-height: 1.0;
+          color: var(--light); margin-bottom: 20px;
+        }
+        .final-title-accent {
+          display: block;
+          background: linear-gradient(135deg, var(--gold), #f97316);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .final-chips {
+          display: flex; flex-wrap: wrap; justify-content: center;
+          gap: 8px; margin-bottom: 36px;
+        }
+        .final-chip {
+          padding: 5px 12px; border-radius: 4px;
+          border: 1px solid var(--border);
+          font-size: 11px; font-weight: 600; color: var(--muted);
+        }
+
+        /* ── Footer ── */
+        .footer {
+          border-top: 1px solid var(--border);
+          padding: 48px 24px;
+        }
+        .footer-inner {
+          max-width: 1120px; margin: 0 auto;
+          display: flex; justify-content: space-between; align-items: flex-start;
+          gap: 40px; flex-wrap: wrap;
+        }
+        .footer-logo { font-size: 18px; font-weight: 900; color: var(--light); }
+        .footer-logo span { color: var(--blue); }
+        .footer-cols { display: flex; gap: 64px; }
+        .footer-col-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--light); margin-bottom: 14px; }
+        .footer-col-link { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px; transition: color 0.2s; }
+        .footer-col-link:hover { color: var(--light); }
+        .footer-bottom {
+          max-width: 1120px; margin: 32px auto 0;
+          padding-top: 24px; border-top: 1px solid var(--border);
+          display: flex; justify-content: space-between; align-items: center;
+          flex-wrap: wrap; gap: 12px;
+          font-size: 11px; font-weight: 600; color: var(--muted);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+          .nav-links { display: none; }
+          .stats-row { grid-template-columns: repeat(2, 1fr); }
+          .projects-grid, .features-grid { grid-template-columns: 1fr; }
+          .tracks-layout, .steps-layout { grid-template-columns: 1fr; }
+          .testimonials-grid, .parent-grid { grid-template-columns: 1fr; }
+          .gcc-grid { grid-template-columns: repeat(3, 1fr); }
+          .gcc-lang-cards { grid-template-columns: 1fr; }
+          .pricing-layout { grid-template-columns: 1fr; }
+          .magnet-panel { flex-direction: column; gap: 20px; }
+          .quiz-grid { grid-template-columns: 1fr; }
+          .footer-cols { gap: 32px; flex-wrap: wrap; }
+          .hero-title { letter-spacing: -1px; }
+        }
+      `}</style>
+
+      <div className="geo-bg">
+        <div className="geo-lines" />
+        <div className="geo-accent" />
+        <div className="geo-accent-2" />
       </div>
 
-      {/* ── Hero ── */}
-      <section className="pt-10 md:pt-16 pb-10 md:pb-20 px-4 md:px-6 text-center max-w-5xl mx-auto">
-        <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/25 rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs font-bold text-red-400 mb-5 md:mb-6">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-          Only 43 free spots remaining this week · 1,204 already claimed
-        </div>
+      <div className="page">
 
-        <h1 className="font-fredoka text-4xl sm:text-5xl lg:text-7xl leading-tight mb-4 md:mb-5">
-          <span className="text-white">Your Child&apos;s Peers Are</span>
-          <br />
-          <span className="bg-gradient-to-r from-accent2 via-accent1 to-accent5 bg-clip-text text-transparent">
-            Already Learning to Code.
-          </span>
-        </h1>
-
-        <p className="text-muted text-base md:text-lg lg:text-xl font-semibold max-w-2xl mx-auto mb-3 leading-relaxed">
-          Kids in Singapore, Dubai and Riyadh are building apps, AI tools and startup pitches — while most kids scroll social media.{' '}
-          <strong className="text-white">Plulai is the 15-minutes-a-day habit</strong> that puts your child in the first group.
-        </p>
-        <p className="text-muted text-xs md:text-sm font-bold mb-8 md:mb-10">
-          Free forever · No credit card · English &amp; Arabic · Ages 6–18 · Trusted by 1,000+ GCC families
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 mb-8">
-          <Link
-            href="/auth/signup"
-            className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 rounded-2xl font-extrabold text-lg md:text-xl text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_40px_rgba(107,203,119,0.3)] hover:-translate-y-1 transition-all animate-glow-pulse"
-          >
-            🚀 Claim Your Free Spot Now
-          </Link>
-          <a
-            href="#quiz"
-            className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 rounded-2xl font-extrabold text-base md:text-lg text-muted bg-card border border-white/10 hover:text-white transition-all"
-          >
-            🎯 Find My Child&apos;s Track →
-          </a>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-bold text-muted mb-10">
-          {['✅ Free forever plan', '✅ No credit card', '✅ Arabic & English', '✅ No ads ever', '✅ Cancel anytime'].map(t => (
-            <span key={t} className="bg-card border border-white/5 rounded-full px-3 py-1">{t}</span>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          {STATS.map(s => (
-            <div key={s.label} className="bg-card border border-white/5 rounded-2xl p-4 md:p-5 text-center">
-              {s.live && (
-                <div className="flex items-center justify-center gap-1.5 mb-2">
-                  <span className="inline-block w-2 h-2 rounded-full bg-accent3 animate-pulse" />
-                  <span className="text-accent3 text-xs font-extrabold">LIVE</span>
-                </div>
-              )}
-              <div className="font-fredoka text-2xl md:text-3xl text-white">{s.value}</div>
-              <div className="text-muted text-xs md:text-sm font-bold mt-1">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Press / Awards ── */}
-      {/* <section className="px-4 md:px-6 max-w-4xl mx-auto mb-8 md:mb-16">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-5">As seen in</p>
-        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-          {PRESS.map(p => (
-            <div key={p.name} className="bg-card border border-white/5 rounded-2xl px-5 py-3 text-center">
-              <div className="font-extrabold text-sm text-white">{p.name}</div>
-              <div className="text-muted text-xs font-semibold mt-0.5 italic">{p.note}</div>
-            </div>
-          ))}
-        </div>
-      </section> */}
-
-      {/* ── Sharkkid Banner ── */}
-      {/* <section className="px-4 md:px-6 max-w-6xl mx-auto mb-8">
-        <Link
-          href="/sharkkid"
-          className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-accent2/10 to-accent1/10 border border-accent2/25 rounded-3xl px-6 py-5 md:px-8 md:py-6 hover:-translate-y-0.5 transition-all group"
-        >
-          <div className="flex items-center gap-4">
-            <span className="text-4xl">🦈</span>
-            <div className="text-left">
-              <div className="font-fredoka text-xl md:text-2xl text-white">Sharkkid — Startup Bootcamp for Kids</div>
-              <div className="text-muted text-sm font-semibold">
-                3 months · July 2026 · GCC · <span className="text-red-400 font-extrabold">Only 17 spots left</span>
-              </div>
-            </div>
+        {/* ── Nav ── */}
+        <nav className="nav">
+          <div className="nav-logo">Plu<span>lai</span></div>
+          <div className="nav-links">
+            <a href="#quiz"     className="nav-link">Find a Track</a>
+            <a href="#projects" className="nav-link">What Kids Build</a>
+            <a href="#tracks"   className="nav-link">Tracks</a>
+            <a href="#faq"      className="nav-link">FAQ</a>
           </div>
-          <span className="shrink-0 px-5 py-2.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-accent2 to-accent1 group-hover:-translate-y-0.5 transition-all">
-            Apply Now →
-          </span>
-        </Link>
-      </section> */}
+          <div className="nav-actions">
+            <Link href="/sharkkid" className="btn-gold">🦈 Sharkkid</Link>
+            <Link href="/auth/login"  className="nav-link" style={{ padding: '10px' }}>Log In</Link>
+            <Link href="/auth/signup" className="btn-primary">Start Free →</Link>
+          </div>
+        </nav>
 
-      {/* ── Quiz Funnel ── */}
-      <section id="quiz" className="py-16 md:py-24 px-4 md:px-6 max-w-2xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Personalised for your child</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          Build Your Child&apos;s Learning Plan 🎯
-        </h2>
-        <p className="text-center text-muted font-semibold mb-8 text-sm md:text-base">
-          3 questions · 60 seconds · Get a personalised curriculum recommendation
-        </p>
-        <div className="bg-card border border-white/10 rounded-3xl p-6 md:p-8">
-          <TrackQuiz />
+        {/* ── Ticker ── */}
+        <div className="ticker">
+          <div className="ticker-live">
+            <div className="pulse-dot" />
+            <span><strong>1,247 kids</strong> learning right now</span>
+          </div>
+          <span className="ticker-div">|</span>
+          <span>⭐ 4.9 rated by 800+ GCC parents</span>
+          <span className="ticker-div">|</span>
+          <span>🇦🇪 🇸🇦 🇶🇦 🇰🇼 🇧🇭 🇴🇲 &nbsp; 6 countries</span>
+          <span className="ticker-div">|</span>
+          <span>🔒 No ads · Child-safe · Arabic & English</span>
         </div>
-      </section>
 
-      {/* ── What Kids Build (contrast principle) ── */}
-      <section id="projects" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Not theory. Real output.</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          What Kids Build on Plulai 🏗️
-        </h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-14 text-sm md:text-base max-w-2xl mx-auto">
-          Every child on Plulai builds a real portfolio. Not exercises. Not theory. Things that exist in the world.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-          {PROJECTS.map((p, i) => (
-            <div key={i} className="bg-card border border-white/5 rounded-3xl p-5 md:p-6 hover:-translate-y-1 transition-all">
-              <div className="flex items-center justify-between mb-4">
-                <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${
-                  p.track === 'Coding' ? 'bg-accent4/15 text-accent4' :
-                  p.track === 'AI'     ? 'bg-accent5/15 text-accent5' :
-                                         'bg-accent3/15 text-accent3'
-                }`}>{p.track} Track</span>
-                <span className="text-muted text-xs font-bold">Week {p.weeks}</span>
-              </div>
-              <p className="font-extrabold text-white text-sm md:text-base mb-3 leading-snug">&ldquo;{p.project}&rdquo;</p>
-              <div className="flex items-center gap-2 text-xs text-muted font-bold">
-                <span>{p.country}</span>
-                <span>·</span>
-                <span>Age {p.age}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="text-center mt-10">
-          <Link href="/auth/signup" className="inline-block px-8 md:px-10 py-4 rounded-2xl font-extrabold text-base md:text-lg text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_30px_rgba(107,203,119,0.2)] hover:-translate-y-1 transition-all">
-            🎯 Start Building for Free
-          </Link>
-          <p className="text-muted text-xs font-bold mt-3">Your child&apos;s first project is ready by the end of week 2.</p>
-        </div>
-      </section>
-
-      {/* ── Tracks ── */}
-      <section id="tracks" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">3 tracks · 60+ lessons each</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          Which Future Will They Build? 🏆
-        </h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-sm md:text-base max-w-2xl mx-auto">
-          Every path leads to skills the GCC economy will pay a premium for in 2030. Most kids do all three.
-        </p>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
-          {TRACKS.map(t => (
-            <div key={t.id} className={`bg-gradient-to-br ${t.color} border ${t.border} rounded-3xl p-6 md:p-8 flex flex-col hover:-translate-y-1 transition-all`}>
-              <div className="text-4xl md:text-5xl mb-3">{t.emoji}</div>
-              <h3 className="font-fredoka text-xl md:text-2xl mb-1">{t.title}</h3>
-              <p className="text-muted text-xs font-bold uppercase tracking-widest mb-2">{t.subtitle}</p>
-              <div className="bg-accent3/10 border border-accent3/20 rounded-xl px-3 py-2 text-accent3 text-xs font-extrabold mb-4">✓ {t.outcome}</div>
-              <p className="text-muted text-sm font-semibold leading-relaxed mb-5">{t.desc}</p>
-              <ul className="space-y-2 mt-auto">
-                {t.skills.map(s => (
-                  <li key={s} className="flex items-center gap-2 text-sm font-bold">
-                    <span className="text-accent3">✓</span><span>{s}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── How It Works (progress principle) ── */}
-      <section className="py-16 md:py-24 px-4 md:px-6 max-w-4xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Simple to start</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          From Zero to Builder in 3 Steps 🚀
-        </h2>
-        <p className="text-center text-muted font-semibold mb-12 text-sm md:text-base">No setup. No downloads. Works on any device right now.</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-          {[
-            { step:'1', emoji:'🎯', title:'Find your track',    desc:"Take the 60-second quiz. Get a curriculum matched to your child's age and interests.", time:'60 seconds' },
-            { step:'2', emoji:'🤖', title:'Meet the AI coach',  desc:'Your child\'s personal AI tutor introduces itself in English or Arabic and starts lesson 1.', time:'Day 1'      },
-            { step:'3', emoji:'🏆', title:'Build something real', desc:'By week 2, your child completes their first real project. By month 3, a full portfolio.', time:'Week 2'     },
-          ].map((s, i) => (
-            <div key={i} className="relative bg-card border border-white/5 rounded-3xl p-6 md:p-8 text-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-accent3 to-accent4 flex items-center justify-center font-fredoka text-xl text-white mx-auto mb-4">{s.step}</div>
-              <div className="text-3xl mb-3">{s.emoji}</div>
-              <h3 className="font-fredoka text-lg mb-2">{s.title}</h3>
-              <p className="text-muted text-sm font-semibold leading-relaxed mb-3">{s.desc}</p>
-              <span className="inline-block bg-accent3/10 border border-accent3/20 rounded-full px-3 py-1 text-accent3 text-xs font-extrabold">{s.time}</span>
-              {i < 2 && <div className="hidden md:block absolute top-1/2 -right-3 text-accent3 font-extrabold text-xl z-10">→</div>}
-            </div>
-          ))}
-        </div>
-        <div className="text-center mt-10">
-          <Link href="/auth/signup" className="inline-block px-10 py-4 rounded-2xl font-extrabold text-lg text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_30px_rgba(107,203,119,0.25)] hover:-translate-y-1 transition-all">
-            🎉 Start Step 1 — Free
-          </Link>
-        </div>
-      </section>
-
-      {/* ── Features ── */}
-      <section id="features" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          Why Kids Love It &amp; Parents Trust It 🌟
-        </h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-sm md:text-base max-w-2xl mx-auto">
-          Built for the GCC — in their language, at their level, with their culture.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-          {FEATURES.map((f, i) => (
-            <div key={i} className={`bg-gradient-to-br ${f.color} border ${f.border} rounded-3xl p-6 md:p-7 hover:-translate-y-1 transition-all`}>
-              <div className="text-3xl md:text-4xl mb-3">{f.emoji}</div>
-              <h3 className="font-fredoka text-lg md:text-xl mb-2">{f.title}</h3>
-              <p className="text-muted text-sm font-semibold leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Reciprocity lead magnet ── */}
-      <section className="py-10 md:py-16 px-4 md:px-6 max-w-3xl mx-auto">
-        <div className="bg-gradient-to-r from-accent5/10 to-accent1/10 border border-accent5/20 rounded-3xl p-8 md:p-10 text-center">
-          <div className="text-4xl mb-4">📊</div>
-          <h2 className="font-fredoka text-2xl md:text-3xl mb-3">
-            Free: GCC Tech Skills Report 2025
-          </h2>
-          <p className="text-muted font-semibold text-sm md:text-base mb-6 max-w-md mx-auto">
-            Which skills will UAE employers pay a premium for by 2030? What salary gap exists between kids who code and those who don&apos;t? 12 pages of data — free, no spam.
+        {/* ── Hero ── */}
+        <div className="hero">
+          <div className="hero-eyebrow">
+            <span className="pulse-dot" style={{ background: '#f87171' }} />
+            Only 43 spots remaining this week
+          </div>
+          <h1 className="hero-title">
+            Your Child's Peers<br />
+            <span className="hero-title-accent">Are Building the Future.</span>
+          </h1>
+          <p className="hero-sub">
+            Kids across the GCC are building apps, AI tools, and startup pitches.{' '}
+            <strong>Plulai is the 15-min daily habit</strong> that puts your child in that group.
           </p>
-          <Link
-            href="/auth/signup?ref=report"
-            className="inline-block px-8 py-3.5 rounded-2xl font-extrabold text-sm md:text-base text-white bg-gradient-to-r from-accent5 to-accent1 hover:-translate-y-0.5 transition-all"
-          >
-            📥 Download Free Report
-          </Link>
-          <p className="text-muted text-xs font-bold mt-3">No spam. Unsubscribe any time. Sent to your email instantly.</p>
-        </div>
-      </section>
-
-      {/* ── Kid Testimonials ── */}
-      <section id="stories" className="py-16 md:py-24 px-4 md:px-6 max-w-5xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">1,000+ kids · 1 pattern</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          Real Results. Real Kids. 💛
-        </h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-sm md:text-base">
-          Every kid on our platform has a story like these. This is the norm, not the exception.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-          {KID_TESTIMONIALS.map((t, i) => (
-            <div key={i} className="bg-card border border-white/5 rounded-3xl p-5 md:p-7 flex flex-col">
-              <div className="inline-flex self-start items-center gap-1.5 bg-accent3/10 border border-accent3/20 rounded-full px-3 py-1 text-xs font-extrabold text-accent3 mb-3">
-                ✓ {t.result}
-              </div>
-              <div className="flex gap-0.5 text-accent2 text-sm mb-3">{'⭐'.repeat(5)}</div>
-              <p className="text-white font-semibold leading-relaxed mb-4 italic text-sm flex-1">&ldquo;{t.text}&rdquo;</p>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-card2 flex items-center justify-center text-lg">{t.avatar}</div>
-                <div>
-                  <div className="font-extrabold text-sm">{t.name}, age {t.age}</div>
-                  <div className="text-muted text-xs font-bold">{t.country}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Parent Testimonials ── */}
-      <section className="py-10 md:py-16 px-4 md:px-6 max-w-4xl mx-auto">
-        <h3 className="font-fredoka text-2xl md:text-3xl text-center mb-8">What Parents Say 👨‍👩‍👧</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {PARENT_TESTIMONIALS.map((t, i) => (
-            <div key={i} className="bg-gradient-to-br from-accent1/5 to-accent2/5 border border-accent1/15 rounded-2xl p-5">
-              <div className="flex gap-0.5 text-accent2 text-xs mb-3">{'⭐'.repeat(5)}</div>
-              <p className="text-white font-semibold leading-relaxed mb-4 italic text-sm">&ldquo;{t.text}&rdquo;</p>
-              <div className="font-extrabold text-xs text-white">{t.name}</div>
-              <div className="text-muted text-xs font-bold">{t.role}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Pricing anchor (decoy effect) ── */}
-      <section className="py-10 md:py-16 px-4 md:px-6 max-w-3xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Simple pricing</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl text-center mb-10">Start Free. Upgrade When Ready.</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="bg-card border-2 border-accent3 rounded-3xl p-6 md:p-8 relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent3 text-black text-xs font-extrabold px-4 py-1 rounded-full whitespace-nowrap">Most parents start here</div>
-            <div className="text-3xl mb-3">🎁</div>
-            <h3 className="font-fredoka text-2xl mb-1">Free</h3>
-            <p className="font-fredoka text-4xl text-white mb-1">AED 0 <span className="text-muted text-base font-bold">/ month</span></p>
-            <p className="text-muted text-xs font-bold mb-5">Forever free. No card needed.</p>
-            <ul className="space-y-2 mb-6 text-sm font-semibold">
-              {['First module of each track', 'Personal AI coach', 'XP & streak system', 'Parent dashboard', 'Arabic & English', 'Any device'].map(f => (
-                <li key={f} className="flex items-center gap-2"><span className="text-accent3">✓</span>{f}</li>
-              ))}
-            </ul>
-            <Link href="/auth/signup" className="block w-full py-3.5 rounded-2xl font-extrabold text-base text-white bg-gradient-to-r from-accent3 to-accent4 text-center hover:-translate-y-0.5 transition-all">
-              🚀 Start Free Now
-            </Link>
-          </div>
-          <div className="bg-card border border-white/10 rounded-3xl p-6 md:p-8 opacity-80">
-            <div className="text-3xl mb-3">⚡</div>
-            <h3 className="font-fredoka text-2xl mb-1">Pro</h3>
-            <p className="font-fredoka text-4xl text-white mb-1">AED 79 <span className="text-muted text-base font-bold">/ month</span></p>
-            <p className="text-muted text-xs font-bold mb-5">Everything in Free, plus:</p>
-            <ul className="space-y-2 mb-6 text-sm font-semibold text-muted">
-              {['All 200+ lessons unlocked', 'Advanced AI coaching', 'Full portfolio system', 'Live project feedback', 'Certificate of completion', 'Priority support'].map(f => (
-                <li key={f} className="flex items-center gap-2"><span className="text-accent4">✓</span>{f}</li>
-              ))}
-            </ul>
-            <Link href="/auth/signup?plan=pro" className="block w-full py-3.5 rounded-2xl font-extrabold text-base text-muted bg-card2 border border-white/10 text-center hover:text-white transition-all">
-              Start with Pro →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Partners ── */}
-      {/* <section id="partners" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Trusted &amp; recognised by</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl text-center mb-3">Our Partners &amp; Supporters 🤝</h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-14 text-sm md:text-base max-w-xl mx-auto">
-          From government bodies to global tech giants — the institutions shaping the GCC&apos;s future stand behind Plulai.
-        </p>
-        {(['Government', 'Schools', 'Technology', 'Accelerator'] as const).map(cat => {
-          const catP = PARTNERS.filter(p => p.category === cat)
-          if (!catP.length) return null
-          return (
-            <div key={cat} className="mb-8">
-              <p className="text-muted text-xs font-extrabold uppercase tracking-widest mb-4 text-center">{cat}</p>
-              <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-                {catP.map(p => (
-                  <div key={p.abbr} className="group flex items-center gap-2.5 bg-card border border-white/5 hover:border-white/15 rounded-2xl px-4 py-3 md:px-5 md:py-4 transition-all hover:-translate-y-0.5 cursor-default">
-                    <span className="text-xl md:text-2xl">{p.logo}</span>
-                    <span className="font-extrabold text-xs md:text-sm text-muted group-hover:text-white transition-colors whitespace-nowrap">{p.abbr}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )
-        })}
-        <div className="mt-10 text-center">
-          <p className="text-muted text-sm font-semibold mb-3">Are you a school or organisation in the GCC?</p>
-          <a href="mailto:partners@plulai.com" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm text-white bg-card border border-white/10 hover:border-white/20 hover:-translate-y-0.5 transition-all">
-            🤝 Become a Partner
-          </a>
-        </div>
-      </section> */}
-
-      {/* ── GCC ── */}
-      <section id="gcc" className="py-16 md:py-24 px-4 md:px-6 max-w-5xl mx-auto">
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">The GCC&apos;s #1 Edtech Platform 🌍</h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-sm md:text-base max-w-2xl mx-auto">
-          The only kids&apos; platform built region-first — culturally relevant, fully bilingual, designed for the GCC&apos;s next generation.
-        </p>
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-4 mb-8 md:mb-12">
-          {GCC.map(c => (
-            <div key={c.name} className="bg-card border border-white/5 rounded-2xl p-3 md:p-4 text-center hover:border-white/15 transition-all">
-              <div className="text-3xl md:text-4xl mb-1 md:mb-2">{c.flag}</div>
-              <div className="font-extrabold text-xs mb-0.5">{c.name}</div>
-              <div className="text-muted text-xs font-bold hidden sm:block">{c.city}</div>
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-          <div className="bg-gradient-to-r from-accent4/10 to-accent5/10 border border-accent4/20 rounded-3xl p-6 md:p-8">
-            <div className="text-3xl md:text-4xl mb-3">🌐</div>
-            <h3 className="font-fredoka text-xl md:text-2xl mb-2">Real Arabic, Not Translated</h3>
-            <p className="text-muted font-semibold leading-relaxed text-sm md:text-base">Complete RTL interface. AI coach that teaches natively in Arabic. The only platform built for Arabic-speaking kids first.</p>
-          </div>
-          <div className="bg-gradient-to-r from-accent3/10 to-accent4/10 border border-accent3/20 rounded-3xl p-6 md:p-8">
-            <div className="text-3xl md:text-4xl mb-3">🎓</div>
-            <h3 className="font-fredoka text-xl md:text-2xl mb-2">Aligned with UAE Vision 2031</h3>
-            <p className="text-muted font-semibold leading-relaxed text-sm md:text-base">Curriculum designed to prepare kids for the UAE Vision 2031 skills economy — AI, coding and entrepreneurship are the three pillars demanded of the next generation.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Mid-page urgency block ── */}
-      <section className="py-12 md:py-16 px-4 md:px-6 max-w-3xl mx-auto">
-        <div className="bg-gradient-to-r from-accent3/10 to-accent4/10 border border-accent3/20 rounded-3xl p-8 md:p-12 text-center">
-          <div className="text-4xl mb-4">⏱️</div>
-          <h2 className="font-fredoka text-2xl md:text-3xl mb-3">Every Week Without Plulai Is a Week Behind</h2>
-          <p className="text-muted font-semibold text-sm md:text-base mb-6 max-w-lg mx-auto">
-            Kids who start today will have 52 extra learning-weeks by this time next year. The skill gap compounds every week.
-          </p>
-          <Link href="/auth/signup" className="inline-block px-8 md:px-10 py-4 md:py-5 rounded-2xl font-extrabold text-base md:text-lg text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_30px_rgba(107,203,119,0.3)] hover:-translate-y-1 transition-all">
-            🎯 Start Free — Takes 60 Seconds
-          </Link>
-          <p className="text-muted text-xs font-bold mt-3">No credit card. Cancel anytime. Works on any device.</p>
-        </div>
-      </section>
-
-      {/* ── FAQ ── */}
-      <section id="faq" className="py-16 md:py-24 px-4 md:px-6 max-w-3xl mx-auto">
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">Your Questions, Answered</h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-sm md:text-base">Everything parents ask us before signing up.</p>
-        <div className="space-y-3 md:space-y-4">
-          {FAQ.map((item, i) => (
-            <details key={i} className="bg-card border border-white/5 rounded-2xl group">
-              <summary className="flex items-center justify-between px-5 py-4 md:px-6 md:py-5 cursor-pointer font-bold text-white list-none text-sm md:text-base">
-                <span>{item.q}</span>
-                <span className="text-muted group-open:rotate-180 transition-transform text-lg ml-3 shrink-0">▾</span>
-              </summary>
-              <p className="px-5 pb-4 md:px-6 md:pb-5 text-muted font-semibold text-sm leading-relaxed">{item.a}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Final CTA ── */}
-      <section className="py-16 md:py-24 px-4 md:px-6 text-center">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-5xl md:text-6xl mb-5 animate-bounce-slow">🚀</div>
-          <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl mb-4">
-            The Best Time to Start Was Yesterday.
-            <br />
-            <span className="bg-gradient-to-r from-accent3 to-accent4 bg-clip-text text-transparent">
-              The Second Best Is Right Now.
-            </span>
-          </h2>
-          <p className="text-muted font-semibold text-base md:text-lg mb-3">
-            Join 1,247 kids across UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman who are already building the skills that matter.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-bold text-muted mb-8 md:mb-10">
-            {['✅ Free forever plan','✅ No credit card','✅ Arabic & English','✅ Ages 6–18','✅ No ads ever','✅ Cancel anytime','✅ Any device'].map(t => (
-              <span key={t} className="bg-card border border-white/5 rounded-full px-3 py-1">{t}</span>
+          <div className="hero-chips">
+            {['Free forever plan', 'No credit card', 'Arabic & English', 'Ages 6–18', 'No ads ever'].map(t => (
+              <span key={t} className="hero-chip">✓ {t}</span>
             ))}
           </div>
-          <Link
-            href="/auth/signup"
-            className="inline-block w-full sm:w-auto px-8 md:px-12 py-4 md:py-5 rounded-2xl font-extrabold text-lg md:text-xl text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_40px_rgba(107,203,119,0.3)] hover:-translate-y-1 transition-all"
-          >
-            🎉 Claim Your Free Account — Start in 60 Seconds
-          </Link>
-          <p className="text-muted text-xs font-bold mt-5 opacity-70">
-            Trusted by parents &amp; teachers across the GCC ·  {/*COPPA compliant ·*/} Safe for kids · No ads 
-          </p>
-        </div>
-      </section>
+          <div className="hero-actions">
+            <Link href="/auth/signup" className="btn-primary-lg">Claim Your Free Spot →</Link>
+            <a href="#quiz" className="btn-outline-lg">Find My Child's Track</a>
+          </div>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-white/5 py-10 md:py-12 px-4 md:px-6 lg:px-12">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8">
-            <div>
-              <div className="font-fredoka text-2xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent mb-2">Plulai</div>
-              {/* <p className="text-muted text-xs font-bold max-w-xs leading-relaxed">The #1 edtech platform for kids in the UAE &amp; GCC. Coding, AI &amp; Entrepreneurship for ages 6–18.</p> */}
-            </div>
-            <div className="grid grid-cols-3 gap-8 text-xs font-bold text-muted w-full md:w-auto">
-              <div>
-                <p className="text-white mb-3 font-extrabold">Platform</p>
-                <div className="space-y-2">
-                  <a href="#quiz"     className="block hover:text-white transition-colors">Find a Track</a>
-                  <a href="#projects" className="block hover:text-white transition-colors">Projects</a>
-                  <a href="#partners" className="block hover:text-white transition-colors">Partners</a>
-                  <Link href="/pricing"       className="block hover:text-white transition-colors">Pricing</Link>
-                  <Link href="/auth/signup"   className="block hover:text-white transition-colors">Sign Up Free</Link>
-                  <Link href="/sharkkid"      className="block hover:text-white transition-colors">🦈 Sharkkid</Link>
-                </div>
+          <div className="stats-row">
+            {[
+              { value: '1,247', label: 'Kids learning right now', live: true },
+              { value: '6',     label: 'GCC countries served',   live: false },
+              { value: '200+',  label: 'Lessons & projects',     live: false },
+              { value: '4.9★',  label: 'Average parent rating',  live: false },
+            ].map(s => (
+              <div key={s.label} className="stat-cell">
+                {s.live && <div className="stat-live"><div className="pulse-dot" />Live</div>}
+                <div className="stat-value">{s.value}</div>
+                <div className="stat-label">{s.label}</div>
               </div>
-              <div>
-                <p className="text-white mb-3 font-extrabold">Countries</p>
-                <div className="space-y-2">
-                  {['🇦🇪 UAE','🇸🇦 Saudi Arabia','🇶🇦 Qatar','🇰🇼 Kuwait','🇧🇭 Bahrain','🇴🇲 Oman'].map(c => <p key={c}>{c}</p>)}
-                </div>
-              </div>
-              <div>
-                <p className="text-white mb-3 font-extrabold">Company</p>
-                <div className="space-y-2">
-                  <a href="mailto:hello@plulai.com"    className="block hover:text-white transition-colors">Contact</a>
-                  <a href="mailto:partners@plulai.com" className="block hover:text-white transition-colors">Partners</a>
-                  <a href="mailto:schools@plulai.com"  className="block hover:text-white transition-colors">Schools</a>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-muted text-xs font-bold text-center md:text-left">
-              © {new Date().getFullYear()} Plulai. Built with ❤️. The #1 edtech platform for kids in the GCC.
-            </p>
-            <a href="mailto:hello@plulai.com" className="text-muted text-xs font-bold hover:text-white transition-colors">hello@plulai.com</a>
+            ))}
           </div>
         </div>
-      </footer>
-    </div>
+
+        {/* ── Quiz ── */}
+        <section id="quiz" className="section" style={{ paddingTop: 60 }}>
+          <div className="container-sm">
+            <div style={{ display: 'flex', gap: 48, alignItems: 'flex-start' }}>
+              <div style={{ flex: '0 0 260px' }}>
+                <p className="eyebrow">Track Finder</p>
+                <h2 className="section-title" style={{ fontSize: 32 }}>Build Your Child's Learning Plan</h2>
+                <p className="section-sub" style={{ fontSize: 13 }}>3 questions · 60 seconds · Personalised curriculum recommendation matched to your child's age and goals.</p>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div className="quiz-panel">
+                  <div className="quiz-panel-header">
+                    <div className="quiz-panel-dot" />
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)' }}>Plulai Track Finder — Free personalisation</span>
+                  </div>
+                  <TrackQuiz />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── What Kids Build ── */}
+        <section id="projects" className="section" style={{ paddingTop: 60 }}>
+          <div className="container">
+            <div style={{ marginBottom: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+              <div>
+                <p className="eyebrow">Real Output. Not Theory.</p>
+                <h2 className="section-title">What Kids Build on Plulai</h2>
+                <p className="section-sub">Every child builds a real portfolio — things that exist in the world.</p>
+              </div>
+              <Link href="/auth/signup" className="btn-primary" style={{ flexShrink: 0 }}>Start Building Free →</Link>
+            </div>
+            <div className="projects-grid">
+              {PROJECTS.map((p, i) => {
+                const colors = { Coding: { bg: 'rgba(28,176,246,0.08)', text: '#1CB0F6' }, AI: { bg: 'rgba(250,169,24,0.08)', text: '#FAA918' }, Bizz: { bg: 'rgba(20,212,244,0.08)', text: '#14D4F4' } }
+                const c = colors[p.track] || colors.Coding
+                return (
+                  <div key={i} className="project-card">
+                    <span className="project-track-badge" style={{ background: c.bg, color: c.text }}>{p.track}</span>
+                    <p className="project-quote">"{p.project}"</p>
+                    <p className="project-meta">{p.country} · Age {p.age} · Week {p.weeks}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Features ── */}
+        <section className="section" style={{ paddingTop: 40 }}>
+          <div className="container">
+            <div style={{ marginBottom: 40 }}>
+              <p className="eyebrow">Why Plulai Works</p>
+              <h2 className="section-title">Why Kids Love It &amp; Parents Trust It</h2>
+              <p className="section-sub">Built for the GCC — in their language, at their level, with their culture.</p>
+            </div>
+            <div className="features-grid">
+              {FEATURES.map((f, i) => (
+                <div key={i} className="feature-card">
+                  <span className="feature-icon" style={{ color: f.accent }}>{f.icon}</span>
+                  <div className="feature-title">{f.title}</div>
+                  <p className="feature-desc">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Tracks ── */}
+        <section id="tracks" className="section">
+          <div className="container">
+            <div style={{ marginBottom: 40 }}>
+              <p className="eyebrow">3 Tracks · 60+ Lessons Each</p>
+              <h2 className="section-title">Which Future Will They Build?</h2>
+              <p className="section-sub">Every path leads to skills the GCC economy will pay a premium for in 2030. Most kids do all three.</p>
+            </div>
+            <div className="tracks-layout">
+              {TRACKS.map(t => (
+                <div key={t.id} className="track-card">
+                  <div className="track-header" style={{ background: `${t.color}08`, borderBottom: `1px solid ${t.color}15` }}>
+                    <div className="track-label" style={{ color: t.color }}>{t.label}</div>
+                    <div className="track-title">{t.title}</div>
+                    <span className="track-outcome" style={{ borderColor: `${t.color}20`, color: t.color, background: `${t.color}08` }}>
+                      ✓ {t.outcome}
+                    </span>
+                  </div>
+                  <div className="track-body">
+                    <p className="track-desc">{t.desc}</p>
+                    <div className="track-skills">
+                      {t.skills.map(s => (
+                        <div key={s} className="track-skill">
+                          <div className="track-skill-dot" style={{ background: t.color }} />
+                          {s}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── How It Works ── */}
+        <section className="section">
+          <div className="container">
+            <div style={{ marginBottom: 40 }}>
+              <p className="eyebrow">Simple to Start</p>
+              <h2 className="section-title">From Zero to Builder in 3 Steps</h2>
+              <p className="section-sub">No setup. No downloads. Works on any device right now.</p>
+            </div>
+            <div className="steps-layout">
+              {[
+                { step: 'Step 01', title: 'Find Your Track', desc: "Take the 60-second quiz. Get a curriculum matched to your child's age and interests.", time: '60 seconds' },
+                { step: 'Step 02', title: 'Meet the AI Coach', desc: "Your child's personal AI tutor introduces itself in English or Arabic and starts lesson 1.", time: 'Day 1' },
+                { step: 'Step 03', title: 'Build Something Real', desc: 'By week 2, your child completes their first real project. By month 3, a full portfolio.', time: 'Week 2' },
+              ].map((s, i) => (
+                <div key={i} className="step-card">
+                  <p className="step-num">{s.step}</p>
+                  <h3 className="step-title">{s.title}</h3>
+                  <p className="step-desc">{s.desc}</p>
+                  <span className="step-time">{s.time}</span>
+                  {i < 2 && <span className="step-arrow">→</span>}
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign: 'center', marginTop: 32 }}>
+              <Link href="/auth/signup" className="btn-primary-lg">Start Step 1 — Free →</Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Kid Testimonials ── */}
+        <section id="stories" className="section">
+          <div className="container">
+            <div style={{ marginBottom: 40 }}>
+              <p className="eyebrow">1,000+ Kids · 1 Pattern</p>
+              <h2 className="section-title">Real Results. Real Kids.</h2>
+              <p className="section-sub">Every kid on our platform has a story like these. This is the norm, not the exception.</p>
+            </div>
+            <div className="testimonials-grid">
+              {KID_TESTIMONIALS.map((t, i) => (
+                <div key={i} className="testimonial-card">
+                  <span className="testimonial-result">✓ {t.result}</span>
+                  <p className="testimonial-quote">"{t.quote}"</p>
+                  <div>
+                    <div className="testimonial-name">{t.name}, age {t.age}</div>
+                    <div className="testimonial-role">{t.location}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Parent Testimonials ── */}
+        <section className="section" style={{ paddingTop: 0 }}>
+          <div className="container">
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--light)', letterSpacing: '-0.5px', marginBottom: 24 }}>What Parents Say</h3>
+            <div className="parent-grid">
+              {PARENT_TESTIMONIALS.map((t, i) => (
+                <div key={i} className="parent-card">
+                  <p className="parent-quote">"{t.quote}"</p>
+                  <div className="parent-name">{t.name}</div>
+                  <div className="parent-role">{t.role}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Lead Magnet ── */}
+        <section className="section" style={{ paddingTop: 0 }}>
+          <div className="container">
+            <div className="magnet-panel">
+              <div className="magnet-left">
+                <div className="magnet-icon">📊</div>
+                <div style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 3, background: 'rgba(250,169,24,0.1)', border: '1px solid rgba(250,169,24,0.2)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 10 }}>Free Download</div>
+                <div className="magnet-title">GCC Tech Skills Report 2025</div>
+                <p className="magnet-desc">Which skills will UAE employers pay a premium for by 2030? What salary gap exists between kids who code and those who don't? 12 pages of data — free, no spam.</p>
+              </div>
+              <div className="magnet-right">
+                <Link href="/auth/signup?ref=report" className="btn-gold" style={{ fontSize: 14, padding: '14px 28px' }}>
+                  Download Free Report →
+                </Link>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginTop: 10, textAlign: 'center' }}>No spam. Unsubscribe anytime.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Urgency ── */}
+        <div className="urgency-band">
+          <div className="urgency-title">Every Week Without Plulai Is a Week Behind.</div>
+          <p className="urgency-sub">Kids who start today will have 52 extra learning-weeks by this time next year. The skill gap compounds.</p>
+          <Link href="/auth/signup" className="btn-primary-lg">Start Free — Takes 60 Seconds →</Link>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginTop: 12 }}>No credit card · Any device · Cancel anytime</p>
+        </div>
+
+        {/* ── Pricing ── */}
+        <section className="section">
+          <div className="container">
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <p className="eyebrow">Simple Pricing</p>
+              <h2 className="section-title">Start Free. Upgrade When Ready.</h2>
+            </div>
+            <div className="pricing-layout">
+              <div className="pricing-card pricing-card-featured">
+                <div className="pricing-badge">Most parents start here</div>
+                <div className="pricing-plan">Free Plan</div>
+                <div className="pricing-price">AED 0 <span>/ month</span></div>
+                <div className="pricing-note">Forever free. No card needed.</div>
+                <div className="pricing-divider" />
+                <div className="pricing-features">
+                  {['First module of each track', 'Personal AI coach', 'XP & streak system', 'Parent dashboard', 'Arabic & English', 'Any device'].map(f => (
+                    <div key={f} className="pricing-feature">
+                      <svg className="pricing-check" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.5" stroke="#1CB0F6" strokeOpacity="0.3"/><path d="M5 8l2 2 4-4" stroke="#1CB0F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      {f}
+                    </div>
+                  ))}
+                </div>
+                <Link href="/auth/signup" className="btn-primary-lg" style={{ width: '100%' }}>Start Free Now →</Link>
+              </div>
+              <div className="pricing-card" style={{ opacity: 0.75 }}>
+                <div className="pricing-plan">Pro Plan</div>
+                <div className="pricing-price">AED 79 <span>/ month</span></div>
+                <div className="pricing-note">Everything in Free, plus:</div>
+                <div className="pricing-divider" />
+                <div className="pricing-features">
+                  {['All 200+ lessons unlocked', 'Advanced AI coaching', 'Full portfolio system', 'Live project feedback', 'Certificate of completion', 'Priority support'].map(f => (
+                    <div key={f} className="pricing-feature" style={{ color: 'var(--muted)' }}>
+                      <svg className="pricing-check" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.5" stroke="#6F6F6F" strokeOpacity="0.3"/><path d="M5 8l2 2 4-4" stroke="#6F6F6F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      {f}
+                    </div>
+                  ))}
+                </div>
+                <Link href="/auth/signup?plan=pro" className="btn-outline-lg" style={{ width: '100%' }}>Start with Pro →</Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── GCC ── */}
+        <section id="gcc" className="section" style={{ paddingTop: 0 }}>
+          <div className="container">
+            <div style={{ marginBottom: 32 }}>
+              <p className="eyebrow">Region-First Platform</p>
+              <h2 className="section-title">The GCC's #1 Edtech Platform</h2>
+              <p className="section-sub">The only kids' platform built here — culturally relevant, fully bilingual, designed for the next generation.</p>
+            </div>
+            <div className="gcc-grid">
+              {[
+                { flag: '🇦🇪', name: 'UAE' }, { flag: '🇸🇦', name: 'Saudi Arabia' },
+                { flag: '🇶🇦', name: 'Qatar' }, { flag: '🇰🇼', name: 'Kuwait' },
+                { flag: '🇧🇭', name: 'Bahrain' }, { flag: '🇴🇲', name: 'Oman' },
+              ].map(c => (
+                <div key={c.name} className="gcc-cell">
+                  <div className="gcc-flag">{c.flag}</div>
+                  <div className="gcc-name">{c.name}</div>
+                </div>
+              ))}
+            </div>
+            <div className="gcc-lang-cards">
+              <div className="gcc-lang-card">
+                <span className="gcc-lang-icon">🌐</span>
+                <div className="gcc-lang-title">Real Arabic, Not Translated</div>
+                <p className="gcc-lang-desc">Complete RTL interface. AI coach that teaches natively in Arabic. The only platform built for Arabic-speaking kids first — not retrofitted.</p>
+              </div>
+              <div className="gcc-lang-card">
+                <span className="gcc-lang-icon">🎓</span>
+                <div className="gcc-lang-title">Aligned with UAE Vision 2031</div>
+                <p className="gcc-lang-desc">Curriculum designed to prepare kids for the skills economy — AI, coding and entrepreneurship are the three pillars demanded of the next generation.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FAQ ── */}
+        <section id="faq" className="section">
+          <div className="container-sm">
+            <div style={{ marginBottom: 48 }}>
+              <p className="eyebrow">FAQ</p>
+              <h2 className="section-title">Your Questions, Answered.</h2>
+              <p className="section-sub">Everything parents ask us before signing up.</p>
+            </div>
+            <div>
+              {FAQ.map((item, i) => <AccordionItem key={i} q={item.q} a={item.a} index={i} />)}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Final CTA ── */}
+        <section className="final-cta">
+          <div className="container-sm">
+            <h2 className="final-title">
+              The Best Time to Start<br />
+              <span className="final-title-accent">Was Yesterday.</span>
+            </h2>
+            <p style={{ fontSize: 16, fontWeight: 500, color: 'var(--muted)', maxWidth: 480, margin: '0 auto 28px' }}>
+              Join 1,247 kids across UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman building the skills that matter.
+            </p>
+            <div className="final-chips">
+              {['Free forever', 'No credit card', 'Arabic & English', 'Ages 6–18', 'No ads ever', 'Cancel anytime', 'Any device'].map(t => (
+                <span key={t} className="final-chip">✓ {t}</span>
+              ))}
+            </div>
+            <Link href="/auth/signup" className="btn-primary-lg" style={{ fontSize: 17, padding: '18px 48px' }}>
+              Claim Your Free Account →
+            </Link>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', marginTop: 16, opacity: 0.7 }}>
+              Trusted by parents & teachers across the GCC · Safe for kids · No ads
+            </p>
+          </div>
+        </section>
+
+        {/* ── Footer ── */}
+        <footer className="footer">
+          <div className="footer-inner">
+            <div>
+              <div className="footer-logo">Plu<span>lai</span></div>
+              <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--muted)', maxWidth: 220, lineHeight: 1.6, marginTop: 8 }}>
+                The #1 edtech platform for kids in the GCC. Coding, AI & Entrepreneurship for ages 6–18.
+              </p>
+            </div>
+            <div className="footer-cols">
+              <div>
+                <div className="footer-col-title">Platform</div>
+                <a href="#quiz"            className="footer-col-link">Find a Track</a>
+                <a href="#projects"        className="footer-col-link">What Kids Build</a>
+                <Link href="/pricing"      className="footer-col-link">Pricing</Link>
+                <Link href="/auth/signup"  className="footer-col-link">Sign Up Free</Link>
+                <Link href="/sharkkid"     className="footer-col-link">🦈 Sharkkid</Link>
+              </div>
+              <div>
+                <div className="footer-col-title">Countries</div>
+                {['🇦🇪 UAE', '🇸🇦 Saudi Arabia', '🇶🇦 Qatar', '🇰🇼 Kuwait', '🇧🇭 Bahrain', '🇴🇲 Oman'].map(c => (
+                  <span key={c} className="footer-col-link" style={{ display: 'block' }}>{c}</span>
+                ))}
+              </div>
+              <div>
+                <div className="footer-col-title">Company</div>
+                <a href="mailto:hello@plulai.com"    className="footer-col-link">Contact</a>
+                <a href="mailto:partners@plulai.com" className="footer-col-link">Partners</a>
+                <a href="mailto:schools@plulai.com"  className="footer-col-link">Schools</a>
+              </div>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <span>© {new Date().getFullYear()} Plulai. Built in the GCC, for the GCC.</span>
+            <a href="mailto:hello@plulai.com" className="footer-col-link" style={{ marginBottom: 0 }}>hello@plulai.com</a>
+          </div>
+        </footer>
+
+      </div>
+    </>
   )
 }
