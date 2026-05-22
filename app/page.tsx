@@ -314,7 +314,7 @@ export default function LandingPage() {
         <div style={{ marginBottom:40 }}>
           <h1 className="hero-text" style={{ animationDelay:'0.1s' }}>
             YOUR<br />
-            CHILD'S<br />
+            CHILD&apos;S<br />
             <span className="accent">PEERS</span><br />
             ARE<br />
             BUILDING<br />
