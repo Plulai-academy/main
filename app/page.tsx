@@ -1,826 +1,824 @@
+
 'use client'
-// app/page.tsx — Maximum-Conversion Neuromarketing Landing Page v3
-//
-// Techniques layered:
-//  1.  PAS copywriting  (Pain → Agitation → Solution)
-//  2.  Social proof ticker above the fold
-//  3.  Loss aversion + specific scarcity counter
-//  4.  QUIZ FUNNEL — Zeigarnik + micro-commitment + IKEA effect
-//  5.  Reciprocity — free GCC Skills Report lead magnet
-//  6.  Contrast principle — "What Kids Build" (outputs, not features)
-//  7.  Authority stacking — press, awards, partners
-//  8.  Decoy pricing anchor — show Pro to make Free feel extraordinary
-//  9.  Progress principle — 3-step onboarding roadmap (feels easy)
-// 10.  Separate parent + kid testimonials (parent = buyer)
-// 11.  Risk reversal chips at every CTA
-// 12.  In-section CTAs at peak emotional engagement
-// 13.  Identity + loss-aversion language in final CTA
-// 14.  Outcome badges on testimonials (result first, story second)
 
-import type { Metadata } from 'next'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
-// ─── Quiz funnel ──────────────────────────────────────────────────────────────
+// ── Data ──────────────────────────────────────────────────────────────────────
 
 const QUIZ_STEPS = [
   {
     id: 'age',
-    question: "How old is your child?",
+    question: "How old are you?",
     options: [
-      { label: '6–8 years',   value: 'mini',   emoji: '🌱', desc: 'Mini Explorer track' },
-      { label: '9–11 years',  value: 'junior', emoji: '🚀', desc: 'Junior Creator track' },
-      { label: '12–14 years', value: 'pro',    emoji: '⚡', desc: 'Pro Explorer track'  },
-      { label: '15–18 years', value: 'expert', emoji: '🔥', desc: 'Tech Expert track'   },
+      { label: '6–8 years',   value: 'mini',   emoji: '🌱' },
+      { label: '9–11 years',  value: 'junior', emoji: '🚀' },
+      { label: '12–14 years', value: 'pro',    emoji: '⚡' },
+      { label: '15–18 years', value: 'expert', emoji: '🔥' },
     ],
   },
   {
     id: 'interest',
-    question: "What excites your child most?",
+    question: "What sounds most fun?",
     options: [
-      { label: 'Building apps & games', value: 'coding', emoji: '💻', desc: 'Coding track'         },
-      { label: 'AI & smart tech',        value: 'ai',     emoji: '🧠', desc: 'AI track'             },
-      { label: 'Starting a business',    value: 'bizz',   emoji: '💡', desc: 'Entrepreneurship track'},
-      { label: 'All of the above!',      value: 'all',    emoji: '🏆', desc: 'Full curriculum'       },
+      { label: 'Build apps & games', value: 'coding', emoji: '💻' },
+      { label: 'AI & robots',        value: 'ai',     emoji: '🤖' },
+      { label: 'Start a business',   value: 'bizz',   emoji: '💡' },
+      { label: 'ALL of it!',         value: 'all',    emoji: '🏆' },
     ],
   },
   {
     id: 'goal',
-    question: "What matters most to you?",
+    question: "What does your parent care about?",
     options: [
-      { label: 'Screen time with purpose', value: 'screen', emoji: '📱', desc: '' },
-      { label: 'Future career advantage',  value: 'career', emoji: '💼', desc: '' },
-      { label: 'Building confidence',      value: 'conf',   emoji: '💪', desc: '' },
-      { label: 'Real skills, not theory',  value: 'skills', emoji: '🔧', desc: '' },
+      { label: 'Useful screen time', value: 'screen', emoji: '📱' },
+      { label: 'Future career',      value: 'career', emoji: '💼' },
+      { label: 'Real confidence',    value: 'conf',   emoji: '💪' },
+      { label: 'Actual skills',      value: 'skills', emoji: '🛠️' },
     ],
   },
 ]
 
-const TRACK_RESULT: Record<string, { title: string; desc: string; emoji: string }> = {
-  coding: { emoji: '💻', title: 'Coding Track',           desc: 'Python, web dev & game design. Builds real apps in week 2.' },
-  ai:     { emoji: '🧠', title: 'AI Track',               desc: 'Machine learning, AI ethics & their own AI project by month 2.' },
-  bizz:   { emoji: '💡', title: 'Entrepreneurship Track', desc: 'Startup thinking, MVP building & pitching — UAE style.' },
-  all:    { emoji: '🏆', title: 'Full Curriculum',        desc: 'All 3 tracks — the complete future-skills package.' },
+const TRACK_RESULT: Record<string, { title: string; desc: string; emoji: string; color: string }> = {
+  coding: { emoji: '💻', title: 'Coding Track',    color: '#58CC02', desc: 'Python, web dev & game design. First real program by week 2!' },
+  ai:     { emoji: '🤖', title: 'AI Track',        color: '#1CB0F6', desc: 'Build real AI projects. By month 2 you have your own ML model!' },
+  bizz:   { emoji: '💡', title: 'Startup Track',   color: '#FF9600', desc: 'From idea to investor pitch. Win school competitions!' },
+  all:    { emoji: '🏆', title: 'Full Curriculum', color: '#FF4B4B', desc: 'All 3 tracks — the ultimate future-skills package.' },
 }
 
-// ─── Page data ────────────────────────────────────────────────────────────────
-
-const STATS = [
-  { value: '1,247', label: 'Kids online right now', live: true  },
-  { value: '6',     label: 'GCC countries',          live: false },
-  { value: '200+',  label: 'Lessons',                live: false },
-  { value: '4.9★',  label: 'Parent rating',          live: false },
-]
-
 const PROJECTS = [
-  { age: 9,  country: '🇦🇪', project: 'A working calculator app in Python',     track: 'Coding', weeks: 3 },
-  { age: 11, country: '🇸🇦', project: 'An AI chatbot that answers school Qs',   track: 'AI',     weeks: 6 },
-  { age: 13, country: '🇶🇦', project: 'A startup pitch that won school finals',  track: 'Bizz',   weeks: 8 },
-  { age: 10, country: '🇰🇼', project: 'A website for their mum\'s business',     track: 'Coding', weeks: 4 },
-  { age: 14, country: '🇦🇪', project: 'An ML model that sorts recycling photos', track: 'AI',     weeks: 7 },
-  { age: 12, country: '🇧🇭', project: 'A fully-pitched mobile app idea to VCs',  track: 'Bizz',   weeks: 9 },
+  { age: 9,  country: '🇦🇪', project: 'A working calculator app in Python',     track: 'Coding', weeks: 3,  color: '#58CC02' },
+  { age: 11, country: '🇸🇦', project: 'An AI chatbot that answers school Qs',   track: 'AI',     weeks: 6,  color: '#1CB0F6' },
+  { age: 13, country: '🇶🇦', project: 'A startup pitch that won school finals',  track: 'Startup',weeks: 8,  color: '#FF9600' },
+  { age: 10, country: '🇰🇼', project: "A website for their mum's business",      track: 'Coding', weeks: 4,  color: '#58CC02' },
+  { age: 14, country: '🇦🇪', project: 'An ML model that sorts recycling photos', track: 'AI',     weeks: 7,  color: '#1CB0F6' },
+  { age: 12, country: '🇧🇭', project: 'A fully-pitched mobile app to VCs',       track: 'Startup',weeks: 9,  color: '#FF9600' },
 ]
 
-const FEATURES = [
-  { emoji:'🤖', title:'Personal AI coach, 24/7',           desc:'Adapts to your child\'s exact level. Explains the same concept 10 different ways — no frustration, no judgment. Like a private tutor who never sleeps.',       color:'from-accent4/20 to-accent5/20', border:'border-accent4/20' },
-  { emoji:'🎮', title:'Addictive as their favourite game', desc:'XP, daily streaks, skill trees, badges, level-ups. Kids open Plulai on their own — parents are stunned. Average session: 28 minutes.',                          color:'from-accent1/20 to-accent2/20', border:'border-accent1/20' },
-  { emoji:'🌍', title:'Built for GCC, not copy-pasted',   desc:'Full Arabic RTL + bilingual AI coach. Every example is set in Dubai, Riyadh, Doha, Kuwait City. Not a US product translated — built here first.',               color:'from-accent3/20 to-accent4/20', border:'border-accent3/20' },
-  { emoji:'📊', title:'Parent dashboard & weekly report', desc:'Track streaks, XP, badges and lesson completion in real time. Weekly email summary. Stay involved without hovering.',                                              color:'from-accent5/20 to-accent1/20', border:'border-accent5/20' },
-  { emoji:'🏆', title:'Real portfolio, not just a cert',  desc:'By month 3 your child has 3 real projects — an app, an AI tool and a pitch deck. A portfolio, not a participation certificate.',                                   color:'from-accent2/20 to-accent3/20', border:'border-accent2/20' },
-  // { emoji:'🔒', title:'Child-safe by design',             desc:'No ads. Ever. COPPA certified. AI responses filtered for child safety. Parent controls the account. Zero data sold. Built to KHDA standards.',                      color:'from-accent4/20 to-accent3/20', border:'border-accent4/20' },
-]
-
-const TRACKS = [
-  {
-    id: 'coding', emoji: '💻', title: 'Coding Track', subtitle: 'For future developers',
-    outcome: 'In 3 months: a real web app + game portfolio',
-    desc: 'From zero to building real apps and games. Python, HTML, logical thinking — explained simply, practised daily. Week 2 kids write their first working program.',
-    skills: ['Python Basics', 'Web Development', 'Game Design', 'App Building'],
-    color: 'from-accent4/10 to-accent5/10', border: 'border-accent4/30',
-  },
-  {
-    id: 'ai', emoji: '🧠', title: 'AI Track', subtitle: 'For future innovators',
-    outcome: 'In 3 months: a working AI project they built',
-    desc: 'Not watching AI videos — actually building AI. By month 2, your child has their own machine learning project. Understanding what peers only read about on the news.',
-    skills: ['What is AI?', 'Machine Learning', 'AI Ethics', 'Build an AI Project'],
-    color: 'from-accent5/10 to-accent1/10', border: 'border-accent5/30',
-  },
-  {
-    id: 'entrepreneurship', emoji: '💡', title: 'Entrepreneurship Track', subtitle: 'For future founders',
-    outcome: 'In 3 months: a full startup pitch + MVP',
-    desc: 'From first idea to polished investor pitch. Same startup thinking used in DIFC — adapted for young minds. Three graduates have already won school competitions.',
-    skills: ['Idea Generation', 'Market Research', 'Build a MVP', 'Pitch Your Startup'],
-    color: 'from-accent3/10 to-accent4/10', border: 'border-accent3/30',
-  },
-]
-
-const KID_TESTIMONIALS = [
-  { name:'Ahmed K.',  age:13, country:'🇦🇪 Dubai',     text:'I built my first AI chatbot in 2 weeks. My teacher shared it with the whole class. I never thought I could actually do something like that.', avatar:'🧑‍💻', result:'Built an AI chatbot in 2 weeks'  },
-  { name:'Sara M.',   age:10, country:'🇸🇦 Riyadh',    text:'21-day streak! I learn for 20 mins every night instead of watching YouTube. My parents cannot believe the change.',                           avatar:'👩‍🎨', result:'21-day streak and counting'     },
-  { name:'Yousef A.', age:15, country:'🇶🇦 Doha',      text:'The AI explains things like a friend. I ask the same question 5 times and it never gets frustrated. No human teacher does that.',            avatar:'🧑‍🚀', result:'Finished full Python track'     },
-  { name:'Nour R.',   age:11, country:'🇰🇼 Kuwait',    text:'I won my school startup competition with what I learned here. The judges said they could not believe an 11-year-old made that pitch.',        avatar:'🦸',   result:'Won school competition'         },
-  { name:'Zaid T.',   age:14, country:'🇦🇪 Abu Dhabi', text:'Finished Python in 3 months. Now on AI. My dad says I am more consistent than he is at the gym.',                                            avatar:'🤖',   result:'Completed Python + started AI'  },
-  { name:'Lina K.',   age:9,  country:'🇧🇭 Bahrain',   text:'I made a real website for my mum\'s shop. She showed all her friends. I almost cried I was so proud.',                                       avatar:'👩‍💻', result:'Launched a live website'        },
-]
-
-const PARENT_TESTIMONIALS = [
-  { name:'Fatima Al-Mansoori', role:'Mother of two · Dubai',    text:'I tried 4 other apps. None of them worked. My kids open Plulai by themselves, without me asking. That has never happened before.' },
-  { name:'Khalid Al-Rashidi',  role:'Father · Riyadh',          text:'The Arabic support is real — not Google Translate. My son finally understood recursion because the AI explained it in proper Fusha. Night and day.' },
-  { name:'Noura Al-Kuwari',    role:'Mother · Doha',            text:"My daughter used to be glued to TikTok. Now she says she's building her portfolio. I don't care what it's called — it's a miracle." },
-]
-
-const PRESS = [
-  { name: 'Forbes Middle East',  note: '"The edtech startup fixing the GCC skills gap"' },
-  { name: 'Gulf News',           note: '"Arabic-first learning done right"'              },
-  { name: 'Wamda',               note: '"One to watch: GCC EdTech 2024"'                },
-  { name: 'EdTech Arabia Award', note: '🏆 Best Kids Platform 2024'                      },
-]
-
-const PARTNERS = [
-  { abbr:'MoE UAE',             logo:'🏛️', category:'Government'  },
-  { abbr:'KHDA',                logo:'📋', category:'Government'  },
-  { abbr:'Dubai Future Foundation', logo:'🔭', category:'Government' },
-  { abbr:'GEMS Education',      logo:'💎', category:'Schools'     },
-  { abbr:'Taaleem',             logo:'🏫', category:'Schools'     },
-  { abbr:'Repton Dubai',        logo:'🎓', category:'Schools'     },
-  { abbr:'Microsoft Edu',       logo:'🪟', category:'Technology'  },
-  { abbr:'Google Edu',          logo:'🔍', category:'Technology'  },
-  { abbr:'AWS Educate',         logo:'☁️', category:'Technology'  },
-  { abbr:'Hub71 Abu Dhabi',     logo:'🚀', category:'Accelerator' },
-  { abbr:'in5 Tech Dubai',      logo:'5️⃣', category:'Accelerator' },
-]
-
-const GCC = [
-  { flag:'🇦🇪', name:'UAE',          city:'Dubai & Abu Dhabi' },
-  { flag:'🇸🇦', name:'Saudi Arabia', city:'Riyadh & Jeddah'  },
-  { flag:'🇶🇦', name:'Qatar',        city:'Doha'              },
-  { flag:'🇰🇼', name:'Kuwait',       city:'Kuwait City'       },
-  { flag:'🇧🇭', name:'Bahrain',      city:'Manama'            },
-  { flag:'🇴🇲', name:'Oman',         city:'Muscat'            },
+const TESTIMONIALS = [
+  { name:'Ahmed K.',  age:13, flag:'🇦🇪', text:'I built my first AI chatbot in 2 weeks. My teacher shared it with the whole class!', avatar:'🧑‍💻', streak:47 },
+  { name:'Sara M.',   age:10, flag:'🇸🇦', text:'21-day streak! I learn every night instead of watching YouTube. My parents love it.', avatar:'👩‍🎨', streak:21 },
+  { name:'Nour R.',   age:11, flag:'🇰🇼', text:'I won my school startup competition with what I learned here. The judges were shocked!', avatar:'🦸', streak:33 },
 ]
 
 const FAQ = [
-  { q:'What exactly is Plulai?',                        a:'Plulai is the #1 edtech platform for kids aged 6–18 in the GCC. Kids learn coding, AI and entrepreneurship through a personal AI coach, 200+ lessons, and real projects — in English and Arabic. Think Duolingo, but for the skills that actually matter.' },
-  { q:'Is it really free?',                             a:'Yes — genuinely free, not a 7-day trial. The free plan has no credit card requirement, no expiry, and covers the first module of each track. Pro unlocks all 200+ lessons, advanced AI coaching and the full portfolio system.' },
-  { q:'What age is Plulai for?',                        a:'Ages 6–18. The platform auto-adapts: Mini Explorers (6–8), Junior Creators (9–11), Pro Explorers (12–14) and Tech Experts (15–18) each get age-appropriate content, pacing and difficulty.' },
-  { q:'Does it actually support Arabic?',               a:'Real Arabic — not Google Translate. Full RTL interface and an AI coach that teaches natively in Arabic. The only edtech platform built region-first for the GCC.' },
-  { q:'How long are the lessons?',                      a:'15–25 minutes each. Designed to fit after school, without replacing homework time. The streak system encourages one lesson per day — most kids end up doing two.' },
-  { q:'How is it different from Scratch or Code.org?',  a:'Those are great starters. Plulai goes further: a personalised AI coach, Arabic support, GCC cultural context, a real project portfolio, and an entrepreneurship track — none of which those platforms offer.' },
-  { q:'Is it safe for my child?',                       a:"Yes. No ads — ever. COPPA-certified. AI responses are filtered for child safety. Parents control the account and receive weekly summaries. Built to KHDA standards. Your child's data is never sold." },
+  { q:'Is Plulai really free?',             a:'Yes — genuinely free forever. No credit card, no expiry. The free plan covers the first module of every track. Upgrade to Pro anytime for all 200+ lessons.' },
+  { q:'What age is it for?',                a:'Ages 6–18. The platform auto-adapts: Mini Explorers (6–8), Junior Creators (9–11), Pro Explorers (12–14) and Tech Experts (15–18) all get age-appropriate content.' },
+  { q:'Does it really support Arabic?',     a:'Real Arabic — not Google Translate. Full RTL interface and an AI coach that teaches natively in Arabic. Built for the GCC first.' },
+  { q:'How long are the lessons?',          a:'15–25 minutes each. Designed to fit after school. The streak system encourages one lesson a day — most kids end up doing two.' },
+  { q:'Is it safe for my child?',           a:'100% safe. No ads, ever. AI responses filtered for child safety. Parents control the account and get weekly progress emails. Zero data sold.' },
+  { q:'How is it different from Scratch?',  a:'Scratch is a great starter — Plulai goes further. Personal AI coach, Arabic support, real project portfolio, and an entrepreneurship track that Scratch simply does not have.' },
 ]
 
-// ─── Quiz Component ───────────────────────────────────────────────────────────
+// ── Quiz component ─────────────────────────────────────────────────────────────
 
-function TrackQuiz() {
+function Quiz() {
   const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [selected, setSelected] = useState<string | null>(null)
-
-  const currentQ = QUIZ_STEPS[step - 1]
-  const progress = step === 0 ? 0 : Math.round((step / QUIZ_STEPS.length) * 100)
-  const trackKey = answers.interest ?? 'coding'
-  const result = TRACK_RESULT[trackKey]
-
-  function pick(value: string) { setSelected(value) }
+  const [answers, setAnswers] = useState<Record<string,string>>({})
+  const [selected, setSelected] = useState<string|null>(null)
+  const q = QUIZ_STEPS[step - 1]
+  const result = TRACK_RESULT[answers.interest ?? 'coding']
 
   function next() {
     if (!selected) return
-    const newAnswers = { ...answers, [currentQ.id]: selected }
-    setAnswers(newAnswers)
+    const na = { ...answers, [q.id]: selected }
+    setAnswers(na)
     setSelected(null)
     setStep(step < QUIZ_STEPS.length ? step + 1 : 4)
   }
 
-  if (step === 0) {
-    return (
-      <div className="text-center py-6">
-        <div className="text-5xl mb-4">🎯</div>
-        <h3 className="font-fredoka text-2xl md:text-3xl mb-3 text-white">Find Your Child&apos;s Perfect Track</h3>
-        <p className="text-muted font-semibold text-sm md:text-base mb-6 max-w-sm mx-auto">
-          3 quick questions. We&apos;ll build a personalised learning plan — free, takes 60 seconds.
-        </p>
-        <div className="w-full max-w-xs mx-auto bg-white/5 rounded-full h-2 mb-2 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-accent3 to-accent4 rounded-full" style={{ width: '0%' }} />
-        </div>
-        <p className="text-muted text-xs font-bold mb-6">0% complete — start your child&apos;s profile</p>
-        <button
-          onClick={() => setStep(1)}
-          className="px-8 py-4 rounded-2xl font-extrabold text-base text-white bg-gradient-to-r from-accent3 to-accent4 hover:-translate-y-0.5 transition-all shadow-lg shadow-accent3/20"
-        >
-          Build My Child&apos;s Plan →
-        </button>
-      </div>
-    )
-  }
+  if (step === 0) return (
+    <div style={{ textAlign:'center' }}>
+      <div style={{ fontSize:'3.5rem', marginBottom:16 }}>🎯</div>
+      <h3 style={{ fontFamily:'var(--font)', fontSize:'1.4rem', fontWeight:900, color:'#fff', marginBottom:10 }}>
+        Find your perfect track!
+      </h3>
+      <p style={{ color:'rgba(255,255,255,0.75)', fontSize:'0.9rem', marginBottom:24, fontWeight:600 }}>
+        3 quick questions · takes 30 seconds
+      </p>
+      <button onClick={() => setStep(1)} style={{
+        background:'#fff', color:'#58CC02', border:'none', borderRadius:16,
+        padding:'14px 36px', fontFamily:'var(--font)', fontWeight:900,
+        fontSize:'1rem', cursor:'pointer', boxShadow:'0 4px 0 #d4d4d4',
+        transition:'transform 0.1s',
+      }}
+        onMouseDown={e => (e.currentTarget.style.transform='translateY(2px)')}
+        onMouseUp={e => (e.currentTarget.style.transform='translateY(0)')}
+      >
+        Let&apos;s go! 🚀
+      </button>
+    </div>
+  )
 
-  if (step === 4) {
-    return (
-      <div className="text-center py-6">
-        <div className="text-5xl mb-4">🎉</div>
-        <p className="text-muted text-xs font-extrabold uppercase tracking-widest mb-2">Your child&apos;s personalised plan is ready</p>
-        <h3 className="font-fredoka text-2xl md:text-3xl mb-2 text-white">{result.emoji} {result.title}</h3>
-        <p className="text-muted font-semibold text-sm mb-6 max-w-xs mx-auto">{result.desc}</p>
-        <div className="w-full max-w-xs mx-auto bg-white/5 rounded-full h-2.5 mb-2 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-accent3 to-accent4 rounded-full transition-all duration-700" style={{ width: '75%' }} />
-        </div>
-        <p className="text-accent2 text-xs font-extrabold mb-6">
-          75% complete — create your free account to unlock the full plan
-        </p>
-        <Link
-          href="/auth/signup"
-          className="block w-full max-w-xs mx-auto px-8 py-4 rounded-2xl font-extrabold text-base text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_30px_rgba(107,203,119,0.3)] hover:-translate-y-1 transition-all mb-3"
-        >
-          🚀 Unlock My Child&apos;s Plan — Free
-        </Link>
-        <p className="text-muted text-xs font-bold">No credit card · Takes 60 seconds</p>
-        <button
-          onClick={() => { setStep(0); setAnswers({}); setSelected(null) }}
-          className="mt-4 text-muted text-xs underline hover:text-white transition-colors"
-        >
-          Start over
-        </button>
+  if (step === 4) return (
+    <div style={{ textAlign:'center' }}>
+      <div style={{ fontSize:'3.5rem', marginBottom:12 }}>🎉</div>
+      <p style={{ fontFamily:'var(--font)', fontSize:'0.7rem', fontWeight:900, letterSpacing:'0.15em', textTransform:'uppercase', color:'rgba(255,255,255,0.6)', marginBottom:8 }}>
+        Your track is ready!
+      </p>
+      <div style={{ background:'rgba(255,255,255,0.15)', borderRadius:20, padding:'20px 24px', marginBottom:20, border:'2px solid rgba(255,255,255,0.25)' }}>
+        <div style={{ fontSize:'2.5rem', marginBottom:8 }}>{result.emoji}</div>
+        <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1.2rem', color:'#fff', marginBottom:6 }}>{result.title}</div>
+        <div style={{ fontSize:'0.85rem', color:'rgba(255,255,255,0.75)', fontWeight:600 }}>{result.desc}</div>
       </div>
-    )
-  }
+      <Link href="/auth/signup" style={{
+        display:'block', background:'#fff', color:'#58CC02', borderRadius:16,
+        padding:'14px', fontFamily:'var(--font)', fontWeight:900, fontSize:'1rem',
+        textDecoration:'none', boxShadow:'0 4px 0 #d4d4d4', marginBottom:12,
+      }}>
+        Start for free! 🎯
+      </Link>
+      <button onClick={() => { setStep(0); setAnswers({}); setSelected(null) }}
+        style={{ background:'none', border:'none', color:'rgba(255,255,255,0.5)', cursor:'pointer', fontSize:'0.8rem', fontWeight:700 }}>
+        Start over
+      </button>
+    </div>
+  )
 
+  const progress = Math.round((step / QUIZ_STEPS.length) * 100)
   return (
-    <div className="py-4">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex-1 bg-white/5 rounded-full h-2 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-accent3 to-accent4 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
-        </div>
-        <span className="text-muted text-xs font-extrabold shrink-0">{progress}%</span>
+    <div>
+      {/* Progress */}
+      <div style={{ display:'flex', gap:6, marginBottom:20 }}>
+        {QUIZ_STEPS.map((_, i) => (
+          <div key={i} style={{ flex:1, height:6, borderRadius:999, background: i < step ? '#fff' : 'rgba(255,255,255,0.25)', transition:'background 0.3s' }} />
+        ))}
       </div>
-      <p className="text-muted text-xs font-extrabold uppercase tracking-widest mb-2">Step {step} of {QUIZ_STEPS.length}</p>
-      <h3 className="font-fredoka text-xl md:text-2xl mb-5 text-white">{currentQ.question}</h3>
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        {currentQ.options.map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => pick(opt.value)}
-            className={`text-left rounded-2xl p-4 border transition-all ${
-              selected === opt.value
-                ? 'border-accent3 bg-accent3/10 shadow-lg shadow-accent3/10'
-                : 'border-white/10 bg-card hover:border-white/25 hover:bg-card2'
-            }`}
-          >
-            <div className="text-2xl mb-2">{opt.emoji}</div>
-            <div className="font-extrabold text-sm text-white leading-tight">{opt.label}</div>
-            {opt.desc && <div className="text-muted text-xs font-bold mt-1">{opt.desc}</div>}
+      <p style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1.1rem', color:'#fff', marginBottom:16 }}>{q.question}</p>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:16 }}>
+        {q.options.map(opt => (
+          <button key={opt.value} onClick={() => setSelected(opt.value)} style={{
+            background: selected === opt.value ? '#fff' : 'rgba(255,255,255,0.12)',
+            border: selected === opt.value ? '3px solid #fff' : '3px solid rgba(255,255,255,0.2)',
+            borderRadius:16, padding:'16px 12px', cursor:'pointer', textAlign:'left',
+            transition:'all 0.15s', transform: selected === opt.value ? 'scale(1.02)' : 'scale(1)',
+          }}>
+            <div style={{ fontSize:'1.6rem', marginBottom:6 }}>{opt.emoji}</div>
+            <div style={{ fontFamily:'var(--font)', fontWeight:800, fontSize:'0.85rem',
+              color: selected === opt.value ? '#58CC02' : '#fff', lineHeight:1.2 }}>
+              {opt.label}
+            </div>
           </button>
         ))}
       </div>
-      <button
-        onClick={next}
-        disabled={!selected}
-        className={`w-full py-3.5 rounded-2xl font-extrabold text-base transition-all ${
-          selected
-            ? 'text-white bg-gradient-to-r from-accent3 to-accent4 hover:-translate-y-0.5 shadow-lg shadow-accent3/20'
-            : 'text-muted bg-white/5 cursor-not-allowed'
-        }`}
-      >
-        {step === QUIZ_STEPS.length ? "See My Child\u2019s Plan \u2192" : 'Next \u2192'}
+      <button onClick={next} disabled={!selected} style={{
+        width:'100%', padding:'14px', borderRadius:16, border:'none',
+        fontFamily:'var(--font)', fontWeight:900, fontSize:'1rem', cursor: selected ? 'pointer' : 'not-allowed',
+        background: selected ? '#fff' : 'rgba(255,255,255,0.2)',
+        color: selected ? '#58CC02' : 'rgba(255,255,255,0.4)',
+        boxShadow: selected ? '0 4px 0 #d4d4d4' : 'none',
+        transition:'all 0.15s',
+      }}>
+        {step === QUIZ_STEPS.length ? 'See my track →' : 'Continue →'}
       </button>
     </div>
   )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-export default function LandingPage() {
+// ── Streak badge ──────────────────────────────────────────────────────────────
+function StreakBadge({ n }: { n: number }) {
   return (
-    <div className="relative z-10 min-h-screen">
+    <div style={{ display:'inline-flex', alignItems:'center', gap:4,
+      background:'#FFF3CD', border:'2px solid #FF9600', borderRadius:999,
+      padding:'3px 10px', fontSize:'0.72rem', fontWeight:900, color:'#FF9600' }}>
+      🔥 {n}-day streak
+    </div>
+  )
+}
 
-      {/* ── Nav ── */}
-      <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-4 lg:px-12 py-3 md:py-4 glass border-b border-white/5">
-        <div className="font-fredoka text-2xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent">Plulai</div>
-        <div className="hidden md:flex items-center gap-8 text-sm font-bold text-muted">
-          <a href="#quiz"     className="hover:text-white transition-colors">Find a Track</a>
-          <a href="#projects" className="hover:text-white transition-colors">Projects</a>
-          <a href="#partners" className="hover:text-white transition-colors">Partners</a>
-          <a href="#faq"      className="hover:text-white transition-colors">FAQ</a>
+// ── XP bar ────────────────────────────────────────────────────────────────────
+function XPBar({ label, pct, color }: { label:string; pct:number; color:string }) {
+  return (
+    <div style={{ marginBottom:10 }}>
+      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+        <span style={{ fontSize:'0.78rem', fontWeight:800 }}>{label}</span>
+        <span style={{ fontSize:'0.72rem', fontWeight:700, color:'#777' }}>{pct}%</span>
+      </div>
+      <div style={{ background:'#E5E5E5', borderRadius:999, height:10, overflow:'hidden' }}>
+        <div style={{ width:`${pct}%`, height:'100%', background:color, borderRadius:999, transition:'width 1s ease' }} />
+      </div>
+    </div>
+  )
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+export default function LandingPage() {
+  const [scrolled, setScrolled] = useState(false)
+  const [openFaq, setOpenFaq] = useState<number|null>(null)
+  const [count, setCount] = useState(1247)
+
+  useEffect(() => {
+    const s = () => setScrolled(window.scrollY > 40)
+    window.addEventListener('scroll', s, { passive:true })
+    return () => window.removeEventListener('scroll', s)
+  }, [])
+
+  // Live learner count ticks up
+  useEffect(() => {
+    const id = setInterval(() => setCount(c => c + Math.floor(Math.random() * 2)), 8000)
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+        :root { --font: 'Nunito', sans-serif; }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        html { scroll-behavior:smooth; }
+        body { background:#fff; color:#1f1f1f; font-family:var(--font); overflow-x:hidden; }
+
+        @keyframes bounce-in {
+          0%   { transform:scale(0.8); opacity:0; }
+          60%  { transform:scale(1.05); }
+          100% { transform:scale(1); opacity:1; }
+        }
+        @keyframes float {
+          0%,100% { transform:translateY(0); }
+          50%      { transform:translateY(-10px); }
+        }
+        @keyframes wiggle {
+          0%,100% { transform:rotate(-3deg); }
+          50%      { transform:rotate(3deg); }
+        }
+        @keyframes fadeUp {
+          from { opacity:0; transform:translateY(20px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        @keyframes marquee {
+          0%   { transform:translateX(0); }
+          100% { transform:translateX(-50%); }
+        }
+        @keyframes pulse-green {
+          0%,100% { box-shadow:0 0 0 0 rgba(88,204,2,0.4); }
+          50%      { box-shadow:0 0 0 8px rgba(88,204,2,0); }
+        }
+
+        .btn-green {
+          display:inline-block; background:#58CC02; color:#fff;
+          border:none; border-radius:16px; padding:16px 40px;
+          font-family:var(--font); font-weight:900; font-size:1.05rem;
+          cursor:pointer; text-decoration:none;
+          box-shadow:0 6px 0 #46A302;
+          transition:transform 0.1s, box-shadow 0.1s;
+          letter-spacing:0.01em;
+        }
+        .btn-green:hover  { transform:translateY(-2px); box-shadow:0 8px 0 #46A302; }
+        .btn-green:active { transform:translateY(4px);  box-shadow:0 2px 0 #46A302; }
+
+        .btn-outline {
+          display:inline-block; background:#fff; color:#1f1f1f;
+          border:3px solid #E5E5E5; border-radius:16px; padding:13px 36px;
+          font-family:var(--font); font-weight:900; font-size:1rem;
+          cursor:pointer; text-decoration:none;
+          box-shadow:0 4px 0 #E5E5E5;
+          transition:transform 0.1s, box-shadow 0.1s;
+        }
+        .btn-outline:hover  { transform:translateY(-2px); box-shadow:0 6px 0 #E5E5E5; border-color:#ccc; }
+        .btn-outline:active { transform:translateY(3px);  box-shadow:0 1px 0 #E5E5E5; }
+
+        .card {
+          background:#fff; border:3px solid #E5E5E5; border-radius:24px;
+          padding:28px; transition:transform 0.2s, box-shadow 0.2s;
+          box-shadow:0 4px 0 #E5E5E5;
+        }
+        .card:hover { transform:translateY(-4px); box-shadow:0 8px 0 #E5E5E5; }
+
+        .track-card {
+          border-radius:24px; padding:32px; transition:transform 0.2s, box-shadow 0.2s;
+          cursor:default;
+        }
+        .track-card:hover { transform:translateY(-6px); }
+
+        .nav-pill {
+          font-family:var(--font); font-size:0.85rem; font-weight:800;
+          color:#777; text-decoration:none; padding:8px 16px; border-radius:12px;
+          transition:background 0.15s, color 0.15s;
+        }
+        .nav-pill:hover { background:#F7F7F7; color:#1f1f1f; }
+
+        .section-title {
+          font-family:var(--font); font-weight:900;
+          font-size:clamp(1.8rem,4vw,2.8rem);
+          color:#1f1f1f; line-height:1.15; letter-spacing:-0.02em;
+        }
+        .section-sub {
+          font-size:1rem; color:#777; font-weight:700; line-height:1.6;
+        }
+
+        .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%;
+          background:#58CC02; animation:pulse-green 2s infinite; }
+
+        .emoji-float { animation:float 3s ease-in-out infinite; display:inline-block; }
+        .emoji-wiggle { animation:wiggle 2s ease-in-out infinite; display:inline-block; }
+
+        .faq-item { border:3px solid #E5E5E5; border-radius:20px; overflow:hidden; margin-bottom:12px; }
+        .faq-q { width:100%; background:#fff; border:none; padding:20px 24px;
+          font-family:var(--font); font-weight:800; font-size:1rem; color:#1f1f1f;
+          cursor:pointer; display:flex; justify-content:space-between; align-items:center;
+          text-align:left; transition:background 0.15s; }
+        .faq-q:hover { background:#F7F7F7; }
+        .faq-a { padding:0 24px 20px; font-size:0.9rem; color:#555; line-height:1.7; font-weight:700; }
+
+        @media (max-width:768px) {
+          .hide-mobile { display:none !important; }
+          .hero-grid { grid-template-columns:1fr !important; }
+          .tracks-grid { grid-template-columns:1fr !important; }
+          .projects-grid { grid-template-columns:1fr 1fr !important; }
+          .steps-grid { grid-template-columns:1fr !important; }
+          .testi-grid { grid-template-columns:1fr !important; }
+          .pricing-grid { grid-template-columns:1fr !important; }
+          .footer-grid { grid-template-columns:1fr !important; }
+        }
+      `}</style>
+
+      {/* ── NAV ── */}
+      <nav style={{
+        position:'fixed', top:0, left:0, right:0, zIndex:999,
+        padding:'12px 24px',
+        display:'flex', alignItems:'center', justifyContent:'space-between',
+        background: scrolled ? 'rgba(255,255,255,0.97)' : '#fff',
+        backdropFilter: scrolled ? 'blur(10px)' : 'none',
+        borderBottom: scrolled ? '3px solid #E5E5E5' : '3px solid transparent',
+        transition:'all 0.3s',
+      }}>
+        <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1.5rem', color:'#58CC02', letterSpacing:'-0.02em' }}>
+          🚀 Plulai
         </div>
-        <div className="flex items-center gap-2 md:gap-3">
-          <Link href="/sharkkid" className="flex items-center gap-1.5 px-3 py-2 md:px-4 md:py-2 rounded-xl font-extrabold text-xs md:text-sm text-white bg-gradient-to-r from-accent2 to-accent1 hover:-translate-y-0.5 transition-all shadow-lg shadow-accent2/20 whitespace-nowrap">
-            🦈 Sharkkid
-          </Link>
-          <Link href="/auth/login"  className="hidden md:block text-sm font-bold text-muted hover:text-white transition-colors">Log In</Link>
-          <Link href="/auth/signup" className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-accent4 to-accent5 hover:-translate-y-0.5 transition-all shadow-lg shadow-accent4/20">
-            Start Free →
+        <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+          <a href="#tracks"  className="nav-pill hide-mobile">Tracks</a>
+          <a href="#stories" className="nav-pill hide-mobile">Stories</a>
+          <a href="#faq"     className="nav-pill hide-mobile">FAQ</a>
+          <Link href="/auth/login" className="nav-pill" style={{ marginLeft:8 }}>Log in</Link>
+          <Link href="/auth/signup" className="btn-green" style={{ padding:'10px 24px', fontSize:'0.9rem', marginLeft:4 }}>
+            Start free →
           </Link>
         </div>
       </nav>
 
-      {/* ── Social proof ticker ── */}
-      <div className="pt-16 bg-gradient-to-r from-accent4/5 to-accent5/5 border-b border-white/5">
-        <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-center gap-4 md:gap-8 flex-wrap text-xs font-bold text-muted">
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-accent3 animate-pulse" />
-            <span className="text-white">1,247 kids</span>&nbsp;learning right now
-          </span>
-          <span className="hidden sm:block text-white/20">|</span>
-          <span>⭐ Rated 4.9 by 800+ parents</span>
-          <span className="hidden sm:block text-white/20">|</span>
-          {/* <span>🏆 Best Kids Platform · EdTech Arabia 2024</span> */}
-          {/* <span className="hidden sm:block text-white/20">|</span> */}
-          {/* <span>🔒 COPPA Certified · No Ads · Child Safe</span> */}
-          {/* <span className="hidden sm:block text-white/20">|</span> */}
-          {/* <span>📰 Featured in Forbes Middle East</span> */}
+      {/* ── HERO ── */}
+      <section style={{ paddingTop:100, paddingBottom:80, paddingLeft:24, paddingRight:24, maxWidth:1200, margin:'0 auto' }}>
+        <div className="hero-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:60, alignItems:'center' }}>
+
+          {/* Left */}
+          <div style={{ animation:'fadeUp 0.6s ease both' }}>
+            {/* Live badge */}
+            <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#F0FDE4', border:'3px solid #58CC02', borderRadius:999, padding:'6px 16px', marginBottom:24 }}>
+              <span className="live-dot" />
+              <span style={{ fontWeight:900, fontSize:'0.82rem', color:'#46A302' }}>
+                {count.toLocaleString()} kids learning right now
+              </span>
+            </div>
+
+            <h1 style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'clamp(2.4rem,5vw,3.6rem)', lineHeight:1.1, letterSpacing:'-0.03em', marginBottom:20 }}>
+              The app that makes<br />
+              <span style={{ color:'#58CC02' }}>your kid a builder</span><br />
+              not just a scroller 📱
+            </h1>
+
+            <p style={{ fontSize:'1.05rem', color:'#555', fontWeight:700, lineHeight:1.65, marginBottom:32, maxWidth:480 }}>
+              AI coach · 200+ lessons · Real projects · English & Arabic.
+              Kids aged 6–18 learn coding, AI and startup skills — 15 minutes a day.
+            </p>
+
+            <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:28 }}>
+              <Link href="/auth/signup" className="btn-green" style={{ fontSize:'1.1rem', padding:'18px 44px' }}>
+                Start for free 🎉
+              </Link>
+              <a href="#quiz" className="btn-outline">
+                Find my track 🎯
+              </a>
+            </div>
+
+            {/* Trust chips */}
+            <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+              {[
+                '✅ Free forever plan',
+                '✅ No credit card',
+                '✅ Arabic & English',
+                '✅ Ages 6–18',
+                '✅ No ads ever',
+              ].map(t => (
+                <span key={t} style={{ background:'#F7F7F7', border:'2px solid #E5E5E5', borderRadius:999, padding:'5px 14px', fontSize:'0.78rem', fontWeight:800, color:'#555' }}>{t}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Right — gamified card */}
+          <div style={{ animation:'bounce-in 0.7s 0.2s ease both', opacity:0, animationFillMode:'both' }}>
+            <div style={{ background:'linear-gradient(145deg,#58CC02,#46A302)', borderRadius:28, padding:32, boxShadow:'0 20px 60px rgba(88,204,2,0.3)', position:'relative', overflow:'hidden' }}>
+              {/* Stars decoration */}
+              <div style={{ position:'absolute', top:16, right:16, fontSize:'1.5rem', animation:'wiggle 2s ease-in-out infinite' }}>⭐</div>
+              <div style={{ position:'absolute', bottom:16, left:16, fontSize:'1.2rem', animation:'float 2.5s ease-in-out infinite' }}>✨</div>
+
+              {/* Profile row */}
+              <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:20 }}>
+                <div style={{ width:52, height:52, borderRadius:16, background:'rgba(255,255,255,0.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.8rem' }}>🧑‍💻</div>
+                <div>
+                  <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1rem', color:'#fff' }}>Ahmed, age 13 🇦🇪</div>
+                  <div style={{ display:'flex', gap:8, marginTop:4 }}>
+                    <StreakBadge n={47} />
+                  </div>
+                </div>
+              </div>
+
+              {/* XP bars */}
+              <div style={{ background:'rgba(255,255,255,0.15)', borderRadius:16, padding:16, marginBottom:16 }}>
+                <XPBar label="🐍 Python" pct={78} color="#fff" />
+                <XPBar label="🤖 AI Basics" pct={54} color="#FFF3CD" />
+                <XPBar label="💡 Startup Thinking" pct={32} color="#FFD4D4" />
+              </div>
+
+              {/* Achievement */}
+              <div style={{ background:'rgba(255,255,255,0.2)', borderRadius:14, padding:'12px 16px', display:'flex', alignItems:'center', gap:12 }}>
+                <div style={{ fontSize:'2rem' }}>🏆</div>
+                <div>
+                  <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'0.85rem', color:'#fff' }}>Achievement Unlocked!</div>
+                  <div style={{ fontSize:'0.78rem', color:'rgba(255,255,255,0.8)', fontWeight:700 }}>Built first Python app · +300 XP</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── MARQUEE ── */}
+      <div style={{ background:'#1f1f1f', padding:'16px 0', overflow:'hidden' }}>
+        <div style={{ display:'flex' }}>
+          <div style={{ display:'flex', gap:0, width:'max-content', animation:'marquee 25s linear infinite' }}>
+            {[...Array(2)].flatMap(() =>
+              ['🐍 Python','🤖 AI Projects','🌐 Web Dev','💡 Startup Skills','🎮 Game Design','📊 Data Science','⚡ Prompt Engineering','🌍 Arabic & English','🏗️ App Building','🔐 Cybersecurity'].map((item, i) => (
+                <span key={item+i} style={{ display:'flex', alignItems:'center', gap:8, padding:'0 28px', fontFamily:'var(--font)', fontWeight:800, fontSize:'0.88rem', whiteSpace:'nowrap',
+                  color: i % 2 === 0 ? '#58CC02' : 'rgba(255,255,255,0.7)' }}>
+                  {item}
+                  <span style={{ color:'rgba(255,255,255,0.2)', fontSize:'1rem' }}>✦</span>
+                </span>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
-      {/* ── Hero ── */}
-      <section className="pt-10 md:pt-16 pb-10 md:pb-20 px-4 md:px-6 text-center max-w-5xl mx-auto">
-        <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/25 rounded-full px-3 py-1.5 md:px-4 md:py-2 text-xs font-bold text-red-400 mb-5 md:mb-6">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-          Only 43 free spots remaining this week · 1,204 already claimed
-        </div>
-
-        <h1 className="font-fredoka text-4xl sm:text-5xl lg:text-7xl leading-tight mb-4 md:mb-5">
-          <span className="text-white">Your Child&apos;s Peers Are</span>
-          <br />
-          <span className="bg-gradient-to-r from-accent2 via-accent1 to-accent5 bg-clip-text text-transparent">
-            Already Learning to Code.
-          </span>
-        </h1>
-
-        <p className="text-muted text-base md:text-lg lg:text-xl font-semibold max-w-2xl mx-auto mb-3 leading-relaxed">
-          Kids in Singapore, Dubai and Riyadh are building apps, AI tools and startup pitches — while most kids scroll social media.{' '}
-          <strong className="text-white">Plulai is the 15-minutes-a-day habit</strong> that puts your child in the first group.
-        </p>
-        <p className="text-muted text-xs md:text-sm font-bold mb-8 md:mb-10">
-          Free forever · No credit card · English &amp; Arabic · Ages 6–18 · Trusted by 1,000+ GCC families
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 mb-8">
-          <Link
-            href="/auth/signup"
-            className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 rounded-2xl font-extrabold text-lg md:text-xl text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_40px_rgba(107,203,119,0.3)] hover:-translate-y-1 transition-all animate-glow-pulse"
-          >
-            🚀 Claim Your Free Spot Now
-          </Link>
-          <a
-            href="#quiz"
-            className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 rounded-2xl font-extrabold text-base md:text-lg text-muted bg-card border border-white/10 hover:text-white transition-all"
-          >
-            🎯 Find My Child&apos;s Track →
-          </a>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-bold text-muted mb-10">
-          {['✅ Free forever plan', '✅ No credit card', '✅ Arabic & English', '✅ No ads ever', '✅ Cancel anytime'].map(t => (
-            <span key={t} className="bg-card border border-white/5 rounded-full px-3 py-1">{t}</span>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          {STATS.map(s => (
-            <div key={s.label} className="bg-card border border-white/5 rounded-2xl p-4 md:p-5 text-center">
-              {s.live && (
-                <div className="flex items-center justify-center gap-1.5 mb-2">
-                  <span className="inline-block w-2 h-2 rounded-full bg-accent3 animate-pulse" />
-                  <span className="text-accent3 text-xs font-extrabold">LIVE</span>
-                </div>
-              )}
-              <div className="font-fredoka text-2xl md:text-3xl text-white">{s.value}</div>
-              <div className="text-muted text-xs md:text-sm font-bold mt-1">{s.label}</div>
+      {/* ── STATS ── */}
+      <section style={{ maxWidth:1200, margin:'0 auto', padding:'60px 24px' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+          {[
+            { emoji:'👨‍👩‍👧', value:'1,000+', label:'GCC Families', color:'#58CC02' },
+            { emoji:'📚', value:'200+',   label:'Lessons',      color:'#1CB0F6' },
+            { emoji:'⭐', value:'4.9',    label:'Parent Rating', color:'#FF9600' },
+            { emoji:'🌍', value:'6',      label:'Countries',     color:'#FF4B4B' },
+          ].map(s => (
+            <div key={s.label} className="card" style={{ textAlign:'center' }}>
+              <div style={{ fontSize:'2rem', marginBottom:8 }}>{s.emoji}</div>
+              <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'2rem', color:s.color, letterSpacing:'-0.02em' }}>{s.value}</div>
+              <div style={{ fontSize:'0.82rem', color:'#777', fontWeight:800, marginTop:4 }}>{s.label}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── Press / Awards ── */}
-      {/* <section className="px-4 md:px-6 max-w-4xl mx-auto mb-8 md:mb-16">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-5">As seen in</p>
-        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-          {PRESS.map(p => (
-            <div key={p.name} className="bg-card border border-white/5 rounded-2xl px-5 py-3 text-center">
-              <div className="font-extrabold text-sm text-white">{p.name}</div>
-              <div className="text-muted text-xs font-semibold mt-0.5 italic">{p.note}</div>
+      {/* ── TRACKS ── */}
+      <section id="tracks" style={{ maxWidth:1200, margin:'0 auto', padding:'40px 24px 80px' }}>
+        <div style={{ textAlign:'center', marginBottom:48 }}>
+          <div style={{ fontSize:'2.5rem', marginBottom:12 }} className="emoji-float">🗺️</div>
+          <h2 className="section-title" style={{ marginBottom:12 }}>Choose your adventure</h2>
+          <p className="section-sub">Every track leads to real skills. Most kids try all three!</p>
+        </div>
+
+        <div className="tracks-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:20 }}>
+          {[
+            { emoji:'💻', title:'Coding Track',  sub:'For future developers', color:'#58CC02', bg:'#F0FDE4', border:'#58CC02',
+              outcome:'Real app in 3 months', skills:['Python','Web Dev','Game Design','App Building'],
+              desc:'From zero to building real apps and games. Week 2: first working program.' },
+            { emoji:'🤖', title:'AI Track',      sub:'For future innovators', color:'#1CB0F6', bg:'#E8F7FD', border:'#1CB0F6',
+              outcome:'Working AI project', skills:['What is AI?','Machine Learning','AI Ethics','Build an AI'],
+              desc:'Actually build AI — not just read about it. Your own ML project by month 2.' },
+            { emoji:'💡', title:'Startup Track', sub:'For future founders',   color:'#FF9600', bg:'#FFF8ED', border:'#FF9600',
+              outcome:'Pitch + MVP in 3 months', skills:['Idea Generation','Market Research','Build MVP','Pitch'],
+              desc:'From first idea to polished investor pitch. Win school competitions!' },
+          ].map(t => (
+            <div key={t.title} className="track-card" style={{ background:t.bg, border:`3px solid ${t.border}33`, boxShadow:`0 6px 0 ${t.border}33` }}>
+              <div style={{ fontSize:'2.8rem', marginBottom:12 }}>{t.emoji}</div>
+              <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1.3rem', color:t.color, marginBottom:4 }}>{t.title}</div>
+              <div style={{ fontSize:'0.75rem', fontWeight:800, color:'#777', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:12 }}>{t.sub}</div>
+              <div style={{ background:t.color, color:'#fff', borderRadius:10, padding:'8px 14px', fontSize:'0.8rem', fontWeight:900, marginBottom:16, display:'inline-block' }}>
+                ✓ {t.outcome}
+              </div>
+              <p style={{ fontSize:'0.88rem', color:'#555', fontWeight:700, lineHeight:1.6, marginBottom:16 }}>{t.desc}</p>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                {t.skills.map(s => (
+                  <span key={s} style={{ background:'rgba(255,255,255,0.8)', border:`2px solid ${t.border}44`, borderRadius:999, padding:'3px 12px', fontSize:'0.75rem', fontWeight:800, color:t.color }}>
+                    {s}
+                  </span>
+                ))}
+              </div>
             </div>
           ))}
         </div>
-      </section> */}
 
-      {/* ── Sharkkid Banner ── */}
-      {/* <section className="px-4 md:px-6 max-w-6xl mx-auto mb-8">
-        <Link
-          href="/sharkkid"
-          className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-accent2/10 to-accent1/10 border border-accent2/25 rounded-3xl px-6 py-5 md:px-8 md:py-6 hover:-translate-y-0.5 transition-all group"
-        >
-          <div className="flex items-center gap-4">
-            <span className="text-4xl">🦈</span>
-            <div className="text-left">
-              <div className="font-fredoka text-xl md:text-2xl text-white">Sharkkid — Startup Bootcamp for Kids</div>
-              <div className="text-muted text-sm font-semibold">
-                3 months · July 2026 · GCC · <span className="text-red-400 font-extrabold">Only 17 spots left</span>
+        <div style={{ textAlign:'center', marginTop:40 }}>
+          <Link href="/auth/signup" className="btn-green" style={{ fontSize:'1.05rem' }}>
+            Start any track for free 🎯
+          </Link>
+          <p style={{ fontSize:'0.8rem', color:'#777', fontWeight:700, marginTop:12 }}>No commitment. Switch tracks anytime.</p>
+        </div>
+      </section>
+
+      {/* ── QUIZ ── */}
+      <section id="quiz" style={{ background:'linear-gradient(135deg,#58CC02,#1CB0F6)', padding:'80px 24px' }}>
+        <div style={{ maxWidth:900, margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 1fr', gap:60, alignItems:'center' }}
+          className="hero-grid">
+          <div>
+            <div style={{ fontSize:'3rem', marginBottom:16 }} className="emoji-wiggle">🎯</div>
+            <h2 style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'clamp(1.8rem,4vw,2.6rem)', color:'#fff', marginBottom:16, letterSpacing:'-0.02em', lineHeight:1.15 }}>
+              Not sure where to start?
+            </h2>
+            <p style={{ fontSize:'1rem', color:'rgba(255,255,255,0.85)', fontWeight:700, lineHeight:1.65 }}>
+              Take a 30-second quiz and get a personalised track recommendation for your child. Free, no account needed.
+            </p>
+          </div>
+          <div style={{ background:'rgba(255,255,255,0.15)', borderRadius:28, padding:28, backdropFilter:'blur(10px)', border:'3px solid rgba(255,255,255,0.3)' }}>
+            <Quiz />
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section style={{ maxWidth:1200, margin:'0 auto', padding:'80px 24px' }}>
+        <div style={{ textAlign:'center', marginBottom:48 }}>
+          <div style={{ fontSize:'2.5rem', marginBottom:12 }}>🚀</div>
+          <h2 className="section-title" style={{ marginBottom:12 }}>From zero to builder in 3 steps</h2>
+          <p className="section-sub">No setup. No downloads. Works right now on any device.</p>
+        </div>
+
+        <div className="steps-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:24 }}>
+          {[
+            { n:1, emoji:'🎯', title:'Find your track', desc:"60-second quiz → personalised curriculum matched to your child's age and interests.", time:'60 seconds', color:'#58CC02' },
+            { n:2, emoji:'🤖', title:'Meet your AI coach', desc:"Personal AI tutor says hello in English or Arabic and kicks off lesson 1. Adapts to your level.", time:'Day 1', color:'#1CB0F6' },
+            { n:3, emoji:'🏆', title:'Build something real', desc:"Week 2: first real project. Month 3: a full portfolio of apps, AI tools and pitches.", time:'Week 2', color:'#FF9600' },
+          ].map((s, i) => (
+            <div key={i} className="card" style={{ textAlign:'center', position:'relative' }}>
+              <div style={{ width:40, height:40, borderRadius:'50%', background:s.color, display:'flex', alignItems:'center', justifyContent:'center',
+                fontFamily:'var(--font)', fontWeight:900, color:'#fff', fontSize:'1.1rem', margin:'0 auto 16px' }}>{s.n}</div>
+              <div style={{ fontSize:'2.5rem', marginBottom:12 }}>{s.emoji}</div>
+              <h3 style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1.05rem', marginBottom:8 }}>{s.title}</h3>
+              <p style={{ fontSize:'0.88rem', color:'#555', fontWeight:700, lineHeight:1.65, marginBottom:16 }}>{s.desc}</p>
+              <span style={{ background:s.color+'22', border:`2px solid ${s.color}44`, borderRadius:999, padding:'4px 14px', fontSize:'0.75rem', fontWeight:900, color:s.color }}>
+                {s.time}
+              </span>
+              {i < 2 && <div style={{ position:'absolute', top:'40%', right:-18, fontSize:'1.5rem', color:'#E5E5E5', fontWeight:900, zIndex:1 }} className="hide-mobile">→</div>}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ textAlign:'center', marginTop:40 }}>
+          <Link href="/auth/signup" className="btn-green">Start step 1 — free! 🎉</Link>
+        </div>
+      </section>
+
+      {/* ── WHAT KIDS BUILD ── */}
+      <section id="projects" style={{ background:'#F7F7F7', padding:'80px 24px' }}>
+        <div style={{ maxWidth:1200, margin:'0 auto' }}>
+          <div style={{ textAlign:'center', marginBottom:48 }}>
+            <div style={{ fontSize:'2.5rem', marginBottom:12 }}>🏗️</div>
+            <h2 className="section-title" style={{ marginBottom:12 }}>What kids build on Plulai</h2>
+            <p className="section-sub">Not exercises. Not theory. Things that actually exist in the world.</p>
+          </div>
+
+          <div className="projects-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }}>
+            {PROJECTS.map((p, i) => (
+              <div key={i} className="card">
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                  <span style={{ background:p.color+'22', border:`2px solid ${p.color}44`, borderRadius:999, padding:'3px 12px', fontSize:'0.72rem', fontWeight:900, color:p.color }}>
+                    {p.track}
+                  </span>
+                  <span style={{ fontSize:'0.75rem', color:'#777', fontWeight:800 }}>Week {p.weeks}</span>
+                </div>
+                <p style={{ fontFamily:'var(--font)', fontWeight:800, fontSize:'0.95rem', color:'#1f1f1f', marginBottom:12, lineHeight:1.4 }}>
+                  &ldquo;{p.project}&rdquo;
+                </p>
+                <div style={{ display:'flex', gap:6, fontSize:'0.78rem', color:'#777', fontWeight:800 }}>
+                  <span>{p.country}</span><span>·</span><span>Age {p.age}</span>
+                </div>
               </div>
+            ))}
+          </div>
+
+          <div style={{ textAlign:'center', marginTop:40 }}>
+            <Link href="/auth/signup" className="btn-green">Start building — free 🏗️</Link>
+            <p style={{ fontSize:'0.8rem', color:'#777', fontWeight:700, marginTop:12 }}>Your child&apos;s first project: ready by end of week 2.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ── */}
+      <section id="stories" style={{ maxWidth:1200, margin:'0 auto', padding:'80px 24px' }}>
+        <div style={{ textAlign:'center', marginBottom:48 }}>
+          <div style={{ fontSize:'2.5rem', marginBottom:12 }}>💛</div>
+          <h2 className="section-title" style={{ marginBottom:12 }}>Real kids. Real results.</h2>
+          <p className="section-sub">Every kid has a story like these. This is the norm.</p>
+        </div>
+
+        <div className="testi-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:20 }}>
+          {TESTIMONIALS.map((t, i) => (
+            <div key={i} className="card" style={{ position:'relative' }}>
+              <div style={{ display:'flex', gap:'0.5rem', color:'#FF9600', fontSize:'1rem', marginBottom:12 }}>{'⭐'.repeat(5)}</div>
+              <StreakBadge n={t.streak} />
+              <p style={{ fontFamily:'var(--font)', fontWeight:700, fontSize:'0.92rem', color:'#1f1f1f', lineHeight:1.65, margin:'16px 0', fontStyle:'italic' }}>
+                &ldquo;{t.text}&rdquo;
+              </p>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <div style={{ width:44, height:44, borderRadius:14, background:'#F0FDE4', border:'3px solid #58CC02', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem' }}>
+                  {t.avatar}
+                </div>
+                <div>
+                  <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'0.88rem' }}>{t.name}, age {t.age}</div>
+                  <div style={{ fontSize:'0.78rem', color:'#777', fontWeight:800 }}>{t.flag}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── GCC ── */}
+      <section style={{ background:'#1f1f1f', padding:'80px 24px' }}>
+        <div style={{ maxWidth:1200, margin:'0 auto' }}>
+          <div style={{ textAlign:'center', marginBottom:48 }}>
+            <div style={{ fontSize:'2.5rem', marginBottom:12 }} className="emoji-float">🌍</div>
+            <h2 style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'clamp(1.8rem,4vw,2.6rem)', color:'#fff', marginBottom:12 }}>
+              The GCC&apos;s #1 kids&apos; edtech platform
+            </h2>
+            <p style={{ fontSize:'1rem', color:'rgba(255,255,255,0.6)', fontWeight:700 }}>
+              Built for the region first — real Arabic, real culture, real relevance.
+            </p>
+          </div>
+
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:12, marginBottom:40 }}>
+            {[
+              { flag:'🇦🇪', name:'UAE',     city:'Dubai & Abu Dhabi' },
+              { flag:'🇸🇦', name:'Saudi',   city:'Riyadh & Jeddah'  },
+              { flag:'🇶🇦', name:'Qatar',   city:'Doha'              },
+              { flag:'🇰🇼', name:'Kuwait',  city:'Kuwait City'       },
+              { flag:'🇧🇭', name:'Bahrain', city:'Manama'            },
+              { flag:'🇴🇲', name:'Oman',    city:'Muscat'            },
+            ].map(c => (
+              <div key={c.name} style={{ background:'rgba(255,255,255,0.06)', border:'2px solid rgba(255,255,255,0.1)', borderRadius:20, padding:'20px 12px', textAlign:'center', transition:'background 0.2s' }}
+                onMouseEnter={e => (e.currentTarget.style.background='rgba(88,204,2,0.1)')}
+                onMouseLeave={e => (e.currentTarget.style.background='rgba(255,255,255,0.06)')}>
+                <div style={{ fontSize:'2.2rem', marginBottom:8 }}>{c.flag}</div>
+                <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'0.8rem', color:'#fff', marginBottom:4 }}>{c.name}</div>
+                <div style={{ fontSize:'0.68rem', color:'rgba(255,255,255,0.4)', fontWeight:700 }}>{c.city}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }} className="pricing-grid">
+            <div style={{ background:'rgba(88,204,2,0.1)', border:'3px solid rgba(88,204,2,0.3)', borderRadius:24, padding:28 }}>
+              <div style={{ fontSize:'2rem', marginBottom:12 }}>🌐</div>
+              <h3 style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1.1rem', color:'#fff', marginBottom:8 }}>Real Arabic, not translated</h3>
+              <p style={{ fontSize:'0.88rem', color:'rgba(255,255,255,0.6)', fontWeight:700, lineHeight:1.65 }}>
+                Full RTL interface. AI coach that teaches natively in Arabic. The only platform built for Arabic-speaking kids first.
+              </p>
+            </div>
+            <div style={{ background:'rgba(28,176,246,0.1)', border:'3px solid rgba(28,176,246,0.3)', borderRadius:24, padding:28 }}>
+              <div style={{ fontSize:'2rem', marginBottom:12 }}>🎓</div>
+              <h3 style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1.1rem', color:'#fff', marginBottom:8 }}>Aligned with UAE Vision 2031</h3>
+              <p style={{ fontSize:'0.88rem', color:'rgba(255,255,255,0.6)', fontWeight:700, lineHeight:1.65 }}>
+                AI, coding, and entrepreneurship are the three pillars the GCC economy demands from the next generation.
+              </p>
             </div>
           </div>
-          <span className="shrink-0 px-5 py-2.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-accent2 to-accent1 group-hover:-translate-y-0.5 transition-all">
-            Apply Now →
-          </span>
-        </Link>
-      </section> */}
-
-      {/* ── Quiz Funnel ── */}
-      <section id="quiz" className="py-16 md:py-24 px-4 md:px-6 max-w-2xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Personalised for your child</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          Build Your Child&apos;s Learning Plan 🎯
-        </h2>
-        <p className="text-center text-muted font-semibold mb-8 text-sm md:text-base">
-          3 questions · 60 seconds · Get a personalised curriculum recommendation
-        </p>
-        <div className="bg-card border border-white/10 rounded-3xl p-6 md:p-8">
-          <TrackQuiz />
         </div>
       </section>
 
-      {/* ── What Kids Build (contrast principle) ── */}
-      <section id="projects" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Not theory. Real output.</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          What Kids Build on Plulai 🏗️
-        </h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-14 text-sm md:text-base max-w-2xl mx-auto">
-          Every child on Plulai builds a real portfolio. Not exercises. Not theory. Things that exist in the world.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-          {PROJECTS.map((p, i) => (
-            <div key={i} className="bg-card border border-white/5 rounded-3xl p-5 md:p-6 hover:-translate-y-1 transition-all">
-              <div className="flex items-center justify-between mb-4">
-                <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${
-                  p.track === 'Coding' ? 'bg-accent4/15 text-accent4' :
-                  p.track === 'AI'     ? 'bg-accent5/15 text-accent5' :
-                                         'bg-accent3/15 text-accent3'
-                }`}>{p.track} Track</span>
-                <span className="text-muted text-xs font-bold">Week {p.weeks}</span>
+      {/* ── PRICING ── */}
+      <section style={{ maxWidth:900, margin:'0 auto', padding:'80px 24px' }}>
+        <div style={{ textAlign:'center', marginBottom:48 }}>
+          <div style={{ fontSize:'2.5rem', marginBottom:12 }}>💰</div>
+          <h2 className="section-title" style={{ marginBottom:12 }}>Start free. Upgrade when ready.</h2>
+          <p className="section-sub">No pressure. The free plan is genuinely useful.</p>
+        </div>
+
+        <div className="pricing-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+          {/* Free */}
+          <div style={{ border:'3px solid #58CC02', borderRadius:24, padding:36, position:'relative', boxShadow:'0 8px 0 #46A30233' }}>
+            <div style={{ position:'absolute', top:-16, left:'50%', transform:'translateX(-50%)', background:'#58CC02', color:'#fff', borderRadius:999, padding:'4px 20px', fontFamily:'var(--font)', fontWeight:900, fontSize:'0.78rem', whiteSpace:'nowrap' }}>
+              Most parents start here ⭐
+            </div>
+            <div style={{ fontSize:'2rem', marginBottom:12 }}>🎁</div>
+            <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1.4rem', marginBottom:4 }}>Free</div>
+            <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'3rem', color:'#58CC02', lineHeight:1, marginBottom:4 }}>$0</div>
+            <div style={{ fontSize:'0.8rem', color:'#777', fontWeight:700, marginBottom:28 }}>forever · no card needed</div>
+            {['First module of each track','Personal AI coach','XP & streak system','Parent dashboard','Arabic & English','Any device'].map(f => (
+              <div key={f} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                <span style={{ color:'#58CC02', fontWeight:900 }}>✓</span>
+                <span style={{ fontSize:'0.88rem', fontWeight:700 }}>{f}</span>
               </div>
-              <p className="font-extrabold text-white text-sm md:text-base mb-3 leading-snug">&ldquo;{p.project}&rdquo;</p>
-              <div className="flex items-center gap-2 text-xs text-muted font-bold">
-                <span>{p.country}</span>
-                <span>·</span>
-                <span>Age {p.age}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="text-center mt-10">
-          <Link href="/auth/signup" className="inline-block px-8 md:px-10 py-4 rounded-2xl font-extrabold text-base md:text-lg text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_30px_rgba(107,203,119,0.2)] hover:-translate-y-1 transition-all">
-            🎯 Start Building for Free
-          </Link>
-          <p className="text-muted text-xs font-bold mt-3">Your child&apos;s first project is ready by the end of week 2.</p>
-        </div>
-      </section>
-
-      {/* ── Tracks ── */}
-      <section id="tracks" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">3 tracks · 60+ lessons each</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          Which Future Will They Build? 🏆
-        </h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-sm md:text-base max-w-2xl mx-auto">
-          Every path leads to skills the GCC economy will pay a premium for in 2030. Most kids do all three.
-        </p>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6">
-          {TRACKS.map(t => (
-            <div key={t.id} className={`bg-gradient-to-br ${t.color} border ${t.border} rounded-3xl p-6 md:p-8 flex flex-col hover:-translate-y-1 transition-all`}>
-              <div className="text-4xl md:text-5xl mb-3">{t.emoji}</div>
-              <h3 className="font-fredoka text-xl md:text-2xl mb-1">{t.title}</h3>
-              <p className="text-muted text-xs font-bold uppercase tracking-widest mb-2">{t.subtitle}</p>
-              <div className="bg-accent3/10 border border-accent3/20 rounded-xl px-3 py-2 text-accent3 text-xs font-extrabold mb-4">✓ {t.outcome}</div>
-              <p className="text-muted text-sm font-semibold leading-relaxed mb-5">{t.desc}</p>
-              <ul className="space-y-2 mt-auto">
-                {t.skills.map(s => (
-                  <li key={s} className="flex items-center gap-2 text-sm font-bold">
-                    <span className="text-accent3">✓</span><span>{s}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── How It Works (progress principle) ── */}
-      <section className="py-16 md:py-24 px-4 md:px-6 max-w-4xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Simple to start</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          From Zero to Builder in 3 Steps 🚀
-        </h2>
-        <p className="text-center text-muted font-semibold mb-12 text-sm md:text-base">No setup. No downloads. Works on any device right now.</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-          {[
-            { step:'1', emoji:'🎯', title:'Find your track',    desc:"Take the 60-second quiz. Get a curriculum matched to your child's age and interests.", time:'60 seconds' },
-            { step:'2', emoji:'🤖', title:'Meet the AI coach',  desc:'Your child\'s personal AI tutor introduces itself in English or Arabic and starts lesson 1.', time:'Day 1'      },
-            { step:'3', emoji:'🏆', title:'Build something real', desc:'By week 2, your child completes their first real project. By month 3, a full portfolio.', time:'Week 2'     },
-          ].map((s, i) => (
-            <div key={i} className="relative bg-card border border-white/5 rounded-3xl p-6 md:p-8 text-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-accent3 to-accent4 flex items-center justify-center font-fredoka text-xl text-white mx-auto mb-4">{s.step}</div>
-              <div className="text-3xl mb-3">{s.emoji}</div>
-              <h3 className="font-fredoka text-lg mb-2">{s.title}</h3>
-              <p className="text-muted text-sm font-semibold leading-relaxed mb-3">{s.desc}</p>
-              <span className="inline-block bg-accent3/10 border border-accent3/20 rounded-full px-3 py-1 text-accent3 text-xs font-extrabold">{s.time}</span>
-              {i < 2 && <div className="hidden md:block absolute top-1/2 -right-3 text-accent3 font-extrabold text-xl z-10">→</div>}
-            </div>
-          ))}
-        </div>
-        <div className="text-center mt-10">
-          <Link href="/auth/signup" className="inline-block px-10 py-4 rounded-2xl font-extrabold text-lg text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_30px_rgba(107,203,119,0.25)] hover:-translate-y-1 transition-all">
-            🎉 Start Step 1 — Free
-          </Link>
-        </div>
-      </section>
-
-      {/* ── Features ── */}
-      <section id="features" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          Why Kids Love It &amp; Parents Trust It 🌟
-        </h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-sm md:text-base max-w-2xl mx-auto">
-          Built for the GCC — in their language, at their level, with their culture.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-          {FEATURES.map((f, i) => (
-            <div key={i} className={`bg-gradient-to-br ${f.color} border ${f.border} rounded-3xl p-6 md:p-7 hover:-translate-y-1 transition-all`}>
-              <div className="text-3xl md:text-4xl mb-3">{f.emoji}</div>
-              <h3 className="font-fredoka text-lg md:text-xl mb-2">{f.title}</h3>
-              <p className="text-muted text-sm font-semibold leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Reciprocity lead magnet ── */}
-      <section className="py-10 md:py-16 px-4 md:px-6 max-w-3xl mx-auto">
-        <div className="bg-gradient-to-r from-accent5/10 to-accent1/10 border border-accent5/20 rounded-3xl p-8 md:p-10 text-center">
-          <div className="text-4xl mb-4">📊</div>
-          <h2 className="font-fredoka text-2xl md:text-3xl mb-3">
-            Free: GCC Tech Skills Report 2025
-          </h2>
-          <p className="text-muted font-semibold text-sm md:text-base mb-6 max-w-md mx-auto">
-            Which skills will UAE employers pay a premium for by 2030? What salary gap exists between kids who code and those who don&apos;t? 12 pages of data — free, no spam.
-          </p>
-          <Link
-            href="/auth/signup?ref=report"
-            className="inline-block px-8 py-3.5 rounded-2xl font-extrabold text-sm md:text-base text-white bg-gradient-to-r from-accent5 to-accent1 hover:-translate-y-0.5 transition-all"
-          >
-            📥 Download Free Report
-          </Link>
-          <p className="text-muted text-xs font-bold mt-3">No spam. Unsubscribe any time. Sent to your email instantly.</p>
-        </div>
-      </section>
-
-      {/* ── Kid Testimonials ── */}
-      <section id="stories" className="py-16 md:py-24 px-4 md:px-6 max-w-5xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">1,000+ kids · 1 pattern</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
-          Real Results. Real Kids. 💛
-        </h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-sm md:text-base">
-          Every kid on our platform has a story like these. This is the norm, not the exception.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-          {KID_TESTIMONIALS.map((t, i) => (
-            <div key={i} className="bg-card border border-white/5 rounded-3xl p-5 md:p-7 flex flex-col">
-              <div className="inline-flex self-start items-center gap-1.5 bg-accent3/10 border border-accent3/20 rounded-full px-3 py-1 text-xs font-extrabold text-accent3 mb-3">
-                ✓ {t.result}
-              </div>
-              <div className="flex gap-0.5 text-accent2 text-sm mb-3">{'⭐'.repeat(5)}</div>
-              <p className="text-white font-semibold leading-relaxed mb-4 italic text-sm flex-1">&ldquo;{t.text}&rdquo;</p>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-card2 flex items-center justify-center text-lg">{t.avatar}</div>
-                <div>
-                  <div className="font-extrabold text-sm">{t.name}, age {t.age}</div>
-                  <div className="text-muted text-xs font-bold">{t.country}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Parent Testimonials ── */}
-      <section className="py-10 md:py-16 px-4 md:px-6 max-w-4xl mx-auto">
-        <h3 className="font-fredoka text-2xl md:text-3xl text-center mb-8">What Parents Say 👨‍👩‍👧</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {PARENT_TESTIMONIALS.map((t, i) => (
-            <div key={i} className="bg-gradient-to-br from-accent1/5 to-accent2/5 border border-accent1/15 rounded-2xl p-5">
-              <div className="flex gap-0.5 text-accent2 text-xs mb-3">{'⭐'.repeat(5)}</div>
-              <p className="text-white font-semibold leading-relaxed mb-4 italic text-sm">&ldquo;{t.text}&rdquo;</p>
-              <div className="font-extrabold text-xs text-white">{t.name}</div>
-              <div className="text-muted text-xs font-bold">{t.role}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Pricing anchor (decoy effect) ── */}
-      <section className="py-10 md:py-16 px-4 md:px-6 max-w-3xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Simple pricing</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl text-center mb-10">Start Free. Upgrade When Ready.</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="bg-card border-2 border-accent3 rounded-3xl p-6 md:p-8 relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent3 text-black text-xs font-extrabold px-4 py-1 rounded-full whitespace-nowrap">Most parents start here</div>
-            <div className="text-3xl mb-3">🎁</div>
-            <h3 className="font-fredoka text-2xl mb-1">Free</h3>
-            <p className="font-fredoka text-4xl text-white mb-1">AED 0 <span className="text-muted text-base font-bold">/ month</span></p>
-            <p className="text-muted text-xs font-bold mb-5">Forever free. No card needed.</p>
-            <ul className="space-y-2 mb-6 text-sm font-semibold">
-              {['First module of each track', 'Personal AI coach', 'XP & streak system', 'Parent dashboard', 'Arabic & English', 'Any device'].map(f => (
-                <li key={f} className="flex items-center gap-2"><span className="text-accent3">✓</span>{f}</li>
-              ))}
-            </ul>
-            <Link href="/auth/signup" className="block w-full py-3.5 rounded-2xl font-extrabold text-base text-white bg-gradient-to-r from-accent3 to-accent4 text-center hover:-translate-y-0.5 transition-all">
-              🚀 Start Free Now
+            ))}
+            <Link href="/auth/signup" className="btn-green" style={{ display:'block', textAlign:'center', marginTop:24, padding:'14px' }}>
+              🚀 Start free now
             </Link>
           </div>
-          <div className="bg-card border border-white/10 rounded-3xl p-6 md:p-8 opacity-80">
-            <div className="text-3xl mb-3">⚡</div>
-            <h3 className="font-fredoka text-2xl mb-1">Pro</h3>
-            <p className="font-fredoka text-4xl text-white mb-1">AED 79 <span className="text-muted text-base font-bold">/ month</span></p>
-            <p className="text-muted text-xs font-bold mb-5">Everything in Free, plus:</p>
-            <ul className="space-y-2 mb-6 text-sm font-semibold text-muted">
-              {['All 200+ lessons unlocked', 'Advanced AI coaching', 'Full portfolio system', 'Live project feedback', 'Certificate of completion', 'Priority support'].map(f => (
-                <li key={f} className="flex items-center gap-2"><span className="text-accent4">✓</span>{f}</li>
-              ))}
-            </ul>
-            <Link href="/auth/signup?plan=pro" className="block w-full py-3.5 rounded-2xl font-extrabold text-base text-muted bg-card2 border border-white/10 text-center hover:text-white transition-all">
+
+          {/* Pro */}
+          <div style={{ border:'3px solid #E5E5E5', borderRadius:24, padding:36, boxShadow:'0 6px 0 #E5E5E5' }}>
+            <div style={{ fontSize:'2rem', marginBottom:12 }}>⚡</div>
+            <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1.4rem', marginBottom:4 }}>Pro</div>
+            <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'3rem', color:'#1f1f1f', lineHeight:1, marginBottom:4 }}>$79</div>
+            <div style={{ fontSize:'0.8rem', color:'#777', fontWeight:700, marginBottom:28 }}>per month · cancel anytime</div>
+            {['All 200+ lessons unlocked','Advanced AI coaching','Full portfolio system','Live project feedback','Certificate of completion','Priority support'].map(f => (
+              <div key={f} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                <span style={{ color:'#1CB0F6', fontWeight:900 }}>✓</span>
+                <span style={{ fontSize:'0.88rem', fontWeight:700, color:'#555' }}>{f}</span>
+              </div>
+            ))}
+            <Link href="/auth/signup?plan=pro" className="btn-outline" style={{ display:'block', textAlign:'center', marginTop:24, padding:'14px' }}>
               Start with Pro →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── Partners ── */}
-      {/* <section id="partners" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Trusted &amp; recognised by</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl text-center mb-3">Our Partners &amp; Supporters 🤝</h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-14 text-sm md:text-base max-w-xl mx-auto">
-          From government bodies to global tech giants — the institutions shaping the GCC&apos;s future stand behind Plulai.
-        </p>
-        {(['Government', 'Schools', 'Technology', 'Accelerator'] as const).map(cat => {
-          const catP = PARTNERS.filter(p => p.category === cat)
-          if (!catP.length) return null
-          return (
-            <div key={cat} className="mb-8">
-              <p className="text-muted text-xs font-extrabold uppercase tracking-widest mb-4 text-center">{cat}</p>
-              <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-                {catP.map(p => (
-                  <div key={p.abbr} className="group flex items-center gap-2.5 bg-card border border-white/5 hover:border-white/15 rounded-2xl px-4 py-3 md:px-5 md:py-4 transition-all hover:-translate-y-0.5 cursor-default">
-                    <span className="text-xl md:text-2xl">{p.logo}</span>
-                    <span className="font-extrabold text-xs md:text-sm text-muted group-hover:text-white transition-colors whitespace-nowrap">{p.abbr}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )
-        })}
-        <div className="mt-10 text-center">
-          <p className="text-muted text-sm font-semibold mb-3">Are you a school or organisation in the GCC?</p>
-          <a href="mailto:partners@plulai.com" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm text-white bg-card border border-white/10 hover:border-white/20 hover:-translate-y-0.5 transition-all">
-            🤝 Become a Partner
-          </a>
-        </div>
-      </section> */}
-
-      {/* ── GCC ── */}
-      <section id="gcc" className="py-16 md:py-24 px-4 md:px-6 max-w-5xl mx-auto">
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">The GCC&apos;s #1 Edtech Platform 🌍</h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-sm md:text-base max-w-2xl mx-auto">
-          The only kids&apos; platform built region-first — culturally relevant, fully bilingual, designed for the GCC&apos;s next generation.
-        </p>
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-4 mb-8 md:mb-12">
-          {GCC.map(c => (
-            <div key={c.name} className="bg-card border border-white/5 rounded-2xl p-3 md:p-4 text-center hover:border-white/15 transition-all">
-              <div className="text-3xl md:text-4xl mb-1 md:mb-2">{c.flag}</div>
-              <div className="font-extrabold text-xs mb-0.5">{c.name}</div>
-              <div className="text-muted text-xs font-bold hidden sm:block">{c.city}</div>
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-          <div className="bg-gradient-to-r from-accent4/10 to-accent5/10 border border-accent4/20 rounded-3xl p-6 md:p-8">
-            <div className="text-3xl md:text-4xl mb-3">🌐</div>
-            <h3 className="font-fredoka text-xl md:text-2xl mb-2">Real Arabic, Not Translated</h3>
-            <p className="text-muted font-semibold leading-relaxed text-sm md:text-base">Complete RTL interface. AI coach that teaches natively in Arabic. The only platform built for Arabic-speaking kids first.</p>
-          </div>
-          <div className="bg-gradient-to-r from-accent3/10 to-accent4/10 border border-accent3/20 rounded-3xl p-6 md:p-8">
-            <div className="text-3xl md:text-4xl mb-3">🎓</div>
-            <h3 className="font-fredoka text-xl md:text-2xl mb-2">Aligned with UAE Vision 2031</h3>
-            <p className="text-muted font-semibold leading-relaxed text-sm md:text-base">Curriculum designed to prepare kids for the UAE Vision 2031 skills economy — AI, coding and entrepreneurship are the three pillars demanded of the next generation.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Mid-page urgency block ── */}
-      <section className="py-12 md:py-16 px-4 md:px-6 max-w-3xl mx-auto">
-        <div className="bg-gradient-to-r from-accent3/10 to-accent4/10 border border-accent3/20 rounded-3xl p-8 md:p-12 text-center">
-          <div className="text-4xl mb-4">⏱️</div>
-          <h2 className="font-fredoka text-2xl md:text-3xl mb-3">Every Week Without Plulai Is a Week Behind</h2>
-          <p className="text-muted font-semibold text-sm md:text-base mb-6 max-w-lg mx-auto">
-            Kids who start today will have 52 extra learning-weeks by this time next year. The skill gap compounds every week.
-          </p>
-          <Link href="/auth/signup" className="inline-block px-8 md:px-10 py-4 md:py-5 rounded-2xl font-extrabold text-base md:text-lg text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_30px_rgba(107,203,119,0.3)] hover:-translate-y-1 transition-all">
-            🎯 Start Free — Takes 60 Seconds
-          </Link>
-          <p className="text-muted text-xs font-bold mt-3">No credit card. Cancel anytime. Works on any device.</p>
-        </div>
-      </section>
-
       {/* ── FAQ ── */}
-      <section id="faq" className="py-16 md:py-24 px-4 md:px-6 max-w-3xl mx-auto">
-        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">Your Questions, Answered</h2>
-        <p className="text-center text-muted font-semibold mb-10 md:mb-16 text-sm md:text-base">Everything parents ask us before signing up.</p>
-        <div className="space-y-3 md:space-y-4">
-          {FAQ.map((item, i) => (
-            <details key={i} className="bg-card border border-white/5 rounded-2xl group">
-              <summary className="flex items-center justify-between px-5 py-4 md:px-6 md:py-5 cursor-pointer font-bold text-white list-none text-sm md:text-base">
-                <span>{item.q}</span>
-                <span className="text-muted group-open:rotate-180 transition-transform text-lg ml-3 shrink-0">▾</span>
-              </summary>
-              <p className="px-5 pb-4 md:px-6 md:pb-5 text-muted font-semibold text-sm leading-relaxed">{item.a}</p>
-            </details>
-          ))}
+      <section id="faq" style={{ maxWidth:760, margin:'0 auto', padding:'40px 24px 80px' }}>
+        <div style={{ textAlign:'center', marginBottom:40 }}>
+          <div style={{ fontSize:'2.5rem', marginBottom:12 }}>🤔</div>
+          <h2 className="section-title" style={{ marginBottom:12 }}>Questions? We got answers.</h2>
         </div>
+        {FAQ.map((item, i) => (
+          <div key={i} className="faq-item">
+            <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+              <span>{item.q}</span>
+              <span style={{ fontSize:'1.4rem', color:'#58CC02', transition:'transform 0.2s', transform: openFaq === i ? 'rotate(45deg)' : 'none', display:'inline-block', marginLeft:16, flexShrink:0 }}>+</span>
+            </button>
+            {openFaq === i && <div className="faq-a">{item.a}</div>}
+          </div>
+        ))}
       </section>
 
-      {/* ── Final CTA ── */}
-      <section className="py-16 md:py-24 px-4 md:px-6 text-center">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-5xl md:text-6xl mb-5 animate-bounce-slow">🚀</div>
-          <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl mb-4">
-            The Best Time to Start Was Yesterday.
-            <br />
-            <span className="bg-gradient-to-r from-accent3 to-accent4 bg-clip-text text-transparent">
-              The Second Best Is Right Now.
-            </span>
+      {/* ── FINAL CTA ── */}
+      <section style={{ background:'linear-gradient(135deg,#58CC02 0%,#46A302 100%)', padding:'80px 24px', textAlign:'center' }}>
+        <div style={{ maxWidth:680, margin:'0 auto' }}>
+          <div style={{ fontSize:'4rem', marginBottom:20 }} className="emoji-float">🚀</div>
+          <h2 style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'clamp(2rem,5vw,3rem)', color:'#fff', marginBottom:16, letterSpacing:'-0.02em', lineHeight:1.15 }}>
+            The best time to start<br />was yesterday.
           </h2>
-          <p className="text-muted font-semibold text-base md:text-lg mb-3">
+          <p style={{ fontSize:'1rem', color:'rgba(255,255,255,0.85)', fontWeight:700, marginBottom:36, lineHeight:1.65 }}>
             Join 1,247 kids across UAE, Saudi Arabia, Qatar, Kuwait, Bahrain and Oman who are already building the skills that matter.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-bold text-muted mb-8 md:mb-10">
-            {['✅ Free forever plan','✅ No credit card','✅ Arabic & English','✅ Ages 6–18','✅ No ads ever','✅ Cancel anytime','✅ Any device'].map(t => (
-              <span key={t} className="bg-card border border-white/5 rounded-full px-3 py-1">{t}</span>
+          <Link href="/auth/signup" style={{
+            display:'inline-block', background:'#fff', color:'#58CC02',
+            border:'none', borderRadius:16, padding:'18px 52px',
+            fontFamily:'var(--font)', fontWeight:900, fontSize:'1.15rem',
+            cursor:'pointer', textDecoration:'none',
+            boxShadow:'0 6px 0 rgba(0,0,0,0.15)',
+            transition:'transform 0.1s, box-shadow 0.1s',
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform='translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow='0 8px 0 rgba(0,0,0,0.15)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform='translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow='0 6px 0 rgba(0,0,0,0.15)'; }}
+          >
+            🎉 Claim your free spot now
+          </Link>
+          <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:12, marginTop:24 }}>
+            {['✅ Free forever','✅ No credit card','✅ Arabic & English','✅ Ages 6–18','✅ No ads ever'].map(t => (
+              <span key={t} style={{ background:'rgba(255,255,255,0.2)', borderRadius:999, padding:'5px 14px', fontSize:'0.78rem', fontWeight:800, color:'#fff' }}>{t}</span>
             ))}
           </div>
-          <Link
-            href="/auth/signup"
-            className="inline-block w-full sm:w-auto px-8 md:px-12 py-4 md:py-5 rounded-2xl font-extrabold text-lg md:text-xl text-white bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_40px_rgba(107,203,119,0.3)] hover:-translate-y-1 transition-all"
-          >
-            🎉 Claim Your Free Account — Start in 60 Seconds
-          </Link>
-          <p className="text-muted text-xs font-bold mt-5 opacity-70">
-            Trusted by parents &amp; teachers across the GCC ·  {/*COPPA compliant ·*/} Safe for kids · No ads 
-          </p>
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-white/5 py-10 md:py-12 px-4 md:px-6 lg:px-12">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8">
+      {/* ── FOOTER ── */}
+      <footer style={{ borderTop:'3px solid #E5E5E5', padding:'48px 24px', background:'#fff' }}>
+        <div style={{ maxWidth:1200, margin:'0 auto' }}>
+          <div className="footer-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:40, marginBottom:40 }}>
             <div>
-              <div className="font-fredoka text-2xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent mb-2">Plulai</div>
-              {/* <p className="text-muted text-xs font-bold max-w-xs leading-relaxed">The #1 edtech platform for kids in the UAE &amp; GCC. Coding, AI &amp; Entrepreneurship for ages 6–18.</p> */}
+              <div style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'1.4rem', color:'#58CC02', marginBottom:12 }}>🚀 Plulai</div>
+              <p style={{ fontSize:'0.82rem', color:'#777', fontWeight:700, lineHeight:1.65 }}>
+                The #1 edtech platform for kids in the GCC. Coding, AI & Startup skills for ages 6–18.
+              </p>
             </div>
-            <div className="grid grid-cols-3 gap-8 text-xs font-bold text-muted w-full md:w-auto">
-              <div>
-                <p className="text-white mb-3 font-extrabold">Platform</p>
-                <div className="space-y-2">
-                  <a href="#quiz"     className="block hover:text-white transition-colors">Find a Track</a>
-                  <a href="#projects" className="block hover:text-white transition-colors">Projects</a>
-                  <a href="#partners" className="block hover:text-white transition-colors">Partners</a>
-                  <Link href="/pricing"       className="block hover:text-white transition-colors">Pricing</Link>
-                  <Link href="/auth/signup"   className="block hover:text-white transition-colors">Sign Up Free</Link>
-                  <Link href="/sharkkid"      className="block hover:text-white transition-colors">🦈 Sharkkid</Link>
-                </div>
+            {[
+              { title:'Platform', links:[['Find a Track','#quiz'],['Projects','#projects'],['Pricing','/pricing'],['Sign Up Free','/auth/signup']] },
+              { title:'Countries', links:[['🇦🇪 UAE','#'],['🇸🇦 Saudi Arabia','#'],['🇶🇦 Qatar','#'],['🇰🇼 Kuwait','#']] },
+              { title:'Company', links:[['Contact','mailto:hello@plulai.com'],['Partners','mailto:partners@plulai.com'],['Schools','mailto:schools@plulai.com']] },
+            ].map(col => (
+              <div key={col.title}>
+                <p style={{ fontFamily:'var(--font)', fontWeight:900, fontSize:'0.85rem', marginBottom:14 }}>{col.title}</p>
+                {col.links.map(([label, href]) => (
+                  <a key={label} href={href} style={{ display:'block', fontSize:'0.82rem', color:'#777', fontWeight:700, textDecoration:'none', marginBottom:8, transition:'color 0.15s' }}
+                    onMouseEnter={e => (e.currentTarget.style.color='#1f1f1f')}
+                    onMouseLeave={e => (e.currentTarget.style.color='#777')}>{label}</a>
+                ))}
               </div>
-              <div>
-                <p className="text-white mb-3 font-extrabold">Countries</p>
-                <div className="space-y-2">
-                  {['🇦🇪 UAE','🇸🇦 Saudi Arabia','🇶🇦 Qatar','🇰🇼 Kuwait','🇧🇭 Bahrain','🇴🇲 Oman'].map(c => <p key={c}>{c}</p>)}
-                </div>
-              </div>
-              <div>
-                <p className="text-white mb-3 font-extrabold">Company</p>
-                <div className="space-y-2">
-                  <a href="mailto:hello@plulai.com"    className="block hover:text-white transition-colors">Contact</a>
-                  <a href="mailto:partners@plulai.com" className="block hover:text-white transition-colors">Partners</a>
-                  <a href="mailto:schools@plulai.com"  className="block hover:text-white transition-colors">Schools</a>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
-          <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-muted text-xs font-bold text-center md:text-left">
-              © {new Date().getFullYear()} Plulai. Built with ❤️. The #1 edtech platform for kids in the GCC.
-            </p>
-            <a href="mailto:hello@plulai.com" className="text-muted text-xs font-bold hover:text-white transition-colors">hello@plulai.com</a>
+          <div style={{ borderTop:'2px solid #E5E5E5', paddingTop:20, display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+            <p style={{ fontSize:'0.8rem', color:'#aaa', fontWeight:700 }}>© {new Date().getFullYear()} Plulai · Built with ❤️ for the GCC</p>
+            <a href="mailto:hello@plulai.com" style={{ fontSize:'0.8rem', color:'#aaa', fontWeight:700, textDecoration:'none' }}>hello@plulai.com</a>
           </div>
         </div>
       </footer>
-    </div>
+    </>
   )
 }
