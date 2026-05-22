@@ -135,7 +135,7 @@ const PARTNERS = [
   // { abbr: 'DTEC',        name: 'Dubai tech entrepreneur campus',           logo: '/partners/gems.png',    category: 'Schools' },
   // { abbr: 'Microsoft Edu',         name: 'Microsoft Education',      logo: '/partners/microsoft.png', category: 'Technology' },
   // { abbr: 'Hub71 Abu Dhabi',       name: 'Hub71',                    logo: '/partners/hub71.png',   category: 'Accelerator' },
-{ abbr: 'Business Success',        name: 'Business Success',           logo: '/partners/gems.png',    category: 'Schools' },
+{ abbr: 'Business Success',        name: 'Business Success',           logo: '/partners/bs.png',    category: 'Schools' },
 { abbr: 'LingoVille',        name: 'LingoVille',           logo: '/partners/gems.png',    category: 'Schools' },
 { abbr: 'The intelligent inventor',        name: 'The intelligent inventor',           logo: '/partners/gems.png',    category: 'Schools' },
 { abbr: 'Pinacle',        name: 'Pinacle',           logo: '/partners/gems.png',    category: 'Schools' },
