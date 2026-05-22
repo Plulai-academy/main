@@ -57,6 +57,7 @@ const PROJECTS = [
 const TRACKS = [
   {
     id: 'coding', num: '01',
+    label: 'Coding Track',
     title: 'Coding',
     sub: 'Apps & Games',
     outcome: 'Real web app + game portfolio in 3 months',
@@ -66,6 +67,7 @@ const TRACKS = [
   },
   {
     id: 'ai', num: '02',
+    label: 'AI Track',
     title: 'Artificial',
     sub: 'Intelligence',
     outcome: 'Working AI project built from scratch',
@@ -75,6 +77,7 @@ const TRACKS = [
   },
   {
     id: 'entrepreneurship', num: '03',
+    label: 'Entrepreneurship Track',
     title: 'Entrepreneur',
     sub: 'Ship',
     outcome: 'Full startup pitch + MVP in 3 months',
