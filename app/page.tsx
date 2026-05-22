@@ -134,9 +134,9 @@ function TrackQuiz() {
   if (step === 0) return (
     <div className="text-center py-4">
       <p className="quiz-eyebrow">60 seconds · 3 questions · personalised result</p>
-      <h3 className="quiz-title">Find Your Child's Perfect Track</h3>
-      <p className="quiz-sub">Tell us a little about your child — we'll match them to the right curriculum.</p>
-      <button onClick={() => setStep(1)} className="btn-primary-lg mt-6">Build My Child's Plan →</button>
+      <h3 className="quiz-title">Find Your Child&apos;s Perfect Track</h3>
+      <p className="quiz-sub">Tell us a little about your child — we&apos;ll match them to the right curriculum.</p>
+      <button onClick={() => setStep(1)} className="btn-primary-lg mt-6">Build My Child&apos;s Plan →</button>
     </div>
   )
 
@@ -152,7 +152,7 @@ function TrackQuiz() {
         75% complete — create your free account to unlock the full plan
       </p>
       <Link href="/auth/signup" className="btn-primary-lg block max-w-xs mx-auto mt-5">
-        Unlock My Child's Plan — Free →
+        Unlock My Child&apos;s Plan — Free →
       </Link>
       <p className="quiz-eyebrow mt-3">No credit card · Takes 60 seconds</p>
       <button onClick={() => { setStep(0); setAnswers({}); setSelected(null) }} className="mt-4 text-xs underline" style={{ color: '#6F6F6F' }}>
@@ -852,7 +852,7 @@ export default function LandingPage() {
           </div>
           <div className="hero-actions">
             <Link href="/auth/signup" className="btn-primary-lg">Claim Your Free Spot →</Link>
-            <a href="#quiz" className="btn-outline-lg">Find My Child's Track</a>
+            <a href="#quiz" className="btn-outline-lg">Find My Child&apos;s Track</a>
           </div>
 
           <div className="stats-row">
@@ -877,8 +877,8 @@ export default function LandingPage() {
             <div style={{ display: 'flex', gap: 48, alignItems: 'flex-start' }}>
               <div style={{ flex: '0 0 260px' }}>
                 <p className="eyebrow">Track Finder</p>
-                <h2 className="section-title" style={{ fontSize: 32 }}>Build Your Child's Learning Plan</h2>
-                <p className="section-sub" style={{ fontSize: 13 }}>3 questions · 60 seconds · Personalised curriculum recommendation matched to your child's age and goals.</p>
+                <h2 className="section-title" style={{ fontSize: 32 }}>Build Your Child&apos;s Learning Plan</h2>
+                <p className="section-sub" style={{ fontSize: 13 }}>3 questions · 60 seconds · Personalised curriculum recommendation matched to your child&apos;s age and goals.</p>
               </div>
               <div style={{ flex: 1 }}>
                 <div className="quiz-panel">
@@ -911,7 +911,7 @@ export default function LandingPage() {
                 return (
                   <div key={i} className="project-card">
                     <span className="project-track-badge" style={{ background: c.bg, color: c.text }}>{p.track}</span>
-                    <p className="project-quote">"{p.project}"</p>
+                    <p className="project-quote">&ldquo;{p.project}&rdquo;</p>
                     <p className="project-meta">{p.country} · Age {p.age} · Week {p.weeks}</p>
                   </div>
                 )
@@ -985,7 +985,7 @@ export default function LandingPage() {
             </div>
             <div className="steps-layout">
               {[
-                { step: 'Step 01', title: 'Find Your Track', desc: "Take the 60-second quiz. Get a curriculum matched to your child's age and interests.", time: '60 seconds' },
+                { step: 'Step 01', title: 'Find Your Track', desc: "Take the 60-second quiz. Get a curriculum matched to your child&apos;s age and interests.", time: '60 seconds' },
                 { step: 'Step 02', title: 'Meet the AI Coach', desc: "Your child's personal AI tutor introduces itself in English or Arabic and starts lesson 1.", time: 'Day 1' },
                 { step: 'Step 03', title: 'Build Something Real', desc: 'By week 2, your child completes their first real project. By month 3, a full portfolio.', time: 'Week 2' },
               ].map((s, i) => (
@@ -1016,7 +1016,7 @@ export default function LandingPage() {
               {KID_TESTIMONIALS.map((t, i) => (
                 <div key={i} className="testimonial-card">
                   <span className="testimonial-result">✓ {t.result}</span>
-                  <p className="testimonial-quote">"{t.quote}"</p>
+                  <p className="testimonial-quote">&ldquo;{t.quote}&rdquo;</p>
                   <div>
                     <div className="testimonial-name">{t.name}, age {t.age}</div>
                     <div className="testimonial-role">{t.location}</div>
@@ -1034,7 +1034,7 @@ export default function LandingPage() {
             <div className="parent-grid">
               {PARENT_TESTIMONIALS.map((t, i) => (
                 <div key={i} className="parent-card">
-                  <p className="parent-quote">"{t.quote}"</p>
+                  <p className="parent-quote">&ldquo;{t.quote}&rdquo;</p>
                   <div className="parent-name">{t.name}</div>
                   <div className="parent-role">{t.role}</div>
                 </div>
@@ -1051,7 +1051,7 @@ export default function LandingPage() {
                 <div className="magnet-icon">📊</div>
                 <div style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 3, background: 'rgba(250,169,24,0.1)', border: '1px solid rgba(250,169,24,0.2)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 10 }}>Free Download</div>
                 <div className="magnet-title">GCC Tech Skills Report 2025</div>
-                <p className="magnet-desc">Which skills will UAE employers pay a premium for by 2030? What salary gap exists between kids who code and those who don't? 12 pages of data — free, no spam.</p>
+                <p className="magnet-desc">Which skills will UAE employers pay a premium for by 2030? What salary gap exists between kids who code and those who don&apos;t? 12 pages of data — free, no spam.</p>
               </div>
               <div className="magnet-right">
                 <Link href="/auth/signup?ref=report" className="btn-gold" style={{ fontSize: 14, padding: '14px 28px' }}>
@@ -1119,8 +1119,8 @@ export default function LandingPage() {
           <div className="container">
             <div style={{ marginBottom: 32 }}>
               <p className="eyebrow">Region-First Platform</p>
-              <h2 className="section-title">The GCC's #1 Edtech Platform</h2>
-              <p className="section-sub">The only kids' platform built here — culturally relevant, fully bilingual, designed for the next generation.</p>
+              <h2 className="section-title">The GCC&apos;s #1 Edtech Platform</h2>
+              <p className="section-sub">The only kids&apos; platform built here — culturally relevant, fully bilingual, designed for the next generation.</p>
             </div>
             <div className="gcc-grid">
               {[
