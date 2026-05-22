@@ -596,7 +596,7 @@ export default function LandingPage() {
           <div className="bg-card border border-white/10 rounded-3xl p-6 md:p-8 opacity-80">
             <div className="text-3xl mb-3">⚡</div>
             <h3 className="font-fredoka text-2xl mb-1">Pro</h3>
-            <p className="font-fredoka text-4xl text-white mb-1">AED 79 <span className="text-muted text-base font-bold">/ month</span></p>
+            <p className="font-fredoka text-4xl text-white mb-1">$ 79 <span className="text-muted text-base font-bold">/ month</span></p>
             <p className="text-muted text-xs font-bold mb-5">Everything in Free, plus:</p>
             <ul className="space-y-2 mb-6 text-sm font-semibold text-muted">
               {['All 200+ lessons unlocked', 'Advanced AI coaching', 'Full portfolio system', 'Live project feedback', 'Certificate of completion', 'Priority support'].map(f => (
