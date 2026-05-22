@@ -115,12 +115,12 @@ const FAQ = [
 // ─── Quiz Component ───────────────────────────────────────────────────────────
 function TrackQuiz() {
   const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState({})
-  const [selected, setSelected] = useState(null)
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [selected, setSelected] = useState<string | null>(null)
 
   const currentQ = QUIZ_STEPS[step - 1]
   const progress = step === 0 ? 0 : Math.round((step / QUIZ_STEPS.length) * 100)
-  const trackKey = answers.interest ?? 'coding'
+  const trackKey = (answers.interest ?? 'coding') as keyof typeof TRACK_RESULT
   const result = TRACK_RESULT[trackKey]
 
   function next() {
@@ -188,7 +188,7 @@ function TrackQuiz() {
 }
 
 // ─── Accordion Item ────────────────────────────────────────────────────────────
-function AccordionItem({ q, a, index }) {
+function AccordionItem({ q, a, index }: { q: string; a: string; index: number }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="accordion-item">
@@ -906,7 +906,7 @@ export default function LandingPage() {
             </div>
             <div className="projects-grid">
               {PROJECTS.map((p, i) => {
-                const colors = { Coding: { bg: 'rgba(28,176,246,0.08)', text: '#1CB0F6' }, AI: { bg: 'rgba(250,169,24,0.08)', text: '#FAA918' }, Bizz: { bg: 'rgba(20,212,244,0.08)', text: '#14D4F4' } }
+                const colors: Record<string, { bg: string; text: string }> = { Coding: { bg: 'rgba(28,176,246,0.08)', text: '#1CB0F6' }, AI: { bg: 'rgba(250,169,24,0.08)', text: '#FAA918' }, Bizz: { bg: 'rgba(20,212,244,0.08)', text: '#14D4F4' } }
                 const c = colors[p.track] || colors.Coding
                 return (
                   <div key={i} className="project-card">
