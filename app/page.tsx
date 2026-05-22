@@ -141,7 +141,7 @@ const PARTNERS = [
 { abbr: 'Pinacle',        name: 'Pinacle',           logo: '/partners/gems.png',    category: 'Schools' },
 { abbr: 'Les elites Juniors',        name: 'Les elites Juniors',           logo: '/partners/elites.png',    category: 'Schools' },
 { abbr: 'La coupole',        name: 'La coupole',           logo: '/partners/lacoupole.png',    category: 'Schools' },
-{ abbr: 'FSC',        name: 'First skills club',           logo: '/partners/gems.png',    category: 'Schools' },
+{ abbr: 'First skills club',        name: 'First skills club',           logo: '/partners/gems.png',    category: 'Schools' },
 ]
 
 
@@ -659,7 +659,7 @@ export default function LandingPage() {
         {/* Partner CTA */}
         <div className="mt-10 text-center">
           <p className="text-muted text-sm font-semibold mb-3">Are you a school or organisation in the GCC?</p>
-          <a href="mailto:partners@plulai.com" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm text-white bg-card border border-white/10 hover:border-white/20 hover:-translate-y-0.5 transition-all">
+          <a href="mailto:ceo@plulai.com" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm text-white bg-card border border-white/10 hover:border-white/20 hover:-translate-y-0.5 transition-all">
             🤝 Become a Partner
           </a>
         </div>
