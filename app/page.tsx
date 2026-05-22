@@ -87,7 +87,6 @@ const FEATURES = [
   { emoji:'🌍', title:'Built for GCC, not copy-pasted',   desc:'Full Arabic RTL + bilingual AI coach. Every example is set in Dubai, Riyadh, Doha, Kuwait City. Not a US product translated — built here first.',               color:'from-accent3/20 to-accent4/20', border:'border-accent3/20' },
   { emoji:'📊', title:'Parent dashboard & weekly report', desc:'Track streaks, XP, badges and lesson completion in real time. Weekly email summary. Stay involved without hovering.',                                              color:'from-accent5/20 to-accent1/20', border:'border-accent5/20' },
   { emoji:'🏆', title:'Real portfolio, not just a cert',  desc:'By month 3 your child has 3 real projects — an app, an AI tool and a pitch deck. A portfolio, not a participation certificate.',                                   color:'from-accent2/20 to-accent3/20', border:'border-accent2/20' },
-  // { emoji:'🔒', title:'Child-safe by design',             desc:'No ads. Ever. COPPA certified. AI responses filtered for child safety. Parent controls the account. Zero data sold. Built to KHDA standards.',                      color:'from-accent4/20 to-accent3/20', border:'border-accent4/20' },
 ]
 
 const TRACKS = [
@@ -129,13 +128,7 @@ const PARENT_TESTIMONIALS = [
   { name:'Noura Al-Kuwari',    role:'Mother · Doha',            text:"My daughter used to be glued to TikTok. Now she says she's building her portfolio. I don't care what it's called — it's a miracle." },
 ]
 
-const PRESS = [
-  { name: 'Forbes Middle East',  note: '"The edtech startup fixing the GCC skills gap"' },
-  { name: 'Gulf News',           note: '"Arabic-first learning done right"'              },
-  { name: 'Wamda',               note: '"One to watch: GCC EdTech 2024"'                },
-  { name: 'EdTech Arabia Award', note: '🏆 Best Kids Platform 2024'                      },
-]
-
+// Partner logos array (used in the Our Partners banner)
 const PARTNERS = [
   { abbr:'MoE UAE',             logo:'🏛️', category:'Government'  },
   { abbr:'KHDA',                logo:'📋', category:'Government'  },
@@ -321,11 +314,6 @@ export default function LandingPage() {
           <span className="hidden sm:block text-white/20">|</span>
           <span>⭐ Rated 4.9 by 800+ parents</span>
           <span className="hidden sm:block text-white/20">|</span>
-          {/* <span>🏆 Best Kids Platform · EdTech Arabia 2024</span> */}
-          {/* <span className="hidden sm:block text-white/20">|</span> */}
-          {/* <span>🔒 COPPA Certified · No Ads · Child Safe</span> */}
-          {/* <span className="hidden sm:block text-white/20">|</span> */}
-          {/* <span>📰 Featured in Forbes Middle East</span> */}
         </div>
       </div>
 
@@ -388,40 +376,6 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
-
-      {/* ── Press / Awards ── */}
-      {/* <section className="px-4 md:px-6 max-w-4xl mx-auto mb-8 md:mb-16">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-5">As seen in</p>
-        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-          {PRESS.map(p => (
-            <div key={p.name} className="bg-card border border-white/5 rounded-2xl px-5 py-3 text-center">
-              <div className="font-extrabold text-sm text-white">{p.name}</div>
-              <div className="text-muted text-xs font-semibold mt-0.5 italic">{p.note}</div>
-            </div>
-          ))}
-        </div>
-      </section> */}
-
-      {/* ── Sharkkid Banner ── */}
-      {/* <section className="px-4 md:px-6 max-w-6xl mx-auto mb-8">
-        <Link
-          href="/sharkkid"
-          className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-accent2/10 to-accent1/10 border border-accent2/25 rounded-3xl px-6 py-5 md:px-8 md:py-6 hover:-translate-y-0.5 transition-all group"
-        >
-          <div className="flex items-center gap-4">
-            <span className="text-4xl">🦈</span>
-            <div className="text-left">
-              <div className="font-fredoka text-xl md:text-2xl text-white">Sharkkid — Startup Bootcamp for Kids</div>
-              <div className="text-muted text-sm font-semibold">
-                3 months · July 2026 · GCC · <span className="text-red-400 font-extrabold">Only 17 spots left</span>
-              </div>
-            </div>
-          </div>
-          <span className="shrink-0 px-5 py-2.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-accent2 to-accent1 group-hover:-translate-y-0.5 transition-all">
-            Apply Now →
-          </span>
-        </Link>
-      </section> */}
 
       {/* ── Quiz Funnel ── */}
       <section id="quiz" className="py-16 md:py-24 px-4 md:px-6 max-w-2xl mx-auto">
@@ -653,37 +607,39 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Partners ── */}
-      {/* <section id="partners" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
-        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Trusted &amp; recognised by</p>
-        <h2 className="font-fredoka text-3xl md:text-4xl text-center mb-3">Our Partners &amp; Supporters 🤝</h2>
+      {/* ── Our Partners banner ── */}
+      <section id="partners" className="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto">
+        <p className="text-center text-muted text-xs font-extrabold uppercase tracking-widest mb-3">Trusted by leading organisations</p>
+        <h2 className="font-fredoka text-3xl md:text-4xl lg:text-5xl text-center mb-3">
+          Our Partners &amp; Supporters 🤝
+        </h2>
         <p className="text-center text-muted font-semibold mb-10 md:mb-14 text-sm md:text-base max-w-xl mx-auto">
           From government bodies to global tech giants — the institutions shaping the GCC&apos;s future stand behind Plulai.
         </p>
-        {(['Government', 'Schools', 'Technology', 'Accelerator'] as const).map(cat => {
-          const catP = PARTNERS.filter(p => p.category === cat)
-          if (!catP.length) return null
-          return (
-            <div key={cat} className="mb-8">
-              <p className="text-muted text-xs font-extrabold uppercase tracking-widest mb-4 text-center">{cat}</p>
-              <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-                {catP.map(p => (
-                  <div key={p.abbr} className="group flex items-center gap-2.5 bg-card border border-white/5 hover:border-white/15 rounded-2xl px-4 py-3 md:px-5 md:py-4 transition-all hover:-translate-y-0.5 cursor-default">
-                    <span className="text-xl md:text-2xl">{p.logo}</span>
-                    <span className="font-extrabold text-xs md:text-sm text-muted group-hover:text-white transition-colors whitespace-nowrap">{p.abbr}</span>
-                  </div>
-                ))}
+
+        {/* Partners grid: all logos in a clean responsive flex/grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
+          {PARTNERS.map((partner) => (
+            <div
+              key={partner.abbr}
+              className="flex flex-col items-center justify-center text-center bg-card border border-white/5 rounded-2xl p-4 transition-all hover:-translate-y-0.5 hover:border-white/20"
+            >
+              <div className="text-3xl md:text-4xl mb-2">{partner.logo}</div>
+              <div className="font-extrabold text-xs md:text-sm text-muted group-hover:text-white transition-colors">
+                {partner.abbr}
               </div>
             </div>
-          )
-        })}
+          ))}
+        </div>
+
+        {/* Partner CTA */}
         <div className="mt-10 text-center">
           <p className="text-muted text-sm font-semibold mb-3">Are you a school or organisation in the GCC?</p>
           <a href="mailto:partners@plulai.com" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm text-white bg-card border border-white/10 hover:border-white/20 hover:-translate-y-0.5 transition-all">
             🤝 Become a Partner
           </a>
         </div>
-      </section> */}
+      </section>
 
       {/* ── GCC ── */}
       <section id="gcc" className="py-16 md:py-24 px-4 md:px-6 max-w-5xl mx-auto">
@@ -772,7 +728,7 @@ export default function LandingPage() {
             🎉 Claim Your Free Account — Start in 60 Seconds
           </Link>
           <p className="text-muted text-xs font-bold mt-5 opacity-70">
-            Trusted by parents &amp; teachers across the GCC ·  {/*COPPA compliant ·*/} Safe for kids · No ads 
+            Trusted by parents &amp; teachers across the GCC · Safe for kids · No ads
           </p>
         </div>
       </section>
@@ -783,7 +739,6 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8">
             <div>
               <div className="font-fredoka text-2xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent mb-2">Plulai</div>
-              {/* <p className="text-muted text-xs font-bold max-w-xs leading-relaxed">The #1 edtech platform for kids in the UAE &amp; GCC. Coding, AI &amp; Entrepreneurship for ages 6–18.</p> */}
             </div>
             <div className="grid grid-cols-3 gap-8 text-xs font-bold text-muted w-full md:w-auto">
               <div>
