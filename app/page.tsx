@@ -20,6 +20,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { useState } from 'react'
+import Image from 'next/image'
 
 // ─── Quiz funnel ──────────────────────────────────────────────────────────────
 
@@ -130,18 +131,20 @@ const PARENT_TESTIMONIALS = [
 
 // Partner logos array (used in the Our Partners banner)
 const PARTNERS = [
-  { abbr:'MoE UAE',             logo:'🏛️', category:'Government'  },
-  { abbr:'KHDA',                logo:'📋', category:'Government'  },
-  { abbr:'Dubai Future Foundation', logo:'🔭', category:'Government' },
-  { abbr:'GEMS Education',      logo:'💎', category:'Schools'     },
-  { abbr:'Taaleem',             logo:'🏫', category:'Schools'     },
-  { abbr:'Repton Dubai',        logo:'🎓', category:'Schools'     },
-  { abbr:'Microsoft Edu',       logo:'🪟', category:'Technology'  },
-  { abbr:'Google Edu',          logo:'🔍', category:'Technology'  },
-  { abbr:'AWS Educate',         logo:'☁️', category:'Technology'  },
-  { abbr:'Hub71 Abu Dhabi',     logo:'🚀', category:'Accelerator' },
-  { abbr:'in5 Tech Dubai',      logo:'5️⃣', category:'Accelerator' },
+  { abbr: 'MoE UAE',               name: 'Ministry of Education UAE', logo: '/partners/moe-uae.png', category: 'Government' },
+  { abbr: 'KHDA',                  name: 'KHDA Dubai',                logo: '/partners/khda.png',    category: 'Government' },
+  { abbr: 'Dubai Future Foundation', name: 'Dubai Future Foundation', logo: '/partners/dff.png',    category: 'Government' },
+  { abbr: 'GEMS Education',        name: 'GEMS Education',           logo: '/partners/gems.png',    category: 'Schools' },
+  { abbr: 'Taaleem',               name: 'Taaleem',                  logo: '/partners/taaleem.png', category: 'Schools' },
+  { abbr: 'Repton Dubai',          name: 'Repton Dubai',             logo: '/partners/repton.png',  category: 'Schools' },
+  { abbr: 'Microsoft Edu',         name: 'Microsoft Education',      logo: '/partners/microsoft.png', category: 'Technology' },
+  { abbr: 'Google Edu',            name: 'Google for Education',     logo: '/partners/google.png',  category: 'Technology' },
+  { abbr: 'AWS Educate',           name: 'AWS Educate',              logo: '/partners/aws.png',     category: 'Technology' },
+  { abbr: 'Hub71 Abu Dhabi',       name: 'Hub71',                    logo: '/partners/hub71.png',   category: 'Accelerator' },
+  { abbr: 'in5 Tech Dubai',        name: 'in5',                      logo: '/partners/in5.png',     category: 'Accelerator' },
 ]
+
+
 
 const GCC = [
   { flag:'🇦🇪', name:'UAE',          city:'Dubai & Abu Dhabi' },
@@ -619,18 +622,39 @@ export default function LandingPage() {
 
         {/* Partners grid: all logos in a clean responsive flex/grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
-          {PARTNERS.map((partner) => (
-            <div
-              key={partner.abbr}
-              className="flex flex-col items-center justify-center text-center bg-card border border-white/5 rounded-2xl p-4 transition-all hover:-translate-y-0.5 hover:border-white/20"
-            >
-              <div className="text-3xl md:text-4xl mb-2">{partner.logo}</div>
-              <div className="font-extrabold text-xs md:text-sm text-muted group-hover:text-white transition-colors">
-                {partner.abbr}
-              </div>
-            </div>
-          ))}
-        </div>
+  {PARTNERS.map((partner) => (
+    <div
+      key={partner.abbr}
+      className="flex flex-col items-center justify-center text-center bg-card border border-white/5 rounded-2xl p-4 transition-all hover:-translate-y-0.5 hover:border-white/20"
+    >
+      <div className="relative w-16 h-16 mb-2 flex items-center justify-center">
+        <Image
+          src={partner.logo}
+          alt={partner.name}
+          width={64}
+          height={64}
+          className="object-contain"
+          onError={(e) => {
+            // Fallback to emoji if image fails to load
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            const parent = target.parentElement;
+            if (parent) {
+              const fallback = document.createElement('span');
+              fallback.className = 'text-3xl';
+              fallback.textContent = '🏢'; // generic building emoji
+              parent.appendChild(fallback);
+            }
+          }}
+        />
+      </div>
+      <div className="font-extrabold text-xs md:text-sm text-muted group-hover:text-white transition-colors">
+        {partner.abbr}
+      </div>
+    </div>
+  ))}
+</div>
+
 
         {/* Partner CTA */}
         <div className="mt-10 text-center">
