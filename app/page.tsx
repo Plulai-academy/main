@@ -838,7 +838,7 @@ export default function LandingPage() {
             Only 43 spots remaining this week
           </div>
           <h1 className="hero-title">
-            Your Child's Peers<br />
+            Your Child&apos;s Peers<br />
             <span className="hero-title-accent">Are Building the Future.</span>
           </h1>
           <p className="hero-sub">
