@@ -131,17 +131,17 @@ const PARENT_TESTIMONIALS = [
 
 // Partner logos array (used in the Our Partners banner)
 const PARTNERS = [
-  { abbr: 'MoE UAE',               name: 'Ministry of Education UAE', logo: '/partners/moe-uae.png', category: 'Government' },
-  { abbr: 'KHDA',                  name: 'KHDA Dubai',                logo: '/partners/khda.png',    category: 'Government' },
-  { abbr: 'Dubai Future Foundation', name: 'Dubai Future Foundation', logo: '/partners/dff.png',    category: 'Government' },
-  { abbr: 'GEMS Education',        name: 'GEMS Education',           logo: '/partners/gems.png',    category: 'Schools' },
-  { abbr: 'Taaleem',               name: 'Taaleem',                  logo: '/partners/taaleem.png', category: 'Schools' },
-  { abbr: 'Repton Dubai',          name: 'Repton Dubai',             logo: '/partners/repton.png',  category: 'Schools' },
-  { abbr: 'Microsoft Edu',         name: 'Microsoft Education',      logo: '/partners/microsoft.png', category: 'Technology' },
-  { abbr: 'Google Edu',            name: 'Google for Education',     logo: '/partners/google.png',  category: 'Technology' },
-  { abbr: 'AWS Educate',           name: 'AWS Educate',              logo: '/partners/aws.png',     category: 'Technology' },
-  { abbr: 'Hub71 Abu Dhabi',       name: 'Hub71',                    logo: '/partners/hub71.png',   category: 'Accelerator' },
-  { abbr: 'in5 Tech Dubai',        name: 'in5',                      logo: '/partners/in5.png',     category: 'Accelerator' },
+  // { abbr: 'DSO',               name: 'Dubai silicon oasis', logo: '/partners/moe-uae.png', category: 'Government' },
+  // { abbr: 'DTEC',        name: 'Dubai tech entrepreneur campus',           logo: '/partners/gems.png',    category: 'Schools' },
+  // { abbr: 'Microsoft Edu',         name: 'Microsoft Education',      logo: '/partners/microsoft.png', category: 'Technology' },
+  // { abbr: 'Hub71 Abu Dhabi',       name: 'Hub71',                    logo: '/partners/hub71.png',   category: 'Accelerator' },
+{ abbr: 'Business Success',        name: 'Business Success',           logo: '/partners/gems.png',    category: 'Schools' },
+{ abbr: 'LingoVille',        name: 'LingoVille',           logo: '/partners/gems.png',    category: 'Schools' },
+{ abbr: 'The intelligent inventor',        name: 'The intelligent inventor',           logo: '/partners/gems.png',    category: 'Schools' },
+{ abbr: 'Pinacle',        name: 'Pinacle',           logo: '/partners/gems.png',    category: 'Schools' },
+{ abbr: 'Les elites Juniors',        name: 'Les elites Juniors',           logo: '/partners/gems.png',    category: 'Schools' },
+{ abbr: 'La coupole',        name: 'La coupole',           logo: '/partners/gems.png',    category: 'Schools' },
+{ abbr: 'FSC',        name: 'First skills club',           logo: '/partners/gems.png',    category: 'Schools' },
 ]
 
 
