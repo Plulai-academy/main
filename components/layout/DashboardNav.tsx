@@ -101,13 +101,13 @@ export default function DashboardNav({ profile, userId }: Props) {
       </Link>
 
       {/* Sign out */}
-      <button
+      {/* <button
         onClick={handleSignOut}
         className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl text-muted hover:text-accent1 text-xs font-bold transition-all"
       >
         <img src="/icons/signout.svg" alt="Sign out" className="w-4 h-4 opacity-60" />
         {lang === 'ar' ? 'تسجيل الخروج' : lang === 'fr' ? 'Se déconnecter' : 'Sign Out'}
-      </button>
+      </button> */}
     </aside>
   )
 }
