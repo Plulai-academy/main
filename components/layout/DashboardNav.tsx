@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { href:'/dashboard/streak',      icon:'/icons/streak.png',      en:'Streak',       ar:'السلسلة',        fr:'Série'        },
   { href:'/dashboard/badges',      icon:'/icons/badges.png',      en:'Badges',       ar:'الشارات',        fr:'Badges'       },
   { href:'/dashboard/leaderboard', icon:'/icons/leaderboard.png', en:'Leaderboard',  ar:'المتصدرون',      fr:'Classement'   },
-  { href:'/dashboard/settings',    icon:'/icons/settings.svg',    en:'Settings',     ar:'الإعدادات',      fr:'Paramètres'   },
+  { href:'/dashboard/settings',    icon:'/icons/settings.png',    en:'Settings',     ar:'الإعدادات',      fr:'Paramètres'   },
 ]
 
 interface Props {
@@ -44,7 +44,7 @@ export default function DashboardNav({ profile, userId }: Props) {
     >
       {/* Logo */}
       <div className="mb-8 flex items-center gap-3 px-2">
-        <img src="/icons/logo.svg" alt="Plulai" className="w-8 h-8" />
+        {/* <img src="/icons/logo.svg" alt="Plulai" className="w-8 h-8" /> */}
         <span className="hidden lg:block font-fredoka text-xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent">
           Plulai
         </span>
@@ -96,7 +96,7 @@ export default function DashboardNav({ profile, userId }: Props) {
         href="/pricing"
         className="hidden lg:flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-accent2 bg-accent2/8 border border-accent2/20 hover:bg-accent2/15 transition-all mt-2 mb-1"
       >
-        <img src="/icons/pricing.svg" alt="Pricing" className="w-4 h-4 opacity-80" />
+        <img src="/icons/pricing.png" alt="Pricing" className="w-4 h-4 opacity-80" />
         {lang === 'ar' ? 'الخطط والأسعار' : lang === 'fr' ? 'Abonnements' : 'Plans & Pricing'}
       </Link>
 
