@@ -7,14 +7,14 @@ import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
 
 const NAV_ITEMS = [
-  { href:'/dashboard',             icon:'🏠', en:'Home',         ar:'الرئيسية',       fr:'Accueil'      },
-  { href:'/dashboard/skills',      icon:'🗺️', en:'Skill Tree',   ar:'شجرة المهارات', fr:'Compétences'  },
-  { href:'/dashboard/coach',       icon:'🤖', en:'AI Coach',     ar:'المدرب الذكي',   fr:'Coach IA'     },
-  { href:'/dashboard/challenges',  icon:'⚡', en:'Challenges',   ar:'التحديات',       fr:'Défis'        },
-  { href:'/dashboard/streak',      icon:'🔥', en:'Streak',       ar:'السلسلة',        fr:'Série'        },
-  { href:'/dashboard/badges',      icon:'🏆', en:'Badges',       ar:'الشارات',        fr:'Badges'       },
-  { href:'/dashboard/leaderboard', icon:'📊', en:'Leaderboard',  ar:'المتصدرون',      fr:'Classement'   },
-  { href:'/dashboard/settings',    icon:'⚙️', en:'Settings',     ar:'الإعدادات',      fr:'Paramètres'   },
+  { href:'/dashboard',             icon:'/icons/home.png',        en:'Home',         ar:'الرئيسية',       fr:'Accueil'      },
+  { href:'/dashboard/skills',      icon:'/icons/skill-tree.png',  en:'Skill Tree',   ar:'شجرة المهارات', fr:'Compétences'  },
+  { href:'/dashboard/coach',       icon:'/icons/coach.png',       en:'AI Coach',     ar:'المدرب الذكي',   fr:'Coach IA'     },
+  { href:'/dashboard/challenges',  icon:'/icons/challenges.png',  en:'Challenges',   ar:'التحديات',       fr:'Défis'        },
+  { href:'/dashboard/streak',      icon:'/icons/streak.png',      en:'Streak',       ar:'السلسلة',        fr:'Série'        },
+  { href:'/dashboard/badges',      icon:'/icons/badges.png',      en:'Badges',       ar:'الشارات',        fr:'Badges'       },
+  { href:'/dashboard/leaderboard', icon:'/icons/leaderboard.png', en:'Leaderboard',  ar:'المتصدرون',      fr:'Classement'   },
+  { href:'/dashboard/settings',    icon:'/icons/settings.svg',    en:'Settings',     ar:'الإعدادات',      fr:'Paramètres'   },
 ]
 
 interface Props {
@@ -44,7 +44,7 @@ export default function DashboardNav({ profile, userId }: Props) {
     >
       {/* Logo */}
       <div className="mb-8 flex items-center gap-3 px-2">
-        <span className="text-2xl">🚀</span>
+        <img src="/icons/logo.svg" alt="Plulai" className="w-8 h-8" />
         <span className="hidden lg:block font-fredoka text-xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent">
           Plulai
         </span>
@@ -78,7 +78,14 @@ export default function DashboardNav({ profile, userId }: Props) {
                 : 'text-muted hover:bg-card2 hover:text-white'
             )}
           >
-            <span className="text-xl flex-shrink-0">{item.icon}</span>
+            <img
+              src={item.icon}
+              alt={item.en}
+              className={cn(
+                'w-5 h-5 flex-shrink-0',
+                pathname === item.href ? 'opacity-100' : 'opacity-50 group-hover:opacity-100'
+              )}
+            />
             <span className="hidden lg:block">{getLabel(item)}</span>
           </Link>
         ))}
@@ -89,7 +96,8 @@ export default function DashboardNav({ profile, userId }: Props) {
         href="/pricing"
         className="hidden lg:flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-accent2 bg-accent2/8 border border-accent2/20 hover:bg-accent2/15 transition-all mt-2 mb-1"
       >
-        ⭐ {lang === 'ar' ? 'الخطط والأسعار' : lang === 'fr' ? 'Abonnements' : 'Plans & Pricing'}
+        <img src="/icons/pricing.svg" alt="Pricing" className="w-4 h-4 opacity-80" />
+        {lang === 'ar' ? 'الخطط والأسعار' : lang === 'fr' ? 'Abonnements' : 'Plans & Pricing'}
       </Link>
 
       {/* Sign out */}
@@ -97,7 +105,8 @@ export default function DashboardNav({ profile, userId }: Props) {
         onClick={handleSignOut}
         className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-xl text-muted hover:text-accent1 text-xs font-bold transition-all"
       >
-        ↩ {lang === 'ar' ? 'تسجيل الخروج' : lang === 'fr' ? 'Se déconnecter' : 'Sign Out'}
+        <img src="/icons/signout.svg" alt="Sign out" className="w-4 h-4 opacity-60" />
+        {lang === 'ar' ? 'تسجيل الخروج' : lang === 'fr' ? 'Se déconnecter' : 'Sign Out'}
       </button>
     </aside>
   )
