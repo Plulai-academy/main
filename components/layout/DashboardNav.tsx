@@ -51,7 +51,7 @@ export default function DashboardNav({ profile, userId }: Props) {
       </div> */}
 
       {/* Logo */}
-      <div className="mb-8 flex justify-center items-center px-2">
+      <div className="mb-6 flex justify-center items-center px-2">
         <img 
           src="/icons/plulai.png" 
           alt="Plulai" 
