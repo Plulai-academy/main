@@ -43,8 +43,15 @@ export default function DashboardNav({ profile, userId }: Props) {
       className="w-20 lg:w-64 flex-shrink-0 fixed inset-y-0 left-0 z-40 flex flex-col glass border-r border-white/5 py-6 px-3 lg:px-5"
     >
       {/* Logo */}
-      <div className="mb-8 flex items-center gap-3 px-2">
+      {/* <div className="mb-8 flex items-center gap-3 px-2">
         <img src="/icons/plulai.png" alt="Plulai" className="w-10 h-10" />
+         <span className="hidden lg:block font-fredoka text-xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent">
+          Plulai
+        </span> 
+      </div> */}
+      {/* Logo */}
+      <div className="mb-8 flex justify-center items-center px-2">
+        <img src="/icons/plulai.png" alt="Plulai" className="w-20 h-20" />
         {/* <span className="hidden lg:block font-fredoka text-xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent">
           Plulai
         </span> */}
