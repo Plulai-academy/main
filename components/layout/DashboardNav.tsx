@@ -49,13 +49,18 @@ export default function DashboardNav({ profile, userId }: Props) {
           Plulai
         </span> 
       </div> */}
+
       {/* Logo */}
-    <div className="mb-8 flex justify-center items-center px-2">
-      <img src="/icons/plulai.png" alt="Plulai" className="w-20 h-20" />
-      {/* <span className="hidden lg:block font-fredoka text-xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent">
-        Plulai
-      </span> */}
-    </div>
+      <div className="mb-8 flex justify-center items-center px-2">
+        <img 
+          src="/icons/plulai.png" 
+          alt="Plulai" 
+          className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" 
+        />
+        {/* <span className="hidden lg:block font-fredoka text-xl bg-gradient-to-r from-accent2 to-accent1 bg-clip-text text-transparent">
+          Plulai
+        </span> */}
+      </div>
 
       {/* Profile mini */}
       {profile && (
