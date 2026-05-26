@@ -7,7 +7,7 @@ import ShareCardModal, { type ShareCardProps } from '@/components/share/ShareCar
 import { cn, formatXP, getRarityColor, getRarityGlow } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 
-const XP_PER_LEVEL = 100
+const XP_PER_LEVEL = 1000
 const getLevel      = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1
 const getLevelTitle = (level: number) =>
   ['Rookie','Explorer','Builder','Creator','Innovator','Wizard','Master','Legend'][Math.min(level - 1, 7)]
