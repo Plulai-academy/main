@@ -50,7 +50,10 @@ export default function LeaderboardClient({ userId, userCountry, language, globa
   const dir  = lang === 'ar' ? 'rtl' : 'ltr'
   const [tab, setTab] = useState<'global'|'gcc'>('gcc')
 
-  const rows = tab === 'global' ? globalRows : gccRows
+  const rawRows  = tab === 'global' ? globalRows : gccRows
+  const top10    = rawRows.slice(0, 10)
+  const inTop10  = top10.some(r => r.id === userId)
+  const rows     = inTop10 || !myRank ? top10 : [...top10, myRank]
 
   return (
     <div className="p-4 md:p-6 lg:p-10 max-w-3xl" dir={dir}>
@@ -108,62 +111,75 @@ export default function LeaderboardClient({ userId, userCountry, language, globa
       ) : (
         <div className="space-y-2 md:space-y-3">
           {rows.map((row, idx) => {
-            const isMe  = row.id === userId
-            const rank  = tab === 'global' ? row.rank_global : idx + 1
-            const medal = MEDAL[rank - 1]
+            const isMe       = row.id === userId
+            const isAppended = isMe && !inTop10 && idx === rows.length - 1
+            const rank       = tab === 'global'
+              ? row.rank_global
+              : (isAppended ? myRank!.rank_global : idx + 1)
+            const medal      = MEDAL[rank - 1]
 
             return (
-              <div
-                key={row.id}
-                className={cn(
-                  'flex items-center gap-2.5 md:gap-4 p-3 md:p-4 rounded-2xl border transition-all',
-                  isMe
-                    ? 'bg-accent4/10 border-accent4/30 shadow-[0_0_20px_rgba(77,150,255,0.15)]'
-                    : 'bg-card border-white/5 hover:border-white/10'
+              <div key={row.id}>
+                {/* Dashed separator before out-of-top-10 user row */}
+                {isAppended && (
+                  <div className="flex items-center gap-2 py-2">
+                    <div className="flex-1 border-t border-dashed border-white/15" />
+                    <span className="text-xs text-muted font-bold tracking-widest">···</span>
+                    <div className="flex-1 border-t border-dashed border-white/15" />
+                  </div>
                 )}
-              >
-                {/* Rank — compact on mobile */}
-                <div className="w-7 md:w-10 shrink-0 text-center">
-                  {medal ? (
-                    <span className="text-xl md:text-2xl">{medal}</span>
-                  ) : (
-                    <span className="font-fredoka text-sm md:text-lg text-muted">#{rank}</span>
+
+                <div
+                  className={cn(
+                    'flex items-center gap-2.5 md:gap-4 p-3 md:p-4 rounded-2xl border transition-all',
+                    isMe
+                      ? 'bg-accent4/10 border-accent4/30 shadow-[0_0_20px_rgba(77,150,255,0.15)]'
+                      : 'bg-card border-white/5 hover:border-white/10'
                   )}
-                </div>
+                >
+                  {/* Rank — compact on mobile */}
+                  <div className="w-7 md:w-10 shrink-0 text-center">
+                    {medal ? (
+                      <span className="text-xl md:text-2xl">{medal}</span>
+                    ) : (
+                      <span className="font-fredoka text-sm md:text-lg text-muted">#{rank}</span>
+                    )}
+                  </div>
 
-                {/* Avatar + country flag overlay */}
-                <div className="relative shrink-0">
-                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-card2 border border-white/10 flex items-center justify-center text-lg md:text-xl">
-                    {row.avatar}
+                  {/* Avatar + country flag overlay */}
+                  <div className="relative shrink-0">
+                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-card2 border border-white/10 flex items-center justify-center text-lg md:text-xl">
+                      {row.avatar}
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 text-xs leading-none">
+                      {GCC_FLAGS[row.country] ?? '🌍'}
+                    </div>
                   </div>
-                  <div className="absolute -bottom-1 -right-1 text-xs leading-none">
-                    {GCC_FLAGS[row.country] ?? '🌍'}
-                  </div>
-                </div>
 
-                {/* Name + stats */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
-                    <span className="font-extrabold text-xs md:text-sm truncate">
-                      {row.display_name}{isMe && ' 👈'}
-                    </span>
-                    {/* Age badge — hidden on smallest screens to save space */}
-                    <span className="hidden xs:inline text-xs font-bold text-muted bg-card2 border border-white/8 rounded-full px-2 py-0.5">
-                      {AGE_LABELS[row.age_group]?.[lang] ?? row.age_group}
-                    </span>
+                  {/* Name + stats */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
+                      <span className="font-extrabold text-xs md:text-sm truncate">
+                        {row.display_name}{isMe && ' 👈'}
+                      </span>
+                      {/* Age badge — hidden on smallest screens to save space */}
+                      <span className="hidden xs:inline text-xs font-bold text-muted bg-card2 border border-white/8 rounded-full px-2 py-0.5">
+                        {AGE_LABELS[row.age_group]?.[lang] ?? row.age_group}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 md:gap-3 mt-0.5 flex-wrap">
+                      <span className="text-xs font-bold text-accent2">{row.xp} {t.xp}</span>
+                      {/* Lesson count hidden on mobile */}
+                      <span className="hidden sm:inline text-xs text-muted font-bold">{row.lessons_count} {t.lessons}</span>
+                      {row.streak > 0 && <span className="text-xs text-accent1 font-bold">🔥 {row.streak}</span>}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 md:gap-3 mt-0.5 flex-wrap">
-                    <span className="text-xs font-bold text-accent2">{row.xp} {t.xp}</span>
-                    {/* Lesson count hidden on mobile — level badge already summarises progress */}
-                    <span className="hidden sm:inline text-xs text-muted font-bold">{row.lessons_count} {t.lessons}</span>
-                    {row.streak > 0 && <span className="text-xs text-accent1 font-bold">🔥 {row.streak}</span>}
-                  </div>
-                </div>
 
-                {/* Level badge — always visible, compact on mobile */}
-                <div className="shrink-0 bg-card2 border border-white/10 rounded-xl px-2 md:px-3 py-1 md:py-1.5 text-center">
-                  <div className="font-fredoka text-base md:text-lg text-white leading-none">Lv.{row.level}</div>
-                  <div className="text-xs text-muted font-bold mt-0.5">{row.badges_count} 🏆</div>
+                  {/* Level badge — always visible, compact on mobile */}
+                  <div className="shrink-0 bg-card2 border border-white/10 rounded-xl px-2 md:px-3 py-1 md:py-1.5 text-center">
+                    <div className="font-fredoka text-base md:text-lg text-white leading-none">Lv.{row.level}</div>
+                    <div className="text-xs text-muted font-bold mt-0.5">{row.badges_count} 🏆</div>
+                  </div>
                 </div>
               </div>
             )

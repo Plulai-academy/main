@@ -10,10 +10,10 @@ export default async function LeaderboardPage() {
 
   const [profileRes, globalRes, gccRes] = await Promise.all([
     supabase.from('profiles').select('id,country,age_group,preferred_language').eq('id', user.id).single(),
-    supabase.from('leaderboard').select('*').order('rank_global').limit(50),
+    supabase.from('leaderboard').select('*').order('rank_global').limit(10),
     supabase.from('leaderboard').select('*')
       .in('country', ['AE','SA','QA','KW','BH','OM'])
-      .order('xp', { ascending: false }).limit(50),
+      .order('xp', { ascending: false }).limit(10),
   ])
 
   const profile = profileRes.data
