@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 const C = {
   teal:    "#40B1AC",
@@ -36,6 +36,7 @@ function useCountdown(target: Date) {
 
 const DEADLINE       = new Date("2025-05-22T23:59:59");
 const POOL_PRIZE     = 5000;
+const GOOGLE_FORM    = "https://forms.gle/LsZACjr1fUBNUMXt7";
 
 const DAYS = [
   { day: 1,  date: "23 May", emoji: "🤔", title: "What is AI?",       desc: "Discover how AI already runs your phone, your music, and your city." },
@@ -133,34 +134,14 @@ function ProgressBar() {
   return <div style={{ position: "fixed", top: 0, left: 0, height: "2px", width: `${pct}%`, background: `linear-gradient(90deg, #40B1AC, #FB752F)`, zIndex: 300, transition: "width 0.1s linear" }} />;
 }
 
-// ── Inline Form Embed Component ─────────────────────────────────────────────
-function EmbeddedRegistrationForm() {
-  useEffect(() => {
-    // Check if the Formfacade script is already added to avoid duplicates
-    const scriptId = "formfacade-embed-script";
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement("script");
-      script.id = scriptId;
-      script.src = "https://formfacade.com/include/108886395256406977664/form/1FAIpQLSddlVySrrDWvRV5JarVWNBSYzvZEwAlBWoK8ZB20YJ1utElZQ/classic.js?div=ff-compose";
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-    }
-  }, []);
-
-  return (
-    <div style={{ background: "rgba(64,177,172,0.03)", borderRadius: 24, border: `1px solid ${C.border}`, overflow: "hidden", padding: "0px" }}>
-      <div id="ff-compose" style={{ minHeight: "650px", width: "100%" }} />
-    </div>
-  );
-}
-
-// ── Register Button (scrolls to embedded form) ──────────────────────────────
-function RegisterButton({ large, onClick }: { large?: boolean; onClick: () => void }) {
+// ── Big register button ───────────────────────────────────────────────────────
+function RegisterButton({ large }: { large?: boolean }) {
   const grad = `linear-gradient(135deg, ${C.teal}, ${C.pink})`;
   return (
-    <button
-      onClick={onClick}
+    <a
+      href={GOOGLE_FORM}
+      target="_blank"
+      rel="noopener noreferrer"
       style={{
         display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
         background: grad, color: "#fff", textDecoration: "none", borderRadius: 999,
@@ -169,25 +150,18 @@ function RegisterButton({ large, onClick }: { large?: boolean; onClick: () => vo
         boxShadow: `0 8px 36px rgba(64,177,172,0.4)`,
         transition: "transform 0.15s, box-shadow 0.15s",
         letterSpacing: "-0.01em",
-        border: "none",
-        cursor: "pointer",
       }}
       onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.04)"; e.currentTarget.style.boxShadow = "0 12px 48px rgba(64,177,172,0.55)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)";    e.currentTarget.style.boxShadow = "0 8px 36px rgba(64,177,172,0.4)"; }}
     >
       🎯 سجّل الآن · Register Now
-    </button>
+    </a>
   );
 }
 
 export default function PlulaiTunisiaPage() {
   const { days, hours, mins, secs } = useCountdown(DEADLINE);
   const [scrolled, setScrolled] = useState(false);
-  const registerSectionRef = useRef<HTMLDivElement>(null);
-
-  const scrollToRegister = () => {
-    registerSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
@@ -222,7 +196,7 @@ export default function PlulaiTunisiaPage() {
           <span style={{ fontWeight: 800, fontSize: "1.05rem", color: "#fff" }}>🚀 Plulai</span>
           <span style={{ fontSize: "0.68rem", color: C.muted, fontFamily: "monospace", display: scrolled ? "none" : "block" }}>× Lingoville × Business Success</span>
         </div>
-        <RegisterButton onClick={scrollToRegister} />
+        <RegisterButton />
       </nav>
 
       {/* BG GLOWS */}
@@ -265,9 +239,9 @@ export default function PlulaiTunisiaPage() {
 
           {/* HERO CTA */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, marginBottom: 60, animation: "fadeUp 0.5s 0.25s ease both" }}>
-            <RegisterButton large onClick={scrollToRegister} />
+            <RegisterButton large />
             <div style={{ fontSize: "0.75rem", color: C.muted }}>
-              Fill the form below to register · سجل من خلال النموذج أدناه
+              Opens Google Forms · يفتح نموذج التسجيل مباشرة
             </div>
           </div>
 
@@ -342,7 +316,7 @@ export default function PlulaiTunisiaPage() {
           <h2 style={sectionH2}>3 Simple Steps</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 16, marginTop: 40 }}>
             {[
-              { n: "01", emoji: "📝", en: "Register",       ar: "سجّل",            desc: "Fill the registration form below. In Sfax: pay in person at Lingoville, Rte Tunis." },
+              { n: "01", emoji: "📝", en: "Register",       ar: "سجّل",            desc: "Click Register Now, fill the Google Form in 2 minutes. In Sfax: pay in person at Lingoville, Rte Tunis." },
               { n: "02", emoji: "💻", en: "Learn Daily",     ar: "تعلّم كل يوم",    desc: "30–45 min per day on Plulai. Build AI skills, earn XP, and climb the leaderboard from May 23." },
               { n: "03", emoji: "🏆", en: "Win 5,000 DT",   ar: "اربح 5000 دينار", desc: "Submit your Day 10 project. The jury picks the top 3 and distributes the 5,000 DT prize pool." },
             ].map((s, i) => (
@@ -425,25 +399,42 @@ export default function PlulaiTunisiaPage() {
           </div>
         </section>
 
-        {/* REGISTRATION SECTION WITH EMBEDDED FORM */}
-        <section
-          id="register"
-          ref={registerSectionRef}
-          style={{ padding: "0 20px 120px", maxWidth: 860, margin: "0 auto", scrollMarginTop: 80 }}
-        >
+        {/* REGISTER CTA SECTION */}
+        <section id="register" style={{ padding: "0 20px 120px", maxWidth: 580, margin: "0 auto", scrollMarginTop: 80, textAlign: "center" }}>
           <SectionLabel>التسجيل · Registration</SectionLabel>
-          <h2 style={sectionH2}>Secure Your Spot Now</h2>
-          <p style={{ color: C.muted, fontSize: "0.88rem", marginTop: 10, marginBottom: 32, textAlign: "center" }}>
+          <h2 style={sectionH2}>Join the Competition</h2>
+          <p style={{ color: C.muted, fontSize: "0.86rem", marginTop: 10, marginBottom: 40 }}>
             انضم إلى البطولة — سجّل طفلك في دقيقتين<br />
             Base fee <strong style={{ color: "#fff" }}>20 DT</strong> · Schools &amp; partners <strong style={{ color: C.teal }}>50% off</strong> with code
           </p>
 
-          {/* Embedded Google Form via Formfacade */}
-          <EmbeddedRegistrationForm />
+          {/* Big card */}
+          <div style={{ background: `linear-gradient(135deg, rgba(64,177,172,0.08), rgba(251,117,47,0.05))`, border: `1px solid rgba(64,177,172,0.3)`, borderRadius: 28, padding: "44px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
+            <div style={{ fontSize: "3rem" }}>📋</div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: "1.2rem", color: "#fff", marginBottom: 6 }}>Register via Google Forms</div>
+              <div style={{ fontFamily: "'Noto Serif Arabic', serif", color: C.teal, fontSize: "0.95rem", direction: "rtl", marginBottom: 12 }}>سجّل عبر نموذج Google</div>
+              <div style={{ fontSize: "0.84rem", color: C.muted, lineHeight: 1.7 }}>
+                Fill in your child&apos;s details · takes under 2 minutes<br />
+                Payment link sent within 24 h · In Sfax: pay at Lingoville, Rte Tunis
+              </div>
+            </div>
+            <RegisterButton large />
+            <div style={{ fontSize: "0.72rem", color: "#3d6665", lineHeight: 1.6 }}>
+              By registering you confirm your child is aged 6–18 and agrees to Plulai&apos;s Terms.<br />
+              بالتسجيل تؤكد موافقتك على الشروط وأن عمر طفلك بين 6 و 18 سنة.
+            </div>
+          </div>
 
-          <div style={{ marginTop: 24, fontSize: "0.8rem", color: C.muted, textAlign: "center", borderTop: `1px solid ${C.border}`, paddingTop: 24 }}>
-            <p>After registration, you will receive a payment link within 24 hours (or pay in person at Lingoville, Rte Tunis, Sfax).</p>
-            <p style={{ marginTop: 8 }}>Questions? Contact us at <a href="mailto:hello@plulai.com" style={{ color: C.teal, textDecoration: "none" }}>hello@plulai.com</a> or call <a href="tel:+21626616500" style={{ color: C.teal, textDecoration: "none" }}>+216 26 616 500</a></p>
+          {/* Contact strip */}
+          <div style={{ marginTop: 24, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 16, fontSize: "0.8rem", color: C.muted }}>
+            <span>Questions? · أسئلة؟</span>
+            <a href="mailto:hello@plulai.com" style={{ color: C.teal, textDecoration: "none" }}>hello@plulai.com</a>
+            <span style={{ color: "#3d6665" }}>·</span>
+            <a href="https://plulai.com" style={{ color: C.teal, textDecoration: "none" }}>plulai.com</a>
+             <span style={{ color: "#3d6665" }}>·</span>
+            <a href="https://plulai.com" style={{ color: C.teal, textDecoration: "none" }}>+216 26 616 500</a>
+          
           </div>
         </section>
 
