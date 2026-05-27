@@ -35,6 +35,7 @@ const UI: Record<string, Record<string, string>> = {
     externalDesc: 'This activity takes place on another platform. Complete it there, then come back and mark this lesson done.',
     externalBtn: 'Open Activity',
     externalDone: 'Done? Come back here and mark complete ↓',
+    // new activities
     speedQuiz: '⚡ Speed Round',
     fillBlank: '✏️ Fill in the Blanks',
     unscramble: '🔀 Unscramble the Code',
@@ -55,6 +56,19 @@ const UI: Record<string, Record<string, string>> = {
     startTimer: 'Start Timer',
     submitChallenge: 'Submit',
     remixDesc: 'You nailed the basics. Now twist it.',
+    // drag & drop
+    dragDrop: '🧩 Drag & Drop',
+    dragInstruction: 'Drag each word into the correct slot',
+    wordBank: 'Word Bank',
+    resetWords: 'Reset',
+    // submit work
+    submitWork: '📤 Submit Your Work',
+    submitUrl: 'Project / website link',
+    submitVideo: 'Video demo link (YouTube, Loom…)',
+    submitPlaceholder: 'Paste your link here…',
+    submitBtn: 'Submit ✅',
+    submitDone: '🎉 Submitted! Great work.',
+    submitRequired: 'Please paste your link before submitting.',
   },
   ar: {
     back: '← الدروس', complete: '✅ علّم كمكتمل', completed: '✅ تم!',
@@ -98,6 +112,17 @@ const UI: Record<string, Record<string, string>> = {
     startTimer: 'ابدأ الموقت',
     submitChallenge: 'أرسل',
     remixDesc: 'أتقنت الأساسيات. الآن طوّرها.',
+    dragDrop: '🧩 اسحب وأفلت',
+    dragInstruction: 'اسحب كل كلمة إلى المكان الصحيح',
+    wordBank: 'بنك الكلمات',
+    resetWords: 'إعادة تعيين',
+    submitWork: '📤 أرسل عملك',
+    submitUrl: 'رابط المشروع / الموقع',
+    submitVideo: 'رابط الفيديو (YouTube، Loom…)',
+    submitPlaceholder: 'الصق رابطك هنا…',
+    submitBtn: 'أرسل ✅',
+    submitDone: '🎉 تم الإرسال! عمل رائع.',
+    submitRequired: 'الرجاء لصق رابطك قبل الإرسال.',
   },
   fr: {
     back: '← Leçons', complete: '✅ Marquer terminé', completed: '✅ Fait !',
@@ -141,6 +166,17 @@ const UI: Record<string, Record<string, string>> = {
     startTimer: 'Lancer le chrono',
     submitChallenge: 'Envoyer',
     remixDesc: 'Tu maîtrises les bases. Maintenant, adapte !',
+    dragDrop: '🧩 Glisser-Déposer',
+    dragInstruction: 'Glisse chaque mot dans le bon emplacement',
+    wordBank: 'Banque de mots',
+    resetWords: 'Réinitialiser',
+    submitWork: '📤 Soumettre ton travail',
+    submitUrl: 'Lien projet / site web',
+    submitVideo: 'Lien vidéo démo (YouTube, Loom…)',
+    submitPlaceholder: 'Colle ton lien ici…',
+    submitBtn: 'Envoyer ✅',
+    submitDone: '🎉 Envoyé ! Excellent travail.',
+    submitRequired: 'Colle ton lien avant d\'envoyer.',
   },
 }
 
@@ -197,6 +233,14 @@ interface Section {
   // remix
   twist?: string
   xp_bonus?: number
+  // drag_drop
+  word_bank?: string[]
+  targets?: Array<{ id: string; label: string; correct: string }>
+  // submit_work
+  submission_type?: 'url' | 'video' | 'both'
+  prompt?: string
+  placeholder?: string
+  required?: boolean
 }
 
 interface Props {
@@ -214,7 +258,7 @@ interface Props {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Speed Quiz
+// NEW ACTIVITY: Speed Quiz
 // ─────────────────────────────────────────────────────────────────────────────
 function SpeedQuizActivity({ s, t }: { s: Section; t: Record<string, string> }) {
   const questions = s.questions ?? []
@@ -308,6 +352,7 @@ function SpeedQuizActivity({ s, t }: { s: Section; t: Record<string, string> }) 
 
   return (
     <div className="bg-gradient-to-br from-accent5/10 to-accent1/10 border-2 border-accent5/30 rounded-2xl p-5 sm:p-6">
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-xs font-extrabold text-accent5 uppercase tracking-wider">{t.speedQuiz}</span>
         <div className="flex items-center gap-3">
@@ -320,7 +365,11 @@ function SpeedQuizActivity({ s, t }: { s: Section; t: Record<string, string> }) 
           </div>
         </div>
       </div>
+
+      {/* Question */}
       <p className="font-extrabold text-sm mb-4 leading-relaxed">{q.question}</p>
+
+      {/* Options */}
       <div className="space-y-2 mb-4">
         {q.options.map((opt, oi) => {
           let cls = 'border-white/10 bg-white/3 text-muted hover:border-white/25 hover:text-white cursor-pointer'
@@ -339,6 +388,8 @@ function SpeedQuizActivity({ s, t }: { s: Section; t: Record<string, string> }) 
           )
         })}
       </div>
+
+      {/* Action */}
       {!submitted ? (
         <button onClick={() => submitAnswer(selected)} disabled={selected === null}
           className="w-full py-2.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all">
@@ -357,6 +408,8 @@ function SpeedQuizActivity({ s, t }: { s: Section; t: Record<string, string> }) 
           </button>
         </div>
       )}
+
+      {/* Score tracker */}
       <div className="flex justify-between items-center mt-3">
         <span className="text-xs text-muted font-semibold">{t.score}: {score}</span>
         <div className="flex gap-1">
@@ -370,26 +423,18 @@ function SpeedQuizActivity({ s, t }: { s: Section; t: Record<string, string> }) 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Fill in the Blank — redesigned
+// NEW ACTIVITY: Fill in the Blank
 // ─────────────────────────────────────────────────────────────────────────────
 function FillBlankActivity({ s, t }: { s: Section; t: Record<string, string> }) {
-  const code   = s.code ?? ''
-  const blanks = s.blanks ?? []
-  const hints  = s.hints ?? []
-  const parts  = code.split('___')
-
-  const [inputs, setInputs]         = useState<string[]>(Array(blanks.length).fill(''))
-  const [checked, setChecked]       = useState(false)
-  const [results, setResults]       = useState<boolean[]>([])
-  const [revealedHints, setRevealedHints] = useState<boolean[]>(Array(hints.length).fill(false))
-  const [copied, setCopied]         = useState(false)
+  const code    = s.code ?? ''
+  const blanks  = s.blanks ?? []
+  const hints   = s.hints ?? []
+  const parts   = code.split('___')
+  const [inputs, setInputs]       = useState<string[]>(Array(blanks.length).fill(''))
+  const [checked, setChecked]     = useState(false)
+  const [results, setResults]     = useState<boolean[]>([])
+  const [showHints, setShowHints] = useState<boolean[]>(Array(blanks.length).fill(false))
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
-
-  const filledCount  = inputs.filter(v => v.trim()).length
-  const totalBlanks  = blanks.length
-  const progressPct  = totalBlanks > 0 ? Math.round((filledCount / totalBlanks) * 100) : 0
-  const allCorrect   = checked && results.length > 0 && results.every(Boolean)
-  const correctCount = results.filter(Boolean).length
 
   const check = () => {
     const res = inputs.map((v, i) => v.trim().toLowerCase() === blanks[i].toLowerCase())
@@ -401,257 +446,99 @@ function FillBlankActivity({ s, t }: { s: Section; t: Record<string, string> }) 
     setInputs(Array(blanks.length).fill(''))
     setResults([])
     setChecked(false)
-    inputRefs.current[0]?.focus()
+    setShowHints(Array(blanks.length).fill(false))
   }
 
-  const toggleHint = (i: number) => {
-    setRevealedHints(prev => { const n = [...prev]; n[i] = !n[i]; return n })
-  }
-
-  const copyCode = () => {
-    let full = code
-    blanks.forEach(b => { full = full.replace('___', b) })
-    navigator.clipboard.writeText(full).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, idx: number) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      const next = inputRefs.current[idx + 1]
-      if (next) next.focus()
-      else if (filledCount === totalBlanks) check()
-    }
-  }
-
-  const handleChange = (val: string, idx: number) => {
-    if (checked) return
-    const next = [...inputs]
-    next[idx] = val
-    setInputs(next)
-  }
-
-  // dot tracker state per blank
-  const getDotState = (i: number) => {
-    if (checked) return results[i] ? 'correct' : 'wrong'
-    if (inputs[i].trim()) return 'filled'
-    return 'empty'
-  }
-
+  const allCorrect = checked && results.every(Boolean)
   let blankIdx = 0
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-purple-500/25 bg-[#0b0b16]">
-
-      {/* ── Top bar ── */}
-      <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/2">
-        <div className="flex gap-1.5 flex-shrink-0">
+    <div className="bg-[#0b0b16] border border-purple-500/25 rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-white/8 bg-white/2">
+        <div className="flex gap-1.5">
           <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
           <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
           <div className="w-3 h-3 rounded-full bg-[#28c840]" />
         </div>
         <span className="text-xs font-bold text-purple-400">{t.fillBlank}</span>
-        {s.text && <span className="text-xs text-muted/60 ml-2 truncate flex-1">{s.text}</span>}
-        <button
-          onClick={copyCode}
-          className={cn(
-            'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ml-auto flex-shrink-0 border',
-            copied
-              ? 'bg-accent3/15 text-accent3 border-accent3/30'
-              : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white border-white/8'
-          )}
-          aria-label="Copy completed code"
-        >
-          {copied ? '✓ Copied!' : '⎘ Copy'}
-        </button>
+        {s.text && <span className="text-xs text-muted/60 ml-auto truncate max-w-xs">{s.text}</span>}
       </div>
 
-      {/* ── Blank tracker dots ── */}
-      <div className="flex items-center gap-2 px-4 sm:px-5 pt-4 pb-1">
-        <span className="text-xs text-muted/50 font-semibold flex-shrink-0">blanks</span>
-        <div className="flex gap-1.5 flex-wrap">
-          {Array.from({ length: totalBlanks }).map((_, i) => {
-            const state = getDotState(i)
-            return (
-              <button
-                key={i}
-                onClick={() => inputRefs.current[i]?.focus()}
-                aria-label={`Go to blank ${i + 1}`}
-                className={cn(
-                  'w-7 h-7 rounded-full text-xs font-extrabold border flex items-center justify-center transition-all',
-                  state === 'correct' && 'bg-accent3/20 border-accent3/50 text-accent3',
-                  state === 'wrong'   && 'bg-red-500/20 border-red-500/40 text-red-400',
-                  state === 'filled'  && 'bg-purple-500/20 border-purple-500/40 text-purple-300',
-                  state === 'empty'   && 'bg-white/4 border-white/10 text-white/20',
-                )}
-              >
-                {state === 'correct' ? '✓' : state === 'wrong' ? '✗' : i + 1}
-              </button>
-            )
-          })}
-        </div>
-        <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-          <div className="w-20 h-1.5 bg-white/8 rounded-full overflow-hidden">
-            <div
-              className={cn(
-                'h-full rounded-full transition-all duration-500',
-                allCorrect ? 'bg-accent3' : checked && !allCorrect ? 'bg-red-500' : 'bg-purple-500'
-              )}
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-          <span className="text-xs text-muted/50 tabular-nums font-semibold">{filledCount}/{totalBlanks}</span>
-        </div>
-      </div>
-
-      {/* ── Code with inline blank inputs ── */}
-      <div className="px-4 sm:px-5 pt-3 pb-4 font-mono text-sm leading-8 overflow-x-auto">
+      {/* Code with blanks */}
+      <div className="p-5 font-mono text-sm leading-8 overflow-x-auto">
         {parts.map((part, pi) => {
           const currentBlank = blankIdx
           if (pi < parts.length - 1) blankIdx++
-
-          const isCorrect = checked && results[currentBlank] === true
-          const isWrong   = checked && results[currentBlank] === false
-          const answerLen = blanks[currentBlank]?.length ?? 4
-          const inputWidth = Math.max(answerLen * 11 + 28, 52)
-
+          const isCorrect = checked && results[currentBlank]
+          const isWrong   = checked && !results[currentBlank]
           return (
             <React.Fragment key={pi}>
-              {/* Code text */}
               <span className="text-green-300 whitespace-pre">{part}</span>
-
-              {/* Blank input */}
               {pi < parts.length - 1 && (
-                <span className="relative inline-flex items-center mx-0.5">
-                  <input
-                    ref={el => { inputRefs.current[currentBlank] = el }}
-                    value={inputs[currentBlank]}
-                    onChange={e => handleChange(e.target.value, currentBlank)}
-                    onKeyDown={e => handleKeyDown(e, currentBlank)}
-                    disabled={checked && isCorrect}
-                    readOnly={checked && isCorrect}
-                    spellCheck={false}
-                    autoComplete="off"
-                    autoCorrect="off"
-                    placeholder={`_${currentBlank + 1}_`}
-                    aria-label={`Blank ${currentBlank + 1}`}
-                    style={{ width: `${inputWidth}px` }}
-                    className={cn(
-                      'inline-block text-center font-mono text-sm font-bold px-1 py-0 outline-none transition-all duration-200',
-                      // underline style — no full border box
-                      'bg-transparent border-0 border-b-2 rounded-none',
-                      // states
-                      isCorrect
-                        ? 'border-accent3 text-accent3 bg-accent3/8 rounded-t-md'
-                        : isWrong
-                        ? 'border-red-500 text-red-400 bg-red-500/8 rounded-t-md animate-[shake_0.3s_ease]'
-                        : inputs[currentBlank].trim()
-                        ? 'border-purple-400 text-white focus:border-purple-300 focus:bg-purple-500/8 focus:rounded-t-md'
-                        : 'border-white/25 text-white/60 focus:border-purple-400 focus:text-white focus:bg-purple-500/8 focus:rounded-t-md',
-                    )}
-                  />
-                  {/* Icon after submit */}
-                  {checked && (
-                    <span
-                      className={cn(
-                        'absolute -right-4 top-1/2 -translate-y-1/2 text-xs font-extrabold pointer-events-none transition-opacity',
-                        isCorrect ? 'text-accent3 opacity-100' : 'text-red-400 opacity-100'
-                      )}
-                    >
-                      {isCorrect ? '✓' : '✗'}
-                    </span>
+                <input
+                  ref={el => { inputRefs.current[currentBlank] = el }}
+                  value={inputs[currentBlank]}
+                  onChange={e => {
+                    const next = [...inputs]; next[currentBlank] = e.target.value
+                    setInputs(next); setChecked(false); setResults([])
+                  }}
+                  onKeyDown={e => { if (e.key === 'Enter') { const next = inputRefs.current[currentBlank + 1]; if (next) next.focus(); else check() } }}
+                  disabled={checked && isCorrect}
+                  className={cn(
+                    'inline-block px-2 py-0.5 rounded-md border text-sm font-mono font-bold text-center transition-all outline-none',
+                    'min-w-[80px]',
+                    isCorrect ? 'bg-accent3/20 border-accent3/60 text-accent3' :
+                    isWrong   ? 'bg-red-500/20 border-red-500/50 text-red-400' :
+                                'bg-white/8 border-white/20 text-white focus:border-purple-400/60 focus:bg-purple-500/10'
                   )}
-                </span>
+                  style={{ width: `${Math.max(blanks[currentBlank]?.length * 10 + 24, 80)}px` }}
+                  placeholder="___"
+                  spellCheck={false}
+                  autoComplete="off"
+                />
               )}
             </React.Fragment>
           )
         })}
       </div>
 
-      {/* ── Hints ── */}
+      {/* Hints row */}
       {hints.length > 0 && (
-        <div className="px-4 sm:px-5 pb-4 border-t border-white/5 pt-3">
-          <p className="text-xs font-bold text-muted/50 uppercase tracking-wider mb-2">hints</p>
-          <div className="flex flex-wrap gap-2">
-            {hints.map((hint, i) => (
-              <button
-                key={i}
-                onClick={() => toggleHint(i)}
-                className={cn(
-                  'inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all',
-                  revealedHints[i]
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                    : 'bg-white/4 border-white/10 text-muted hover:border-purple-500/30 hover:text-purple-300'
-                )}
-              >
-                <span>{revealedHints[i] ? '🙈' : '💡'}</span>
-                <span>{revealedHints[i] ? hint : `Hint ${i + 1}`}</span>
+        <div className="px-5 pb-3 flex flex-wrap gap-2">
+          {hints.map((hint, i) => (
+            <div key={i}>
+              <button onClick={() => { const n = [...showHints]; n[i] = !n[i]; setShowHints(n) }}
+                className="text-xs font-bold text-amber-400/70 hover:text-amber-400 transition-colors">
+                {showHints[i] ? t.hideHint : `${t.showHint} ${i + 1}`}
               </button>
-            ))}
-          </div>
+              {showHints[i] && <span className="ml-2 text-xs text-muted italic">→ {hint}</span>}
+            </div>
+          ))}
         </div>
       )}
 
-      {/* ── Result banner ── */}
-      {checked && (
-        <div className={cn(
-          'mx-4 sm:mx-5 mb-4 flex items-start gap-3 px-4 py-3 rounded-xl border',
-          allCorrect
-            ? 'bg-accent3/10 border-accent3/30'
-            : 'bg-red-500/8 border-red-500/20'
-        )}>
-          <span className="text-lg flex-shrink-0 mt-0.5">{allCorrect ? '✅' : '❌'}</span>
-          <div>
-            <p className={cn('text-sm font-extrabold', allCorrect ? 'text-accent3' : 'text-red-400')}>
-              {allCorrect
-                ? 'Perfect! Every blank is correct.'
-                : `${correctCount} of ${totalBlanks} correct — check the red ones.`}
-            </p>
-            {!allCorrect && (
-              <p className="text-xs text-muted font-semibold mt-0.5">
-                Use the hints or revisit the code above — try again when you are ready.
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── Footer actions ── */}
-      <div className="px-4 sm:px-5 py-4 border-t border-white/5 flex items-center justify-between gap-3">
-        <p className="text-xs text-muted/50 font-semibold">
-          {!checked
-            ? filledCount < totalBlanks
-              ? `${totalBlanks - filledCount} blank${totalBlanks - filledCount !== 1 ? 's' : ''} remaining`
-              : 'Ready — press Enter or check answers ↓'
-            : allCorrect
-            ? '🎉 All done!'
-            : `${totalBlanks - correctCount} to fix`}
-        </p>
-        <div className="flex items-center gap-2">
+      {/* Footer */}
+      <div className="px-5 py-4 border-t border-white/5 flex items-center justify-between gap-3">
+        {allCorrect ? (
+          <p className="text-sm font-extrabold text-accent3">✅ Perfect! Every blank is correct.</p>
+        ) : checked && !allCorrect ? (
+          <p className="text-sm font-bold text-red-400">
+            {results.filter(Boolean).length}/{blanks.length} correct — check the red ones
+          </p>
+        ) : (
+          <p className="text-xs text-muted/50">Fill all blanks then check</p>
+        )}
+        <div className="flex gap-2">
           {checked && !allCorrect && (
-            <button
-              onClick={reset}
-              className="px-4 py-2 rounded-xl text-xs font-extrabold border border-white/10 text-muted hover:text-white hover:border-white/25 transition-all"
-            >
+            <button onClick={reset} className="px-4 py-2 rounded-xl text-xs font-extrabold border border-white/10 text-muted hover:text-white transition-all">
               Reset
             </button>
           )}
-          {!allCorrect && (
-            <button
-              onClick={check}
-              disabled={filledCount < totalBlanks || allCorrect}
-              className={cn(
-                'px-5 py-2 rounded-xl text-xs font-extrabold border transition-all',
-                filledCount === totalBlanks && !allCorrect
-                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/30 hover:bg-purple-500/30'
-                  : 'bg-white/4 text-muted/40 border-white/5 cursor-not-allowed'
-              )}
-            >
-              {t.checkAnswer}
-            </button>
-          )}
+          <button onClick={check} disabled={inputs.some(v => !v.trim()) || allCorrect}
+            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+            {t.checkAnswer}
+          </button>
         </div>
       </div>
     </div>
@@ -659,7 +546,7 @@ function FillBlankActivity({ s, t }: { s: Section; t: Record<string, string> }) 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Unscramble
+// NEW ACTIVITY: Unscramble
 // ─────────────────────────────────────────────────────────────────────────────
 function UnscrambleActivity({ s, t }: { s: Section; t: Record<string, string> }) {
   const correctOrder = s.correct_order ?? (s.lines ?? []).map((_, i) => i)
@@ -732,12 +619,16 @@ function UnscrambleActivity({ s, t }: { s: Section; t: Record<string, string> })
                 dragging === i       ? 'border-cyan-400/40 bg-cyan-500/8 opacity-50' :
                                        'border-white/8 bg-white/3 hover:border-white/15'
               )}>
+              {/* Line number */}
               <span className="text-xs font-mono text-white/20 w-4 flex-shrink-0">{i + 1}</span>
+              {/* Drag handle */}
               <span className="text-white/20 text-xs flex-shrink-0">⠿</span>
+              {/* Code line */}
               <code className={cn(
                 'flex-1 text-sm font-mono whitespace-pre',
                 lineCorrect ? 'text-accent3' : lineWrong ? 'text-red-400' : 'text-green-300'
               )}>{lines[lineIdx]}</code>
+              {/* Move buttons for touch */}
               <div className="flex flex-col gap-0.5 flex-shrink-0">
                 <button onClick={() => moveUp(i)} disabled={i === 0} className="text-white/20 hover:text-white/60 disabled:opacity-10 text-xs leading-none transition-colors">▲</button>
                 <button onClick={() => moveDown(i)} disabled={i === order.length - 1} className="text-white/20 hover:text-white/60 disabled:opacity-10 text-xs leading-none transition-colors">▼</button>
@@ -768,7 +659,7 @@ function UnscrambleActivity({ s, t }: { s: Section; t: Record<string, string> })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Bug Hunt
+// NEW ACTIVITY: Bug Hunt
 // ─────────────────────────────────────────────────────────────────────────────
 function DebugActivity({ s, t }: { s: Section; t: Record<string, string> }) {
   const bugs      = s.bugs ?? []
@@ -787,6 +678,7 @@ function DebugActivity({ s, t }: { s: Section; t: Record<string, string> }) {
 
   return (
     <div className="bg-[#0b0b16] border border-red-500/30 rounded-2xl overflow-hidden">
+      {/* Header */}
       <div className="flex items-center gap-3 px-5 py-3 border-b border-white/8 bg-red-950/20">
         <div className="flex gap-1.5">
           <div className="w-3 h-3 rounded-full bg-[#ff5f57] animate-pulse" />
@@ -797,8 +689,10 @@ function DebugActivity({ s, t }: { s: Section; t: Record<string, string> }) {
         <span className="ml-auto text-xs text-red-400/60">{bugs.length} bug{bugs.length !== 1 ? 's' : ''} hidden</span>
       </div>
 
+      {/* Description */}
       {s.text && <p className="px-5 pt-4 text-sm text-muted font-semibold">{s.text}</p>}
 
+      {/* Broken code display */}
       <div className="relative">
         <pre className="px-5 py-4 text-sm font-mono text-red-300/90 leading-7 overflow-x-auto whitespace-pre">
           {code}
@@ -810,6 +704,7 @@ function DebugActivity({ s, t }: { s: Section; t: Record<string, string> }) {
         </button>
       </div>
 
+      {/* Bug checklist */}
       <div className="px-5 py-4 border-t border-white/5 space-y-2">
         <p className="text-xs font-extrabold text-red-400 uppercase tracking-wider mb-3">
           Find and fix each bug, then check it off:
@@ -830,6 +725,7 @@ function DebugActivity({ s, t }: { s: Section; t: Record<string, string> }) {
         ))}
       </div>
 
+      {/* Hints */}
       {hints.length > 0 && (
         <div className="px-5 pb-4 flex flex-wrap gap-2 border-t border-white/5 pt-3">
           {hints.map((hint, i) => (
@@ -844,6 +740,7 @@ function DebugActivity({ s, t }: { s: Section; t: Record<string, string> }) {
         </div>
       )}
 
+      {/* Result */}
       {allFixed && (
         <div className="px-5 pb-5">
           <div className="bg-accent3/10 border border-accent3/30 rounded-xl p-4 text-center">
@@ -856,7 +753,7 @@ function DebugActivity({ s, t }: { s: Section; t: Record<string, string> }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Timed Challenge
+// NEW ACTIVITY: Timed Challenge
 // ─────────────────────────────────────────────────────────────────────────────
 function TimedChallengeActivity({ s, t, lessonTitle }: { s: Section; t: Record<string, string>; lessonTitle: string }) {
   const duration  = s.duration_seconds ?? 300
@@ -942,6 +839,7 @@ function TimedChallengeActivity({ s, t, lessonTitle }: { s: Section; t: Record<s
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xl">⏱️</span>
         <span className="text-xs font-extrabold text-accent2 uppercase tracking-wider">{t.timedChallenge}</span>
+        {/* Live timer */}
         <div className="ml-auto flex items-center gap-2">
           <div className="w-32 h-2.5 bg-white/10 rounded-full overflow-hidden">
             <div className={cn('h-full rounded-full bg-gradient-to-r transition-all duration-1000', timerColor)} style={{ width: `${pct}%` }} />
@@ -968,7 +866,7 @@ function TimedChallengeActivity({ s, t, lessonTitle }: { s: Section; t: Record<s
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Remix Challenge
+// NEW ACTIVITY: Remix Challenge
 // ─────────────────────────────────────────────────────────────────────────────
 function RemixActivity({ s, t, lessonTitle }: { s: Section; t: Record<string, string>; lessonTitle: string }) {
   const [unlocked, setUnlocked] = useState(false)
@@ -1009,7 +907,356 @@ function RemixActivity({ s, t, lessonTitle }: { s: Section; t: Record<string, st
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
+// NEW ACTIVITY: Drag & Drop — word bank → labelled slots
+// ─────────────────────────────────────────────────────────────────────────────
+function DragDropActivity({ s, t }: { s: Section; t: Record<string, string> }) {
+  const targets   = s.targets ?? []
+  const wordBank  = s.word_bank ?? targets.map(tgt => tgt.correct)
+
+  // Shuffle word bank on mount
+  const [bank, setBank]     = useState<string[]>(() => {
+    const arr = [...wordBank]
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    return arr
+  })
+  const [slots, setSlots]   = useState<Record<string, string>>({})  // targetId → word
+  const [dragging, setDragging] = useState<{ word: string; from: 'bank' | string } | null>(null)
+  const [checked, setChecked]   = useState(false)
+  const [results, setResults]   = useState<Record<string, boolean>>({})
+
+  const check = () => {
+    const res: Record<string, boolean> = {}
+    targets.forEach(tgt => { res[tgt.id] = (slots[tgt.id] ?? '') === tgt.correct })
+    setResults(res)
+    setChecked(true)
+  }
+
+  const reset = () => {
+    setSlots({})
+    setBank(() => {
+      const arr = [...wordBank]
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]]
+      }
+      return arr
+    })
+    setChecked(false)
+    setResults({})
+    setDragging(null)
+  }
+
+  // Drop onto a slot
+  const dropOnSlot = (targetId: string) => {
+    if (!dragging) return
+    const word = dragging.word
+    const from = dragging.from
+    setSlots(prev => {
+      const next = { ...prev }
+      // If slot already has a word, send it back to bank
+      const evicted = next[targetId]
+      next[targetId] = word
+      // Remove from old slot if dragging from a slot
+      if (from !== 'bank') delete next[from]
+      // Add evicted word back to bank
+      if (evicted) setBank(b => [...b, evicted])
+      return next
+    })
+    // Remove word from bank if dragged from bank
+    if (from === 'bank') setBank(b => b.filter(w => w !== word))
+    setDragging(null)
+    setChecked(false)
+    setResults({})
+  }
+
+  // Drop back onto bank
+  const dropOnBank = () => {
+    if (!dragging || dragging.from === 'bank') return
+    const { word, from } = dragging
+    setSlots(prev => { const next = { ...prev }; delete next[from]; return next })
+    setBank(b => [...b, word])
+    setDragging(null)
+  }
+
+  const allFilled = targets.every(tgt => slots[tgt.id])
+  const allCorrect = checked && targets.every(tgt => results[tgt.id])
+
+  return (
+    <div className="bg-[#0b0b16] border border-violet-500/25 rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-white/8 bg-white/2">
+        <div className="flex gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+          <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
+          <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+        </div>
+        <span className="text-xs font-bold text-violet-400">{t.dragDrop}</span>
+        {s.text && <span className="text-xs text-muted/60 ml-auto truncate max-w-xs">{s.text}</span>}
+      </div>
+
+      <div className="p-5 space-y-6">
+        {/* Instruction */}
+        <p className="text-xs font-semibold text-muted/70">
+          {s.instructions ?? t.dragInstruction}
+        </p>
+
+        {/* Drop slots */}
+        <div className="space-y-3">
+          {targets.map(tgt => {
+            const filled    = slots[tgt.id]
+            const isCorrect = checked && results[tgt.id]
+            const isWrong   = checked && !results[tgt.id] && !!filled
+            return (
+              <div key={tgt.id}
+                onDragOver={e => e.preventDefault()}
+                onDrop={() => dropOnSlot(tgt.id)}
+                className="flex items-center gap-3">
+                {/* Label */}
+                <div className="min-w-[120px] sm:min-w-[160px] text-right">
+                  <code className="text-sm font-mono text-green-300 whitespace-pre">{tgt.label}</code>
+                </div>
+                <span className="text-muted/40 font-mono text-sm flex-shrink-0">→</span>
+                {/* Drop zone */}
+                <div className={cn(
+                  'flex-1 min-h-[40px] rounded-xl border-2 border-dashed flex items-center px-3 transition-all',
+                  filled
+                    ? isCorrect ? 'border-accent3/50 bg-accent3/10'
+                    : isWrong   ? 'border-red-500/50 bg-red-500/10'
+                    :             'border-violet-400/50 bg-violet-500/10'
+                    : dragging   ? 'border-violet-400/50 bg-violet-500/5 scale-[1.01]'
+                    :              'border-white/15 bg-white/3'
+                )}>
+                  {filled ? (
+                    <div
+                      draggable
+                      onDragStart={() => setDragging({ word: filled, from: tgt.id })}
+                      className={cn(
+                        'px-3 py-1 rounded-lg text-sm font-bold cursor-grab active:cursor-grabbing select-none',
+                        isCorrect ? 'bg-accent3/20 text-accent3'
+                        : isWrong ? 'bg-red-500/20 text-red-400'
+                        :           'bg-violet-500/20 text-violet-300'
+                      )}>
+                      {filled}
+                      {checked && (isCorrect ? ' ✓' : ' ✗')}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-white/20 font-semibold">Drop here</span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Word bank */}
+        <div
+          onDragOver={e => e.preventDefault()}
+          onDrop={dropOnBank}
+          className="min-h-[52px] rounded-xl border border-white/8 bg-white/2 p-3">
+          <p className="text-xs font-extrabold text-muted/50 uppercase tracking-wider mb-2">{t.wordBank}</p>
+          <div className="flex flex-wrap gap-2">
+            {bank.length === 0 && (
+              <span className="text-xs text-white/20 italic">All words placed — drag back to swap</span>
+            )}
+            {bank.map((word, i) => (
+              <div key={`${word}-${i}`}
+                draggable
+                onDragStart={() => setDragging({ word, from: 'bank' })}
+                className="px-3 py-1.5 rounded-lg text-sm font-bold bg-violet-500/15 text-violet-300 border border-violet-500/25 cursor-grab active:cursor-grabbing select-none hover:bg-violet-500/25 transition-all">
+                {word}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Result message */}
+        {allCorrect && (
+          <div className="bg-accent3/10 border border-accent3/30 rounded-xl p-4 text-center">
+            <p className="text-sm font-extrabold text-accent3">✅ Perfect! Every word is in the right place.</p>
+          </div>
+        )}
+        {checked && !allCorrect && (
+          <div className="bg-red-500/8 border border-red-500/20 rounded-xl p-3 text-center">
+            <p className="text-sm font-bold text-red-400">
+              {Object.values(results).filter(Boolean).length}/{targets.length} correct — drag and swap the wrong ones
+            </p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center justify-between">
+          <button onClick={reset}
+            className="text-xs font-bold text-muted hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-all hover:border-white/25">
+            {t.resetWords}
+          </button>
+          <button onClick={check} disabled={!allFilled || allCorrect}
+            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-violet-500/20 text-violet-300 border border-violet-500/30 hover:bg-violet-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+            {t.checkAnswer}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW ACTIVITY: Submit Your Work — kids paste project / video links
+// ─────────────────────────────────────────────────────────────────────────────
+function SubmitWorkActivity({
+  s, t, userId, lessonId,
+}: {
+  s: Section; t: Record<string, string>; userId: string; lessonId: string
+}) {
+  const subType = s.submission_type ?? 'both'
+  const [urlVal, setUrlVal]     = useState('')
+  const [videoVal, setVideoVal] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError]         = useState('')
+  const [loading, setLoading]     = useState(false)
+
+  const validate = (val: string) => {
+    try { new URL(val); return true } catch { return false }
+  }
+
+  const handleSubmit = async () => {
+    const urlOk   = subType !== 'video' ? validate(urlVal)   : true
+    const videoOk = subType !== 'url'   ? validate(videoVal) : true
+
+    if (subType === 'url'   && !urlOk)               { setError(t.submitRequired); return }
+    if (subType === 'video' && !videoOk)              { setError(t.submitRequired); return }
+    if (subType === 'both'  && !urlOk && !videoOk)    { setError(t.submitRequired); return }
+
+    setError('')
+    setLoading(true)
+    try {
+      // Save submission to Supabase via API route
+      await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId, lessonId,
+          projectUrl: urlVal   || null,
+          videoUrl:   videoVal || null,
+        }),
+      })
+      setSubmitted(true)
+    } catch {
+      setError('Could not save — check your connection and try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (submitted) return (
+    <div className="bg-gradient-to-br from-accent3/10 to-accent4/10 border-2 border-accent3/30 rounded-2xl p-6 text-center">
+      <div className="text-5xl mb-3">🎉</div>
+      <h3 className="font-extrabold text-lg text-accent3 mb-2">{t.submitDone}</h3>
+      <p className="text-sm text-muted font-semibold">Your work has been saved to your portfolio.</p>
+      {urlVal && (
+        <a href={urlVal} target="_blank" rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 mt-4 text-xs font-bold text-accent5 hover:text-white transition-colors">
+          🔗 View project ↗
+        </a>
+      )}
+      {videoVal && (
+        <a href={videoVal} target="_blank" rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 mt-2 ml-4 text-xs font-bold text-accent5 hover:text-white transition-colors">
+          🎥 Watch video ↗
+        </a>
+      )}
+    </div>
+  )
+
+  return (
+    <div className="bg-gradient-to-br from-accent2/8 to-accent1/8 border-2 border-accent2/30 rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-white/8 bg-white/2">
+        <span className="text-2xl">📤</span>
+        <div>
+          <p className="font-extrabold text-sm text-accent2">{t.submitWork}</p>
+          {s.prompt && <p className="text-xs text-muted font-semibold mt-0.5">{s.prompt}</p>}
+        </div>
+      </div>
+
+      <div className="p-5 space-y-4">
+        {/* What to submit context */}
+        {s.text && (
+          <div className="bg-white/3 border border-white/8 rounded-xl p-4">
+            <p className="text-sm font-semibold text-muted leading-relaxed">{s.text}</p>
+          </div>
+        )}
+
+        {/* URL input */}
+        {(subType === 'url' || subType === 'both') && (
+          <div>
+            <label className="block text-xs font-extrabold text-accent2 uppercase tracking-wider mb-2">
+              🔗 {t.submitUrl}
+            </label>
+            <input
+              type="url"
+              value={urlVal}
+              onChange={e => { setUrlVal(e.target.value); setError('') }}
+              placeholder={s.placeholder ?? t.submitPlaceholder}
+              className="w-full bg-white/4 border border-white/12 rounded-xl px-4 py-3 text-sm font-semibold text-white placeholder:text-white/25 outline-none focus:border-accent2/50 focus:bg-accent2/5 transition-all"
+            />
+            {urlVal && !validate(urlVal) && (
+              <p className="text-xs text-red-400 font-semibold mt-1.5">That doesn&apos;t look like a valid URL — make sure it starts with https://</p>
+            )}
+          </div>
+        )}
+
+        {/* Video input */}
+        {(subType === 'video' || subType === 'both') && (
+          <div>
+            <label className="block text-xs font-extrabold text-accent2 uppercase tracking-wider mb-2">
+              🎥 {t.submitVideo}
+            </label>
+            <input
+              type="url"
+              value={videoVal}
+              onChange={e => { setVideoVal(e.target.value); setError('') }}
+              placeholder="https://loom.com/share/… or https://youtube.com/…"
+              className="w-full bg-white/4 border border-white/12 rounded-xl px-4 py-3 text-sm font-semibold text-white placeholder:text-white/25 outline-none focus:border-accent2/50 focus:bg-accent2/5 transition-all"
+            />
+            {videoVal && !validate(videoVal) && (
+              <p className="text-xs text-red-400 font-semibold mt-1.5">That doesn&apos;t look like a valid URL — paste the full link</p>
+            )}
+            {/* Loom tip */}
+            <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-white/3 rounded-lg border border-white/6">
+              <span className="text-sm flex-shrink-0">💡</span>
+              <p className="text-xs text-muted/70 font-semibold leading-relaxed">
+                No video yet? Record a 90-second screen demo on{' '}
+                <a href="https://loom.com" target="_blank" rel="noopener noreferrer" className="text-accent5 hover:text-white transition-colors">Loom.com</a>
+                {' '}— free, no install, works in your browser.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <p className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>
+        )}
+
+        {/* Submit button */}
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full py-3.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-accent2 to-accent1 text-black hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent2/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+          {loading ? '⏳ Saving…' : t.submitBtn}
+        </button>
+
+        <p className="text-xs text-center text-muted/50 font-semibold">
+          Your submission is saved to your Plulai portfolio and visible to your teacher.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LessonViewClient({
   userId, lesson, skill, completion, totalLessons, lessonIndex,
@@ -1129,6 +1376,7 @@ export default function LessonViewClient({
   const renderSection = (s: Section, idx: number) => {
     switch (s.type) {
 
+      // ── INTRO / READING ──────────────────────────────────
       case 'intro':
       case 'reading':
         return (
@@ -1141,6 +1389,7 @@ export default function LessonViewClient({
           </div>
         )
 
+      // ── ANALOGY ──────────────────────────────────────────
       case 'analogy':
         return (
           <div key={idx} className="bg-gradient-to-br from-accent4/10 to-accent5/10 border border-accent4/25 rounded-2xl p-4 sm:p-6">
@@ -1149,6 +1398,7 @@ export default function LessonViewClient({
           </div>
         )
 
+      // ── TIP ──────────────────────────────────────────────
       case 'tip':
         return (
           <div key={idx} className="bg-accent2/8 border border-accent2/25 rounded-2xl p-4 sm:p-5 flex gap-3">
@@ -1160,6 +1410,7 @@ export default function LessonViewClient({
           </div>
         )
 
+      // ── CODE (static) ─────────────────────────────────────
       case 'code':
         return (
           <div key={idx} className="bg-[#0d1117] border border-white/10 rounded-2xl overflow-hidden">
@@ -1182,6 +1433,7 @@ export default function LessonViewClient({
           </div>
         )
 
+      // ── CODE EDITOR (read-only + copy) ────────────────────
       case 'code_editor':
         return (
           <div key={idx} className="bg-[#0b0b16] border border-emerald-500/20 rounded-2xl overflow-hidden max-w-full">
@@ -1226,6 +1478,7 @@ export default function LessonViewClient({
           </div>
         )
 
+      // ── QUIZ ─────────────────────────────────────────────
       case 'quiz': {
         const state     = quizState[idx] ?? { selected: null, submitted: false }
         const penalty   = penaltyTimer[idx] ?? 0
@@ -1290,6 +1543,7 @@ export default function LessonViewClient({
         )
       }
 
+      // ── STEPS ────────────────────────────────────────────
       case 'steps':
         return (
           <div key={idx} className="bg-card border border-white/8 rounded-2xl p-4 sm:p-6">
@@ -1309,6 +1563,7 @@ export default function LessonViewClient({
           </div>
         )
 
+      // ── CHALLENGE ────────────────────────────────────────
       case 'challenge':
         return (
           <div key={idx} className="bg-gradient-to-br from-accent2/8 to-accent1/8 border-2 border-accent2/30 rounded-2xl p-4 sm:p-6">
@@ -1341,6 +1596,7 @@ export default function LessonViewClient({
           </div>
         )
 
+      // ── CALLOUT ──────────────────────────────────────────
       case 'callout': {
         const variant = s.variant ?? 'note'
         const styles = {
@@ -1361,6 +1617,7 @@ export default function LessonViewClient({
         )
       }
 
+      // ── COMPARISON ───────────────────────────────────────
       case 'comparison':
         return (
           <div key={idx} className="bg-card border border-white/8 rounded-2xl overflow-hidden">
@@ -1388,6 +1645,7 @@ export default function LessonViewClient({
           </div>
         )
 
+      // ── CHECKLIST ────────────────────────────────────────
       case 'checklist': {
         const checks  = s.checks ?? []
         const states  = checkState[idx] ?? Array(checks.length).fill(false)
@@ -1416,6 +1674,7 @@ export default function LessonViewClient({
         )
       }
 
+      // ── VIDEO ────────────────────────────────────────────
       case 'video': {
         const embedUrl = s.url ? getVideoEmbed(s.url) : null
         return (
@@ -1444,6 +1703,7 @@ export default function LessonViewClient({
         )
       }
 
+      // ── WEBSITE EMBED ─────────────────────────────────────
       case 'website': {
         const iframeSrc   = s.embed_url ?? s.url ?? ''
         const frameHeight = s.height ?? 500
@@ -1479,6 +1739,7 @@ export default function LessonViewClient({
         )
       }
 
+      // ── IMAGE ────────────────────────────────────────────
       case 'image':
         return (
           <div key={idx} className="bg-card border border-white/8 rounded-2xl overflow-hidden">
@@ -1498,6 +1759,7 @@ export default function LessonViewClient({
           </div>
         )
 
+      // ── EXTERNAL ACTIVITY ────────────────────────────────
       case 'external': {
         const platformIcons: Record<string, string> = {
           jupyter: '📓', replit: '💻', scratch: '🐱', 'code.org': '💡',
@@ -1532,23 +1794,37 @@ export default function LessonViewClient({
         )
       }
 
+      // ── NEW: SPEED QUIZ ───────────────────────────────────
       case 'speed_quiz':
         return <div key={idx}><SpeedQuizActivity s={s} t={t} /></div>
 
+      // ── NEW: FILL IN THE BLANK ────────────────────────────
       case 'fill_blank':
         return <div key={idx}><FillBlankActivity s={s} t={t} /></div>
 
+      // ── NEW: DRAG & DROP ──────────────────────────────────
+      case 'drag_drop':
+        return <div key={idx}><DragDropActivity s={s} t={t} /></div>
+
+      // ── NEW: UNSCRAMBLE ───────────────────────────────────
       case 'unscramble':
         return <div key={idx}><UnscrambleActivity s={s} t={t} /></div>
 
+      // ── NEW: BUG HUNT ─────────────────────────────────────
       case 'debug':
         return <div key={idx}><DebugActivity s={s} t={t} /></div>
 
+      // ── NEW: TIMED CHALLENGE ──────────────────────────────
       case 'timed_challenge':
         return <div key={idx}><TimedChallengeActivity s={s} t={t} lessonTitle={lesson.title} /></div>
 
+      // ── NEW: REMIX ────────────────────────────────────────
       case 'remix':
         return <div key={idx}><RemixActivity s={s} t={t} lessonTitle={lesson.title} /></div>
+
+      // ── NEW: SUBMIT WORK ──────────────────────────────────
+      case 'submit_work':
+        return <div key={idx}><SubmitWorkActivity s={s} t={t} userId={userId} lessonId={lesson.id} /></div>
 
       default:
         return null
