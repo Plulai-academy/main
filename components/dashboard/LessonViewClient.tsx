@@ -611,7 +611,7 @@ function FillBlankActivity({ s, t }: { s: Section; t: Record<string, string> }) 
             </p>
             {!allCorrect && (
               <p className="text-xs text-muted font-semibold mt-0.5">
-                Use the hints or revisit the code above — try again when you're ready.
+                Use the hints or revisit the code above — try again when you are ready.
               </p>
             )}
           </div>
