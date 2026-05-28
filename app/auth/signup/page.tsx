@@ -12,6 +12,14 @@ import { cn } from '@/lib/utils'
 const schema = z.object({
   displayName: z.string().min(2, 'Name must be at least 2 characters').max(30),
   email:       z.string().email('Please enter a valid email'),
+  phone:       z
+    .string()
+    .optional()
+    .transform(v => v?.trim() || undefined)
+    .refine(v => {
+      if (!v) return true // optional
+      return /^[\d\s\+\-\(\)]{6,20}$/.test(v)
+    }, 'Please enter a valid phone number'),
   password:    z.string().min(8, 'Password must be at least 8 characters'),
   confirm:     z.string(),
   agreeTerms:  z.boolean().refine((v: boolean) => v, 'You must agree to continue'),
@@ -25,8 +33,8 @@ type FormData = z.infer<typeof schema>
 export default function SignupPage() {
   const router = useRouter()
   const [serverError, setServerError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [success, setSuccess]         = useState(false)
+  const [loading, setLoading]         = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -37,7 +45,12 @@ export default function SignupPage() {
   const onSubmit = async (values: FormData) => {
     setLoading(true)
     setServerError('')
-    const { error } = await signUp(values.email, values.password, values.displayName)
+    const { error } = await signUp(
+      values.email,
+      values.password,
+      values.displayName,
+      values.phone        // ← phone passed through
+    )
     if (error) {
       if (error.message.includes('already registered')) {
         setServerError('This email is already registered. Try logging in instead!')
@@ -85,7 +98,7 @@ export default function SignupPage() {
             </h1>
           </Link>
           <p className="text-muted font-semibold text-sm mt-1">
-            Join 1,000+ kids learning AI & Coding across the GCC! 🌍
+            Join 1,000+ kids learning AI &amp; Coding across the GCC! 🌍
           </p>
         </div>
 
@@ -117,6 +130,8 @@ export default function SignupPage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+            {/* Display name */}
             <div>
               <label className="block text-sm font-bold mb-2">Your Name</label>
               <input
@@ -127,9 +142,12 @@ export default function SignupPage() {
                   errors.displayName ? 'border-accent1' : 'border-white/8 focus:border-accent4'
                 )}
               />
-              {errors.displayName && <p className="text-accent1 text-xs font-bold mt-1.5">{errors.displayName.message}</p>}
+              {errors.displayName && (
+                <p className="text-accent1 text-xs font-bold mt-1.5">{errors.displayName.message}</p>
+              )}
             </div>
 
+            {/* Email */}
             <div>
               <label className="block text-sm font-bold mb-2">Email</label>
               <input
@@ -142,9 +160,42 @@ export default function SignupPage() {
                   errors.email ? 'border-accent1' : 'border-white/8 focus:border-accent4'
                 )}
               />
-              {errors.email && <p className="text-accent1 text-xs font-bold mt-1.5">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-accent1 text-xs font-bold mt-1.5">{errors.email.message}</p>
+              )}
             </div>
 
+            {/* Phone — optional */}
+            <div>
+              <label className="block text-sm font-bold mb-2">
+                Phone Number
+                <span className="text-muted font-semibold ml-1.5">(optional)</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm select-none">
+                  📱
+                </span>
+                <input
+                  {...register('phone')}
+                  type="tel"
+                  placeholder="+216 XX XXX XXX"
+                  autoComplete="tel"
+                  className={cn(
+                    'w-full bg-card2 border-2 rounded-2xl pl-10 pr-4 py-3.5 text-white font-semibold text-sm outline-none transition-all placeholder:text-muted',
+                    errors.phone ? 'border-accent1' : 'border-white/8 focus:border-accent4'
+                  )}
+                />
+              </div>
+              {errors.phone ? (
+                <p className="text-accent1 text-xs font-bold mt-1.5">{errors.phone.message}</p>
+              ) : (
+                <p className="text-muted/60 text-xs font-semibold mt-1.5">
+                  Used for competition updates and support only.
+                </p>
+              )}
+            </div>
+
+            {/* Password */}
             <div>
               <label className="block text-sm font-bold mb-2">Password</label>
               <input
@@ -157,9 +208,12 @@ export default function SignupPage() {
                   errors.password ? 'border-accent1' : 'border-white/8 focus:border-accent4'
                 )}
               />
-              {errors.password && <p className="text-accent1 text-xs font-bold mt-1.5">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="text-accent1 text-xs font-bold mt-1.5">{errors.password.message}</p>
+              )}
             </div>
 
+            {/* Confirm password */}
             <div>
               <label className="block text-sm font-bold mb-2">Confirm Password</label>
               <input
@@ -172,7 +226,9 @@ export default function SignupPage() {
                   errors.confirm ? 'border-accent1' : 'border-white/8 focus:border-accent4'
                 )}
               />
-              {errors.confirm && <p className="text-accent1 text-xs font-bold mt-1.5">{errors.confirm.message}</p>}
+              {errors.confirm && (
+                <p className="text-accent1 text-xs font-bold mt-1.5">{errors.confirm.message}</p>
+              )}
             </div>
 
             {/* Terms */}
@@ -190,14 +246,18 @@ export default function SignupPage() {
                 I confirm I am at least 6 years old or have parental consent.
               </span>
             </label>
-            {errors.agreeTerms && <p className="text-accent1 text-xs font-bold">{errors.agreeTerms.message}</p>}
+            {errors.agreeTerms && (
+              <p className="text-accent1 text-xs font-bold">{errors.agreeTerms.message}</p>
+            )}
 
+            {/* Server error */}
             {serverError && (
               <div className="bg-accent1/10 border border-accent1/25 rounded-xl px-4 py-3 text-accent1 text-sm font-bold">
                 ⚠️ {serverError}
               </div>
             )}
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
@@ -216,9 +276,9 @@ export default function SignupPage() {
         {/* Value props */}
         <div className="grid grid-cols-3 gap-3 mt-7">
           {[
-            { emoji:'🆓', label:'Free plan forever' },
-            { emoji:'🔒', label:'COPPA compliant' },
-            { emoji:'🌍', label:'Arabic & English' },
+            { emoji: '🆓', label: 'Free plan forever' },
+            { emoji: '🔒', label: 'COPPA compliant' },
+            { emoji: '🌍', label: 'Arabic & English' },
           ].map(i => (
             <div key={i.label} className="bg-card/50 border border-white/5 rounded-2xl p-3 text-center">
               <div className="text-xl mb-1">{i.emoji}</div>
@@ -226,6 +286,7 @@ export default function SignupPage() {
             </div>
           ))}
         </div>
+
       </div>
     </div>
   )

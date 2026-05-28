@@ -5,16 +5,34 @@ import type { AgeGroup, TrackType } from './database.types'
 
 // ── AUTH ─────────────────────────────────────────────────────
 
-export const signUp = async (email: string, password: string, displayName: string) => {
+export const signUp = async (
+  email: string,
+  password: string,
+  displayName: string,
+  phone?: string
+) => {
   const supabase = createClient()
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { display_name: displayName },
+      data: {
+        display_name: displayName,
+        phone: phone ?? null,
+      },
       emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
   })
+
+  // If signup succeeded and we have a phone, write it to the profile immediately.
+  // The DB trigger creates the profile row but doesn't know about phone yet.
+  if (!error && data.user && phone) {
+    await supabase
+      .from('profiles')
+      .update({ phone: phone.trim(), updated_at: new Date().toISOString() })
+      .eq('id', data.user.id)
+  }
+
   return { data, error }
 }
 
@@ -67,6 +85,13 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
+// Validate phone: allow digits, spaces, +, -, (, ) — min 6, max 20 chars
+function sanitizePhone(p?: string): string | undefined {
+  if (!p) return undefined
+  const cleaned = p.replace(/[^\d\s\+\-\(\)]/g, '').trim().slice(0, 20)
+  return cleaned.length >= 6 ? cleaned : undefined
+}
+
 export const upsertProfile = async (userId: string, profile: {
   display_name?: string
   avatar?: string
@@ -78,6 +103,7 @@ export const upsertProfile = async (userId: string, profile: {
   country?: string
   language?: string
   parent_email?: string
+  phone?: string
 }) => {
   const supabase = createClient()
 
@@ -105,6 +131,8 @@ export const upsertProfile = async (userId: string, profile: {
     interests:     profile.interests?.slice(0, 10).map(i => sanitizeText(i, 50) ?? ''),
     // Whitelist language values
     language:      ['en', 'ar', 'fr'].includes(profile.language ?? '') ? profile.language : undefined,
+    // Sanitize phone
+    phone:         sanitizePhone(profile.phone),
   }
 
   // Map 'language' input field -> 'preferred_language' DB column
@@ -158,7 +186,7 @@ export const addXP = async (userId: string, amount: number, reason: string, sour
   const { data: current } = await getUserProgress(userId)
   if (!current) return { error: new Error('No progress record') }
 
-  const newXP = current.xp + amount
+  const newXP    = current.xp + amount
   const newLevel = Math.floor(newXP / 100) + 1
   const leveledUp = newLevel > current.level
 
@@ -172,7 +200,7 @@ export const addXP = async (userId: string, amount: number, reason: string, sour
 
   // Log XP transaction
   await supabase.from('xp_transactions').insert({
-    user_id: userId,
+    user_id:   userId,
     amount,
     reason,
     source_id: sourceId || null,
@@ -186,36 +214,31 @@ export const updateStreak = async (userId: string) => {
   const { data: current } = await getUserProgress(userId)
   if (!current) return
 
-  const today     = new Date().toISOString().split('T')[0]
+  const today      = new Date().toISOString().split('T')[0]
   const lastActive = current.last_active_date
 
   if (lastActive === today) return // already updated today
 
-  const yesterday   = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-  const twoDaysAgo  = new Date(Date.now() - 172800000).toISOString().split('T')[0]
+  const yesterday  = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+  const twoDaysAgo = new Date(Date.now() - 172800000).toISOString().split('T')[0]
 
-  let newStreak   = current.streak
-  let freezeUsed  = false
+  let newStreak    = current.streak
+  let freezeUsed   = false
   let freezeTokens = (current as any).freeze_tokens ?? 0
 
   if (lastActive === yesterday) {
-    // Normal — consecutive day
     newStreak = current.streak + 1
   } else if (lastActive === twoDaysAgo && freezeTokens > 0) {
-    // Missed yesterday — auto-use a freeze token to protect streak
     newStreak    = current.streak + 1
     freezeTokens = freezeTokens - 1
     freezeUsed   = true
-    // Log the freeze use
     await supabase.from('freeze_uses').insert({
       user_id:          userId,
       used_date:        yesterday,
       protected_streak: current.streak,
     })
   } else {
-    // Streak broken and no freeze available (or missed 2+ days)
-    newStreak    = 1
-    freezeTokens = freezeTokens // unchanged
+    newStreak = 1
   }
 
   const longestStreak = Math.max(newStreak, current.longest_streak)
@@ -223,11 +246,11 @@ export const updateStreak = async (userId: string) => {
   await supabase
     .from('user_progress')
     .update({
-      streak:          newStreak,
-      longest_streak:  longestStreak,
+      streak:           newStreak,
+      longest_streak:   longestStreak,
       last_active_date: today,
-      freeze_tokens:   freezeTokens,
-      updated_at:      new Date().toISOString(),
+      freeze_tokens:    freezeTokens,
+      updated_at:       new Date().toISOString(),
     })
     .eq('user_id', userId)
 
@@ -249,31 +272,27 @@ export const getShopItems = async () => {
 export const purchaseShopItem = async (userId: string, itemId: string) => {
   const supabase = createClient()
 
-  // Get item details and current XP in parallel
   const [itemRes, progressRes] = await Promise.all([
     supabase.from('shop_items').select('*').eq('id', itemId).single(),
     getUserProgress(userId),
   ])
 
-  const item    = itemRes.data
+  const item     = itemRes.data
   const progress = progressRes.data
   if (!item || !progress) return { error: 'Item or user not found' }
   if (progress.xp < item.xp_cost) return { error: 'Not enough XP' }
 
-  // Deduct XP
-  const newXP = progress.xp - item.xp_cost
+  const newXP    = progress.xp - item.xp_cost
   const newLevel = Math.floor(newXP / 100) + 1
 
-  // Apply item effect
   const updates: Record<string, any> = { updated_at: new Date().toISOString() }
   if (item.item_type === 'freeze') {
     updates.freeze_tokens = Math.min(((progress as any).freeze_tokens ?? 0) + item.quantity, 10)
   }
 
-  // Run all updates
   await Promise.all([
     supabase.from('user_progress').update({ xp: newXP, level: newLevel, ...updates }).eq('user_id', userId),
-    supabase.from('xp_transactions').insert({ user_id: userId, amount: -item.xp_cost, reason: `shop_purchase`, source_id: itemId }),
+    supabase.from('xp_transactions').insert({ user_id: userId, amount: -item.xp_cost, reason: 'shop_purchase', source_id: itemId }),
     supabase.from('shop_transactions').insert({ user_id: userId, item_id: itemId, xp_spent: item.xp_cost }),
   ])
 
@@ -321,8 +340,7 @@ export const getSkillNodes = async (ageGroup?: AgeGroup, trackId?: TrackType) =>
     .eq('is_active', true)
     .order('sort_order')
 
-  if (trackId) query = query.eq('track_id', trackId)
-  // Filter by age group using contains
+  if (trackId)  query = query.eq('track_id', trackId)
   if (ageGroup) query = query.contains('age_groups', [ageGroup])
 
   const { data, error } = await query
@@ -361,11 +379,11 @@ export const updateSkillProgress = async (userId: string, skillNodeId: string, p
   const { data, error } = await supabase
     .from('user_skill_progress')
     .upsert({
-      user_id: userId,
+      user_id:       userId,
       skill_node_id: skillNodeId,
-      progress_pct: Math.min(progressPct, 100),
-      completed_at: isComplete ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString(),
+      progress_pct:  Math.min(progressPct, 100),
+      completed_at:  isComplete ? new Date().toISOString() : null,
+      updated_at:    new Date().toISOString(),
     }, { onConflict: 'user_id,skill_node_id' })
     .select()
     .single()
@@ -387,7 +405,10 @@ export const completeLesson = async (userId: string, lessonId: string, scorePct 
   const supabase = createClient()
   const { data, error } = await supabase
     .from('user_lesson_completions')
-    .upsert({ user_id: userId, lesson_id: lessonId, score_pct: scorePct, time_spent_mins: timeMins }, { onConflict: 'user_id,lesson_id' })
+    .upsert(
+      { user_id: userId, lesson_id: lessonId, score_pct: scorePct, time_spent_mins: timeMins },
+      { onConflict: 'user_id,lesson_id' }
+    )
     .select()
     .single()
   return { data, error }
@@ -424,9 +445,7 @@ export const awardBadge = async (userId: string, badgeId: string) => {
   return { data, error }
 }
 
-// Check and award badges based on progress
 export const checkAndAwardBadges = async (userId: string) => {
-  const supabase = createClient()
   const [progressRes, lessonsRes, badgesRes, existingBadgesRes] = await Promise.all([
     getUserProgress(userId),
     getUserLessonCompletions(userId),
@@ -434,11 +453,9 @@ export const checkAndAwardBadges = async (userId: string) => {
     getUserBadges(userId),
   ])
 
-  const progress = progressRes.data
-  const lessons  = lessonsRes.data || []
-  const badges   = badgesRes.data || []
+  const progress         = progressRes.data
+  const lessons          = lessonsRes.data || []
   const existingBadgeIds = (existingBadgesRes.data || []).map((b: any) => b.badge_id)
-
   const newBadges: string[] = []
 
   const check = async (id: string, condition: boolean) => {
@@ -449,16 +466,16 @@ export const checkAndAwardBadges = async (userId: string) => {
   }
 
   if (progress) {
-    await check('first-lesson',  lessons.length >= 1)
-    await check('streak-3',      progress.streak >= 3)
-    await check('streak-7',      progress.streak >= 7)
-    await check('streak-30',     progress.streak >= 30)
-    await check('xp-100',        progress.xp >= 100)
-    await check('xp-500',        progress.xp >= 500)
-    await check('xp-1000',       progress.xp >= 1000)
-    await check('lessons-5',     lessons.length >= 5)
-    await check('lessons-10',    lessons.length >= 10)
-    await check('lessons-25',    lessons.length >= 25)
+    await check('first-lesson', lessons.length >= 1)
+    await check('streak-3',     progress.streak >= 3)
+    await check('streak-7',     progress.streak >= 7)
+    await check('streak-30',    progress.streak >= 30)
+    await check('xp-100',       progress.xp >= 100)
+    await check('xp-500',       progress.xp >= 500)
+    await check('xp-1000',      progress.xp >= 1000)
+    await check('lessons-5',    lessons.length >= 5)
+    await check('lessons-10',   lessons.length >= 10)
+    await check('lessons-25',   lessons.length >= 25)
   }
 
   return newBadges
@@ -469,7 +486,6 @@ export const checkAndAwardBadges = async (userId: string) => {
 export const getTodaysChallenge = async (ageGroup: AgeGroup) => {
   const supabase = createClient()
   const today = new Date().toISOString().split('T')[0]
-  // maybeSingle() returns null (not an error) when no row exists
   const { data, error } = await supabase
     .from('daily_challenges')
     .select('*')
@@ -488,7 +504,11 @@ export const getUserChallengeCompletions = async (userId: string) => {
   return { data, error }
 }
 
-export const completeChallenge = async (userId: string, challengeId: string, challengeType: 'daily' | 'bonus' = 'daily') => {
+export const completeChallenge = async (
+  userId: string,
+  challengeId: string,
+  challengeType: 'daily' | 'bonus' = 'daily'
+) => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('user_challenge_completions')
@@ -513,7 +533,12 @@ export const createChatSession = async (userId: string, title = 'Chat Session', 
   return { data, error }
 }
 
-export const saveChatMessage = async (sessionId: string, userId: string, role: 'user' | 'assistant', content: string) => {
+export const saveChatMessage = async (
+  sessionId: string,
+  userId: string,
+  role: 'user' | 'assistant',
+  content: string
+) => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('chat_messages')
@@ -563,7 +588,10 @@ export const getLeaderboard = async (country?: string, limit = 50) => {
 // ── FULL DASHBOARD DATA (single fetch) ───────────────────────
 
 export const getDashboardData = async (userId: string, ageGroup: AgeGroup) => {
-  const [profile, progress, skillProgress, lessonCompletions, userBadges, allBadges, todayChallenge, challengeCompletions] = await Promise.all([
+  const [
+    profile, progress, skillProgress, lessonCompletions,
+    userBadges, allBadges, todayChallenge, challengeCompletions,
+  ] = await Promise.all([
     getProfile(userId),
     getUserProgress(userId),
     getUserSkillProgress(userId),
@@ -575,13 +603,13 @@ export const getDashboardData = async (userId: string, ageGroup: AgeGroup) => {
   ])
 
   return {
-    profile: profile.data,
-    progress: progress.data,
-    skillProgress: skillProgress.data || [],
-    lessonCompletions: lessonCompletions.data || [],
-    userBadges: userBadges.data || [],
-    allBadges: allBadges.data || [],
-    todayChallenge: todayChallenge.data,
+    profile:              profile.data,
+    progress:             progress.data,
+    skillProgress:        skillProgress.data || [],
+    lessonCompletions:    lessonCompletions.data || [],
+    userBadges:           userBadges.data || [],
+    allBadges:            allBadges.data || [],
+    todayChallenge:       todayChallenge.data,
     challengeCompletions: challengeCompletions.data || [],
   }
 }
@@ -603,23 +631,37 @@ export const startFreeTrial = async (userId: string) => {
   const trialEnds = new Date(Date.now() + 14 * 86400000).toISOString()
   const { data, error } = await supabase
     .from('profiles')
-    .update({ trial_started_at: new Date().toISOString(), trial_ends_at: trialEnds, updated_at: new Date().toISOString() })
+    .update({
+      trial_started_at: new Date().toISOString(),
+      trial_ends_at:    trialEnds,
+      updated_at:       new Date().toISOString(),
+    })
     .eq('id', userId)
     .select()
     .single()
   return { data, error }
 }
 
-export const checkUserAccess = async (userId: string): Promise<{ hasAccess: boolean; trialDaysLeft: number; isTrialing: boolean; isPaid: boolean }> => {
+export const checkUserAccess = async (userId: string): Promise<{
+  hasAccess: boolean
+  trialDaysLeft: number
+  isTrialing: boolean
+  isPaid: boolean
+}> => {
   const supabase = createClient()
-  const { data } = await supabase.from('profiles').select('trial_ends_at, subscription_ends_at, subscription').eq('id', userId).single()
+  const { data } = await supabase
+    .from('profiles')
+    .select('trial_ends_at, subscription_ends_at, subscription')
+    .eq('id', userId)
+    .single()
+
   if (!data) return { hasAccess: false, trialDaysLeft: 0, isTrialing: false, isPaid: false }
 
-  const now = Date.now()
-  const trialEnd = data.trial_ends_at ? new Date(data.trial_ends_at).getTime() : 0
-  const subEnd   = data.subscription_ends_at ? new Date(data.subscription_ends_at).getTime() : 0
-  const isTrialing = trialEnd > now
-  const isPaid     = subEnd > now || data.subscription === 'pro' || data.subscription === 'school'
+  const now          = Date.now()
+  const trialEnd     = data.trial_ends_at ? new Date(data.trial_ends_at).getTime() : 0
+  const subEnd       = data.subscription_ends_at ? new Date(data.subscription_ends_at).getTime() : 0
+  const isTrialing   = trialEnd > now
+  const isPaid       = subEnd > now || data.subscription === 'pro' || data.subscription === 'school'
   const trialDaysLeft = isTrialing ? Math.ceil((trialEnd - now) / 86400000) : 0
 
   return { hasAccess: isTrialing || isPaid, trialDaysLeft, isTrialing, isPaid }
@@ -627,10 +669,13 @@ export const checkUserAccess = async (userId: string): Promise<{ hasAccess: bool
 
 export const updateUserLanguage = async (userId: string, language: 'en' | 'ar' | 'fr') => {
   const supabase = createClient()
-  return supabase.from('profiles').update({ preferred_language: language, updated_at: new Date().toISOString() }).eq('id', userId)
+  return supabase
+    .from('profiles')
+    .update({ preferred_language: language, updated_at: new Date().toISOString() })
+    .eq('id', userId)
 }
 
-// ── BONUS CHALLENGES (from DB) ────────────────────────────────
+// ── BONUS CHALLENGES ──────────────────────────────────────────
 
 export const getBonusChallenges = async (ageGroup: AgeGroup) => {
   const supabase = createClient()
@@ -645,18 +690,32 @@ export const getBonusChallenges = async (ageGroup: AgeGroup) => {
 
 // ── LEADERBOARD (enriched) ────────────────────────────────────
 
-export const getLeaderboardByScope = async (scope: 'global' | 'country' | 'age_group', value?: string, limit = 50) => {
+export const getLeaderboardByScope = async (
+  scope: 'global' | 'country' | 'age_group',
+  value?: string,
+  limit = 50
+) => {
   const supabase = createClient()
-  let query = supabase.from('leaderboard').select('*').order('xp', { ascending: false }).limit(limit)
-  if (scope === 'country' && value)    query = query.eq('country', value)
-  if (scope === 'age_group' && value)  query = query.eq('age_group', value)
+  let query = supabase
+    .from('leaderboard')
+    .select('*')
+    .order('xp', { ascending: false })
+    .limit(limit)
+
+  if (scope === 'country'   && value) query = query.eq('country', value)
+  if (scope === 'age_group' && value) query = query.eq('age_group', value)
+
   const { data, error } = await query
   return { data, error }
 }
 
 export const getUserLeaderboardRank = async (userId: string) => {
   const supabase = createClient()
-  const { data, error } = await supabase.from('leaderboard').select('*').eq('id', userId).single()
+  const { data, error } = await supabase
+    .from('leaderboard')
+    .select('*')
+    .eq('id', userId)
+    .single()
   return { data, error }
 }
 
