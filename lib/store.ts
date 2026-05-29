@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware'
 import type { UserProfile, UserProgress, AgeGroup } from './types'
 
 // XP required to reach each level
-export const XP_PER_LEVEL = 100
+export const XP_PER_LEVEL = 1000
 export const getLevel = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1
 export const getXPInLevel = (xp: number) => xp % XP_PER_LEVEL
 export const getLevelTitle = (level: number): string => {
