@@ -18,20 +18,21 @@ export const signUp = async (
     options: {
       data: {
         display_name: displayName,
-        phone: phone ?? null,
+        // Phone stored in auth metadata — read by the updated DB trigger
+        // and by /auth/callback after the confirmation link is clicked
+        phone: phone?.trim() ?? null,
       },
       emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
   })
 
-  // If signup succeeded and we have a phone, write it to the profile immediately.
-  // The DB trigger creates the profile row but doesn't know about phone yet.
-  if (!error && data.user && phone) {
-    await supabase
-      .from('profiles')
-      .update({ phone: phone.trim(), updated_at: new Date().toISOString() })
-      .eq('id', data.user.id)
-  }
+  // NOTE: We do NOT try to write phone here.
+  // With email confirmation, the DB trigger fires AFTER the user clicks the
+  // confirmation link — not at signUp time. Writing here targets a row that
+  // does not exist yet and silently fails (0 rows updated).
+  // Phone is written reliably in two places:
+  //   1. The updated DB trigger (reads raw_user_meta_data->>'phone')
+  //   2. /auth/callback/route.ts (safety net after session exchange)
 
   return { data, error }
 }
