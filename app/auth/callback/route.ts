@@ -1,14 +1,15 @@
 // app/auth/callback/route.ts
-// Handles both PKCE (email confirmation) and implicit (magic link) flows.
-// Also writes phone from auth metadata to profile after confirmation.
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-async function writePhoneIfMissing(supabase: ReturnType<typeof createClient>, userId: string) {
+async function writePhoneIfMissing(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  userMetadata: Record<string, any>
+) {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    const phone = user?.user_metadata?.phone as string | undefined
+    const phone = userMetadata?.phone as string | undefined
     if (!phone?.trim()) return
 
     const { data: profile } = await supabase
@@ -32,18 +33,18 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code              = searchParams.get('code')
   const token_hash        = searchParams.get('token_hash')
-  const type              = searchParams.get('type')           // 'email', 'recovery', etc.
+  const type              = searchParams.get('type')
   const next              = searchParams.get('next') || '/dashboard'
   const error             = searchParams.get('error')
   const error_description = searchParams.get('error_description')
 
-  // Supabase sent an explicit error
   if (error) {
     const msg = encodeURIComponent(error_description ?? error)
     return NextResponse.redirect(`${origin}/auth/login?error=${msg}`)
   }
 
-  const supabase = createClient()
+  // ✅ Await the client if your createClient is async
+  const supabase = await createClient()
 
   // ── PKCE flow: email confirmation / OAuth ─────────────────
   if (code) {
@@ -51,8 +52,8 @@ export async function GET(request: NextRequest) {
     if (!exchangeError) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        // Write phone from metadata to profile (safety net — trigger may have missed it)
-        await writePhoneIfMissing(supabase, user.id)
+        // ✅ Pass metadata directly — no second getUser() call needed
+        await writePhoneIfMissing(supabase, user.id, user.user_metadata)
 
         const { data: profile } = await supabase
           .from('profiles')
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
     if (!verifyError) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        await writePhoneIfMissing(supabase, user.id)
+        await writePhoneIfMissing(supabase, user.id, user.user_metadata)
       }
       return NextResponse.redirect(`${origin}${next}`)
     }
