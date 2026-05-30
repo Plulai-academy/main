@@ -8,6 +8,25 @@ import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
 import type { AgeGroup } from '@/lib/supabase/database.types'
 
+// Custom SVG Icons
+const BotIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" />
+  </svg>
+)
+
+const SendIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+  </svg>
+)
+
+const LoadingIcon = () => (
+  <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </svg>
+)
+
 const LANG_FLAGS:  Record<Language, string> = { en: '🇬🇧', ar: '🇦🇪', fr: '🇫🇷' }
 const LANG_LABELS: Record<Language, string> = { en: 'English', ar: 'العربية', fr: 'Français' }
 const INPUT_PH:    Record<Language, string> = {
@@ -54,11 +73,8 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
       profile.dream_project ?? ''
     )
 
-    // Always show the welcome message — don't dump old history in the chat UI.
-    // Recent history is sent silently to the AI as context (see toSend below).
     const base: Msg[] = [{ role: 'assistant', content: welcome, ts: new Date().toISOString() }]
 
-    // If navigated from a lesson, append a context user message
     if (topic || lesson) {
       const ctx: Record<Language, string> = {
         en: `I'm studying "${lesson || topic}" in the ${topic} track. Can you help me understand it?`,
@@ -88,8 +104,6 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
     startLangTransition(async () => { await updateUserLanguage(userId, l) })
   }
 
-  // ── Send ────────────────────────────────────────────────────
-  // msgsOverride lets useEffect pass the freshly-built array on auto-send
   const send = async (text?: string, msgsOverride?: Msg[]) => {
     const txt = (text ?? input).trim()
     if (!txt || loading) return
@@ -98,7 +112,6 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
     const userMsg: Msg = { role: 'user', content: txt, ts: new Date().toISOString() }
     const next = [...base, userMsg]
 
-    // If we're auto-sending from the effect the user message is already in base
     const display = base[base.length - 1]?.content === txt && base[base.length - 1]?.role === 'user'
       ? base
       : next
@@ -113,16 +126,13 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
     }
 
     try {
-      // Build messages for the AI:
-      // 1. Recent DB history (last 10 turns) as background context — not shown in UI
-      // 2. Current display messages (skip the local welcome at index 0)
       const historyContext = history
         .slice(-10)
         .map((m: Msg) => ({ role: m.role as string, content: m.content }))
       const currentMsgs = display
-        .slice(1) // skip welcome
+        .slice(1)
         .map((m: Msg) => ({ role: m.role as string, content: m.content }))
-      // Merge: history first, then current session, dedup by keeping last occurrence
+      
       const seen = new Set<string>()
       const toSend = [...historyContext, ...currentMsgs]
         .reverse()
@@ -167,7 +177,6 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
       if (full) {
         setMsgs((p: Msg[]) => [...p, { role: 'assistant', content: full, ts: new Date().toISOString() }])
       } else {
-        // Empty response — model returned no content (e.g. reasoning-only model slipped through)
         const retryMsg: Record<Language, string> = {
           en: 'No response received — please try again! 🤔',
           ar: 'لم أتمكن من الرد. جرّب مرة أخرى! 🤔',
@@ -206,26 +215,26 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
   const starters = STARTER_PROMPTS[profile.age_group as AgeGroup]?.[lang as Language] ?? []
 
   return (
-    <div className="flex flex-col h-screen" dir={dir}>
+    <div className="flex flex-col h-screen bg-black text-[#F5F5F5]" dir={dir}>
 
       {/* ── Header ── */}
-      <div className="flex-shrink-0 p-5 lg:p-6 border-b border-white/5 glass flex items-center gap-4">
-        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-accent4 to-accent5 flex items-center justify-center text-2xl animate-bounce-slow flex-shrink-0">
-          🤖
+      <div className="flex-shrink-0 p-5 lg:p-6 border-b border-white/5 bg-black/40 backdrop-blur-xl flex items-center gap-4">
+        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] flex items-center justify-center text-[#F5F5F5] animate-bounce-slow flex-shrink-0">
+          <BotIcon />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="font-fredoka text-lg leading-tight">
+          <h1 className="font-fredoka text-lg leading-tight text-[#F5F5F5]">
             {lang === 'ar' ? 'المدرب بالذكاء الاصطناعي' : lang === 'fr' ? 'Coach IA' : 'AI Coach'}
           </h1>
-          <p className="text-muted text-xs font-bold truncate">
+          <p className="text-[#6F6F6F] text-xs font-bold truncate">
             {profile.display_name} · {lang === 'ar' ? `عمر ${profile.age}` : lang === 'fr' ? `${profile.age} ans` : `Age ${profile.age}`}
           </p>
         </div>
 
         {/* Online indicator */}
-        <div className="flex items-center gap-1.5 bg-accent3/10 border border-accent3/25 rounded-full px-3 py-1.5 flex-shrink-0">
-          <div className="w-1.5 h-1.5 rounded-full bg-accent3 animate-pulse" />
-          <span className="text-accent3 text-xs font-bold">
+        <div className="flex items-center gap-1.5 bg-[#14D4F4]/10 border border-[#14D4F4]/25 rounded-full px-3 py-1.5 flex-shrink-0">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#14D4F4] animate-pulse" />
+          <span className="text-[#14D4F4] text-xs font-bold">
             {lang === 'ar' ? 'متصل' : lang === 'fr' ? 'En ligne' : 'Online'}
           </span>
         </div>
@@ -234,21 +243,21 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
         <div className="relative flex-shrink-0">
           <button
             onClick={() => setLangMenu((p: boolean) => !p)}
-            className="flex items-center gap-1.5 bg-card2 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold hover:border-white/25 transition-all"
+            className="flex items-center gap-1.5 bg-[#1CB0F6]/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold hover:border-[#1CB0F6]/25 transition-all"
           >
             <span>{LANG_FLAGS[lang as Language]}</span>
-            <span className="hidden sm:inline text-xs">{LANG_LABELS[lang as Language]}</span>
-            <span className="text-muted text-xs">▾</span>
+            <span className="hidden sm:inline text-xs text-[#F5F5F5]">{LANG_LABELS[lang as Language]}</span>
+            <span className="text-[#6F6F6F] text-xs">▾</span>
           </button>
           {showLangMenu && (
-            <div className="absolute top-full mt-2 right-0 bg-card border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[140px]">
+            <div className="absolute top-full mt-2 right-0 bg-[#121212] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[140px]">
               {(['en','ar','fr'] as Language[]).map(l => (
                 <button
                   key={l}
                   onClick={() => switchLang(l)}
                   className={cn(
                     'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all',
-                    l === lang ? 'bg-accent4/15 text-accent4' : 'text-muted hover:bg-card2 hover:text-white'
+                    l === lang ? 'bg-[#1CB0F6]/15 text-[#1CB0F6]' : 'text-[#6F6F6F] hover:bg-[#1CB0F6]/10 hover:text-[#F5F5F5]'
                   )}
                 >
                   <span>{LANG_FLAGS[l]}</span>
@@ -261,7 +270,7 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
       </div>
 
       {/* ── Messages ── */}
-      <div className="flex-1 overflow-y-auto p-5 lg:p-6 space-y-5">
+      <div className="flex-1 overflow-y-auto p-5 lg:p-6 space-y-5 bg-black">
         {messages.map((msg: Msg, i: number) => (
           <div
             key={i}
@@ -269,18 +278,18 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
           >
             <div className={cn(
               'w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0',
-              msg.role === 'user' ? 'bg-accent4/15 border border-accent4/25' : 'bg-accent5/15 border border-accent5/25'
+              msg.role === 'user' ? 'bg-[#1CB0F6]/15 border border-[#1CB0F6]/25 text-[#1CB0F6]' : 'bg-[#2B70C9]/15 border border-[#2B70C9]/25 text-[#2B70C9]'
             )}>
-              {msg.role === 'user' ? profile.avatar : '🤖'}
+              {msg.role === 'user' ? (profile.avatar || '👤') : <BotIcon />}
             </div>
             <div className={cn(
               'max-w-[78%] rounded-3xl px-5 py-3.5 text-sm font-semibold leading-relaxed',
               msg.role === 'user'
-                ? 'bg-accent4/15 border border-accent4/20 text-white rounded-tr-sm'
-                : 'bg-card2 border border-white/8 text-white rounded-tl-sm'
+                ? 'bg-[#1CB0F6]/15 border border-[#1CB0F6]/20 text-[#F5F5F5] rounded-tr-sm'
+                : 'bg-[#121212] border border-white/8 text-[#F5F5F5] rounded-tl-sm'
             )}>
               <p className="whitespace-pre-wrap">{msg.content}</p>
-              <p className="text-xs text-muted mt-1.5 font-bold">
+              <p className="text-xs text-[#6F6F6F] mt-1.5 font-bold">
                 {new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
@@ -290,10 +299,12 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
         {/* Streaming bubble */}
         {streaming && (
           <div className="flex gap-3 animate-slide-up">
-            <div className="w-9 h-9 rounded-xl bg-accent5/15 border border-accent5/25 flex items-center justify-center text-lg flex-shrink-0">🤖</div>
-            <div className="max-w-[78%] bg-card2 border border-white/8 rounded-3xl rounded-tl-sm px-5 py-3.5 text-sm font-semibold leading-relaxed">
+            <div className="w-9 h-9 rounded-xl bg-[#2B70C9]/15 border border-[#2B70C9]/25 flex items-center justify-center text-[#2B70C9] flex-shrink-0">
+              <BotIcon />
+            </div>
+            <div className="max-w-[78%] bg-[#121212] border border-white/8 rounded-3xl rounded-tl-sm px-5 py-3.5 text-sm font-semibold leading-relaxed text-[#F5F5F5]">
               <p className="whitespace-pre-wrap">{streaming}</p>
-              <span className="inline-block w-2 h-4 bg-accent4 rounded-sm ml-1 animate-pulse" />
+              <span className="inline-block w-2 h-4 bg-[#1CB0F6] rounded-sm ml-1 animate-pulse" />
             </div>
           </div>
         )}
@@ -301,10 +312,12 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
         {/* Typing indicator */}
         {loading && !streaming && (
           <div className="flex gap-3">
-            <div className="w-9 h-9 rounded-xl bg-accent5/15 border border-accent5/25 flex items-center justify-center text-lg flex-shrink-0">🤖</div>
-            <div className="bg-card2 border border-white/8 rounded-3xl rounded-tl-sm px-5 py-3.5 flex gap-1.5 items-center">
+            <div className="w-9 h-9 rounded-xl bg-[#2B70C9]/15 border border-[#2B70C9]/25 flex items-center justify-center text-[#2B70C9] flex-shrink-0">
+              <BotIcon />
+            </div>
+            <div className="bg-[#121212] border border-white/8 rounded-3xl rounded-tl-sm px-5 py-3.5 flex gap-1.5 items-center">
               {[0,1,2].map(i => (
-                <div key={i} className="w-2 h-2 bg-muted rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                <div key={i} className="w-2 h-2 bg-[#6F6F6F] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
               ))}
             </div>
           </div>
@@ -314,13 +327,13 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
 
       {/* ── Starter prompts ── */}
       {messages.length <= 1 && starters.length > 0 && (
-        <div className="px-5 lg:px-6 pb-3">
+        <div className="px-5 lg:px-6 pb-3 bg-black">
           <div className="flex flex-wrap gap-2">
             {starters.map((s: string) => (
               <button
                 key={s}
                 onClick={() => send(s)}
-                className="bg-card2 border border-white/10 rounded-2xl px-4 py-2 text-sm font-bold text-muted hover:text-white hover:border-white/25 transition-all hover:-translate-y-0.5"
+                className="bg-[#121212] border border-white/10 rounded-2xl px-4 py-2 text-sm font-bold text-[#6F6F6F] hover:text-[#F5F5F5] hover:border-[#1CB0F6]/25 transition-all hover:-translate-y-0.5"
               >
                 {s}
               </button>
@@ -330,11 +343,11 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
       )}
 
       {/* ── Input ── */}
-      <div className="flex-shrink-0 p-5 lg:p-6 border-t border-white/5 glass">
+      <div className="flex-shrink-0 p-5 lg:p-6 border-t border-white/5 bg-black/40 backdrop-blur-xl">
         <div className="flex gap-3">
           <input
             ref={inputRef}
-            className="flex-1 bg-card2 border-2 border-white/8 focus:border-accent4 rounded-2xl px-5 py-3.5 text-white font-semibold text-sm outline-none transition-all placeholder:text-muted"
+            className="flex-1 bg-[#121212] border-2 border-white/8 focus:border-[#1CB0F6] rounded-2xl px-5 py-3.5 text-[#F5F5F5] font-semibold text-sm outline-none transition-all placeholder:text-[#6F6F6F]"
             placeholder={INPUT_PH[lang as Language]}
             value={input}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
@@ -346,9 +359,9 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
           <button
             onClick={() => send()}
             disabled={loading || !input.trim()}
-            className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent4 to-accent5 flex items-center justify-center text-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+            className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] flex items-center justify-center text-[#F5F5F5] shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
           >
-            {loading ? '⏳' : lang === 'ar' ? '◀' : '➤'}
+            {loading ? <LoadingIcon /> : <SendIcon />}
           </button>
         </div>
       </div>
