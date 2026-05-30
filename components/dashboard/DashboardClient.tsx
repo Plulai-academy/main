@@ -9,9 +9,27 @@ import { useRouter } from 'next/navigation'
 
 const XP_PER_LEVEL = 1000
 const getLevel      = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1
-const getLevelTitle = (level: number) =>
-  ['Rookie','Explorer','Builder','Creator','Innovator','Wizard','Master','Legend'][Math.min(level - 1, 7)]
+const getLevelTitle = (level: number): string => {
+  const tiers = [
+    'Rookie',
+    'Explorer',
+    'Builder',
+    'Creator',
+    'Innovator',
+    'Strategist',
+    'Visionary',
+    'Elite',
+    'Legend',
+    'Grandmaster',
+  ]
 
+  const tierIndex = Math.floor((level - 1) / 10)
+  const tierLevel = ((level - 1) % 10) + 1
+
+  const tier = tiers[Math.min(tierIndex, tiers.length - 1)]
+
+  return `${tier} ${tierLevel}`
+}
 interface Props {
   userId:               string
   profile:              any
