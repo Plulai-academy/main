@@ -155,6 +155,23 @@ export default function DashboardClient({
         <p className="text-muted font-semibold text-sm md:text-base">{streakMsg}</p>
       </div>
 
+      {/* Start Learning Section */}
+      <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 mb-5 md:mb-6 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-accent2/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-center sm:text-left">
+            <h2 className="font-fredoka text-xl md:text-2xl mb-1">🚀 Continue Your Journey</h2>
+            <p className="text-muted text-sm font-semibold">Master new skills and earn more XP today!</p>
+          </div>
+          <Link
+            href="/dashboard/skills"
+            className="w-full sm:w-auto px-10 py-3.5 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent2 to-accent1 text-black text-center hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent2/25 transition-all duration-200"
+          >
+            Start
+          </Link>
+        </div>
+      </div>
+
       {/* XP Card */}
       <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 mb-5 md:mb-6 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
         {/* Subtle ambient glow top-right */}
