@@ -7,14 +7,9 @@ import { getWelcomeMessage, STARTER_PROMPTS } from '@/lib/openrouter'
 import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
 import type { AgeGroup } from '@/lib/supabase/database.types'
+import Image from 'next/image'
 
 // Premium SVG Icons
-const BotIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" />
-  </svg>
-)
-
 const SendIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
@@ -27,12 +22,26 @@ const LoadingIcon = () => (
   </svg>
 )
 
+const JimmyAvatar = ({ className }: { className?: string }) => (
+  <div className={cn("relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] p-0.5 shadow-lg", className)}>
+    <div className="bg-card w-full h-full rounded-[14px] flex items-center justify-center overflow-hidden">
+      <Image 
+        src="/icons/coach.png" 
+        alt="Jimmy" 
+        width={48} 
+        height={48} 
+        className="w-full h-full object-cover scale-110"
+      />
+    </div>
+  </div>
+)
+
 const LANG_FLAGS:  Record<Language, string> = { en: '🇬🇧', ar: '🇦🇪', fr: '🇫🇷' }
 const LANG_LABELS: Record<Language, string> = { en: 'English', ar: 'العربية', fr: 'Français' }
 const INPUT_PH:    Record<Language, string> = {
-  en: 'Ask your AI Coach anything…',
-  ar: 'اسأل مدربك بالذكاء الاصطناعي أي شيء…',
-  fr: "Pose n'importe quelle question à ton coach IA…",
+  en: 'Ask Jimmy anything…',
+  ar: 'اسأل جيمي أي شيء…',
+  fr: "Pose n'importe quelle question à Jimmy…",
 }
 
 interface Msg { role: 'user' | 'assistant'; content: string; ts: string }
@@ -65,7 +74,7 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
     const topic  = searchParams?.get('topic')  ?? ''
     const lesson = searchParams?.get('lesson') ?? ''
 
-    const welcome = getWelcomeMessage(
+    let welcome = getWelcomeMessage(
       profile.display_name,
       profile.age_group as AgeGroup,
       lang,
@@ -73,13 +82,16 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
       profile.dream_project ?? ''
     )
 
+    // Replace "AI Coach" or generic terms with "Jimmy" in the welcome message if possible
+    welcome = welcome.replace(/AI Coach/gi, 'Jimmy').replace(/المدرب بالذكاء الاصطناعي/gi, 'جيمي').replace(/Coach IA/gi, 'Jimmy')
+
     const base: Msg[] = [{ role: 'assistant', content: welcome, ts: new Date().toISOString() }]
 
     if (topic || lesson) {
       const ctx: Record<Language, string> = {
-        en: `I'm studying "${lesson || topic}" in the ${topic} track. Can you help me understand it?`,
-        ar: `أنا أدرس "${lesson || topic}" في مسار ${topic}. هل يمكنك مساعدتي؟`,
-        fr: `J'étudie "${lesson || topic}" dans le parcours ${topic}. Peux-tu m'aider ?`,
+        en: `I'm studying "${lesson || topic}" in the ${topic} track. Can you help me understand it, Jimmy?`,
+        ar: `أنا أدرس "${lesson || topic}" في مسار ${topic}. هل يمكنك مساعدتي يا جيمي؟`,
+        fr: `J'étudie "${lesson || topic}" dans le parcours ${topic}. Peux-tu m'aider, Jimmy ?`,
       }
       base.push({ role: 'user', content: ctx[lang as Language], ts: new Date().toISOString() })
     }
@@ -178,9 +190,9 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
         setMsgs((p: Msg[]) => [...p, { role: 'assistant', content: full, ts: new Date().toISOString() }])
       } else {
         const retryMsg: Record<Language, string> = {
-          en: 'No response received — please try again! 🤔',
-          ar: 'لم أتمكن من الرد. جرّب مرة أخرى! 🤔',
-          fr: 'Pas de réponse. Réessaie ! 🤔',
+          en: 'Jimmy is thinking hard but couldn\'t find the words — try again! 🤔',
+          ar: 'جيمي يفكر بعمق لكنه لم يجد الكلمات. حاول مرة أخرى! 🤔',
+          fr: 'Jimmy réfléchit intensément mais n\'a pas trouvé les mots — réessaie ! 🤔',
         }
         setMsgs((p: Msg[]) => [...p, { role: 'assistant', content: retryMsg[lang as Language], ts: new Date().toISOString() }])
       }
@@ -193,16 +205,16 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
         content = '⚙️ AI service not configured — add OPENROUTER_API_KEY to .env.local'
       } else if (msg.includes('429') || msg.includes('rate limit') || msg.includes('quota')) {
         content = lang === 'ar'
-          ? '⏳ طلبات كثيرة — انتظر لحظة وحاول مجدداً'
+          ? '⏳ جيمي مشغول قليلاً — انتظر لحظة وحاول مجدداً'
           : lang === 'fr'
-          ? '⏳ Trop de requêtes — attends un moment puis réessaie'
-          : '⏳ Too many requests — wait a moment and try again'
+          ? '⏳ Jimmy est un peu occupé — attends un moment puis réessaie'
+          : '⏳ Jimmy is a bit busy — wait a moment and try again'
       } else {
         content = lang === 'ar'
-          ? `خطأ: ${msg || 'حاول مرة أخرى'} 🤔`
+          ? `خطأ من جيمي: ${msg || 'حاول مرة أخرى'} 🤔`
           : lang === 'fr'
-          ? `Erreur: ${msg || 'Réessaie'} 🤔`
-          : `Error: ${msg || 'Something went wrong — please try again'} 🤔`
+          ? `Erreur de Jimmy: ${msg || 'Réessaie'} 🤔`
+          : `Jimmy error: ${msg || 'Something went wrong — please try again'} 🤔`
       }
       setMsgs((p: Msg[]) => [...p, { role: 'assistant', content, ts: new Date().toISOString() }])
     } finally {
@@ -220,9 +232,7 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
       {/* ── Header ── */}
       <div className="flex-shrink-0 p-4 lg:p-5 border-b border-white/5 glass flex items-center gap-4 z-20">
         <div className="relative">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] flex items-center justify-center text-[#F5F5F5] shadow-lg shadow-[#1CB0F6]/20 animate-bounce-slow flex-shrink-0">
-            <BotIcon />
-          </div>
+          <JimmyAvatar className="w-12 h-12" />
           <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-black border-2 border-black flex items-center justify-center">
             <div className="w-2 h-2 rounded-full bg-[#14D4F4] animate-pulse" />
           </div>
@@ -230,15 +240,15 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
         
         <div className="flex-1 min-w-0">
           <h1 className="font-fredoka text-xl leading-tight text-[#F5F5F5]">
-            {lang === 'ar' ? 'المدرب بالذكاء الاصطناعي' : lang === 'fr' ? 'Coach IA' : 'AI Coach'}
+            {lang === 'ar' ? 'جيمي' : 'Jimmy'}
           </h1>
           <div className="flex items-center gap-2">
-            <span className="text-[#6F6F6F] text-xs font-bold uppercase tracking-wider">
+            <span className="text-[#6F6F6F] text-[10px] font-bold uppercase tracking-widest">
               {profile.display_name}
             </span>
             <span className="w-1 h-1 rounded-full bg-[#6F6F6F]/40" />
-            <span className="text-[#14D4F4] text-xs font-bold">
-              {lang === 'ar' ? 'متصل الآن' : lang === 'fr' ? 'En ligne' : 'Online Now'}
+            <span className="text-[#14D4F4] text-[10px] font-bold uppercase tracking-widest">
+              {lang === 'ar' ? 'نشط الآن' : lang === 'fr' ? 'Actif' : 'Active Now'}
             </span>
           </div>
         </div>
@@ -281,11 +291,14 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
               key={i}
               className={cn('flex gap-4 group animate-slide-up', msg.role === 'user' ? 'flex-row-reverse' : 'flex-row')}
             >
-              <div className={cn(
-                'w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300',
-                msg.role === 'user' ? 'bg-[#1CB0F6]/10 border border-[#1CB0F6]/20 text-[#1CB0F6]' : 'bg-[#2B70C9]/10 border border-[#2B70C9]/20 text-[#2B70C9]'
-              )}>
-                {msg.role === 'user' ? (profile.avatar || '👤') : <BotIcon />}
+              <div className="flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                {msg.role === 'user' ? (
+                  <div className="w-10 h-10 rounded-2xl bg-[#1CB0F6]/10 border border-[#1CB0F6]/20 flex items-center justify-center text-xl shadow-md text-[#1CB0F6]">
+                    {profile.avatar || '👤'}
+                  </div>
+                ) : (
+                  <JimmyAvatar className="w-10 h-10" />
+                )}
               </div>
               <div className={cn(
                 'flex flex-col gap-1.5',
@@ -309,9 +322,7 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
           {/* Streaming / Loading States */}
           {(streaming || (loading && !streaming)) && (
             <div className="flex gap-4 animate-slide-up">
-              <div className="w-10 h-10 rounded-2xl bg-[#2B70C9]/10 border border-[#2B70C9]/20 flex items-center justify-center text-[#2B70C9] flex-shrink-0 shadow-md">
-                <BotIcon />
-              </div>
+              <JimmyAvatar className="w-10 h-10" />
               <div className="bg-card border border-white/5 rounded-3xl rounded-tl-none px-6 py-4 shadow-sm">
                 {streaming ? (
                   <div className="text-[15px] font-medium leading-relaxed text-[#F5F5F5]">
@@ -382,7 +393,7 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
           </div>
           
           <p className="text-center text-[10px] text-[#6F6F6F] font-bold uppercase tracking-widest opacity-50">
-            AI can make mistakes. Verify important information.
+            Jimmy can make mistakes. Verify important information.
           </p>
         </div>
       </div>
