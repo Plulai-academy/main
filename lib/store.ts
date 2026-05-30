@@ -8,8 +8,25 @@ export const XP_PER_LEVEL = 1000
 export const getLevel = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1
 export const getXPInLevel = (xp: number) => xp % XP_PER_LEVEL
 export const getLevelTitle = (level: number): string => {
-  const titles = ['Rookie', 'Explorer', 'Builder', 'Creator', 'Innovator', 'Wizard', 'Master', 'Legend']
-  return titles[Math.min(level - 1, titles.length - 1)]
+  const tiers = [
+    'Rookie',
+    'Explorer',
+    'Builder',
+    'Creator',
+    'Innovator',
+    'Strategist',
+    'Visionary',
+    'Elite',
+    'Legend',
+    'Grandmaster',
+  ]
+
+  const tierIndex = Math.floor((level - 1) / 10)
+  const tierLevel = ((level - 1) % 10) + 1
+
+  const tier = tiers[Math.min(tierIndex, tiers.length - 1)]
+
+  return `${tier} ${tierLevel}`
 }
 export const getAgeGroup = (age: number): AgeGroup => {
   if (age <= 8) return 'mini'
