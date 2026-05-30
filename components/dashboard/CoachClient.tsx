@@ -8,21 +8,21 @@ import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
 import type { AgeGroup } from '@/lib/supabase/database.types'
 
-// Custom SVG Icons
+// Premium SVG Icons
 const BotIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" />
   </svg>
 )
 
 const SendIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 )
 
 const LoadingIcon = () => (
-  <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+  <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
   </svg>
 )
@@ -215,52 +215,56 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
   const starters = STARTER_PROMPTS[profile.age_group as AgeGroup]?.[lang as Language] ?? []
 
   return (
-    <div className="flex flex-col h-screen bg-black text-[#F5F5F5]" dir={dir}>
+    <div className="flex flex-col h-screen overflow-hidden" dir={dir}>
 
       {/* ── Header ── */}
-      <div className="flex-shrink-0 p-5 lg:p-6 border-b border-white/5 bg-black/40 backdrop-blur-xl flex items-center gap-4">
-        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] flex items-center justify-center text-[#F5F5F5] animate-bounce-slow flex-shrink-0">
-          <BotIcon />
+      <div className="flex-shrink-0 p-4 lg:p-5 border-b border-white/5 glass flex items-center gap-4 z-20">
+        <div className="relative">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] flex items-center justify-center text-[#F5F5F5] shadow-lg shadow-[#1CB0F6]/20 animate-bounce-slow flex-shrink-0">
+            <BotIcon />
+          </div>
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-black border-2 border-black flex items-center justify-center">
+            <div className="w-2 h-2 rounded-full bg-[#14D4F4] animate-pulse" />
+          </div>
         </div>
+        
         <div className="flex-1 min-w-0">
-          <h1 className="font-fredoka text-lg leading-tight text-[#F5F5F5]">
+          <h1 className="font-fredoka text-xl leading-tight text-[#F5F5F5]">
             {lang === 'ar' ? 'المدرب بالذكاء الاصطناعي' : lang === 'fr' ? 'Coach IA' : 'AI Coach'}
           </h1>
-          <p className="text-[#6F6F6F] text-xs font-bold truncate">
-            {profile.display_name} · {lang === 'ar' ? `عمر ${profile.age}` : lang === 'fr' ? `${profile.age} ans` : `Age ${profile.age}`}
-          </p>
-        </div>
-
-        {/* Online indicator */}
-        <div className="flex items-center gap-1.5 bg-[#14D4F4]/10 border border-[#14D4F4]/25 rounded-full px-3 py-1.5 flex-shrink-0">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#14D4F4] animate-pulse" />
-          <span className="text-[#14D4F4] text-xs font-bold">
-            {lang === 'ar' ? 'متصل' : lang === 'fr' ? 'En ligne' : 'Online'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[#6F6F6F] text-xs font-bold uppercase tracking-wider">
+              {profile.display_name}
+            </span>
+            <span className="w-1 h-1 rounded-full bg-[#6F6F6F]/40" />
+            <span className="text-[#14D4F4] text-xs font-bold">
+              {lang === 'ar' ? 'متصل الآن' : lang === 'fr' ? 'En ligne' : 'Online Now'}
+            </span>
+          </div>
         </div>
 
         {/* Language switcher */}
         <div className="relative flex-shrink-0">
           <button
             onClick={() => setLangMenu((p: boolean) => !p)}
-            className="flex items-center gap-1.5 bg-[#1CB0F6]/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold hover:border-[#1CB0F6]/25 transition-all"
+            className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 text-sm font-bold hover:bg-white/10 hover:border-[#1CB0F6]/30 transition-all group"
           >
-            <span>{LANG_FLAGS[lang as Language]}</span>
+            <span className="text-lg">{LANG_FLAGS[lang as Language]}</span>
             <span className="hidden sm:inline text-xs text-[#F5F5F5]">{LANG_LABELS[lang as Language]}</span>
-            <span className="text-[#6F6F6F] text-xs">▾</span>
+            <span className="text-[#6F6F6F] text-xs group-hover:text-[#1CB0F6] transition-colors">▾</span>
           </button>
           {showLangMenu && (
-            <div className="absolute top-full mt-2 right-0 bg-[#121212] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[140px]">
+            <div className="absolute top-full mt-2 right-0 bg-card border border-white/10 rounded-2xl p-2 shadow-2xl z-50 min-w-[160px] animate-in fade-in slide-in-from-top-2 duration-200">
               {(['en','ar','fr'] as Language[]).map(l => (
                 <button
                   key={l}
                   onClick={() => switchLang(l)}
                   className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all',
-                    l === lang ? 'bg-[#1CB0F6]/15 text-[#1CB0F6]' : 'text-[#6F6F6F] hover:bg-[#1CB0F6]/10 hover:text-[#F5F5F5]'
+                    'w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all',
+                    l === lang ? 'bg-[#1CB0F6]/10 text-[#1CB0F6]' : 'text-[#6F6F6F] hover:bg-white/5 hover:text-[#F5F5F5]'
                   )}
                 >
-                  <span>{LANG_FLAGS[l]}</span>
+                  <span className="text-lg">{LANG_FLAGS[l]}</span>
                   <span>{LANG_LABELS[l]}</span>
                 </button>
               ))}
@@ -269,101 +273,124 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
         </div>
       </div>
 
-      {/* ── Messages ── */}
-      <div className="flex-1 overflow-y-auto p-5 lg:p-6 space-y-5 bg-black">
-        {messages.map((msg: Msg, i: number) => (
-          <div
-            key={i}
-            className={cn('flex gap-3 animate-slide-up', msg.role === 'user' ? 'flex-row-reverse' : 'flex-row')}
-          >
-            <div className={cn(
-              'w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0',
-              msg.role === 'user' ? 'bg-[#1CB0F6]/15 border border-[#1CB0F6]/25 text-[#1CB0F6]' : 'bg-[#2B70C9]/15 border border-[#2B70C9]/25 text-[#2B70C9]'
-            )}>
-              {msg.role === 'user' ? (profile.avatar || '👤') : <BotIcon />}
+      {/* ── Messages Area ── */}
+      <div className="flex-1 overflow-y-auto px-4 lg:px-8 py-6 space-y-8 scrollbar-hide">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {messages.map((msg: Msg, i: number) => (
+            <div
+              key={i}
+              className={cn('flex gap-4 group animate-slide-up', msg.role === 'user' ? 'flex-row-reverse' : 'flex-row')}
+            >
+              <div className={cn(
+                'w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 shadow-md transition-transform group-hover:scale-110 duration-300',
+                msg.role === 'user' ? 'bg-[#1CB0F6]/10 border border-[#1CB0F6]/20 text-[#1CB0F6]' : 'bg-[#2B70C9]/10 border border-[#2B70C9]/20 text-[#2B70C9]'
+              )}>
+                {msg.role === 'user' ? (profile.avatar || '👤') : <BotIcon />}
+              </div>
+              <div className={cn(
+                'flex flex-col gap-1.5',
+                msg.role === 'user' ? 'items-end' : 'items-start'
+              )}>
+                <div className={cn(
+                  'max-w-[85%] md:max-w-[75%] rounded-3xl px-6 py-4 text-[15px] font-medium leading-relaxed shadow-sm',
+                  msg.role === 'user'
+                    ? 'bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] text-white rounded-tr-none'
+                    : 'bg-card border border-white/5 text-[#F5F5F5] rounded-tl-none'
+                )}>
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                </div>
+                <span className="text-[10px] text-[#6F6F6F] font-bold uppercase tracking-widest px-1">
+                  {new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
             </div>
-            <div className={cn(
-              'max-w-[78%] rounded-3xl px-5 py-3.5 text-sm font-semibold leading-relaxed',
-              msg.role === 'user'
-                ? 'bg-[#1CB0F6]/15 border border-[#1CB0F6]/20 text-[#F5F5F5] rounded-tr-sm'
-                : 'bg-[#121212] border border-white/8 text-[#F5F5F5] rounded-tl-sm'
-            )}>
-              <p className="whitespace-pre-wrap">{msg.content}</p>
-              <p className="text-xs text-[#6F6F6F] mt-1.5 font-bold">
-                {new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-          </div>
-        ))}
+          ))}
 
-        {/* Streaming bubble */}
-        {streaming && (
-          <div className="flex gap-3 animate-slide-up">
-            <div className="w-9 h-9 rounded-xl bg-[#2B70C9]/15 border border-[#2B70C9]/25 flex items-center justify-center text-[#2B70C9] flex-shrink-0">
-              <BotIcon />
+          {/* Streaming / Loading States */}
+          {(streaming || (loading && !streaming)) && (
+            <div className="flex gap-4 animate-slide-up">
+              <div className="w-10 h-10 rounded-2xl bg-[#2B70C9]/10 border border-[#2B70C9]/20 flex items-center justify-center text-[#2B70C9] flex-shrink-0 shadow-md">
+                <BotIcon />
+              </div>
+              <div className="bg-card border border-white/5 rounded-3xl rounded-tl-none px-6 py-4 shadow-sm">
+                {streaming ? (
+                  <div className="text-[15px] font-medium leading-relaxed text-[#F5F5F5]">
+                    <p className="whitespace-pre-wrap">{streaming}</p>
+                    <span className="inline-block w-2 h-4 bg-[#1CB0F6] rounded-sm ml-1 animate-pulse" />
+                  </div>
+                ) : (
+                  <div className="flex gap-2 items-center py-1">
+                    {[0,1,2].map(i => (
+                      <div key={i} className="w-2 h-2 bg-[#1CB0F6] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="max-w-[78%] bg-[#121212] border border-white/8 rounded-3xl rounded-tl-sm px-5 py-3.5 text-sm font-semibold leading-relaxed text-[#F5F5F5]">
-              <p className="whitespace-pre-wrap">{streaming}</p>
-              <span className="inline-block w-2 h-4 bg-[#1CB0F6] rounded-sm ml-1 animate-pulse" />
-            </div>
-          </div>
-        )}
-
-        {/* Typing indicator */}
-        {loading && !streaming && (
-          <div className="flex gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#2B70C9]/15 border border-[#2B70C9]/25 flex items-center justify-center text-[#2B70C9] flex-shrink-0">
-              <BotIcon />
-            </div>
-            <div className="bg-[#121212] border border-white/8 rounded-3xl rounded-tl-sm px-5 py-3.5 flex gap-1.5 items-center">
-              {[0,1,2].map(i => (
-                <div key={i} className="w-2 h-2 bg-[#6F6F6F] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-              ))}
-            </div>
-          </div>
-        )}
-        <div ref={endRef} />
+          )}
+          <div ref={endRef} className="h-4" />
+        </div>
       </div>
 
-      {/* ── Starter prompts ── */}
-      {messages.length <= 1 && starters.length > 0 && (
-        <div className="px-5 lg:px-6 pb-3 bg-black">
-          <div className="flex flex-wrap gap-2">
-            {starters.map((s: string) => (
-              <button
-                key={s}
-                onClick={() => send(s)}
-                className="bg-[#121212] border border-white/10 rounded-2xl px-4 py-2 text-sm font-bold text-[#6F6F6F] hover:text-[#F5F5F5] hover:border-[#1CB0F6]/25 transition-all hover:-translate-y-0.5"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* ── Footer / Input Area ── */}
+      <div className="flex-shrink-0 p-4 lg:p-6 bg-gradient-to-t from-black via-black/80 to-transparent z-10">
+        <div className="max-w-4xl mx-auto space-y-4">
+          
+          {/* Starter prompts */}
+          {messages.length <= 1 && starters.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+              {starters.map((s: string) => (
+                <button
+                  key={s}
+                  onClick={() => send(s)}
+                  className="bg-card/50 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-2.5 text-sm font-bold text-[#6F6F6F] hover:text-[#1CB0F6] hover:border-[#1CB0F6]/30 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-[#1CB0F6]/10"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
 
-      {/* ── Input ── */}
-      <div className="flex-shrink-0 p-5 lg:p-6 border-t border-white/5 bg-black/40 backdrop-blur-xl">
-        <div className="flex gap-3">
-          <input
-            ref={inputRef}
-            className="flex-1 bg-[#121212] border-2 border-white/8 focus:border-[#1CB0F6] rounded-2xl px-5 py-3.5 text-[#F5F5F5] font-semibold text-sm outline-none transition-all placeholder:text-[#6F6F6F]"
-            placeholder={INPUT_PH[lang as Language]}
-            value={input}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && !e.shiftKey && send()}
-            disabled={loading}
-            dir={lang === 'ar' ? 'rtl' : 'ltr'}
-            maxLength={2000}
-          />
-          <button
-            onClick={() => send()}
-            disabled={loading || !input.trim()}
-            className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] flex items-center justify-center text-[#F5F5F5] shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-          >
-            {loading ? <LoadingIcon /> : <SendIcon />}
-          </button>
+          {/* Input box */}
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#1CB0F6] to-[#2B70C9] rounded-[26px] blur opacity-10 group-focus-within:opacity-25 transition duration-500" />
+            <div className="relative flex items-center gap-3 bg-card2 border-2 border-white/5 focus-within:border-[#1CB0F6]/50 rounded-[22px] p-2 pl-6 transition-all shadow-2xl">
+              <input
+                ref={inputRef}
+                className="flex-1 bg-transparent py-3.5 text-[#F5F5F5] font-semibold text-sm outline-none placeholder:text-[#6F6F6F] placeholder:font-bold"
+                placeholder={INPUT_PH[lang as Language]}
+                value={input}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && !e.shiftKey && send()}
+                disabled={loading}
+                dir={lang === 'ar' ? 'rtl' : 'ltr'}
+                maxLength={2000}
+              />
+              <button
+                onClick={() => send()}
+                disabled={loading || !input.trim()}
+                className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center transition-all flex-shrink-0 shadow-lg",
+                  loading || !input.trim() 
+                    ? "bg-white/5 text-[#6F6F6F] cursor-not-allowed"
+                    : "bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] text-white hover:scale-105 active:scale-95 hover:shadow-[#1CB0F6]/30"
+                )}
+              >
+                {loading ? <LoadingIcon /> : <SendIcon />}
+              </button>
+            </div>
+          </div>
+          
+          <p className="text-center text-[10px] text-[#6F6F6F] font-bold uppercase tracking-widest opacity-50">
+            AI can make mistakes. Verify important information.
+          </p>
         </div>
+      </div>
+
+      {/* Background Glows */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#1CB0F6]/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2B70C9]/5 rounded-full blur-[120px]" />
       </div>
     </div>
   )
