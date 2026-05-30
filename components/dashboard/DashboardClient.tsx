@@ -115,13 +115,13 @@ export default function DashboardClient({
     : (streak > 0 ? `🔥 ${streak}-day streak — keep it up!` : '🌱 Start your streak by completing a lesson today!')
 
   const statItems = [
-    { emoji:'🔥', val:`${streak}`, label: lang === 'ar' ? 'أيام' : lang === 'fr' ? 'Jours' : 'days',      sublabel: lang === 'ar' ? 'متتالية' : lang === 'fr' ? 'de suite' : 'streak',   color:'text-orange-400',  bg:'bg-orange-500/10' },
-    { emoji:'📚', val:`${lessonCompletions.length}`, label: lang === 'ar' ? 'درس' : lang === 'fr' ? 'leçons' : 'lessons', sublabel: lang === 'ar' ? 'مكتملة' : lang === 'fr' ? 'terminées' : 'done', color:'text-accent2',      bg:'bg-accent2/10' },
-    { emoji:'🏆', val:`${earnedBadges.length}`,      label: lang === 'ar' ? 'شارة' : lang === 'fr' ? 'badges' : 'badges',   sublabel: lang === 'ar' ? 'مكتسبة' : lang === 'fr' ? 'gagnés' : 'earned',  color:'text-yellow-400',  bg:'bg-yellow-500/10' },
+    { emoji:'🔥', val:`${streak}`, label: lang === 'ar' ? 'أيام' : lang === 'fr' ? 'Jours' : 'days',      sublabel: lang === 'ar' ? 'متتالية' : lang === 'fr' ? 'de suite' : 'streak',   color:'text-[#FAA918]',  bg:'bg-[#FAA918]/10' },
+    { emoji:'📚', val:`${lessonCompletions.length}`, label: lang === 'ar' ? 'درس' : lang === 'fr' ? 'leçons' : 'lessons', sublabel: lang === 'ar' ? 'مكتملة' : lang === 'fr' ? 'terminées' : 'done', color:'text-[#1CB0F6]',      bg:'bg-[#1CB0F6]/10' },
+    { emoji:'🏆', val:`${earnedBadges.length}`,      label: lang === 'ar' ? 'شارة' : lang === 'fr' ? 'badges' : 'badges',   sublabel: lang === 'ar' ? 'مكتسبة' : lang === 'fr' ? 'gagnés' : 'earned',  color:'text-[#FAA918]',  bg:'bg-[#FAA918]/10' },
   ]
 
   return (
-    <div className="p-4 md:p-6 lg:p-10 max-w-5xl">
+    <div className="p-4 md:p-6 lg:p-10 max-w-5xl text-[#F5F5F5]">
 
       {/* Level-up modal */}
       {levelUpMsg && (
@@ -129,10 +129,10 @@ export default function DashboardClient({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md px-4"
           onClick={() => setLevelUpMsg(null)}
         >
-          <div className="bg-card border border-accent2/40 rounded-3xl p-8 md:p-12 text-center shadow-2xl shadow-accent2/20 animate-star-pop w-full max-w-sm ring-1 ring-accent2/20">
+          <div className="bg-card border border-[#1CB0F6]/40 rounded-3xl p-8 md:p-12 text-center shadow-2xl shadow-[#1CB0F6]/20 animate-star-pop w-full max-w-sm ring-1 ring-[#1CB0F6]/20">
             <div className="text-6xl mb-5 animate-bounce-slow">🎊</div>
-            <h2 className="font-fredoka text-2xl md:text-3xl text-accent2 mb-2">{levelUpMsg}</h2>
-            <p className="text-muted font-bold text-sm">Keep going — you&apos;re unstoppable!</p>
+            <h2 className="font-fredoka text-2xl md:text-3xl text-[#1CB0F6] mb-2">{levelUpMsg}</h2>
+            <p className="text-[#6F6F6F] font-bold text-sm">Keep going — you&apos;re unstoppable!</p>
           </div>
         </div>
       )}
@@ -140,7 +140,7 @@ export default function DashboardClient({
       {/* Toast */}
       <div className={cn(
         'fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:w-auto z-50 px-5 py-3 rounded-2xl',
-        'bg-card/95 backdrop-blur-sm border border-accent3/40 text-accent3 font-bold text-sm shadow-xl shadow-accent3/10',
+        'bg-card/95 backdrop-blur-sm border border-[#14D4F4]/40 text-[#14D4F4] font-bold text-sm shadow-xl shadow-[#14D4F4]/10',
         'transition-all duration-400 flex items-center gap-2',
         toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'
       )}>
@@ -149,23 +149,23 @@ export default function DashboardClient({
 
       {/* Greeting */}
       <div className="mb-6 md:mb-8 animate-slide-up">
-        <h1 className="font-fredoka text-2xl md:text-3xl lg:text-4xl mb-1 leading-tight">
+        <h1 className="font-fredoka text-2xl md:text-3xl lg:text-4xl mb-1 leading-tight text-[#F5F5F5]">
           {greetings[profile.age_group] || greetings.pro}
         </h1>
-        <p className="text-muted font-semibold text-sm md:text-base">{streakMsg}</p>
+        <p className="text-[#6F6F6F] font-semibold text-sm md:text-base">{streakMsg}</p>
       </div>
 
       {/* Start Learning Section */}
       <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 mb-5 md:mb-6 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-accent2/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#1CB0F6]/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-center sm:text-left">
-            <h2 className="font-fredoka text-xl md:text-2xl mb-1">🚀 Continue Your Journey</h2>
-            <p className="text-muted text-sm font-semibold">Master new skills and earn more XP today!</p>
+            <h2 className="font-fredoka text-xl md:text-2xl mb-1 text-[#F5F5F5]">🚀 Continue Your Journey</h2>
+            <p className="text-[#6F6F6F] text-sm font-semibold">Master new skills and earn more XP today!</p>
           </div>
           <Link
             href="/dashboard/skills"
-            className="w-full sm:w-auto px-10 py-3.5 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent2 to-accent1 text-black text-center hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent2/25 transition-all duration-200"
+            className="w-full sm:w-auto px-10 py-3.5 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-black text-center hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#1CB0F6]/25 transition-all duration-200"
           >
             Start
           </Link>
@@ -175,29 +175,29 @@ export default function DashboardClient({
       {/* XP Card */}
       <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 mb-5 md:mb-6 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
         {/* Subtle ambient glow top-right */}
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-accent2/8 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#1CB0F6]/8 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative flex items-start justify-between mb-5 gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className="font-fredoka text-xl md:text-2xl text-accent2">Level {level}</span>
-              <span className="text-xs md:text-sm font-bold text-muted bg-accent2/10 border border-accent2/15 px-2.5 py-0.5 rounded-full">
+              <span className="font-fredoka text-xl md:text-2xl text-[#1CB0F6]">Level {level}</span>
+              <span className="text-xs md:text-sm font-bold text-[#6F6F6F] bg-[#1CB0F6]/10 border border-[#1CB0F6]/15 px-2.5 py-0.5 rounded-full">
                 {getLevelTitle(level)}
               </span>
             </div>
-            <div className="text-muted text-xs font-bold">{xpInLevel} / {XP_PER_LEVEL} XP to next level</div>
+            <div className="text-[#6F6F6F] text-xs font-bold">{xpInLevel} / {XP_PER_LEVEL} XP to next level</div>
           </div>
           <div className="text-right shrink-0">
-            <div className="font-fredoka text-2xl md:text-3xl text-white">{formatXP(xp)}</div>
-            <div className="text-muted text-xs font-bold">Total XP</div>
+            <div className="font-fredoka text-2xl md:text-3xl text-[#F5F5F5]">{formatXP(xp)}</div>
+            <div className="text-[#6F6F6F] text-xs font-bold">Total XP</div>
           </div>
         </div>
 
         {/* XP bar with shimmer */}
         <div className="relative h-4 md:h-5 bg-card2 rounded-full overflow-hidden mb-5 ring-1 ring-white/5">
           <div
-            className="h-full xp-bar-fill rounded-full transition-all duration-700 relative overflow-hidden"
-            style={{ width: `${xpPct}%` }}
+            className="h-full rounded-full transition-all duration-700 relative overflow-hidden"
+            style={{ width: `${xpPct}%`, background: 'linear-gradient(90deg, #1CB0F6 0%, #14D4F4 100%)' }}
           >
             {/* shimmer sweep */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -skew-x-12 animate-[shimmer_2.5s_ease-in-out_infinite]" />
@@ -209,8 +209,8 @@ export default function DashboardClient({
           {statItems.map(s => (
             <div key={s.label} className={cn('rounded-2xl p-3 md:p-4 text-center border border-white/5', s.bg)}>
               <div className={cn('font-fredoka text-xl md:text-2xl leading-none mb-0.5', s.color)}>{s.val}</div>
-              <div className="text-white font-extrabold text-xs">{s.label}</div>
-              <div className="text-muted text-xs font-bold hidden sm:block">{s.sublabel}</div>
+              <div className="text-[#F5F5F5] font-extrabold text-xs">{s.label}</div>
+              <div className="text-[#6F6F6F] text-xs font-bold hidden sm:block">{s.sublabel}</div>
             </div>
           ))}
         </div>
@@ -220,11 +220,11 @@ export default function DashboardClient({
 
         {/* Daily Challenge */}
         <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
-          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-accent1/6 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-[#2B70C9]/6 rounded-full blur-2xl pointer-events-none" />
           <div className="relative flex items-center justify-between mb-4 gap-2">
-            <h2 className="font-fredoka text-lg md:text-xl">⚡ Today&apos;s Challenge</h2>
+            <h2 className="font-fredoka text-lg md:text-xl text-[#F5F5F5]">⚡ Today&apos;s Challenge</h2>
             {todayChallenge && (
-              <span className="text-xs font-bold bg-accent2/15 text-accent2 border border-accent2/25 px-3 py-1 rounded-full shrink-0">
+              <span className="text-xs font-bold bg-[#FAA918]/15 text-[#FAA918] border border-[#FAA918]/25 px-3 py-1 rounded-full shrink-0">
                 +{todayChallenge.xp_reward} XP
               </span>
             )}
@@ -234,8 +234,8 @@ export default function DashboardClient({
             <>
               <div className="relative bg-card2 rounded-2xl p-4 md:p-5 mb-4 border border-white/5">
                 <div className="text-3xl md:text-4xl mb-2.5">{todayChallenge.emoji}</div>
-                <h3 className="font-extrabold text-sm md:text-base mb-1">{todayChallenge.title}</h3>
-                <p className="text-muted text-sm font-semibold leading-relaxed">{todayChallenge.description}</p>
+                <h3 className="font-extrabold text-sm md:text-base mb-1 text-[#F5F5F5]">{todayChallenge.title}</h3>
+                <p className="text-[#6F6F6F] text-sm font-semibold leading-relaxed">{todayChallenge.description}</p>
               </div>
               <button
                 onClick={doChallenge}
@@ -243,15 +243,15 @@ export default function DashboardClient({
                 className={cn(
                   'w-full py-3 md:py-3.5 rounded-2xl font-extrabold text-sm transition-all duration-200',
                   isChallengeComplete
-                    ? 'bg-accent3/15 text-accent3 border border-accent3/25 cursor-default'
-                    : 'bg-gradient-to-r from-accent2 to-accent1 text-black hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent2/25 active:translate-y-0 disabled:opacity-50'
+                    ? 'bg-[#6F6F6F]/15 text-[#6F6F6F] border border-[#6F6F6F]/25 cursor-default'
+                    : 'bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-black hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#1CB0F6]/25 active:translate-y-0 disabled:opacity-50'
                 )}
               >
                 {isPending ? '⏳ Saving...' : isChallengeComplete ? '✅ Challenge Complete!' : '🎯 Mark as Done'}
               </button>
             </>
           ) : (
-            <div className="text-center py-8 text-muted font-bold text-sm">
+            <div className="text-center py-8 text-[#6F6F6F] font-bold text-sm">
               No challenge today — check back tomorrow! 🌅
             </div>
           )}
@@ -259,10 +259,10 @@ export default function DashboardClient({
 
         {/* Badges */}
         <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
-          <div className="absolute -top-8 -right-8 w-32 h-32 bg-yellow-500/5 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -top-8 -right-8 w-32 h-32 bg-[#FAA918]/5 rounded-full blur-2xl pointer-events-none" />
           <div className="relative flex items-center justify-between mb-4">
-            <h2 className="font-fredoka text-lg md:text-xl">🏆 Badges</h2>
-            <Link href="/dashboard/badges" className="text-accent4 text-xs font-bold hover:underline underline-offset-2">
+            <h2 className="font-fredoka text-lg md:text-xl text-[#F5F5F5]">🏆 Badges</h2>
+            <Link href="/dashboard/badges" className="text-[#1CB0F6] text-xs font-bold hover:underline underline-offset-2">
               See all →
             </Link>
           </div>
@@ -274,29 +274,29 @@ export default function DashboardClient({
                   key={b.id}
                   className={cn(
                     'bg-card2 rounded-2xl p-2.5 md:p-3 text-center border hover:scale-105 hover:-translate-y-0.5 transition-all duration-200 cursor-default',
-                    getRarityColor(b.rarity), getRarityGlow(b.rarity)
+                    'border-[#1CB0F6]/20 shadow-sm shadow-[#1CB0F6]/10'
                   )}
                 >
                   <div className="text-2xl md:text-3xl mb-1">{b.emoji}</div>
-                  <div className="text-xs font-bold truncate">{b.name}</div>
+                  <div className="text-xs font-bold truncate text-[#F5F5F5]">{b.name}</div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-6 text-muted font-semibold text-sm">
+            <div className="text-center py-6 text-[#6F6F6F] font-semibold text-sm">
               No badges yet — complete your first lesson! 🌱
             </div>
           )}
 
           {lockedBadges.length > 0 && (
             <div className="space-y-1.5">
-              <div className="text-xs font-bold text-muted mb-2">🔒 Coming next:</div>
+              <div className="text-xs font-bold text-[#6F6F6F] mb-2">🔒 Coming next:</div>
               {lockedBadges.map((b: any) => (
                 <div key={b.id} className="flex items-center gap-3 bg-card2/60 rounded-xl px-3 py-2.5 opacity-55 border border-white/5">
                   <span className="text-lg md:text-xl grayscale shrink-0">{b.emoji}</span>
                   <div className="min-w-0">
-                    <div className="text-xs font-bold truncate">{b.name}</div>
-                    <div className="text-xs text-muted truncate">{b.condition}</div>
+                    <div className="text-xs font-bold truncate text-[#F5F5F5]">{b.name}</div>
+                    <div className="text-xs text-[#6F6F6F] truncate">{b.condition}</div>
                   </div>
                 </div>
               ))}
@@ -305,25 +305,25 @@ export default function DashboardClient({
         </div>
 
         {/* Dream Project */}
-        <div className="lg:col-span-2 relative rounded-3xl p-5 md:p-6 shadow-xl animate-slide-up overflow-hidden border border-accent5/15"
-          style={{ background: 'linear-gradient(135deg, rgba(var(--accent5-rgb,139,92,246),0.12) 0%, rgba(var(--accent4-rgb,77,150,255),0.08) 100%)' }}
+        <div className="lg:col-span-2 relative rounded-3xl p-5 md:p-6 shadow-xl animate-slide-up overflow-hidden border border-[#2B70C9]/15"
+          style={{ background: 'linear-gradient(135deg, rgba(28,176,246,0.12) 0%, rgba(20,212,244,0.08) 100%)' }}
         >
           {/* Decorative orbs */}
-          <div className="absolute top-0 right-0 w-48 h-48 bg-accent4/8 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-36 h-36 bg-accent5/8 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-48 h-48 bg-[#14D4F4]/8 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-36 h-36 bg-[#2B70C9]/8 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative">
-            <h2 className="font-fredoka text-lg md:text-xl mb-0.5">🌟 Your Dream Project</h2>
-            <p className="text-xs md:text-sm font-semibold text-muted mb-4">Everything you learn is building toward this:</p>
+            <h2 className="font-fredoka text-lg md:text-xl mb-0.5 text-[#F5F5F5]">🌟 Your Dream Project</h2>
+            <p className="text-xs md:text-sm font-semibold text-[#6F6F6F] mb-4">Everything you learn is building toward this:</p>
 
-            <div className="bg-black/25 backdrop-blur-sm rounded-2xl p-4 md:p-5 text-sm font-semibold leading-relaxed italic text-white/85 mb-5 border border-white/8">
+            <div className="bg-black/25 backdrop-blur-sm rounded-2xl p-4 md:p-5 text-sm font-semibold leading-relaxed italic text-[#F5F5F5]/85 mb-5 border border-white/8">
               &ldquo;{profile.dream_project || 'Not set yet — update your profile!'}&rdquo;
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="/dashboard/coach"
-                className="w-full sm:w-auto text-center px-5 md:px-6 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent4 text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent4/25 transition-all duration-200"
+                className="w-full sm:w-auto text-center px-5 md:px-6 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-[#1CB0F6] to-[#2B70C9] text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#2B70C9]/25 transition-all duration-200"
               >
                 🤖 Talk to your AI Coach →
               </Link>
@@ -336,7 +336,7 @@ export default function DashboardClient({
                   levelTitle:  getLevelTitle(level),
                   totalXP:     xp,
                 })}
-                className="w-full sm:w-auto text-center px-5 md:px-6 py-3 rounded-2xl font-extrabold text-sm border border-accent2/30 text-accent2 hover:bg-accent2/10 hover:-translate-y-0.5 transition-all duration-200"
+                className="w-full sm:w-auto text-center px-5 md:px-6 py-3 rounded-2xl font-extrabold text-sm border border-[#1CB0F6]/30 text-[#1CB0F6] hover:bg-[#1CB0F6]/10 hover:-translate-y-0.5 transition-all duration-200"
               >
                 📤 Share my progress
               </button>
