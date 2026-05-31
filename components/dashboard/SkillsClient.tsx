@@ -1,6 +1,6 @@
 'use client'
 // components/dashboard/SkillsClient.tsx
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
@@ -61,6 +61,24 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
     }
     return result
   }, [trackSkills])
+
+  // Precompute SVG paths for each unit (top-level useMemo to satisfy hooks rule)
+  const unitPaths = useMemo(() => {
+    return units.map((unitSkills, unitIdx) => {
+      const startGlobalIdx = unitIdx * 4
+      if (unitSkills.length < 2) return ''
+      let d = `M ${getX(startGlobalIdx)} ${BUBBLE_SIZE / 2}`
+      for (let localIdx = 0; localIdx < unitSkills.length - 1; localIdx++) {
+        const currX = getX(startGlobalIdx + localIdx)
+        const currY = localIdx * (BUBBLE_SIZE + BUBBLE_SPACING) + BUBBLE_SIZE / 2
+        const nextX = getX(startGlobalIdx + localIdx + 1)
+        const nextY = (localIdx + 1) * (BUBBLE_SIZE + BUBBLE_SPACING) + BUBBLE_SIZE / 2
+        const cpY = (currY + nextY) / 2
+        d += ` C ${currX} ${cpY}, ${nextX} ${cpY}, ${nextX} ${nextY}`
+      }
+      return d
+    })
+  }, [units]) // units depends on trackSkills, which depends on skills/activeTrack
 
   // Scroll Tracking for Parallax
   useEffect(() => {
@@ -123,25 +141,8 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
         {/* ── UNIT SECTIONS ── */}
         <div className="space-y-40">
           {units.map((unitSkills, unitIdx) => {
-            // First skill's global index for X pattern continuity
             const startGlobalIdx = unitIdx * 4
-            
-            // Generate path for this unit (connecting bubbles within the unit)
-            const unitPathD = useMemo(() => {
-              if (unitSkills.length < 2) return ''
-              // Local Y positions: center of each bubble relative to container top
-              // First bubble center = BUBBLE_SIZE/2, then each next adds BUBBLE_SIZE + BUBBLE_SPACING
-              let d = `M ${getX(startGlobalIdx)} ${BUBBLE_SIZE / 2}`
-              for (let localIdx = 0; localIdx < unitSkills.length - 1; localIdx++) {
-                const currX = getX(startGlobalIdx + localIdx)
-                const currY = localIdx * (BUBBLE_SIZE + BUBBLE_SPACING) + BUBBLE_SIZE / 2
-                const nextX = getX(startGlobalIdx + localIdx + 1)
-                const nextY = (localIdx + 1) * (BUBBLE_SIZE + BUBBLE_SPACING) + BUBBLE_SIZE / 2
-                const cpY = (currY + nextY) / 2
-                d += ` C ${currX} ${cpY}, ${nextX} ${cpY}, ${nextX} ${nextY}`
-              }
-              return d
-            }, [unitSkills, startGlobalIdx])
+            const unitPath = unitPaths[unitIdx] || ''
             
             return (
               <section key={unitIdx} className="relative">
@@ -159,15 +160,15 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
                   </div>
                 </div>
 
-                {/* The Map Container - relative so SVG can align perfectly with bubbles */}
+                {/* The Map Container */}
                 <div className="relative flex flex-col items-center">
                   
-                  {/* SVG PATH - now correctly aligned inside this container */}
-                  {unitSkills.length > 1 && (
+                  {/* SVG PATH - now using precomputed unitPath */}
+                  {unitPath && (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-visible z-0">
                       <svg width="100%" height="100%" className="overflow-visible">
                         <path
-                          d={unitPathD}
+                          d={unitPath}
                           fill="none"
                           stroke="#1CB0F6"
                           strokeWidth="10"
@@ -176,7 +177,7 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
                           className="opacity-10"
                         />
                         <path
-                          d={unitPathD}
+                          d={unitPath}
                           fill="none"
                           stroke="#1CB0F6"
                           strokeWidth="3"
@@ -203,10 +204,8 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
                           transform: `translateX(${dir === 'rtl' ? -x : x}px)` 
                         }}
                       >
-                        {/* THE CLAYMORPISM BUBBLE */}
+                        {/* Bubble content (unchanged) */}
                         <div className="relative">
-                          
-                          {/* Active Halo */}
                           {unlocked && !complete && (
                             <div className="absolute inset-[-25px] rounded-full bg-[#1CB0F6]/15 blur-3xl animate-pulse" />
                           )}
@@ -224,7 +223,6 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
                             <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-black/20 via-transparent to-white/10" />
                             <div className="absolute top-2 left-3 right-3 h-1/2 rounded-full bg-gradient-to-b from-white/10 to-transparent opacity-40" />
                             
-                            {/* Progress Circle */}
                             <svg className="absolute inset-[-12px] w-[calc(100%+24px)] h-[calc(100%+24px)] -rotate-90">
                               <circle cx="50%" cy="50%" r="46%" className="stroke-white/5 fill-none" strokeWidth="6" />
                               {unlocked && (
@@ -244,7 +242,6 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
                             </div>
                           </Link>
 
-                          {/* START POPUP */}
                           {unlocked && !complete && (
                             <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-white text-black px-4 py-2 rounded-2xl font-black text-[10px] tracking-widest shadow-2xl animate-bounce">
                               {t.start}
@@ -252,7 +249,6 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
                             </div>
                           )}
 
-                          {/* TITLE */}
                           <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
                             <h4 className={cn(
                               "font-fredoka text-lg tracking-wide transition-all duration-500",
@@ -264,7 +260,7 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
                           </div>
                         </div>
 
-                        {/* SIDE INFO (Desktop) */}
+                        {/* Side info (unchanged) */}
                         <div className={cn(
                           "absolute top-1/2 -translate-y-1/2 hidden lg:block w-64 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-500 z-50",
                           x > 0 ? "right-[140%] translate-x-10 group-hover:translate-x-0" : "left-[140%] -translate-x-10 group-hover:translate-x-0"
