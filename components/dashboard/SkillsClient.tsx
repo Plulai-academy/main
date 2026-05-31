@@ -1,29 +1,14 @@
-'use client'
+&apos;use client&apos;
 // components/dashboard/SkillsClient.tsx
-import { useState } from 'react'
-import Link from 'next/link'
-import { cn, getTrackColor } from '@/lib/utils'
-import type { Language } from '@/lib/openrouter'
+import { useState, useMemo, useEffect, useRef } from &apos;react&apos;
+import Link from &apos;next/link&apos;
+import { cn } from &apos;@/lib/utils&apos;
+import type { Language } from &apos;@/lib/openrouter&apos;
 
 const UI: Record<Language, Record<string, string>> = {
-  en: {
-    title: 'Skill Tree', sub: 'Unlock skills, earn XP, build your knowledge!',
-    start: '▶ Start', cont: '▶ Continue', done: '✅ Complete',
-    locked: '🔒 Locked', lessons: 'lessons', complete: 'complete',
-    needs: 'Complete first:', xpLabel: 'XP',
-  },
-  ar: {
-    title: 'شجرة المهارات', sub: 'افتح المهارات، اكسب XP، ابنِ معرفتك!',
-    start: '▶ ابدأ', cont: '▶ استمر', done: '✅ مكتمل',
-    locked: '🔒 مقفل', lessons: 'دروس', complete: 'مكتمل',
-    needs: 'أكمل أولاً:', xpLabel: 'XP',
-  },
-  fr: {
-    title: 'Arbre de Compétences', sub: 'Débloque des compétences, gagne des XP, construis tes connaissances !',
-    start: '▶ Commencer', cont: '▶ Continuer', done: '✅ Terminé',
-    locked: '🔒 Verrouillé', lessons: 'leçons', complete: 'complété',
-    needs: 'Complète d\'abord :', xpLabel: 'XP',
-  },
+  en: { unit: &apos;Unit&apos;, start: &apos;START&apos;, locked: &apos;LOCKED&apos;, complete: &apos;MASTERED&apos;, xp: &apos;XP&apos;, jump: &apos;Jump to&apos;, reward: &apos;Unit Reward&apos; },
+  ar: { unit: &apos;الوحدة&apos;, start: &apos;ابدأ&apos;, locked: &apos;مقفل&apos;, complete: &apos;أتقنت&apos;, xp: &apos;XP&apos;, jump: &apos;انتقل إلى&apos;, reward: &apos;مكافأة الوحدة&apos; },
+  fr: { unit: &apos;Unité&apos;, start: &apos;COMMENCER&apos;, locked: &apos;VERROUILLÉ&apos;, complete: &apos;MAÎTRISÉ&apos;, xp: &apos;XP&apos;, jump: &apos;Aller à&apos;, reward: &apos;Récompense&apos; },
 }
 
 interface Track { id: string; name: string; emoji: string; color: string }
@@ -39,151 +24,337 @@ interface Props {
   language:       string
 }
 
-export default function SkillsClient({ userId, tracks, skills, skillProgress, lessonCountMap, language }: Props) {
-  const [activeTrack, setActiveTrack] = useState(tracks[0]?.id ?? 'coding')
+// Snake path X positions — 8-step repeating wave
+const AMPLITUDE   = 90   // px left/right of center
+const VERT_GAP    = 140  // px between each bubble vertically
+const SVG_WIDTH   = 320  // internal SVG coordinate width
+const BUBBLE_R    = 40   // bubble radius
+const UNIT_SIZE   = 4    // skills per unit
 
-  const lang = (language || 'en') as Language
+function getXOffset(i: number): number {
+  const pattern = [0, 0.75, 1, 0.75, 0, -0.75, -1, -0.75]
+  return pattern[i % pattern.length] * AMPLITUDE
+}
+
+function getCx(i: number): number {
+  return SVG_WIDTH / 2 + getXOffset(i)
+}
+
+function getCy(i: number): number {
+  return i * VERT_GAP + 60
+}
+
+// Build a smooth cubic-bezier snake SVG path through all points
+function buildPath(indices: number[]): string {
+  if (indices.length < 2) return &apos;&apos;
+  let d = `M ${getCx(indices[0])} ${getCy(indices[0])}`
+  for (let k = 0; k < indices.length - 1; k++) {
+    const i    = indices[k]
+    const j    = indices[k + 1]
+    const midY = (getCy(i) + getCy(j)) / 2
+    d += ` C ${getCx(i)} ${midY}, ${getCx(j)} ${midY}, ${getCx(j)} ${getCy(j)}`
+  }
+  return d
+}
+
+export default function SkillsClient({
+  userId, tracks, skills, skillProgress, lessonCountMap, language,
+}: Props) {
+  const [activeTrack, setActiveTrack] = useState(tracks[0]?.id ?? &apos;&apos;)
+
+  const lang = (language || &apos;en&apos;) as Language
   const t    = UI[lang]
-  const dir  = lang === 'ar' ? 'rtl' : 'ltr'
+  const dir  = lang === &apos;ar&apos; ? &apos;rtl&apos; : &apos;ltr&apos;
+  const isRtl = dir === &apos;rtl&apos;
 
-  const progressMap = Object.fromEntries(skillProgress.map(p => [p.skill_node_id, p.progress_pct]))
+  // progress lookup
+  const progressMap = useMemo(
+    () => Object.fromEntries(skillProgress.map(p => [p.skill_node_id, p.progress_pct])),
+    [skillProgress]
+  )
 
-  const trackSkills = skills
-    .filter(s => s.track_id === activeTrack)
-    .sort((a, b) => a.sort_order - b.sort_order)
+  const trackSkills = useMemo(
+    () => skills.filter(s => s.track_id === activeTrack).sort((a, b) => a.sort_order - b.sort_order),
+    [skills, activeTrack]
+  )
+
+  const units = useMemo(() => {
+    const result: Skill[][] = []
+    for (let i = 0; i < trackSkills.length; i += UNIT_SIZE) {
+      result.push(trackSkills.slice(i, i + UNIT_SIZE))
+    }
+    return result
+  }, [trackSkills])
 
   const isUnlocked = (skill: Skill) =>
     skill.required_nodes.every(r => (progressMap[r] ?? 0) >= 100)
 
   const isComplete = (id: string) => (progressMap[id] ?? 0) >= 100
 
-  const tc = getTrackColor(activeTrack)
+  // SVG height to hold all bubbles
+  const svgHeight = trackSkills.length * VERT_GAP + 100
+
+  // Full dotted track path (all bubbles)
+  const allIndices  = trackSkills.map((_, i) => i)
+  const fullPath    = buildPath(allIndices)
+
+  // Green progress path: all complete bubbles + the current active one
+  const activeIdx = trackSkills.findIndex(s => isUnlocked(s) && !isComplete(s.id))
+  const completedIndices = trackSkills
+    .map((_, i) => i)
+    .filter(i => isComplete(trackSkills[i].id))
+
+  let progressIndices: number[] = [...completedIndices]
+  if (activeIdx !== -1 && !progressIndices.includes(activeIdx)) {
+    progressIndices = [...progressIndices, activeIdx].sort((a, b) => a - b)
+  }
+  const progressPath = buildPath(progressIndices)
 
   return (
-    <div className="p-6 lg:p-10 max-w-3xl" dir={dir}>
-      <h1 className="font-fredoka text-3xl lg:text-4xl mb-1">🗺️ {t.title}</h1>
-      <p className="text-muted font-semibold mb-7">{t.sub}</p>
+    <div className="min-h-screen bg-[#f7f7f7] dark:bg-[#111]" dir={dir}>
 
-      {/* Track tabs */}
-      <div className="flex gap-2 mb-8 bg-card rounded-2xl p-2 border border-white/5 flex-wrap">
-        {tracks.map(track => {
-          const c = getTrackColor(track.id)
-          return (
+      {/* ── TRACK SELECTOR ── */}
+      <div className="sticky top-0 z-50 bg-[#f7f7f7]/90 dark:bg-[#111]/90 backdrop-blur border-b border-black/5 dark:border-white/5">
+        <div className="max-w-lg mx-auto px-4 py-3 flex gap-2 justify-center flex-wrap">
+          {tracks.map(track => (
             <button
               key={track.id}
               onClick={() => setActiveTrack(track.id)}
               className={cn(
-                'flex-1 min-w-[80px] flex items-center justify-center gap-2 py-3 rounded-xl font-extrabold text-sm transition-all',
-                activeTrack === track.id ? `${c.bg} ${c.text} border ${c.border}` : 'text-muted hover:text-white'
+                &apos;flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all duration-200 border-b-[3px]&apos;,
+                activeTrack === track.id
+                  ? &apos;bg-[#58CC02] border-[#46A302] text-white shadow-sm&apos;
+                  : &apos;bg-white dark:bg-[#1e1e1e] border-black/10 dark:border-white/10 text-gray-500 hover:bg-gray-50 dark:hover:bg-[#2a2a2a]&apos;
               )}
             >
-              <span>{track.emoji}</span>
+              <span className="text-lg">{track.emoji}</span>
               <span className="hidden sm:inline">{track.name}</span>
             </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── MAIN MAP ── */}
+      <div className="max-w-lg mx-auto px-4 pb-32 pt-6">
+        {units.map((unitSkills, unitIdx) => {
+          const unitStartAbsoluteIdx = unitIdx * UNIT_SIZE
+
+          return (
+            <div key={unitIdx}>
+
+              {/* Unit Banner */}
+              <div className="mb-4 px-2">
+                <div className="rounded-2xl bg-white dark:bg-[#1e1e1e] border border-black/8 dark:border-white/8 shadow-sm px-6 py-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-bold text-[#58CC02] uppercase tracking-widest mb-0.5">
+                      {t.unit} {unitIdx + 1}
+                    </p>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                      {unitSkills[0].title}
+                    </h2>
+                  </div>
+                  <div className="text-3xl">{unitSkills[0].emoji}</div>
+                </div>
+              </div>
+
+              {/* Snake Map for this unit */}
+              <div className="relative" style={{ minHeight: unitSkills.length * VERT_GAP + 80 }}>
+
+                {/* SVG path */}
+                <svg
+                  viewBox={`0 0 ${SVG_WIDTH} ${unitSkills.length * VERT_GAP + 80}`}
+                  className="absolute inset-0 w-full h-full overflow-visible pointer-events-none"
+                  preserveAspectRatio="xMidYMid meet"
+                >
+                  {/* Dotted gray base track */}
+                  <path
+                    d={buildPath(unitSkills.map((_, i) => unitStartAbsoluteIdx + i))}
+                    fill="none"
+                    stroke="#d1d5db"
+                    strokeWidth="10"
+                    strokeLinecap="round"
+                    strokeDasharray="1 20"
+                  />
+
+                  {/* Green progress overlay */}
+                  {(() => {
+                    const unitProgressIndices = unitSkills
+                      .map((s, i) => ({ s, i: unitStartAbsoluteIdx + i }))
+                      .filter(({ s }) => isComplete(s.id) || (isUnlocked(s) && !isComplete(s.id)))
+                      .map(({ i }) => i)
+
+                    if (unitProgressIndices.length < 2) return null
+                    return (
+                      <path
+                        d={buildPath(unitProgressIndices)}
+                        fill="none"
+                        stroke="#58CC02"
+                        strokeWidth="10"
+                        strokeLinecap="round"
+                      />
+                    )
+                  })()}
+                </svg>
+
+                {/* Skill Bubbles */}
+                {unitSkills.map((skill, skillIdx) => {
+                  const absIdx    = unitStartAbsoluteIdx + skillIdx
+                  const unlocked  = isUnlocked(skill)
+                  const complete  = isComplete(skill.id)
+                  const isActive  = unlocked && !complete
+                  const prog      = progressMap[skill.id] ?? 0
+
+                  // Position as % of SVG width
+                  const cx = getCx(absIdx)
+                  const leftPct = (cx / SVG_WIDTH) * 100
+
+                  // Vertical position
+                  const topPx = skillIdx * VERT_GAP + 60
+
+                  // Progress ring math
+                  const ringR    = BUBBLE_R + 6
+                  const ringCirc = 2 * Math.PI * ringR
+                  const ringOffset = ringCirc - (ringCirc * prog) / 100
+
+                  const href = unlocked ? `/dashboard/skills/${skill.id}` : &apos;#&apos;
+
+                  return (
+                    <div
+                      key={skill.id}
+                      className="absolute"
+                      style={{
+                        left: `${leftPct}%`,
+                        top: topPx,
+                        transform: &apos;translate(-50%, -50%)&apos;,
+                      }}
+                    >
+                      <div className="relative flex flex-col items-center group">
+
+                        {/* Active pulse halo */}
+                        {isActive && (
+                          <span className="absolute inset-[-16px] rounded-full bg-[#58CC02]/20 animate-ping" />
+                        )}
+
+                        {/* START tooltip */}
+                        {isActive && (
+                          <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white dark:bg-[#1e1e1e] border border-black/10 dark:border-white/10 shadow-md text-gray-900 dark:text-white px-3 py-1.5 rounded-xl text-[10px] font-black tracking-widest whitespace-nowrap">
+                            {t.start}
+                            <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-[#1e1e1e] border-r border-b border-black/10 dark:border-white/10 rotate-45 block" />
+                          </div>
+                        )}
+
+                        {/* Bubble */}
+                        <Link
+                          href={href}
+                          aria-label={`${skill.title}${!unlocked ? &apos; — locked&apos; : complete ? &apos; — mastered&apos; : &apos;&apos;}`}
+                          className={cn(
+                            &apos;relative flex items-center justify-center rounded-full text-4xl transition-all duration-200 select-none outline-none focus-visible:ring-4 focus-visible:ring-offset-2&apos;,
+                            &apos;w-20 h-20&apos;,
+                            complete
+                              ? &apos;bg-[#FFC800] border-b-[5px] border-[#D4A200] hover:-translate-y-1 focus-visible:ring-[#FFC800]&apos;
+                              : unlocked
+                              ? &apos;bg-[#58CC02] border-b-[5px] border-[#46A302] hover:-translate-y-1 active:translate-y-0 active:border-b-0 focus-visible:ring-[#58CC02]&apos;
+                              : &apos;bg-gray-200 dark:bg-[#2a2a2a] border-b-[5px] border-gray-300 dark:border-[#1a1a1a] grayscale opacity-60 pointer-events-none&apos;
+                          )}
+                        >
+                          {/* Sheen */}
+                          <span className="absolute top-2 left-3 right-3 h-1/3 rounded-full bg-white/20 pointer-events-none" />
+
+                          {/* Progress ring */}
+                          {prog > 0 && prog < 100 && (
+                            <svg
+                              className="absolute pointer-events-none"
+                              style={{ inset: -10, width: &apos;calc(100% + 20px)&apos;, height: &apos;calc(100% + 20px)&apos; }}
+                              viewBox="0 0 100 100"
+                            >
+                              <circle cx="50" cy="50" r="46" fill="none" stroke="white" strokeOpacity="0.25" strokeWidth="5" />
+                              <circle
+                                cx="50" cy="50" r="46"
+                                fill="none"
+                                stroke="white"
+                                strokeWidth="5"
+                                strokeLinecap="round"
+                                strokeDasharray={`${2 * Math.PI * 46}`}
+                                strokeDashoffset={`${2 * Math.PI * 46 * (1 - prog / 100)}`}
+                                transform="rotate(-90 50 50)"
+                              />
+                            </svg>
+                          )}
+
+                          {/* Icon */}
+                          <span className="relative z-10 drop-shadow">
+                            {complete ? &apos;⭐&apos; : unlocked ? skill.emoji : &apos;🔒&apos;}
+                          </span>
+                        </Link>
+
+                        {/* Label */}
+                        <div className="mt-3 text-center">
+                          <p className={cn(
+                            &apos;text-[13px] font-bold leading-tight&apos;,
+                            unlocked ? &apos;text-gray-800 dark:text-gray-100&apos; : &apos;text-gray-400 dark:text-gray-600&apos;
+                          )}>
+                            {skill.title}
+                          </p>
+                          {complete && (
+                            <p className="text-[10px] font-black text-[#FFC800] tracking-widest uppercase mt-0.5">
+                              {t.complete}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Hover card (desktop) */}
+                        {unlocked && (
+                          <div className={cn(
+                            &apos;absolute top-1/2 -translate-y-1/2 w-56 z-50&apos;,
+                            &apos;opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200&apos;,
+                            &apos;bg-white dark:bg-[#1e1e1e] border border-black/10 dark:border-white/10 rounded-2xl shadow-xl p-4 hidden lg:block&apos;,
+                            isRtl
+                              ? (getXOffset(absIdx) < 0 ? &apos;right-[110%]&apos; : &apos;left-[110%]&apos;)
+                              : (getXOffset(absIdx) > 0 ? &apos;right-[110%]&apos; : &apos;left-[110%]&apos;)
+                          )}>
+                            <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">{skill.title}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">{skill.description}</p>
+                            <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest border-t border-black/5 dark:border-white/5 pt-3">
+                              <span className="text-[#FFC800]">+{skill.xp_reward} {t.xp}</span>
+                              <span className="text-gray-400">{lessonCountMap[skill.id] ?? 0} lessons</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Unit reward chest */}
+              <div className="flex flex-col items-center py-8 opacity-40 hover:opacity-90 transition-opacity cursor-pointer group">
+                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#1e1e1e] border-2 border-dashed border-gray-300 dark:border-white/10 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
+                  🎁
+                </div>
+                <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-gray-400">{t.reward}</p>
+              </div>
+
+            </div>
           )
         })}
       </div>
 
-      {/* Skill nodes */}
-      <div className="relative space-y-0">
-        {trackSkills.map((skill, idx) => {
-          const unlocked = isUnlocked(skill)
-          const complete = isComplete(skill.id)
-          const prog     = progressMap[skill.id] ?? 0
-          const lCount   = lessonCountMap[skill.id] ?? 3
-          const blockers = skill.required_nodes
-            .filter(r => (progressMap[r] ?? 0) < 100)
-            .map(r => skills.find(s => s.id === r)?.title)
-            .filter(Boolean)
-
+      {/* ── UNIT QUICK-JUMP ── */}
+      <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col gap-3">
+        {units.map((unitSkills, i) => {
+          const anyUnlocked = unitSkills.some(s => isUnlocked(s))
           return (
-            <div key={skill.id} className="relative">
-              {/* Vertical connector */}
-              {idx < trackSkills.length - 1 && (
-                <div className={cn('absolute left-8 top-full w-0.5 h-8 z-0', complete ? 'bg-accent3/50' : 'bg-white/8')}
-                  style={lang === 'ar' ? { left: 'auto', right: '2rem' } : {}} />
-              )}
-
+            <div key={i} className="group relative flex items-center justify-end gap-2">
+              <span className="absolute right-6 opacity-0 group-hover:opacity-100 transition-all text-[10px] font-bold text-gray-600 dark:text-gray-300 uppercase tracking-widest whitespace-nowrap bg-white dark:bg-[#1e1e1e] px-3 py-1.5 rounded-lg border border-black/10 dark:border-white/10 shadow">
+                {t.unit} {i + 1}
+              </span>
               <div className={cn(
-                'relative z-10 flex gap-4 mb-8 p-5 rounded-3xl border transition-all',
-                complete  ? 'bg-accent3/8 border-accent3/25' :
-                unlocked  ? `${tc.bg} ${tc.border} hover:scale-[1.01] cursor-pointer` :
-                            'bg-card2/50 border-white/5 opacity-55'
-              )}>
-                {/* Icon */}
-                <div className={cn(
-                  'w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 border',
-                  complete ? 'bg-accent3/15 border-accent3/30' :
-                  unlocked ? `${tc.bg} ${tc.border}` :
-                             'bg-card2 border-white/10 grayscale'
-                )}>
-                  {complete ? '✅' : skill.emoji}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1 flex-wrap">
-                    <h3 className="font-extrabold text-base">{skill.title}</h3>
-                    <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0',
-                      complete ? 'bg-accent3/15 text-accent3' :
-                      unlocked ? `${tc.bg} ${tc.text}` :
-                                 'bg-card2 text-muted'
-                    )}>
-                      {complete ? t.done : unlocked ? `+${skill.xp_reward} ${t.xpLabel}` : t.locked}
-                    </span>
-                  </div>
-
-                  <p className="text-muted text-xs font-semibold mb-3 leading-relaxed">{skill.description}</p>
-
-                  {/* Progress bar */}
-                  <div className="h-1.5 bg-black/20 rounded-full overflow-hidden mb-3">
-                    <div
-                      className={cn('h-full rounded-full transition-all duration-500', complete ? 'bg-accent3' : 'xp-bar-fill')}
-                      style={{ width: `${prog}%` }}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <span className="text-xs text-muted font-bold">{lCount} {t.lessons} · {prog}% {t.complete}</span>
-
-                    {unlocked && !complete && (
-                      <Link
-                        href={`/dashboard/skills/${skill.id}`}
-                        className={cn(
-                          'text-xs font-extrabold px-4 py-2 rounded-xl transition-all hover:-translate-y-0.5',
-                          activeTrack === 'coding'   ? 'bg-gradient-to-r from-accent4 to-accent5 text-white' :
-                          activeTrack === 'ai'       ? 'bg-gradient-to-r from-accent5 to-accent1 text-white' :
-                                                       'bg-gradient-to-r from-accent3 to-accent4 text-white'
-                        )}
-                      >
-                        {prog === 0 ? t.start : t.cont}
-                      </Link>
-                    )}
-
-                    {complete && (
-                      <Link
-                        href={`/dashboard/skills/${skill.id}`}
-                        className="text-xs font-extrabold px-4 py-2 rounded-xl bg-accent3/15 text-accent3 border border-accent3/25 hover:bg-accent3/25 transition-all"
-                      >
-                        {t.done} →
-                      </Link>
-                    )}
-
-                    {!unlocked && blockers.length > 0 && (
-                      <span className="text-xs text-muted font-bold">{t.needs} {blockers.join(', ')}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
+                &apos;w-2.5 h-2.5 rounded-full border border-gray-300 dark:border-white/20 transition-all duration-200 group-hover:scale-125&apos;,
+                anyUnlocked ? &apos;bg-[#58CC02]&apos; : &apos;bg-gray-200 dark:bg-[#333]&apos;
+              )} />
             </div>
           )
         })}
-
-        {trackSkills.length === 0 && (
-          <div className="text-center py-16 text-muted font-semibold">
-            {lang === 'ar' ? 'لا توجد مهارات لهذا المسار حتى الآن.' : lang === 'fr' ? 'Pas encore de compétences pour cette piste.' : 'No skills available for this track yet.'}
-          </div>
-        )}
       </div>
     </div>
   )
