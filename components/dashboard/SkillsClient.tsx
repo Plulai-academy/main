@@ -54,12 +54,12 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
   // Generate a smooth path for the trail
   const pathD = useMemo(() => {
     if (trackSkills.length < 2) return ''
-    let d = `M ${getX(0)} 0`
+    let d = `M ${getX(0)} 48` // Offset to start inside the first bubble
     for (let i = 0; i < trackSkills.length - 1; i++) {
       const currX = getX(i)
-      const currY = i * BUBBLE_SPACING
+      const currY = i * BUBBLE_SPACING + 48
       const nextX = getX(i + 1)
-      const nextY = (i + 1) * BUBBLE_SPACING
+      const nextY = (i + 1) * BUBBLE_SPACING + 48
       const cpY = (currY + nextY) / 2
       d += ` C ${currX} ${cpY}, ${nextX} ${cpY}, ${nextX} ${nextY}`
     }
@@ -102,17 +102,17 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
         {/* ── THE MAP ── */}
         <div className="relative flex flex-col items-center pt-10">
           
-          {/* THE GLOWING TRAIL (SVG) */}
-          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-visible">
+          {/* THE SNAKE PATH (UNDERNEATH) */}
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-visible z-0">
             <svg width="100%" height="100%" className="overflow-visible">
               <path
                 d={pathD}
                 fill="none"
                 stroke="#1CB0F6"
-                strokeWidth="6"
+                strokeWidth="8"
                 strokeLinecap="round"
                 strokeDasharray="1, 15"
-                className="opacity-30"
+                className="opacity-20"
               />
               <path
                 d={pathD}
@@ -134,14 +134,14 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
             return (
               <div 
                 key={skill.id}
-                className="relative flex flex-col items-center group"
+                className="relative flex flex-col items-center group z-10"
                 style={{ 
                   marginBottom: `${BUBBLE_SPACING}px`,
                   transform: `translateX(${dir === 'rtl' ? -x : x}px)` 
                 }}
               >
                 {/* ── THE BUBBLE ── */}
-                <div className="relative z-10">
+                <div className="relative">
                   
                   {/* Aura for Active */}
                   {unlocked && !complete && (
@@ -171,7 +171,7 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
                           className={cn("fill-none transition-all duration-1000", complete ? "stroke-[#FAA918]" : "stroke-white")}
                           strokeWidth="4"
                           strokeDasharray="290"
-                          strokeDashoffset={290 - (290 * prog) / 100}
+                          strokeDashoffset={282 - (282 * prog) / 100}
                           strokeLinecap="round"
                         />
                       )}
