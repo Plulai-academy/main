@@ -1,14 +1,14 @@
 'use client'
 // components/dashboard/SkillsClient.tsx
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
 
 const UI: Record<Language, Record<string, string>> = {
-  en: { unit: 'Unit', start: 'START', locked: 'LOCKED', complete: 'MASTERED', xp: 'XP' },
-  ar: { unit: 'الوحدة', start: 'ابدأ', locked: 'مقفل', complete: 'أتقنت', xp: 'XP' },
-  fr: { unit: 'Unité', start: 'COMMENCER', locked: 'VERROUILLÉ', complete: 'MAÎTRISÉ', xp: 'XP' },
+  en: { title: 'Skill Path', sub: 'Structured learning journey to mastery.', start: 'Start Module', cont: 'Continue', done: 'Completed', locked: 'Locked', xp: 'XP' },
+  ar: { title: 'مسار المهارات', sub: 'رحلة تعلم منظمة نحو الإتقان.', start: 'ابدأ الوحدة', cont: 'استمر', done: 'مكتمل', locked: 'مقفل', xp: 'XP' },
+  fr: { title: 'Parcours de Compétences', sub: 'Un parcours d\'apprentissage structuré vers la maîtrise.', start: 'Démarrer le module', cont: 'Continuer', done: 'Terminé', locked: 'Verrouillé', xp: 'XP' },
 }
 
 interface Track { id: string; name: string; emoji: string; color: string }
@@ -33,226 +33,151 @@ export default function SkillsClient({ userId, tracks, skills, skillProgress, le
 
   const progressMap = Object.fromEntries(skillProgress.map(p => [p.skill_node_id, p.progress_pct]))
 
-  const trackSkills = useMemo(() => skills
+  const trackSkills = skills
     .filter(s => s.track_id === activeTrack)
-    .sort((a, b) => a.sort_order - b.sort_order), [skills, activeTrack])
+    .sort((a, b) => a.sort_order - b.sort_order)
 
   const isUnlocked = (skill: Skill) =>
     skill.required_nodes.every(r => (progressMap[r] ?? 0) >= 100)
 
   const isComplete = (id: string) => (progressMap[id] ?? 0) >= 100
 
-  // Snake Path Physics
-  const BUBBLE_SPACING = 180
-  const X_AMPLITUDE = 90
-
-  const getX = (i: number) => {
-    const pattern = [0, 0.5, 1, 0.5, 0, -0.5, -1, -0.5]
-    return pattern[i % pattern.length] * X_AMPLITUDE
-  }
-
-  // Generate a smooth 3D snake path
-  const pathD = useMemo(() => {
-    if (trackSkills.length < 2) return ''
-    let d = `M ${getX(0)} 0`
-    for (let i = 0; i < trackSkills.length - 1; i++) {
-      const currX = getX(i)
-      const currY = i * BUBBLE_SPACING
-      const nextX = getX(i + 1)
-      const nextY = (i + 1) * BUBBLE_SPACING
-      const cpY1 = currY + BUBBLE_SPACING * 0.4
-      const cpY2 = nextY - BUBBLE_SPACING * 0.4
-      d += ` C ${currX} ${cpY1}, ${nextX} ${cpY2}, ${nextX} ${nextY}`
-    }
-    return d
-  }, [trackSkills])
-
   return (
-    <div className="min-h-screen pb-60 relative bg-[#080808] overflow-x-hidden selection:bg-[#1CB0F6]/30" dir={dir}>
-      
-      {/* ── AMBIENT WORLD ── */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1CB0F608_0%,transparent_70%)]" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#1CB0F6]/5 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#2B70C9]/5 blur-[120px] rounded-full animate-pulse" />
-      </div>
-
-      <div className="relative z-10 max-w-2xl mx-auto pt-12">
+    <div className="min-h-screen bg-[#0A0A0A] text-[#F5F5F5] pb-24" dir={dir}>
+      <div className="max-w-4xl mx-auto px-6 pt-12">
         
-        {/* ── PREMIUM FLOATING TRACKER ── */}
-        <div className="sticky top-6 z-50 mb-24 flex justify-center px-4">
-          <div className="flex p-2 bg-[#121212]/90 backdrop-blur-3xl rounded-[32px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] ring-1 ring-white/10">
-            {tracks.map(track => (
-              <button
-                key={track.id}
-                onClick={() => setActiveTrack(track.id)}
-                className={cn(
-                  'relative px-7 py-3.5 rounded-[26px] font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 flex items-center gap-3 overflow-hidden group',
-                  activeTrack === track.id ? 'text-white' : 'text-[#555] hover:text-[#888]'
-                )}
-              >
-                {activeTrack === track.id && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] shadow-inner animate-in fade-in zoom-in-95 duration-500" />
-                )}
-                <span className="relative z-10 text-2xl group-hover:scale-125 transition-transform duration-300">{track.emoji}</span>
-                <span className="relative z-10 hidden sm:inline">{track.name}</span>
-              </button>
-            ))}
-          </div>
+        {/* Header Section */}
+        <div className="mb-12">
+          <h1 className="text-3xl font-bold tracking-tight mb-2">{t.title}</h1>
+          <p className="text-[#6F6F6F] font-medium">{t.sub}</p>
         </div>
 
-        {/* ── THE SNAKE JOURNEY ── */}
-        <div className="relative flex flex-col items-center pt-10">
-          
-          {/* THE SNAKE BODY (3D SVG) */}
-          <div className="absolute top-12 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-visible">
-            <svg width="100%" height="100%" className="overflow-visible">
-              <defs>
-                <linearGradient id="snakeBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#1CB0F6" />
-                  <stop offset="100%" stopColor="#2B70C9" />
-                </linearGradient>
-                <filter id="snakeShadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur in="SourceAlpha" stdDeviation="6" />
-                  <feOffset dx="0" dy="8" result="offsetblur" />
-                  <feComponentTransfer>
-                    <feFuncA type="linear" slope="0.5" />
-                  </feComponentTransfer>
-                  <feMerge>
-                    <feMergeNode />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              
-              {/* Snake Shadow */}
-              <path d={pathD} fill="none" stroke="black" strokeWidth="24" strokeLinecap="round" className="opacity-40" filter="url(#snakeShadow)" />
-              
-              {/* Snake Main Body (Thick) */}
-              <path d={pathD} fill="none" stroke="url(#snakeBodyGrad)" strokeWidth="20" strokeLinecap="round" className="opacity-20" />
-              
-              {/* Snake Core Highlight */}
-              <path d={pathD} fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" className="opacity-10" />
-            </svg>
-          </div>
+        {/* Professional Track Switcher */}
+        <div className="flex gap-2 mb-16 border-b border-white/5 pb-1">
+          {tracks.map(track => (
+            <button
+              key={track.id}
+              onClick={() => setActiveTrack(track.id)}
+              className={cn(
+                'px-6 py-3 text-sm font-bold transition-all relative',
+                activeTrack === track.id 
+                  ? 'text-[#1CB0F6]' 
+                  : 'text-[#6F6F6F] hover:text-[#F5F5F5]'
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <span>{track.emoji}</span>
+                <span>{track.name}</span>
+              </div>
+              {activeTrack === track.id && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1CB0F6] animate-in fade-in duration-300" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Professional Timeline Path */}
+        <div className="relative space-y-12">
+          {/* Vertical Path Line */}
+          <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-[#1CB0F6]/50 via-white/5 to-white/5" 
+               style={lang === 'ar' ? { left: 'auto', right: '1.5rem' } : {}} />
 
           {trackSkills.map((skill, idx) => {
             const unlocked = isUnlocked(skill)
             const complete = isComplete(skill.id)
             const prog = progressMap[skill.id] ?? 0
-            const x = getX(idx)
             
             return (
-              <div 
-                key={skill.id}
-                className="relative flex flex-col items-center group"
-                style={{ 
-                  marginBottom: `${BUBBLE_SPACING}px`,
-                  transform: `translateX(${dir === 'rtl' ? -x : x}px)` 
-                }}
-              >
-                {/* ── THE 3D BUBBLE ASSET ── */}
-                <div className="relative z-10">
-                  
-                  {/* Active Aura */}
-                  {unlocked && !complete && (
-                    <div className="absolute inset-[-20px] rounded-full bg-[#1CB0F6]/25 blur-3xl animate-pulse" />
-                  )}
-
-                  <Link
-                    href={unlocked ? `/dashboard/skills/${skill.id}` : '#'}
-                    className={cn(
-                      "relative w-28 h-28 md:w-32 md:h-32 rounded-full flex items-center justify-center transition-all duration-500",
-                      "shadow-[0_15px_40px_rgba(0,0,0,0.6)] active:shadow-none active:translate-y-[10px] hover:-translate-y-2",
-                      complete ? "bg-[#FAA918] border-b-[12px] border-[#B47200]" :
-                      unlocked ? "bg-[#1CB0F6] border-b-[12px] border-[#1578A8]" :
-                                 "bg-[#1A1A1A] border-b-[12px] border-[#000000] grayscale opacity-90"
-                    )}
-                  >
-                    {/* Inner Depth & Shine Layers */}
-                    <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-white/30 via-transparent to-transparent opacity-40" />
-                    <div className="absolute inset-2 rounded-full border border-white/10" />
-                    <div className="absolute top-3 left-6 w-1/4 h-1/5 bg-white/30 rounded-full blur-[3px] -rotate-12" />
-                    
-                    {/* Progress Halo */}
-                    <svg className="absolute inset-[-12px] w-[calc(100%+24px)] h-[calc(100%+24px)] -rotate-90">
-                      <circle cx="50%" cy="50%" r="46%" className="stroke-white/5 fill-none" strokeWidth="8" />
-                      {unlocked && (
-                        <circle 
-                          cx="50%" cy="50%" r="46%" 
-                          className={cn("fill-none transition-all duration-1000", complete ? "stroke-[#FAA918]" : "stroke-white")}
-                          strokeWidth="8"
-                          strokeDasharray="290"
-                          strokeDashoffset={290 - (290 * prog) / 100}
-                          strokeLinecap="round"
-                        />
-                      )}
+              <div key={skill.id} className="relative pl-16 group" style={lang === 'ar' ? { paddingLeft: 0, paddingRight: '4rem' } : {}}>
+                
+                {/* Milestone Node */}
+                <div className={cn(
+                  "absolute left-3 top-0 w-6 h-6 rounded-full border-2 transition-all duration-500 z-10 flex items-center justify-center",
+                  complete ? "bg-[#1CB0F6] border-[#1CB0F6]" :
+                  unlocked ? "bg-[#0A0A0A] border-[#1CB0F6] shadow-[0_0_15px_rgba(28,176,246,0.3)]" :
+                             "bg-[#0A0A0A] border-[#1A1A1A]"
+                )} style={lang === 'ar' ? { left: 'auto', right: '0.75rem' } : {}}>
+                  {complete && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4">
+                      <polyline points="20 6 9 17 4 12" />
                     </svg>
-
-                    {/* Skill Icon */}
-                    <div className="relative z-10 text-5xl md:text-6xl drop-shadow-[0_6px_8px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                      {complete ? '💎' : skill.emoji}
-                    </div>
-                  </Link>
-
-                  {/* START LABEL (Floating) */}
-                  {unlocked && !complete && (
-                    <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-white text-black px-5 py-2.5 rounded-[18px] font-black text-xs tracking-widest shadow-2xl animate-bounce">
-                      {t.start}
-                      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45" />
-                    </div>
                   )}
-
-                  {/* INFO TAG */}
-                  <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 text-center min-w-[160px]">
-                    <h4 className={cn(
-                      "font-fredoka text-xl tracking-wide transition-all duration-500",
-                      unlocked ? "text-white scale-100" : "text-[#444] scale-95"
-                    )}>
-                      {skill.title}
-                    </h4>
-                    {complete && (
-                      <div className="flex items-center justify-center gap-1.5 mt-1 animate-in fade-in slide-in-from-top-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#FAA918]" />
-                        <p className="text-[10px] font-black text-[#FAA918] tracking-[0.25em] uppercase">{t.complete}</p>
-                      </div>
-                    )}
-                  </div>
+                  {unlocked && !complete && <div className="w-1.5 h-1.5 rounded-full bg-[#1CB0F6] animate-pulse" />}
                 </div>
 
-                {/* SIDE REVEAL PANEL (Desktop) */}
+                {/* Module Card */}
                 <div className={cn(
-                  "absolute top-1/2 -translate-y-1/2 hidden lg:block w-72 opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-500 z-50",
-                  x > 0 ? "right-[150%] translate-x-10 group-hover:translate-x-0" : "left-[150%] -translate-x-10 group-hover:translate-x-0"
+                  "p-6 rounded-2xl border transition-all duration-300",
+                  unlocked ? "bg-white/[0.02] border-white/10 hover:border-white/20" : "bg-transparent border-white/5 opacity-40"
                 )}>
-                  <div className="bg-[#121212]/95 backdrop-blur-3xl border border-white/10 p-7 rounded-[36px] shadow-[0_40px_80px_rgba(0,0,0,0.8)] ring-1 ring-white/10">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-3xl shadow-inner">{skill.emoji}</div>
-                      <h5 className="font-fredoka text-2xl text-white">{skill.title}</h5>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-start gap-5 flex-1">
+                      <div className={cn(
+                        "w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 border transition-colors",
+                        unlocked ? "bg-white/5 border-white/10" : "bg-white/5 border-transparent"
+                      )}>
+                        {skill.emoji}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-bold text-lg">{skill.title}</h3>
+                          {complete && (
+                            <span className="text-[10px] font-black text-[#1CB0F6] uppercase tracking-widest bg-[#1CB0F6]/10 px-2 py-0.5 rounded-md">
+                              {t.done}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-[#6F6F6F] font-medium max-w-xl leading-relaxed">
+                          {skill.description}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-sm text-[#777] font-semibold leading-relaxed mb-6">{skill.description}</p>
-                    <div className="flex items-center justify-between pt-5 border-t border-white/5">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-[#FAA918] tracking-widest uppercase">Reward</span>
-                        <span className="text-lg font-black text-white">+{skill.xp_reward} {t.xp}</span>
+
+                    <div className="flex items-center gap-6">
+                      <div className="text-right hidden sm:block">
+                        <p className="text-[10px] font-black text-[#6F6F6F] uppercase tracking-widest mb-1">Module Progress</p>
+                        <p className="text-sm font-bold text-[#F5F5F5]">{prog}%</p>
                       </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] font-black text-[#444] tracking-widest uppercase">Lessons</span>
-                        <span className="text-lg font-black text-[#888]">{lessonCountMap[skill.id] || 0}</span>
-                      </div>
+
+                      {unlocked && !complete && (
+                        <Link
+                          href={`/dashboard/skills/${skill.id}`}
+                          className="bg-[#1CB0F6] text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#14D4F4] transition-all shadow-lg shadow-[#1CB0F6]/10"
+                        >
+                          {prog > 0 ? t.cont : t.start}
+                        </Link>
+                      )}
+
+                      {complete && (
+                        <Link
+                          href={`/dashboard/skills/${skill.id}`}
+                          className="bg-white/5 text-white border border-white/10 px-6 py-3 rounded-xl text-sm font-bold hover:bg-white/10 transition-all"
+                        >
+                          Review
+                        </Link>
+                      )}
                     </div>
                   </div>
+
+                  {/* Progress Bar (Subtle) */}
+                  {unlocked && (
+                    <div className="mt-6 h-1 bg-white/5 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[#1CB0F6] transition-all duration-1000 ease-out"
+                        style={{ width: `${prog}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )
           })}
         </div>
 
-        {/* EMPTY STATE */}
+        {/* Empty State */}
         {trackSkills.length === 0 && (
-          <div className="text-center py-48">
-            <div className="text-8xl mb-8 animate-pulse grayscale opacity-20">🏝️</div>
-            <h3 className="font-fredoka text-3xl text-[#333] tracking-tighter">Charting new territory...</h3>
+          <div className="text-center py-24 border border-dashed border-white/5 rounded-3xl">
+            <p className="text-[#6F6F6F] font-medium">No modules available for this track yet.</p>
           </div>
         )}
       </div>
