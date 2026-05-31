@@ -1,14 +1,14 @@
-&apos;use client&apos;
+'use client'
 // components/dashboard/SkillsClient.tsx
-import { useState, useMemo, useEffect, useRef } from &apos;react&apos;
-import Link from &apos;next/link&apos;
-import { cn } from &apos;@/lib/utils&apos;
-import type { Language } from &apos;@/lib/openrouter&apos;
+import { useState, useMemo, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
+import type { Language } from '@/lib/openrouter'
 
 const UI: Record<Language, Record<string, string>> = {
-  en: { unit: &apos;Unit&apos;, start: &apos;START&apos;, locked: &apos;LOCKED&apos;, complete: &apos;MASTERED&apos;, xp: &apos;XP&apos;, jump: &apos;Jump to&apos;, reward: &apos;Unit Reward&apos; },
-  ar: { unit: &apos;الوحدة&apos;, start: &apos;ابدأ&apos;, locked: &apos;مقفل&apos;, complete: &apos;أتقنت&apos;, xp: &apos;XP&apos;, jump: &apos;انتقل إلى&apos;, reward: &apos;مكافأة الوحدة&apos; },
-  fr: { unit: &apos;Unité&apos;, start: &apos;COMMENCER&apos;, locked: &apos;VERROUILLÉ&apos;, complete: &apos;MAÎTRISÉ&apos;, xp: &apos;XP&apos;, jump: &apos;Aller à&apos;, reward: &apos;Récompense&apos; },
+  en: { unit: 'Unit', start: 'START', locked: 'LOCKED', complete: 'MASTERED', xp: 'XP', jump: 'Jump to', reward: 'Unit Reward' },
+  ar: { unit: 'الوحدة', start: 'ابدأ', locked: 'مقفل', complete: 'أتقنت', xp: 'XP', jump: 'انتقل إلى', reward: 'مكافأة الوحدة' },
+  fr: { unit: 'Unité', start: 'COMMENCER', locked: 'VERROUILLÉ', complete: 'MAÎTRISÉ', xp: 'XP', jump: 'Aller à', reward: 'Récompense' },
 }
 
 interface Track { id: string; name: string; emoji: string; color: string }
@@ -46,7 +46,7 @@ function getCy(i: number): number {
 
 // Build a smooth cubic-bezier snake SVG path through all points
 function buildPath(indices: number[]): string {
-  if (indices.length < 2) return &apos;&apos;
+  if (indices.length < 2) return ''
   let d = `M ${getCx(indices[0])} ${getCy(indices[0])}`
   for (let k = 0; k < indices.length - 1; k++) {
     const i    = indices[k]
@@ -60,12 +60,12 @@ function buildPath(indices: number[]): string {
 export default function SkillsClient({
   userId, tracks, skills, skillProgress, lessonCountMap, language,
 }: Props) {
-  const [activeTrack, setActiveTrack] = useState(tracks[0]?.id ?? &apos;&apos;)
+  const [activeTrack, setActiveTrack] = useState(tracks[0]?.id ?? '')
 
-  const lang = (language || &apos;en&apos;) as Language
+  const lang = (language || 'en') as Language
   const t    = UI[lang]
-  const dir  = lang === &apos;ar&apos; ? &apos;rtl&apos; : &apos;ltr&apos;
-  const isRtl = dir === &apos;rtl&apos;
+  const dir  = lang === 'ar' ? 'rtl' : 'ltr'
+  const isRtl = dir === 'rtl'
 
   // progress lookup
   const progressMap = useMemo(
@@ -121,10 +121,10 @@ export default function SkillsClient({
               key={track.id}
               onClick={() => setActiveTrack(track.id)}
               className={cn(
-                &apos;flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all duration-200 border-b-[3px]&apos;,
+                'flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all duration-200 border-b-[3px]',
                 activeTrack === track.id
-                  ? &apos;bg-[#58CC02] border-[#46A302] text-white shadow-sm&apos;
-                  : &apos;bg-white dark:bg-[#1e1e1e] border-black/10 dark:border-white/10 text-gray-500 hover:bg-gray-50 dark:hover:bg-[#2a2a2a]&apos;
+                  ? 'bg-[#58CC02] border-[#46A302] text-white shadow-sm'
+                  : 'bg-white dark:bg-[#1e1e1e] border-black/10 dark:border-white/10 text-gray-500 hover:bg-gray-50 dark:hover:bg-[#2a2a2a]'
               )}
             >
               <span className="text-lg">{track.emoji}</span>
@@ -216,7 +216,7 @@ export default function SkillsClient({
                   const ringCirc = 2 * Math.PI * ringR
                   const ringOffset = ringCirc - (ringCirc * prog) / 100
 
-                  const href = unlocked ? `/dashboard/skills/${skill.id}` : &apos;#&apos;
+                  const href = unlocked ? `/dashboard/skills/${skill.id}` : '#'
 
                   return (
                     <div
@@ -225,7 +225,7 @@ export default function SkillsClient({
                       style={{
                         left: `${leftPct}%`,
                         top: topPx,
-                        transform: &apos;translate(-50%, -50%)&apos;,
+                        transform: 'translate(-50%, -50%)',
                       }}
                     >
                       <div className="relative flex flex-col items-center group">
@@ -246,15 +246,15 @@ export default function SkillsClient({
                         {/* Bubble */}
                         <Link
                           href={href}
-                          aria-label={`${skill.title}${!unlocked ? &apos; — locked&apos; : complete ? &apos; — mastered&apos; : &apos;&apos;}`}
+                          aria-label={`${skill.title}${!unlocked ? ' — locked' : complete ? ' — mastered' : ''}`}
                           className={cn(
-                            &apos;relative flex items-center justify-center rounded-full text-4xl transition-all duration-200 select-none outline-none focus-visible:ring-4 focus-visible:ring-offset-2&apos;,
-                            &apos;w-20 h-20&apos;,
+                            'relative flex items-center justify-center rounded-full text-4xl transition-all duration-200 select-none outline-none focus-visible:ring-4 focus-visible:ring-offset-2',
+                            'w-20 h-20',
                             complete
-                              ? &apos;bg-[#FFC800] border-b-[5px] border-[#D4A200] hover:-translate-y-1 focus-visible:ring-[#FFC800]&apos;
+                              ? 'bg-[#FFC800] border-b-[5px] border-[#D4A200] hover:-translate-y-1 focus-visible:ring-[#FFC800]'
                               : unlocked
-                              ? &apos;bg-[#58CC02] border-b-[5px] border-[#46A302] hover:-translate-y-1 active:translate-y-0 active:border-b-0 focus-visible:ring-[#58CC02]&apos;
-                              : &apos;bg-gray-200 dark:bg-[#2a2a2a] border-b-[5px] border-gray-300 dark:border-[#1a1a1a] grayscale opacity-60 pointer-events-none&apos;
+                              ? 'bg-[#58CC02] border-b-[5px] border-[#46A302] hover:-translate-y-1 active:translate-y-0 active:border-b-0 focus-visible:ring-[#58CC02]'
+                              : 'bg-gray-200 dark:bg-[#2a2a2a] border-b-[5px] border-gray-300 dark:border-[#1a1a1a] grayscale opacity-60 pointer-events-none'
                           )}
                         >
                           {/* Sheen */}
@@ -264,7 +264,7 @@ export default function SkillsClient({
                           {prog > 0 && prog < 100 && (
                             <svg
                               className="absolute pointer-events-none"
-                              style={{ inset: -10, width: &apos;calc(100% + 20px)&apos;, height: &apos;calc(100% + 20px)&apos; }}
+                              style={{ inset: -10, width: 'calc(100% + 20px)', height: 'calc(100% + 20px)' }}
                               viewBox="0 0 100 100"
                             >
                               <circle cx="50" cy="50" r="46" fill="none" stroke="white" strokeOpacity="0.25" strokeWidth="5" />
@@ -283,15 +283,15 @@ export default function SkillsClient({
 
                           {/* Icon */}
                           <span className="relative z-10 drop-shadow">
-                            {complete ? &apos;⭐&apos; : unlocked ? skill.emoji : &apos;🔒&apos;}
+                            {complete ? '⭐' : unlocked ? skill.emoji : '🔒'}
                           </span>
                         </Link>
 
                         {/* Label */}
                         <div className="mt-3 text-center">
                           <p className={cn(
-                            &apos;text-[13px] font-bold leading-tight&apos;,
-                            unlocked ? &apos;text-gray-800 dark:text-gray-100&apos; : &apos;text-gray-400 dark:text-gray-600&apos;
+                            'text-[13px] font-bold leading-tight',
+                            unlocked ? 'text-gray-800 dark:text-gray-100' : 'text-gray-400 dark:text-gray-600'
                           )}>
                             {skill.title}
                           </p>
@@ -305,12 +305,12 @@ export default function SkillsClient({
                         {/* Hover card (desktop) */}
                         {unlocked && (
                           <div className={cn(
-                            &apos;absolute top-1/2 -translate-y-1/2 w-56 z-50&apos;,
-                            &apos;opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200&apos;,
-                            &apos;bg-white dark:bg-[#1e1e1e] border border-black/10 dark:border-white/10 rounded-2xl shadow-xl p-4 hidden lg:block&apos;,
+                            'absolute top-1/2 -translate-y-1/2 w-56 z-50',
+                            'opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200',
+                            'bg-white dark:bg-[#1e1e1e] border border-black/10 dark:border-white/10 rounded-2xl shadow-xl p-4 hidden lg:block',
                             isRtl
-                              ? (getXOffset(absIdx) < 0 ? &apos;right-[110%]&apos; : &apos;left-[110%]&apos;)
-                              : (getXOffset(absIdx) > 0 ? &apos;right-[110%]&apos; : &apos;left-[110%]&apos;)
+                              ? (getXOffset(absIdx) < 0 ? 'right-[110%]' : 'left-[110%]')
+                              : (getXOffset(absIdx) > 0 ? 'right-[110%]' : 'left-[110%]')
                           )}>
                             <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">{skill.title}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">{skill.description}</p>
@@ -349,8 +349,8 @@ export default function SkillsClient({
                 {t.unit} {i + 1}
               </span>
               <div className={cn(
-                &apos;w-2.5 h-2.5 rounded-full border border-gray-300 dark:border-white/20 transition-all duration-200 group-hover:scale-125&apos;,
-                anyUnlocked ? &apos;bg-[#58CC02]&apos; : &apos;bg-gray-200 dark:bg-[#333]&apos;
+                'w-2.5 h-2.5 rounded-full border border-gray-300 dark:border-white/20 transition-all duration-200 group-hover:scale-125',
+                anyUnlocked ? 'bg-[#58CC02]' : 'bg-gray-200 dark:bg-[#333]'
               )} />
             </div>
           )
