@@ -290,12 +290,12 @@ export default function SkillsClient({
               </div>
 
               {/* Unit reward chest */}
-              <div className="flex flex-col items-center py-8 opacity-35 hover:opacity-90 transition-opacity cursor-pointer group">
+              {/* <div className="flex flex-col items-center py-8 opacity-35 hover:opacity-90 transition-opacity cursor-pointer group">
                 <div className="w-14 h-14 rounded-2xl bg-[#111120] border-2 border-dashed border-[#1e1e35] flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
                   🎁
                 </div>
                 <p className="mt-2 text-[9px] font-black text-[#4a5568] tracking-[.15em] uppercase">{t.reward}</p>
-              </div>
+              </div> */}
 
             </div>
           )
