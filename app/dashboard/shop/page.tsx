@@ -15,7 +15,7 @@ interface Transaction {
 }
 interface Redemption {
   id: string; item_id: string; coins_spent: number; status: string
-  created_at: string; shop_items?: ShopItem
+  created_at: string; coin_shop_items?: ShopItem
 }
 
 // ── Shipping form modal ───────────────────────────────────────
@@ -426,9 +426,9 @@ export default function ShopPage() {
               <div className="space-y-3">
                 {redemptions.map(r => (
                   <div key={r.id} className="bg-card border border-white/8 rounded-2xl p-4 flex items-center gap-4">
-                    <span className="text-3xl">{r.shop_items?.emoji ?? '🎁'}</span>
+                    <span className="text-3xl">{r.coin_shop_items?.emoji ?? '🎁'}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-extrabold text-sm truncate">{r.shop_items?.name ?? 'Item'}</p>
+                      <p className="font-extrabold text-sm truncate">{r.coin_shop_items?.name ?? 'Item'}</p>
                       <p className="text-muted text-xs font-semibold">
                         {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
