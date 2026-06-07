@@ -1,10 +1,5 @@
-// lib/supabase/wallet.ts
-// All wallet & shop queries — import these in API routes and components
-
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createBrowserClient } from '@/lib/supabase/client'
 
-// ── Types ─────────────────────────────────────────────────────
 export interface Wallet {
   id: string
   user_id: string
@@ -48,12 +43,9 @@ export interface ShopRedemption {
   admin_notes: string | null
   fulfilled_at: string | null
   created_at: string
-  shop_items?: ShopItem
+  coin_shop_items?: ShopItem
 }
 
-// ── Server-side queries ───────────────────────────────────────
-
-/** Get wallet balance for a user (server) */
 export async function getWallet(userId: string): Promise<Wallet | null> {
   const supabase = createClient()
   const { data } = await supabase
@@ -64,7 +56,6 @@ export async function getWallet(userId: string): Promise<Wallet | null> {
   return data
 }
 
-/** Get transaction history (server) */
 export async function getTransactions(userId: string, limit = 20): Promise<WalletTransaction[]> {
   const supabase = createClient()
   const { data } = await supabase
@@ -76,7 +67,6 @@ export async function getTransactions(userId: string, limit = 20): Promise<Walle
   return data ?? []
 }
 
-/** Award coins via DB function (server) */
 export async function addCoins(
   userId: string,
   amount: number,
@@ -96,12 +86,10 @@ export async function addCoins(
   return data as number
 }
 
-/** Award streak coins — call once per day on login */
 export async function awardStreakCoins(userId: string): Promise<number> {
   return addCoins(userId, 1000, 'streak_login', '🔥 Daily streak bonus — 1,000 coins!')
 }
 
-/** Award XP-based coins: 100 coins per 1,000 XP */
 export async function awardXPCoins(userId: string, xpEarned: number): Promise<void> {
   const coins = Math.floor(xpEarned / 1000) * 100
   if (coins <= 0) return
@@ -111,29 +99,26 @@ export async function awardXPCoins(userId: string, xpEarned: number): Promise<vo
   )
 }
 
-/** Get all active shop items */
 export async function getShopItems(): Promise<ShopItem[]> {
   const supabase = createClient()
   const { data } = await supabase
-    .from('shop_items')
+    .from('coin_shop_items')
     .select('*')
     .eq('is_active', true)
     .order('sort_order')
   return data ?? []
 }
 
-/** Get redemption history for a user */
 export async function getRedemptions(userId: string): Promise<ShopRedemption[]> {
   const supabase = createClient()
   const { data } = await supabase
-    .from('shop_redemptions')
-    .select('*, shop_items(*)')
+    .from('coin_shop_redemptions')
+    .select('*, coin_shop_items(*)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
   return data ?? []
 }
 
-/** Redeem an item — calls spend_coins DB function */
 export async function redeemItem(
   userId: string,
   item: ShopItem,
@@ -142,7 +127,6 @@ export async function redeemItem(
 ): Promise<{ redemptionId: string; newBalance: number }> {
   const supabase = createClient()
 
-  // Spend coins via DB function (atomic — checks balance and stock)
   const { data: newBalance, error: spendErr } = await supabase.rpc('spend_coins', {
     p_user_id: userId,
     p_amount: item.price_coins,
@@ -151,9 +135,8 @@ export async function redeemItem(
   })
   if (spendErr) throw spendErr
 
-  // Create redemption record
   const { data: redemption, error: redErr } = await supabase
-    .from('shop_redemptions')
+    .from('coin_shop_redemptions')
     .insert({
       user_id: userId,
       item_id: item.id,
