@@ -76,9 +76,9 @@ export async function addCoins(
 ): Promise<number> {
   const supabase = createClient()
   const { data, error } = await supabase.rpc('add_coins', {
-    p_user_id: userId,
-    p_amount: amount,
-    p_type: type,
+    p_user_id:   userId,
+    p_amount:    amount,
+    p_type:      type,
     p_description: description,
     p_reference: referenceId ?? null,
   })
@@ -90,12 +90,33 @@ export async function awardStreakCoins(userId: string): Promise<number> {
   return addCoins(userId, 1000, 'streak_login', '🔥 Daily streak bonus — 1,000 coins!')
 }
 
-export async function awardXPCoins(userId: string, xpEarned: number): Promise<void> {
-  const coins = Math.floor(xpEarned / 1000) * 100
-  if (coins <= 0) return
+/**
+ * Awards coins based on the user's NEW total XP, not the XP delta.
+ * Logic: every 1,000 XP milestone earns 100 coins — once each.
+ * Example: going from 950 XP to 1,050 XP crosses the 1,000 milestone → 100 coins.
+ *
+ * @param userId      - the user
+ * @param xpBefore    - XP total before this transaction
+ * @param xpAfter     - XP total after this transaction
+ */
+export async function awardXPCoins(
+  userId: string,
+  xpBefore: number,
+  xpAfter: number,
+): Promise<void> {
+  // How many 1,000-XP milestones were crossed?
+  const milestonesBefore = Math.floor(xpBefore / 1000)
+  const milestonesAfter  = Math.floor(xpAfter  / 1000)
+  const newMilestones    = milestonesAfter - milestonesBefore
+
+  if (newMilestones <= 0) return
+
+  const coins = newMilestones * 100
   await addCoins(
-    userId, coins, 'xp_reward',
-    `⚡ ${xpEarned.toLocaleString()} XP earned → ${coins} coins`,
+    userId,
+    coins,
+    'xp_reward',
+    `⚡ Reached ${milestonesAfter * 1000} XP → +${coins} coins`,
   )
 }
 
@@ -128,9 +149,9 @@ export async function redeemItem(
   const supabase = createClient()
 
   const { data: newBalance, error: spendErr } = await supabase.rpc('spend_coins', {
-    p_user_id: userId,
-    p_amount: item.price_coins,
-    p_item_id: item.id,
+    p_user_id:     userId,
+    p_amount:      item.price_coins,
+    p_item_id:     item.id,
     p_description: `🛍️ Redeemed: ${item.name}`,
   })
   if (spendErr) throw spendErr
@@ -138,11 +159,11 @@ export async function redeemItem(
   const { data: redemption, error: redErr } = await supabase
     .from('coin_shop_redemptions')
     .insert({
-      user_id: userId,
-      item_id: item.id,
-      coins_spent: item.price_coins,
+      user_id:       userId,
+      item_id:       item.id,
+      coins_spent:   item.price_coins,
       shipping_info: shippingInfo ?? null,
-      notes: notes ?? null,
+      notes:         notes ?? null,
     })
     .select()
     .single()
