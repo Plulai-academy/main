@@ -208,13 +208,15 @@ export const addXP = async (userId: string, amount: number, reason: string, sour
   })
 
   // ── Coin reward: +100 coins per 1,000 XP earned ──────────────
-  // Non-blocking: a wallet failure must never break XP awarding.
-  // awardXPCoins internally does Math.floor(amount / 1000) * 100,
-  // so gains under 1,000 XP correctly award 0 coins.
+  // Calls a server-side API route to keep wallet.ts (server-only) out of
+  // the client bundle. Non-blocking — a failure never surfaces to the user.
   try {
-    const { awardXPCoins } = await import('@/lib/supabase/wallet')
-    await awardXPCoins(userId, amount)
-  } catch (_) { /* silent — wallet errors never surface to the user */ }
+    await fetch('/api/coins/award', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ userId, type: 'xp', amount }),
+    })
+  } catch (_) { /* silent */ }
   // ─────────────────────────────────────────────────────────────
 
   return { data: { newXP, newLevel, leveledUp }, error: null }
@@ -236,7 +238,7 @@ export const updateStreak = async (userId: string) => {
   let newStreak         = current.streak
   let freezeUsed        = false
   let freezeTokens      = (current as any).freeze_tokens ?? 0
-  let streakIncremented = false // track if streak actually grew (not a reset)
+  let streakIncremented = false // true only when streak genuinely grows
 
   if (lastActive === yesterday) {
     newStreak         = current.streak + 1
@@ -253,7 +255,7 @@ export const updateStreak = async (userId: string) => {
     })
   } else {
     newStreak = 1
-    // streakIncremented stays false — no coins on a reset
+    // streakIncremented stays false — no coins awarded on a reset
   }
 
   const longestStreak = Math.max(newStreak, current.longest_streak)
@@ -269,15 +271,17 @@ export const updateStreak = async (userId: string) => {
     })
     .eq('user_id', userId)
 
-  // ── Coin reward: +1,000 coins for each new streak day ────────
-  // Only fires when the streak genuinely increments (consecutive day or
-  // freeze-protected). Never fires on a streak reset to 1.
-  // Non-blocking: a wallet failure must never break streak tracking.
+  // ── Coin reward: +1,000 coins per consecutive streak day ─────
+  // Only fires when streak increments (consecutive day or freeze-protected).
+  // Never fires on a reset. Calls server-side API route — non-blocking.
   if (streakIncremented) {
     try {
-      const { awardStreakCoins } = await import('@/lib/supabase/wallet')
-      await awardStreakCoins(userId)
-    } catch (_) { /* silent — wallet errors never surface to the user */ }
+      await fetch('/api/coins/award', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ userId, type: 'streak' }),
+      })
+    } catch (_) { /* silent */ }
   }
   // ─────────────────────────────────────────────────────────────
 
