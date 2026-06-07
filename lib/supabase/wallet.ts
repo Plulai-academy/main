@@ -2,7 +2,6 @@
 // All wallet & shop queries — import these in API routes and components
 
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createBrowserClient } from '@/lib/supabase/client'
 
 // ── Types ─────────────────────────────────────────────────────
 export interface Wallet {
@@ -48,7 +47,7 @@ export interface ShopRedemption {
   admin_notes: string | null
   fulfilled_at: string | null
   created_at: string
-  shop_items?: ShopItem
+  coin_shop_items?: ShopItem
 }
 
 // ── Server-side queries ───────────────────────────────────────
@@ -115,7 +114,7 @@ export async function awardXPCoins(userId: string, xpEarned: number): Promise<vo
 export async function getShopItems(): Promise<ShopItem[]> {
   const supabase = createClient()
   const { data } = await supabase
-    .from('shop_items')
+    .from('coin_shop_items')
     .select('*')
     .eq('is_active', true)
     .order('sort_order')
@@ -126,8 +125,8 @@ export async function getShopItems(): Promise<ShopItem[]> {
 export async function getRedemptions(userId: string): Promise<ShopRedemption[]> {
   const supabase = createClient()
   const { data } = await supabase
-    .from('coin_shop_redemptions ')
-    .select('*, shop_items(*)')
+    .from('coin_shop_redemptions')
+    .select('*, coin_shop_items(*)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
   return data ?? []
@@ -153,7 +152,7 @@ export async function redeemItem(
 
   // Create redemption record
   const { data: redemption, error: redErr } = await supabase
-    .from('coin_shop_redemptions ')
+    .from('coin_shop_redemptions')
     .insert({
       user_id: userId,
       item_id: item.id,

@@ -1,5 +1,6 @@
 // app/api/shop/redeem/route.ts
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
@@ -23,14 +24,14 @@ export async function POST(req: NextRequest) {
     const item = items.find(i => i.id === itemId)
     if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 })
 
-    // Get user profile for email
+    // Get user profile for email — display_name is the correct column
     const { data: profile } = await supabase
       .from('profiles')
-      .select('full_name, email')
+      .select('display_name, email')
       .eq('id', user.id)
       .single()
 
-    const userName = profile?.full_name ?? user.email ?? 'A student'
+    const userName  = profile?.display_name ?? user.email ?? 'A student'
     const userEmail = profile?.email ?? user.email ?? ''
 
     // Process redemption (atomic)
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
       ? `
         <h3>📦 Shipping Information</h3>
         <table style="border-collapse:collapse;width:100%">
-          ${Object.entries(shippingInfo).map(([k,v]) =>
+          ${Object.entries(shippingInfo).map(([k, v]) =>
             `<tr><td style="padding:6px;font-weight:bold;color:#666">${k}</td><td style="padding:6px">${v}</td></tr>`
           ).join('')}
         </table>
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, redemptionId, newBalance })
   } catch (err: any) {
-    console.error('Redeem error:', err)
+    console.error('[redeem] error:', err)
     const msg = err?.message ?? 'Internal error'
     const status = msg.includes('Insufficient') ? 400 : msg.includes('out of stock') ? 409 : 500
     return NextResponse.json({ error: msg }, { status })
