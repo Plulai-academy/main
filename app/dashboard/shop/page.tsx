@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 interface ShopItem {
@@ -16,6 +16,7 @@ interface Redemption {
   created_at: string; coin_shop_items?: ShopItem
 }
 
+// ── Shipping Modal ────────────────────────────────────────────
 function ShippingModal({
   item, onConfirm, onClose,
 }: {
@@ -30,95 +31,143 @@ function ShippingModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.75)' }}
       onClick={e => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-card border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl">
-        <div className="flex items-center gap-3 mb-5">
-          <span className="text-4xl">{item.emoji}</span>
+      <div
+        className="w-full max-w-sm rounded-3xl overflow-hidden"
+        style={{ background: '#1a1a2e', border: '2px solid rgba(255,255,255,0.08)' }}
+      >
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 text-center" style={{ borderBottom: '2px solid rgba(255,255,255,0.06)' }}>
+          <div className="text-5xl mb-2">{item.emoji}</div>
+          <h3 className="font-black text-white text-lg">{item.name}</h3>
+          <div
+            className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full font-black text-sm"
+            style={{ background: '#FFC800', color: '#1a1a2e' }}
+          >
+            🪙 {item.price_coins.toLocaleString()} coins
+          </div>
+        </div>
+
+        <div className="p-6 space-y-3">
+          {isPhysical && (
+            <>
+              <p className="text-xs font-black uppercase tracking-widest text-center mb-4"
+                style={{ color: '#FFC800' }}>
+                📦 Shipping info required
+              </p>
+              {[
+                { key: 'name', label: 'Full name', placeholder: 'Your full name' },
+                { key: 'address', label: 'Address', placeholder: 'Street address' },
+                { key: 'city', label: 'City & country', placeholder: 'Dubai, UAE' },
+                { key: 'phone', label: 'WhatsApp', placeholder: '+971 50 000 0000' },
+              ].map(f => (
+                <div key={f.key}>
+                  <label className="text-xs font-black uppercase tracking-wider block mb-1"
+                    style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    {f.label}
+                  </label>
+                  <input
+                    value={form[f.key as keyof typeof form]}
+                    onChange={e => set(f.key, e.target.value)}
+                    placeholder={f.placeholder}
+                    className="w-full rounded-2xl px-4 py-3 text-sm font-bold text-white outline-none transition-all"
+                    style={{
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '2px solid rgba(255,255,255,0.1)',
+                    }}
+                  />
+                </div>
+              ))}
+            </>
+          )}
+
           <div>
-            <h3 className="font-extrabold text-lg leading-tight">{item.name}</h3>
-            <p className="text-muted text-sm font-semibold">🪙 {item.price_coins.toLocaleString()} coins</p>
+            <label className="text-xs font-black uppercase tracking-wider block mb-1"
+              style={{ color: 'rgba(255,255,255,0.4)' }}>
+              Note (optional)
+            </label>
+            <textarea
+              value={form.notes}
+              onChange={e => set('notes', e.target.value)}
+              placeholder="Any special request..."
+              rows={2}
+              className="w-full rounded-2xl px-4 py-3 text-sm font-bold text-white outline-none resize-none"
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '2px solid rgba(255,255,255,0.1)',
+              }}
+            />
           </div>
-        </div>
 
-        {isPhysical && (
-          <div className="space-y-3 mb-4">
-            <p className="text-xs font-extrabold text-amber-400 uppercase tracking-wider mb-3">
-              📦 Shipping information required
-            </p>
-            {[
-              { key: 'name', label: 'Full name', placeholder: 'Your full name' },
-              { key: 'address', label: 'Address', placeholder: 'Street address' },
-              { key: 'city', label: 'City & country', placeholder: 'Dubai, UAE' },
-              { key: 'phone', label: 'WhatsApp number', placeholder: '+971 50 000 0000' },
-            ].map(f => (
-              <div key={f.key}>
-                <label className="text-xs font-bold text-muted mb-1 block">{f.label}</label>
-                <input
-                  value={form[f.key as keyof typeof form]}
-                  onChange={e => set(f.key, e.target.value)}
-                  placeholder={f.placeholder}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-semibold text-white placeholder:text-white/25 outline-none focus:border-accent5/50 transition-all"
-                />
-              </div>
-            ))}
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={onClose}
+              className="flex-1 py-3.5 rounded-2xl font-black text-sm transition-all"
+              style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                const shipping = isPhysical
+                  ? { name: form.name, address: form.address, city: form.city, phone: form.phone }
+                  : {} as Record<string, string>
+                onConfirm(shipping, form.notes)
+              }}
+              disabled={!valid}
+              className="flex-2 px-6 py-3.5 rounded-2xl font-black text-sm transition-all disabled:opacity-30"
+              style={{
+                background: valid ? '#58CC02' : '#333',
+                color: '#fff',
+                boxShadow: valid ? '0 4px 0 #3d8f01' : 'none',
+                flex: 2,
+              }}
+            >
+              Confirm →
+            </button>
           </div>
-        )}
-
-        <div className="mb-5">
-          <label className="text-xs font-bold text-muted mb-1 block">Note to Plulai (optional)</label>
-          <textarea
-            value={form.notes}
-            onChange={e => set('notes', e.target.value)}
-            placeholder="Any special request..."
-            rows={2}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-semibold text-white placeholder:text-white/25 outline-none focus:border-accent5/50 transition-all resize-none"
-          />
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 rounded-2xl font-extrabold text-sm border border-white/10 text-muted hover:text-white hover:border-white/25 transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              const shipping = isPhysical
-                ? { name: form.name, address: form.address, city: form.city, phone: form.phone }
-                : {} as Record<string, string>
-              onConfirm(shipping, form.notes)
-            }}
-            disabled={!valid}
-            className="flex-1 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            Confirm Redemption →
-          </button>
         </div>
       </div>
     </div>
   )
 }
 
+// ── Success Modal ─────────────────────────────────────────────
 function SuccessModal({ item, onClose }: { item: ShopItem; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-card border border-accent3/30 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
-        <div className="text-6xl mb-4">{item.emoji}</div>
-        <h3 className="font-extrabold text-2xl text-accent3 mb-2">Redeemed! 🎉</h3>
-        <p className="text-muted font-semibold text-sm mb-2">
-          <strong className="text-white">{item.name}</strong> has been requested.
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.75)' }}
+    >
+      <div
+        className="w-full max-w-xs rounded-3xl p-8 text-center"
+        style={{ background: '#1a1a2e', border: '2px solid rgba(88,204,2,0.3)' }}
+      >
+        <div
+          className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 text-5xl"
+          style={{ background: 'rgba(88,204,2,0.15)' }}
+        >
+          {item.emoji}
+        </div>
+        <div className="text-4xl mb-2">🎉</div>
+        <h3 className="font-black text-2xl mb-2" style={{ color: '#58CC02' }}>
+          Redeemed!
+        </h3>
+        <p className="font-bold text-sm mb-1" style={{ color: 'rgba(255,255,255,0.9)' }}>
+          {item.name}
         </p>
-        <p className="text-muted text-xs mb-6 leading-relaxed">
+        <p className="text-xs mb-6 leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
           {item.category === 'physical'
-            ? 'We\'ll ship to your address within 3-5 business days. Check your email for confirmation.'
-            : 'Check your email within 24h. We\'ll send your code or activate your account.'}
+            ? 'Ships to your address in 3–5 business days.'
+            : 'Check your email within 24h for your code.'}
         </p>
         <button
           onClick={onClose}
-          className="w-full py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent3 to-accent4 text-white hover:-translate-y-0.5 transition-all"
+          className="w-full py-4 rounded-2xl font-black text-white text-sm transition-all"
+          style={{ background: '#58CC02', boxShadow: '0 4px 0 #3d8f01' }}
         >
           Back to Shop
         </button>
@@ -127,9 +176,30 @@ function SuccessModal({ item, onClose }: { item: ShopItem; onClose: () => void }
   )
 }
 
-export default function ShopPage() {
-  const [, startTransition] = useTransition()
+// ── Coin Badge ────────────────────────────────────────────────
+function CoinBadge({ amount, positive = true }: { amount: number; positive?: boolean }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-black"
+      style={{
+        background: positive ? 'rgba(255,200,0,0.12)' : 'rgba(255,75,75,0.12)',
+        color: positive ? '#FFC800' : '#FF4B4B',
+      }}
+    >
+      🪙 {positive ? '+' : ''}{amount.toLocaleString()}
+    </span>
+  )
+}
 
+// ── Category pill ─────────────────────────────────────────────
+const catStyle: Record<string, { bg: string; color: string; label: string }> = {
+  subscription: { bg: 'rgba(88,204,2,0.15)',   color: '#58CC02', label: '⚡ Sub' },
+  digital:      { bg: 'rgba(28,176,246,0.15)',  color: '#1CB0F6', label: '📲 Digital' },
+  physical:     { bg: 'rgba(255,200,0,0.15)',   color: '#FFC800', label: '📦 Physical' },
+}
+
+// ── Main Page ─────────────────────────────────────────────────
+export default function ShopPage() {
   const [balance, setBalance]           = useState<number | null>(null)
   const [totalEarned, setTotalEarned]   = useState(0)
   const [items, setItems]               = useState<ShopItem[]>([])
@@ -181,53 +251,74 @@ export default function ShopPage() {
     }
   }
 
-  const filteredItems = items.filter(i => filter === 'all' ? true : i.category === filter)
+  const filteredItems = items.filter(i => filter === 'all' || i.category === filter)
 
-  const categoryLabel: Record<string, string> = {
-    digital: '⚡ Digital', physical: '📦 Physical', subscription: '🔄 Subscription',
-  }
-  const statusColor: Record<string, string> = {
-    pending:   'text-amber-400 bg-amber-400/10 border-amber-400/25',
-    fulfilled: 'text-accent3 bg-accent3/10 border-accent3/25',
-    cancelled: 'text-red-400 bg-red-400/10 border-red-400/25',
-    refunded:  'text-muted bg-white/5 border-white/10',
+  const statusStyle: Record<string, { bg: string; color: string }> = {
+    pending:   { bg: 'rgba(255,200,0,0.12)',  color: '#FFC800' },
+    fulfilled: { bg: 'rgba(88,204,2,0.12)',   color: '#58CC02' },
+    cancelled: { bg: 'rgba(255,75,75,0.12)',  color: '#FF4B4B' },
+    refunded:  { bg: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' },
   }
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="text-center space-y-3">
-        <div className="text-4xl animate-bounce">🪙</div>
-        <p className="text-muted font-bold text-sm">Loading your wallet…</p>
+      <div className="text-center space-y-4">
+        <div className="text-5xl animate-bounce">🪙</div>
+        <p className="font-black text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Loading your wallet…
+        </p>
       </div>
     </div>
   )
 
   return (
-    <div className="p-4 sm:p-6 lg:p-10 max-w-4xl w-full mx-auto">
+    <div className="max-w-2xl mx-auto px-4 py-6 pb-20">
 
-      {/* Wallet Card */}
-      <div className="bg-gradient-to-br from-[#2B70C9] to-[#0f2d6e] rounded-3xl p-6 mb-6 relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.2) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.2) 1px,transparent 1px)', backgroundSize: '32px 32px' }}
-        />
+      {/* ── Wallet Hero ─────────────────────────────────── */}
+      <div
+        className="rounded-3xl p-6 mb-5 relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #1CB0F6 0%, #0d7ab0 100%)' }}
+      >
+        {/* Decorative circles */}
+        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-20"
+          style={{ background: 'rgba(255,255,255,0.3)' }} />
+        <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full opacity-10"
+          style={{ background: 'rgba(255,255,255,0.3)' }} />
+
         <div className="relative z-10">
-          <p className="text-xs font-extrabold text-white/50 uppercase tracking-widest mb-1">Your Wallet</p>
-          <div className="flex items-end gap-3 mb-4">
-            <span className="text-5xl font-extrabold text-white leading-none">
-              {balance?.toLocaleString() ?? '—'}
-            </span>
-            <span className="text-2xl mb-1">🪙</span>
-            <span className="text-white/50 font-bold text-sm mb-1">coins</span>
-          </div>
-          <div className="flex gap-4 flex-wrap">
-            <div className="bg-white/10 rounded-xl px-4 py-2">
-              <p className="text-white/50 text-xs font-semibold">All-time earned</p>
-              <p className="text-white font-extrabold">🪙 {totalEarned.toLocaleString()}</p>
+          <p className="text-xs font-black uppercase tracking-widest mb-3"
+            style={{ color: 'rgba(255,255,255,0.7)' }}>
+            Your Wallet
+          </p>
+
+          {/* Big balance */}
+          <div className="flex items-center gap-3 mb-5">
+            <span className="text-5xl">🪙</span>
+            <div>
+              <div className="text-4xl font-black text-white leading-none">
+                {balance?.toLocaleString() ?? '—'}
+              </div>
+              <div className="text-sm font-bold mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                coins available
+              </div>
             </div>
-            <div className="bg-white/10 rounded-xl px-4 py-2">
-              <p className="text-white/50 text-xs font-semibold">Spent</p>
-              <p className="text-white font-extrabold">
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.15)' }}>
+              <p className="text-xs font-black uppercase tracking-wider mb-1"
+                style={{ color: 'rgba(255,255,255,0.6)' }}>
+                All-time earned
+              </p>
+              <p className="font-black text-white text-lg">🪙 {totalEarned.toLocaleString()}</p>
+            </div>
+            <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.15)' }}>
+              <p className="text-xs font-black uppercase tracking-wider mb-1"
+                style={{ color: 'rgba(255,255,255,0.6)' }}>
+                Total spent
+              </p>
+              <p className="font-black text-white text-lg">
                 🪙 {(totalEarned - (balance ?? 0)).toLocaleString()}
               </p>
             </div>
@@ -235,132 +326,168 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* How to earn */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-card border border-amber-500/20 rounded-2xl p-4 flex items-center gap-3">
+      {/* ── Earn coins callouts ──────────────────────────── */}
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        <div
+          className="rounded-2xl p-4 flex items-center gap-3"
+          style={{ background: 'rgba(255,200,0,0.08)', border: '2px solid rgba(255,200,0,0.2)' }}
+        >
           <span className="text-2xl">🔥</span>
           <div>
-            <p className="font-extrabold text-sm">Daily Streak</p>
-            <p className="text-amber-400 font-extrabold text-xs">+1,000 coins</p>
-            <p className="text-muted text-xs">Every day you log in</p>
+            <p className="font-black text-sm text-white">Daily Streak</p>
+            <p className="font-black text-xs" style={{ color: '#FFC800' }}>+1,000 coins/day</p>
           </div>
         </div>
-        <div className="bg-card border border-accent5/20 rounded-2xl p-4 flex items-center gap-3">
+        <div
+          className="rounded-2xl p-4 flex items-center gap-3"
+          style={{ background: 'rgba(88,204,2,0.08)', border: '2px solid rgba(88,204,2,0.2)' }}
+        >
           <span className="text-2xl">⚡</span>
           <div>
-            <p className="font-extrabold text-sm">XP Rewards</p>
-            <p className="text-accent5 font-extrabold text-xs">+100 per 1,000 XP</p>
-            <p className="text-muted text-xs">Keep completing lessons</p>
+            <p className="font-black text-sm text-white">XP Rewards</p>
+            <p className="font-black text-xs" style={{ color: '#58CC02' }}>+100 per 1k XP</p>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      {/* ── Tabs ────────────────────────────────────────── */}
+      <div
+        className="flex gap-1 p-1 rounded-2xl mb-5"
+        style={{ background: 'rgba(255,255,255,0.06)' }}
+      >
         {(['shop', 'history'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={cn('px-5 py-2 rounded-xl font-extrabold text-sm transition-all',
-              tab === t
-                ? 'bg-gradient-to-r from-accent5 to-accent1 text-white'
-                : 'bg-card border border-white/8 text-muted hover:text-white'
-            )}
+            className="flex-1 py-2.5 rounded-xl font-black text-sm transition-all"
+            style={{
+              background: tab === t ? '#1CB0F6' : 'transparent',
+              color: tab === t ? '#fff' : 'rgba(255,255,255,0.4)',
+              boxShadow: tab === t ? '0 2px 0 #0d7ab0' : 'none',
+            }}
           >
             {t === 'shop' ? '🛍️ Shop' : '📜 My Orders'}
           </button>
         ))}
       </div>
 
-      {/* Shop Tab */}
+      {/* ── SHOP TAB ─────────────────────────────────────── */}
       {tab === 'shop' && (
         <>
+          {/* Filter pills */}
           <div className="flex gap-2 flex-wrap mb-5">
             {(['all', 'digital', 'subscription', 'physical'] as const).map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={cn('px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all border',
-                  filter === f
-                    ? 'bg-white/15 text-white border-white/25'
-                    : 'bg-card border-white/8 text-muted hover:text-white hover:border-white/20'
-                )}
+                className="px-4 py-2 rounded-xl text-xs font-black transition-all"
+                style={{
+                  background: filter === f ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)',
+                  color: filter === f ? '#fff' : 'rgba(255,255,255,0.4)',
+                  border: filter === f ? '2px solid rgba(255,255,255,0.25)' : '2px solid transparent',
+                }}
               >
-                {f === 'all' ? '✨ All' : categoryLabel[f]}
+                {f === 'all' ? '✨ All'
+                  : f === 'digital' ? '📲 Digital'
+                  : f === 'subscription' ? '⚡ Subscription'
+                  : '📦 Physical'}
               </button>
             ))}
           </div>
 
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/25">
-              <p className="text-red-400 font-bold text-sm">⚠️ {error}</p>
+            <div
+              className="mb-4 px-4 py-3 rounded-2xl font-bold text-sm"
+              style={{ background: 'rgba(255,75,75,0.1)', border: '2px solid rgba(255,75,75,0.25)', color: '#FF4B4B' }}
+            >
+              ⚠️ {error}
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Items grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {filteredItems.map(item => {
               const canAfford = (balance ?? 0) >= item.price_coins
               const outOfStock = item.stock !== null && item.stock <= 0
+              const cat = catStyle[item.category]
+
               return (
                 <div
                   key={item.id}
-                  className={cn(
-                    'bg-card border rounded-2xl overflow-hidden transition-all',
-                    outOfStock
-                      ? 'border-white/5 opacity-60'
+                  className="rounded-3xl overflow-hidden transition-all"
+                  style={{
+                    background: '#1a1a2e',
+                    border: outOfStock
+                      ? '2px solid rgba(255,255,255,0.05)'
                       : canAfford
-                      ? 'border-accent5/25 hover:border-accent5/50 hover:shadow-lg hover:shadow-accent5/10 hover:-translate-y-0.5'
-                      : 'border-white/8 hover:border-white/15'
-                  )}
+                      ? '2px solid rgba(88,204,2,0.3)'
+                      : '2px solid rgba(255,255,255,0.08)',
+                    opacity: outOfStock ? 0.5 : 1,
+                    transform: 'translateY(0)',
+                  }}
                 >
-                  <div className="px-4 pt-4 pb-0 flex items-center justify-between">
-                    <span className={cn(
-                      'text-xs font-extrabold px-2.5 py-1 rounded-full border',
-                      item.category === 'subscription' ? 'bg-accent5/15 text-accent5 border-accent5/25'
-                      : item.category === 'digital' ? 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25'
-                      : 'bg-amber-500/15 text-amber-400 border-amber-500/25'
-                    )}>
-                      {categoryLabel[item.category]}
+                  {/* Top bar */}
+                  <div
+                    className="px-4 py-2 flex items-center justify-between"
+                    style={{ background: 'rgba(255,255,255,0.04)' }}
+                  >
+                    <span
+                      className="text-xs font-black px-2.5 py-1 rounded-full"
+                      style={{ background: cat.bg, color: cat.color }}
+                    >
+                      {cat.label}
                     </span>
                     {item.stock !== null && (
-                      <span className="text-xs text-muted font-semibold">
+                      <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.35)' }}>
                         {item.stock <= 0 ? '🚫 Out of stock' : `${item.stock} left`}
                       </span>
                     )}
                   </div>
 
                   <div className="p-4">
-                    <div className="flex items-start gap-3 mb-3">
-                      <span className="text-4xl leading-none">{item.emoji}</span>
+                    {/* Emoji + info */}
+                    <div className="flex items-start gap-3 mb-4">
+                      <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
+                        style={{ background: 'rgba(255,255,255,0.06)' }}
+                      >
+                        {item.emoji}
+                      </div>
                       <div>
-                        <h3 className="font-extrabold text-base leading-tight mb-1">{item.name}</h3>
-                        <p className="text-muted text-xs font-semibold leading-relaxed">{item.description}</p>
+                        <h3 className="font-black text-white text-sm leading-tight mb-1">{item.name}</h3>
+                        <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          {item.description}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between mt-4">
+                    {/* Price + button */}
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-muted font-semibold mb-0.5">Price</p>
-                        <p className={cn('font-extrabold text-xl', canAfford ? 'text-accent2' : 'text-muted')}>
+                        <div
+                          className="font-black text-xl"
+                          style={{ color: canAfford ? '#FFC800' : 'rgba(255,255,255,0.3)' }}
+                        >
                           🪙 {item.price_coins.toLocaleString()}
-                        </p>
+                        </div>
                         {!canAfford && !outOfStock && (
-                          <p className="text-xs text-red-400/70 font-semibold mt-0.5">
+                          <div className="text-xs font-bold mt-0.5" style={{ color: '#FF4B4B' }}>
                             Need {(item.price_coins - (balance ?? 0)).toLocaleString()} more
-                          </p>
+                          </div>
                         )}
                       </div>
+
                       <button
                         onClick={() => { setError(null); setSelectedItem(item) }}
                         disabled={!canAfford || outOfStock || redeeming}
-                        className={cn(
-                          'px-5 py-2.5 rounded-xl font-extrabold text-sm transition-all',
-                          canAfford && !outOfStock
-                            ? 'bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg shadow-accent5/20'
-                            : 'bg-white/5 text-muted/50 cursor-not-allowed'
-                        )}
+                        className="px-5 py-2.5 rounded-2xl font-black text-sm text-white transition-all disabled:opacity-30"
+                        style={{
+                          background: canAfford && !outOfStock ? '#58CC02' : 'rgba(255,255,255,0.08)',
+                          boxShadow: canAfford && !outOfStock ? '0 4px 0 #3d8f01' : 'none',
+                          color: canAfford && !outOfStock ? '#fff' : 'rgba(255,255,255,0.3)',
+                        }}
                       >
-                        {outOfStock ? 'Out of stock' : canAfford ? 'Redeem →' : 'Not enough 🪙'}
+                        {outOfStock ? 'Sold out' : canAfford ? 'Redeem' : 'Need more 🪙'}
                       </button>
                     </div>
                   </div>
@@ -371,64 +498,103 @@ export default function ShopPage() {
         </>
       )}
 
-      {/* History Tab */}
+      {/* ── HISTORY TAB ──────────────────────────────────── */}
       {tab === 'history' && (
         <div className="space-y-6">
+
+          {/* Redemptions */}
           <div>
-            <p className="text-xs font-extrabold text-muted uppercase tracking-wider mb-3">
-              🛍️ Redemptions
+            <p className="text-xs font-black uppercase tracking-widest mb-3"
+              style={{ color: 'rgba(255,255,255,0.3)' }}>
+              My Redemptions
             </p>
             {redemptions.length === 0 ? (
-              <div className="bg-card border border-white/8 rounded-2xl p-8 text-center">
-                <p className="text-4xl mb-2">🛍️</p>
-                <p className="text-muted font-semibold text-sm">No redemptions yet. Spend those coins!</p>
+              <div
+                className="rounded-3xl p-10 text-center"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '2px dashed rgba(255,255,255,0.1)' }}
+              >
+                <div className="text-4xl mb-3">🛍️</div>
+                <p className="font-black text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  No redemptions yet
+                </p>
+                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                  Earn coins and spend them on cool stuff!
+                </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {redemptions.map(r => (
-                  <div key={r.id} className="bg-card border border-white/8 rounded-2xl p-4 flex items-center gap-4">
-                    <span className="text-3xl">{r.coin_shop_items?.emoji ?? '🎁'}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-extrabold text-sm truncate">{r.coin_shop_items?.name ?? 'Item'}</p>
-                      <p className="text-muted text-xs font-semibold">
-                        {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
+              <div className="space-y-2">
+                {redemptions.map(r => {
+                  const st = statusStyle[r.status] ?? statusStyle.pending
+                  return (
+                    <div
+                      key={r.id}
+                      className="rounded-2xl px-4 py-3 flex items-center gap-3"
+                      style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid rgba(255,255,255,0.06)' }}
+                    >
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                        style={{ background: 'rgba(255,255,255,0.06)' }}
+                      >
+                        {r.coin_shop_items?.emoji ?? '🎁'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-black text-sm text-white truncate">
+                          {r.coin_shop_items?.name ?? 'Item'}
+                        </p>
+                        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                          {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        <CoinBadge amount={r.coins_spent} positive={false} />
+                        <span
+                          className="text-xs font-black px-2 py-0.5 rounded-full"
+                          style={{ background: st.bg, color: st.color }}
+                        >
+                          {r.status}
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
-                      <span className="font-extrabold text-red-400 text-sm">
-                        -🪙 {r.coins_spent.toLocaleString()}
-                      </span>
-                      <span className={cn('text-xs font-extrabold px-2 py-0.5 rounded-full border', statusColor[r.status] ?? statusColor.pending)}>
-                        {r.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
 
+          {/* Coin history */}
           <div>
-            <p className="text-xs font-extrabold text-muted uppercase tracking-wider mb-3">
-              📋 Coin History
+            <p className="text-xs font-black uppercase tracking-widest mb-3"
+              style={{ color: 'rgba(255,255,255,0.3)' }}>
+              Coin History
             </p>
             {transactions.length === 0 ? (
-              <div className="bg-card border border-white/8 rounded-2xl p-6 text-center">
-                <p className="text-muted font-semibold text-sm">No transactions yet. Complete lessons to earn coins!</p>
+              <div
+                className="rounded-3xl p-8 text-center"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '2px dashed rgba(255,255,255,0.1)' }}
+              >
+                <p className="font-black text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  Complete lessons to earn coins!
+                </p>
               </div>
             ) : (
               <div className="space-y-2">
                 {transactions.map(tx => (
-                  <div key={tx.id} className="bg-card border border-white/8 rounded-xl px-4 py-3 flex items-center gap-3">
+                  <div
+                    key={tx.id}
+                    className="rounded-2xl px-4 py-3 flex items-center gap-3"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid rgba(255,255,255,0.06)' }}
+                  >
                     <span className="text-xl flex-shrink-0">
-                      {tx.type === 'streak_login' ? '🔥' : tx.type === 'xp_reward' ? '⚡' : tx.type === 'purchase' ? '🛍️' : '🪙'}
+                      {tx.type === 'streak_login' ? '🔥'
+                        : tx.type === 'xp_reward' ? '⚡'
+                        : tx.type === 'purchase' ? '🛍️'
+                        : '🪙'}
                     </span>
-                    <p className="flex-1 text-sm font-semibold text-muted truncate">
+                    <p className="flex-1 text-sm font-bold truncate"
+                      style={{ color: 'rgba(255,255,255,0.6)' }}>
                       {tx.description ?? tx.type}
                     </p>
-                    <p className={cn('font-extrabold text-sm flex-shrink-0', tx.amount > 0 ? 'text-accent3' : 'text-red-400')}>
-                      {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString()} 🪙
-                    </p>
+                    <CoinBadge amount={Math.abs(tx.amount)} positive={tx.amount > 0} />
                   </div>
                 ))}
               </div>
@@ -437,6 +603,7 @@ export default function ShopPage() {
         </div>
       )}
 
+      {/* ── Modals ───────────────────────────────────────── */}
       {selectedItem && (
         <ShippingModal
           item={selectedItem}
