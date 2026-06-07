@@ -187,8 +187,8 @@ export const addXP = async (userId: string, amount: number, reason: string, sour
   const { data: current } = await getUserProgress(userId)
   if (!current) return { error: new Error('No progress record') }
 
-  const newXP    = current.xp + amount
-  const newLevel = Math.floor(newXP / 100) + 1
+  const newXP     = current.xp + amount
+  const newLevel  = Math.floor(newXP / 100) + 1
   const leveledUp = newLevel > current.level
 
   // Update progress
@@ -207,6 +207,16 @@ export const addXP = async (userId: string, amount: number, reason: string, sour
     source_id: sourceId || null,
   })
 
+  // ── Coin reward: +100 coins per 1,000 XP earned ──────────────
+  // Non-blocking: a wallet failure must never break XP awarding.
+  // awardXPCoins internally does Math.floor(amount / 1000) * 100,
+  // so gains under 1,000 XP correctly award 0 coins.
+  try {
+    const { awardXPCoins } = await import('@/lib/supabase/wallet')
+    await awardXPCoins(userId, amount)
+  } catch (_) { /* silent — wallet errors never surface to the user */ }
+  // ─────────────────────────────────────────────────────────────
+
   return { data: { newXP, newLevel, leveledUp }, error: null }
 }
 
@@ -223,16 +233,19 @@ export const updateStreak = async (userId: string) => {
   const yesterday  = new Date(Date.now() - 86400000).toISOString().split('T')[0]
   const twoDaysAgo = new Date(Date.now() - 172800000).toISOString().split('T')[0]
 
-  let newStreak    = current.streak
-  let freezeUsed   = false
-  let freezeTokens = (current as any).freeze_tokens ?? 0
+  let newStreak         = current.streak
+  let freezeUsed        = false
+  let freezeTokens      = (current as any).freeze_tokens ?? 0
+  let streakIncremented = false // track if streak actually grew (not a reset)
 
   if (lastActive === yesterday) {
-    newStreak = current.streak + 1
+    newStreak         = current.streak + 1
+    streakIncremented = true
   } else if (lastActive === twoDaysAgo && freezeTokens > 0) {
-    newStreak    = current.streak + 1
-    freezeTokens = freezeTokens - 1
-    freezeUsed   = true
+    newStreak         = current.streak + 1
+    freezeTokens      = freezeTokens - 1
+    freezeUsed        = true
+    streakIncremented = true
     await supabase.from('freeze_uses').insert({
       user_id:          userId,
       used_date:        yesterday,
@@ -240,6 +253,7 @@ export const updateStreak = async (userId: string) => {
     })
   } else {
     newStreak = 1
+    // streakIncremented stays false — no coins on a reset
   }
 
   const longestStreak = Math.max(newStreak, current.longest_streak)
@@ -254,6 +268,18 @@ export const updateStreak = async (userId: string) => {
       updated_at:       new Date().toISOString(),
     })
     .eq('user_id', userId)
+
+  // ── Coin reward: +1,000 coins for each new streak day ────────
+  // Only fires when the streak genuinely increments (consecutive day or
+  // freeze-protected). Never fires on a streak reset to 1.
+  // Non-blocking: a wallet failure must never break streak tracking.
+  if (streakIncremented) {
+    try {
+      const { awardStreakCoins } = await import('@/lib/supabase/wallet')
+      await awardStreakCoins(userId)
+    } catch (_) { /* silent — wallet errors never surface to the user */ }
+  }
+  // ─────────────────────────────────────────────────────────────
 
   return { newStreak, freezeUsed, freezeTokensLeft: freezeTokens }
 }
@@ -658,11 +684,11 @@ export const checkUserAccess = async (userId: string): Promise<{
 
   if (!data) return { hasAccess: false, trialDaysLeft: 0, isTrialing: false, isPaid: false }
 
-  const now          = Date.now()
-  const trialEnd     = data.trial_ends_at ? new Date(data.trial_ends_at).getTime() : 0
-  const subEnd       = data.subscription_ends_at ? new Date(data.subscription_ends_at).getTime() : 0
-  const isTrialing   = trialEnd > now
-  const isPaid       = subEnd > now || data.subscription === 'pro' || data.subscription === 'school'
+  const now           = Date.now()
+  const trialEnd      = data.trial_ends_at ? new Date(data.trial_ends_at).getTime() : 0
+  const subEnd        = data.subscription_ends_at ? new Date(data.subscription_ends_at).getTime() : 0
+  const isTrialing    = trialEnd > now
+  const isPaid        = subEnd > now || data.subscription === 'pro' || data.subscription === 'school'
   const trialDaysLeft = isTrialing ? Math.ceil((trialEnd - now) / 86400000) : 0
 
   return { hasAccess: isTrialing || isPaid, trialDaysLeft, isTrialing, isPaid }
