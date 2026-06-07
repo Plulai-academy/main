@@ -1,6 +1,5 @@
 'use client'
 // app/dashboard/shop/page.tsx
-// Drop this file at: app/dashboard/shop/page.tsx
 
 import { useState, useEffect, useTransition } from 'react'
 import { cn } from '@/lib/utils'
@@ -24,10 +23,10 @@ function ShippingModal({
   item, onConfirm, onClose,
 }: {
   item: ShopItem
-  onConfirm: (shipping: Record<string,string>, notes: string) => void
+  onConfirm: (shipping: Record<string, string>, notes: string) => void
   onClose: () => void
 }) {
-  const [form, setForm] = useState({ name:'', address:'', city:'', phone:'', notes:'' })
+  const [form, setForm] = useState({ name: '', address: '', city: '', phone: '', notes: '' })
   const isPhysical = item.category === 'physical'
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
@@ -36,8 +35,10 @@ function ShippingModal({
     : true
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-      onClick={e => e.target === e.currentTarget && onClose()}>
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
       <div className="bg-card border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl">
         <div className="flex items-center gap-3 mb-5">
           <span className="text-4xl">{item.emoji}</span>
@@ -53,10 +54,10 @@ function ShippingModal({
               📦 Shipping information required
             </p>
             {[
-              { key:'name', label:'Full name', placeholder:'Your full name' },
-              { key:'address', label:'Address', placeholder:'Street address' },
-              { key:'city', label:'City & country', placeholder:'Dubai, UAE' },
-              { key:'phone', label:'WhatsApp number', placeholder:'+971 50 000 0000' },
+              { key: 'name',    label: 'Full name',        placeholder: 'Your full name' },
+              { key: 'address', label: 'Address',          placeholder: 'Street address' },
+              { key: 'city',    label: 'City & country',   placeholder: 'Dubai, UAE' },
+              { key: 'phone',   label: 'WhatsApp number',  placeholder: '+971 50 000 0000' },
             ].map(f => (
               <div key={f.key}>
                 <label className="text-xs font-bold text-muted mb-1 block">{f.label}</label>
@@ -85,19 +86,22 @@ function ShippingModal({
         </div>
 
         <div className="flex gap-3">
-          <button onClick={onClose}
-            className="flex-1 py-3 rounded-2xl font-extrabold text-sm border border-white/10 text-muted hover:text-white hover:border-white/25 transition-all">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 rounded-2xl font-extrabold text-sm border border-white/10 text-muted hover:text-white hover:border-white/25 transition-all"
+          >
             Cancel
           </button>
           <button
             onClick={() => {
-            const shipping: Record<string, string> = isPhysical
-              ? { name:form.name, address:form.address, city:form.city, phone:form.phone }
-              : {}
+              const shipping: Record<string, string> = isPhysical
+                ? { name: form.name, address: form.address, city: form.city, phone: form.phone }
+                : {}
               onConfirm(shipping, form.notes)
             }}
             disabled={!valid}
-            className="flex-1 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+            className="flex-1 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          >
             Confirm Redemption →
           </button>
         </div>
@@ -118,11 +122,13 @@ function SuccessModal({ item, onClose }: { item: ShopItem; onClose: () => void }
         </p>
         <p className="text-muted text-xs mb-6 leading-relaxed">
           {item.category === 'physical'
-            ? 'We\'ll ship to your address within 3-5 business days. Check your email for confirmation.'
+            ? "We'll ship to your address within 3-5 business days. Check your email for confirmation."
             : 'Check your email within 24h. We\'ll send your code or activate your account.'}
         </p>
-        <button onClick={onClose}
-          className="w-full py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent3 to-accent4 text-white hover:-translate-y-0.5 transition-all">
+        <button
+          onClick={onClose}
+          className="w-full py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent3 to-accent4 text-white hover:-translate-y-0.5 transition-all"
+        >
           Back to Shop
         </button>
       </div>
@@ -132,40 +138,44 @@ function SuccessModal({ item, onClose }: { item: ShopItem; onClose: () => void }
 
 // ── Main shop page ─────────────────────────────────────────────
 export default function ShopPage() {
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
-  const [balance, setBalance]         = useState<number | null>(null)
-  const [totalEarned, setTotalEarned] = useState(0)
-  const [items, setItems]             = useState<ShopItem[]>([])
+  const [balance, setBalance]           = useState<number | null>(null)
+  const [totalEarned, setTotalEarned]   = useState(0)
+  const [items, setItems]               = useState<ShopItem[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [redemptions, setRedemptions] = useState<Redemption[]>([])
-  const [loading, setLoading]         = useState(true)
-  const [tab, setTab]                 = useState<'shop'|'history'>('shop')
-  const [filter, setFilter]           = useState<'all'|'digital'|'physical'|'subscription'>('all')
+  const [redemptions, setRedemptions]   = useState<Redemption[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [tab, setTab]                   = useState<'shop' | 'history'>('shop')
+  const [filter, setFilter]             = useState<'all' | 'digital' | 'physical' | 'subscription'>('all')
 
   // Modals
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null)
-  const [successItem,  setSuccessItem]  = useState<ShopItem | null>(null)
+  const [successItem, setSuccessItem]   = useState<ShopItem | null>(null)
   const [error, setError]               = useState<string | null>(null)
   const [redeeming, setRedeeming]       = useState(false)
 
-  // Load data
+  // Load data — Promise.allSettled so a single 500 can't crash the whole page
   useEffect(() => {
-    Promise.all([
+    Promise.allSettled([
       fetch('/api/shop/wallet').then(r => r.json()),
       fetch('/api/shop/items').then(r => r.json()),
       fetch('/api/shop/redemptions').then(r => r.json()),
-    ]).then(([walletData, itemsData, redData]) => {
+    ]).then(([walletRes, itemsRes, redRes]) => {
+      const walletData = walletRes.status === 'fulfilled' ? walletRes.value : {}
+      const itemsData  = itemsRes.status  === 'fulfilled' ? itemsRes.value  : {}
+      const redData    = redRes.status    === 'fulfilled' ? redRes.value    : {}
+
       setBalance(walletData.wallet?.balance ?? 0)
       setTotalEarned(walletData.wallet?.total_earned ?? 0)
       setTransactions(walletData.transactions ?? [])
       setItems(itemsData.items ?? [])
       setRedemptions(redData.redemptions ?? [])
       setLoading(false)
-    }).catch(() => setLoading(false))
+    })
   }, [])
 
-  const handleRedeem = async (shipping: Record<string,string>, notes: string) => {
+  const handleRedeem = async (shipping: Record<string, string>, notes: string) => {
     if (!selectedItem) return
     setRedeeming(true)
     setError(null)
@@ -181,7 +191,10 @@ export default function ShopPage() {
       setSuccessItem(selectedItem)
       setSelectedItem(null)
       // Refresh redemptions
-      fetch('/api/shop/redemptions').then(r=>r.json()).then(d => setRedemptions(d.redemptions ?? []))
+      fetch('/api/shop/redemptions')
+        .then(r => r.json())
+        .then(d => setRedemptions(d.redemptions ?? []))
+        .catch(() => {/* silently skip if refresh fails */})
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -193,14 +206,14 @@ export default function ShopPage() {
     filter === 'all' ? true : i.category === filter
   )
 
-  const categoryLabel: Record<string,string> = {
+  const categoryLabel: Record<string, string> = {
     digital: '⚡ Digital', physical: '📦 Physical', subscription: '🔄 Subscription',
   }
-  const statusColor: Record<string,string> = {
-    pending: 'text-amber-400 bg-amber-400/10 border-amber-400/25',
+  const statusColor: Record<string, string> = {
+    pending:   'text-amber-400 bg-amber-400/10 border-amber-400/25',
     fulfilled: 'text-accent3 bg-accent3/10 border-accent3/25',
     cancelled: 'text-red-400 bg-red-400/10 border-red-400/25',
-    refunded: 'text-muted bg-white/5 border-white/10',
+    refunded:  'text-muted bg-white/5 border-white/10',
   }
 
   if (loading) return (
@@ -217,9 +230,13 @@ export default function ShopPage() {
 
       {/* ── Wallet Card ─────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-[#2B70C9] to-[#0f2d6e] rounded-3xl p-6 mb-6 relative overflow-hidden">
-        {/* Grid bg */}
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage:'linear-gradient(rgba(255,255,255,.2) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.2) 1px,transparent 1px)', backgroundSize:'32px 32px' }} />
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,.2) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.2) 1px,transparent 1px)',
+            backgroundSize: '32px 32px',
+          }}
+        />
         <div className="relative z-10">
           <p className="text-xs font-extrabold text-white/50 uppercase tracking-widest mb-1">Your Wallet</p>
           <div className="flex items-end gap-3 mb-4">
@@ -266,12 +283,16 @@ export default function ShopPage() {
 
       {/* ── Tabs ────────────────────────────────────────────── */}
       <div className="flex gap-2 mb-6">
-        {(['shop','history'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)}
+        {(['shop', 'history'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
             className={cn('px-5 py-2 rounded-xl font-extrabold text-sm transition-all',
               tab === t
                 ? 'bg-gradient-to-r from-accent5 to-accent1 text-white'
-                : 'bg-card border border-white/8 text-muted hover:text-white')}>
+                : 'bg-card border border-white/8 text-muted hover:text-white'
+            )}
+          >
             {t === 'shop' ? '🛍️ Shop' : '📜 My Orders'}
           </button>
         ))}
@@ -282,12 +303,16 @@ export default function ShopPage() {
         <>
           {/* Filter pills */}
           <div className="flex gap-2 flex-wrap mb-5">
-            {(['all','digital','subscription','physical'] as const).map(f => (
-              <button key={f} onClick={() => setFilter(f)}
+            {(['all', 'digital', 'subscription', 'physical'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
                 className={cn('px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all border',
                   filter === f
                     ? 'bg-white/15 text-white border-white/25'
-                    : 'bg-card border-white/8 text-muted hover:text-white hover:border-white/20')}>
+                    : 'bg-card border-white/8 text-muted hover:text-white hover:border-white/20'
+                )}
+              >
                 {f === 'all' ? '✨ All' : categoryLabel[f]}
               </button>
             ))}
@@ -300,13 +325,22 @@ export default function ShopPage() {
             </div>
           )}
 
+          {/* Empty state */}
+          {filteredItems.length === 0 && (
+            <div className="bg-card border border-white/8 rounded-2xl p-10 text-center">
+              <p className="text-4xl mb-3">🛍️</p>
+              <p className="text-muted font-semibold text-sm">No items available right now. Check back soon!</p>
+            </div>
+          )}
+
           {/* Items grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredItems.map(item => {
-              const canAfford = (balance ?? 0) >= item.price_coins
+              const canAfford  = (balance ?? 0) >= item.price_coins
               const outOfStock = item.stock !== null && item.stock <= 0
               return (
-                <div key={item.id}
+                <div
+                  key={item.id}
                   className={cn(
                     'bg-card border rounded-2xl overflow-hidden transition-all',
                     outOfStock
@@ -314,13 +348,14 @@ export default function ShopPage() {
                       : canAfford
                       ? 'border-accent5/25 hover:border-accent5/50 hover:shadow-lg hover:shadow-accent5/10 hover:-translate-y-0.5'
                       : 'border-white/8 hover:border-white/15'
-                  )}>
+                  )}
+                >
                   {/* Category badge */}
                   <div className="px-4 pt-4 pb-0 flex items-center justify-between">
                     <span className={cn(
                       'text-xs font-extrabold px-2.5 py-1 rounded-full border',
                       item.category === 'subscription' ? 'bg-accent5/15 text-accent5 border-accent5/25'
-                      : item.category === 'digital' ? 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25'
+                      : item.category === 'digital'    ? 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25'
                       : 'bg-amber-500/15 text-amber-400 border-amber-500/25'
                     )}>
                       {categoryLabel[item.category]}
@@ -361,7 +396,8 @@ export default function ShopPage() {
                           canAfford && !outOfStock
                             ? 'bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg shadow-accent5/20'
                             : 'bg-white/5 text-muted/50 cursor-not-allowed'
-                        )}>
+                        )}
+                      >
                         {outOfStock ? 'Out of stock' : canAfford ? 'Redeem →' : 'Not enough 🪙'}
                       </button>
                     </div>
@@ -394,12 +430,12 @@ export default function ShopPage() {
                     <div className="flex-1 min-w-0">
                       <p className="font-extrabold text-sm truncate">{r.shop_items?.name ?? 'Item'}</p>
                       <p className="text-muted text-xs font-semibold">
-                        {new Date(r.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
+                        {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                       <span className="font-extrabold text-red-400 text-sm">
-                        -🪙 {r.coins_spent.toLocaleString()}
+                        -🪙 {(r.coins_spent ?? 0).toLocaleString()}
                       </span>
                       <span className={cn('text-xs font-extrabold px-2 py-0.5 rounded-full border', statusColor[r.status] ?? statusColor.pending)}>
                         {r.status}
@@ -431,7 +467,7 @@ export default function ShopPage() {
                       {tx.description ?? tx.type}
                     </p>
                     <p className={cn('font-extrabold text-sm flex-shrink-0', tx.amount > 0 ? 'text-accent3' : 'text-red-400')}>
-                      {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString()} 🪙
+                      {tx.amount > 0 ? '+' : ''}{(tx.amount ?? 0).toLocaleString()} 🪙
                     </p>
                   </div>
                 ))}
