@@ -1,239 +1,128 @@
 'use client'
+// app/dashboard/shop/page.tsx
+// Drop this file at: app/dashboard/shop/page.tsx
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { cn } from '@/lib/utils'
-import Image from 'next/image'
 
+// ── Types ─────────────────────────────────────────────────────
 interface ShopItem {
   id: string; name: string; description: string; emoji: string
   category: 'digital' | 'physical' | 'subscription'
   price_coins: number; stock: number | null; is_active: boolean
-  image_url: string | null
 }
 interface Transaction {
   id: string; amount: number; type: string; description: string; created_at: string
 }
 interface Redemption {
   id: string; item_id: string; coins_spent: number; status: string
-  created_at: string; coin_shop_items?: ShopItem
+  created_at: string; shop_items?: ShopItem
 }
 
-// ── Get image from DB or placeholder ──
-function getItemImage(item: ShopItem): string {
-  return item.image_url ?? '/images/shop/placeholder.png'
-}
-
-// ── Enhanced Product Image component with banner support ──
-function ItemImage({ item, size = 'card' }: { item: ShopItem; size?: 'card' | 'modal' | 'row' | 'banner' }) {
-  const [errored, setErrored] = useState(false)
-  const src = getItemImage(item)
-
-  // Banner size: fills entire container (use fill + object-cover)
-  if (size === 'banner') {
-    if (errored) {
-      return (
-        <div className="w-full h-full flex items-center justify-center text-5xl" style={{ background: 'rgba(255,255,255,0.04)' }}>
-          {item.emoji}
-        </div>
-      )
-    }
-    return (
-      <div className="relative w-full h-full">
-        <Image
-          src={src}
-          alt={item.name}
-          fill
-          className="object-cover"
-          onError={() => setErrored(true)}
-        />
-      </div>
-    )
-  }
-
-  const dims = {
-    card:  { w: 80,  h: 80,  cls: 'w-20 h-20 rounded-2xl' },
-    modal: { w: 100, h: 100, cls: 'w-24 h-24 rounded-2xl' },
-    row:   { w: 40,  h: 40,  cls: 'w-10 h-10 rounded-xl'  },
-  }[size]
-
-  if (errored) {
-    return (
-      <div
-        className={`${dims.cls} flex items-center justify-center text-2xl flex-shrink-0`}
-        style={{ background: 'rgba(255,255,255,0.06)' }}
-      >
-        {item.emoji}
-      </div>
-    )
-  }
-
-  return (
-    <div className={`${dims.cls} overflow-hidden flex-shrink-0 relative`}
-      style={{ background: 'rgba(255,255,255,0.06)' }}>
-      <Image
-        src={src}
-        alt={item.name}
-        width={dims.w}
-        height={dims.h}
-        className="w-full h-full object-cover"
-        onError={() => setErrored(true)}
-      />
-    </div>
-  )
-}
-
-// ── Shipping Modal ────────────────────────────────────────────
+// ── Shipping form modal ───────────────────────────────────────
 function ShippingModal({
   item, onConfirm, onClose,
 }: {
   item: ShopItem
-  onConfirm: (shipping: Record<string, string>, notes: string) => void
+  onConfirm: (shipping: Record<string,string>, notes: string) => void
   onClose: () => void
 }) {
-  const [form, setForm] = useState({ name: '', address: '', city: '', phone: '', notes: '' })
+  const [form, setForm] = useState({ name:'', address:'', city:'', phone:'', notes:'' })
   const isPhysical = item.category === 'physical'
+
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
-  const valid = isPhysical ? form.name && form.address && form.city && form.phone : true
+  const valid = isPhysical
+    ? form.name && form.address && form.city && form.phone
+    : true
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.75)' }}
-      onClick={e => e.target === e.currentTarget && onClose()}
-    >
-      <div
-        className="w-full max-w-sm rounded-3xl overflow-hidden"
-        style={{ background: '#1a1a2e', border: '2px solid rgba(255,255,255,0.08)' }}
-      >
-        {/* Header */}
-        <div className="px-6 pt-6 pb-4 text-center" style={{ borderBottom: '2px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex justify-center mb-3">
-            <ItemImage item={item} size="modal" />
-          </div>
-          <h3 className="font-black text-white text-lg">{item.name}</h3>
-          <div
-            className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full font-black text-sm"
-            style={{ background: '#FFC800', color: '#1a1a2e' }}
-          >
-            🪙 {item.price_coins.toLocaleString()} coins
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="bg-card border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+        <div className="flex items-center gap-3 mb-5">
+          <span className="text-4xl">{item.emoji}</span>
+          <div>
+            <h3 className="font-extrabold text-lg leading-tight">{item.name}</h3>
+            <p className="text-muted text-sm font-semibold">🪙 {item.price_coins.toLocaleString()} coins</p>
           </div>
         </div>
 
-        <div className="p-6 space-y-3">
-          {isPhysical && (
-            <>
-              <p className="text-xs font-black uppercase tracking-widest text-center mb-4"
-                style={{ color: '#FFC800' }}>
-                📦 Shipping info required
-              </p>
-              {[
-                { key: 'name',    label: 'Full name',      placeholder: 'Your full name'      },
-                { key: 'address', label: 'Address',         placeholder: 'Street address'      },
-                { key: 'city',    label: 'City & country',  placeholder: 'Dubai, UAE'          },
-                { key: 'phone',   label: 'WhatsApp',        placeholder: '+971 50 000 0000'    },
-              ].map(f => (
-                <div key={f.key}>
-                  <label className="text-xs font-black uppercase tracking-wider block mb-1"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}>
-                    {f.label}
-                  </label>
-                  <input
-                    value={form[f.key as keyof typeof form]}
-                    onChange={e => set(f.key, e.target.value)}
-                    placeholder={f.placeholder}
-                    className="w-full rounded-2xl px-4 py-3 text-sm font-bold text-white outline-none transition-all"
-                    style={{
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '2px solid rgba(255,255,255,0.1)',
-                    }}
-                  />
-                </div>
-              ))}
-            </>
-          )}
-
-          <div>
-            <label className="text-xs font-black uppercase tracking-wider block mb-1"
-              style={{ color: 'rgba(255,255,255,0.4)' }}>
-              Note (optional)
-            </label>
-            <textarea
-              value={form.notes}
-              onChange={e => set('notes', e.target.value)}
-              placeholder="Any special request..."
-              rows={2}
-              className="w-full rounded-2xl px-4 py-3 text-sm font-bold text-white outline-none resize-none"
-              style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '2px solid rgba(255,255,255,0.1)',
-              }}
-            />
+        {isPhysical && (
+          <div className="space-y-3 mb-4">
+            <p className="text-xs font-extrabold text-amber-400 uppercase tracking-wider mb-3">
+              📦 Shipping information required
+            </p>
+            {[
+              { key:'name', label:'Full name', placeholder:'Your full name' },
+              { key:'address', label:'Address', placeholder:'Street address' },
+              { key:'city', label:'City & country', placeholder:'Dubai, UAE' },
+              { key:'phone', label:'WhatsApp number', placeholder:'+971 50 000 0000' },
+            ].map(f => (
+              <div key={f.key}>
+                <label className="text-xs font-bold text-muted mb-1 block">{f.label}</label>
+                <input
+                  value={form[f.key as keyof typeof form]}
+                  onChange={e => set(f.key, e.target.value)}
+                  placeholder={f.placeholder}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-semibold text-white placeholder:text-white/25 outline-none focus:border-accent5/50 transition-all"
+                />
+              </div>
+            ))}
           </div>
+        )}
 
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={onClose}
-              className="flex-1 py-3.5 rounded-2xl font-black text-sm transition-all"
-              style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)' }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                const shipping = isPhysical
-                  ? { name: form.name, address: form.address, city: form.city, phone: form.phone }
-                  : {} as Record<string, string>
-                onConfirm(shipping, form.notes)
-              }}
-              disabled={!valid}
-              className="py-3.5 rounded-2xl font-black text-sm transition-all disabled:opacity-30"
-              style={{
-                background: valid ? '#58CC02' : '#333',
-                color: '#fff',
-                boxShadow: valid ? '0 4px 0 #3d8f01' : 'none',
-                flex: 2,
-              }}
-            >
-              Confirm →
-            </button>
-          </div>
+        <div className="mb-5">
+          <label className="text-xs font-bold text-muted mb-1 block">
+            Note to Plulai (optional)
+          </label>
+          <textarea
+            value={form.notes}
+            onChange={e => set('notes', e.target.value)}
+            placeholder="Any special request..."
+            rows={2}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-semibold text-white placeholder:text-white/25 outline-none focus:border-accent5/50 transition-all resize-none"
+          />
+        </div>
+
+        <div className="flex gap-3">
+          <button onClick={onClose}
+            className="flex-1 py-3 rounded-2xl font-extrabold text-sm border border-white/10 text-muted hover:text-white hover:border-white/25 transition-all">
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              const shipping = isPhysical
+                ? { name:form.name, address:form.address, city:form.city, phone:form.phone }
+                : {}
+              onConfirm(shipping, form.notes)
+            }}
+            disabled={!valid}
+            className="flex-1 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+            Confirm Redemption →
+          </button>
         </div>
       </div>
     </div>
   )
 }
 
-// ── Success Modal ─────────────────────────────────────────────
+// ── Success modal ─────────────────────────────────────────────
 function SuccessModal({ item, onClose }: { item: ShopItem; onClose: () => void }) {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.75)' }}
-    >
-      <div
-        className="w-full max-w-xs rounded-3xl p-8 text-center"
-        style={{ background: '#1a1a2e', border: '2px solid rgba(88,204,2,0.3)' }}
-      >
-        <div className="flex justify-center mb-4">
-          <div className="relative">
-            <ItemImage item={item} size="modal" />
-            <span className="absolute -top-2 -right-2 text-2xl">🎉</span>
-          </div>
-        </div>
-        <h3 className="font-black text-2xl mb-2" style={{ color: '#58CC02' }}>Redeemed!</h3>
-        <p className="font-bold text-sm mb-1" style={{ color: 'rgba(255,255,255,0.9)' }}>
-          {item.name}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="bg-card border border-accent3/30 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
+        <div className="text-6xl mb-4">{item.emoji}</div>
+        <h3 className="font-extrabold text-2xl text-accent3 mb-2">Redeemed! 🎉</h3>
+        <p className="text-muted font-semibold text-sm mb-2">
+          <strong className="text-white">{item.name}</strong> has been requested.
         </p>
-        <p className="text-xs mb-6 leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="text-muted text-xs mb-6 leading-relaxed">
           {item.category === 'physical'
-            ? 'Ships to your address in 3–5 business days.'
-            : 'Check your email within 24h for your code.'}
+            ? 'We\'ll ship to your address within 3-5 business days. Check your email for confirmation.'
+            : 'Check your email within 24h. We\'ll send your code or activate your account.'}
         </p>
-        <button
-          onClick={onClose}
-          className="w-full py-4 rounded-2xl font-black text-white text-sm"
-          style={{ background: '#58CC02', boxShadow: '0 4px 0 #3d8f01' }}
-        >
+        <button onClick={onClose}
+          className="w-full py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent3 to-accent4 text-white hover:-translate-y-0.5 transition-all">
           Back to Shop
         </button>
       </div>
@@ -241,43 +130,26 @@ function SuccessModal({ item, onClose }: { item: ShopItem; onClose: () => void }
   )
 }
 
-// ── Coin Badge ────────────────────────────────────────────────
-function CoinBadge({ amount, positive = true }: { amount: number; positive?: boolean }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-black"
-      style={{
-        background: positive ? 'rgba(255,200,0,0.12)' : 'rgba(255,75,75,0.12)',
-        color: positive ? '#FFC800' : '#FF4B4B',
-      }}
-    >
-      🪙 {positive ? '+' : '-'}{amount.toLocaleString()}
-    </span>
-  )
-}
-
-// ── Category styles ───────────────────────────────────────────
-const catStyle: Record<string, { bg: string; color: string; label: string }> = {
-  subscription: { bg: 'rgba(88,204,2,0.15)',  color: '#58CC02', label: '⚡ Sub'      },
-  digital:      { bg: 'rgba(28,176,246,0.15)', color: '#1CB0F6', label: '📲 Digital'  },
-  physical:     { bg: 'rgba(255,200,0,0.15)', color: '#FFC800', label: '📦 Physical' },
-}
-
-// ── Main Page ─────────────────────────────────────────────────
+// ── Main shop page ─────────────────────────────────────────────
 export default function ShopPage() {
-  const [balance, setBalance]           = useState<number | null>(null)
-  const [totalEarned, setTotalEarned]   = useState(0)
-  const [items, setItems]               = useState<ShopItem[]>([])
+  const [isPending, startTransition] = useTransition()
+
+  const [balance, setBalance]         = useState<number | null>(null)
+  const [totalEarned, setTotalEarned] = useState(0)
+  const [items, setItems]             = useState<ShopItem[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [redemptions, setRedemptions]   = useState<Redemption[]>([])
-  const [loading, setLoading]           = useState(true)
-  const [tab, setTab]                   = useState<'shop' | 'history'>('shop')
-  const [filter, setFilter]             = useState<'all' | 'digital' | 'physical' | 'subscription'>('all')
+  const [redemptions, setRedemptions] = useState<Redemption[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [tab, setTab]                 = useState<'shop'|'history'>('shop')
+  const [filter, setFilter]           = useState<'all'|'digital'|'physical'|'subscription'>('all')
+
+  // Modals
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null)
-  const [successItem, setSuccessItem]   = useState<ShopItem | null>(null)
+  const [successItem,  setSuccessItem]  = useState<ShopItem | null>(null)
   const [error, setError]               = useState<string | null>(null)
   const [redeeming, setRedeeming]       = useState(false)
 
+  // Load data
   useEffect(() => {
     Promise.all([
       fetch('/api/shop/wallet').then(r => r.json()),
@@ -293,7 +165,7 @@ export default function ShopPage() {
     }).catch(() => setLoading(false))
   }, [])
 
-  const handleRedeem = async (shipping: Record<string, string>, notes: string) => {
+  const handleRedeem = async (shipping: Record<string,string>, notes: string) => {
     if (!selectedItem) return
     setRedeeming(true)
     setError(null)
@@ -308,7 +180,8 @@ export default function ShopPage() {
       setBalance(data.newBalance)
       setSuccessItem(selectedItem)
       setSelectedItem(null)
-      fetch('/api/shop/redemptions').then(r => r.json()).then(d => setRedemptions(d.redemptions ?? []))
+      // Refresh redemptions
+      fetch('/api/shop/redemptions').then(r=>r.json()).then(d => setRedemptions(d.redemptions ?? []))
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -316,64 +189,54 @@ export default function ShopPage() {
     }
   }
 
-  const filteredItems = items.filter(i => filter === 'all' || i.category === filter)
+  const filteredItems = items.filter(i =>
+    filter === 'all' ? true : i.category === filter
+  )
 
-  const statusStyle: Record<string, { bg: string; color: string }> = {
-    pending:   { bg: 'rgba(255,200,0,0.12)',   color: '#FFC800' },
-    fulfilled: { bg: 'rgba(88,204,2,0.12)',    color: '#58CC02' },
-    cancelled: { bg: 'rgba(255,75,75,0.12)',   color: '#FF4B4B' },
-    refunded:  { bg: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' },
+  const categoryLabel: Record<string,string> = {
+    digital: '⚡ Digital', physical: '📦 Physical', subscription: '🔄 Subscription',
+  }
+  const statusColor: Record<string,string> = {
+    pending: 'text-amber-400 bg-amber-400/10 border-amber-400/25',
+    fulfilled: 'text-accent3 bg-accent3/10 border-accent3/25',
+    cancelled: 'text-red-400 bg-red-400/10 border-red-400/25',
+    refunded: 'text-muted bg-white/5 border-white/10',
   }
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="text-center space-y-4">
-        <div className="text-5xl animate-bounce">🪙</div>
-        <p className="font-black text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          Loading your wallet…
-        </p>
+      <div className="text-center space-y-3">
+        <div className="text-4xl animate-bounce">🪙</div>
+        <p className="text-muted font-bold text-sm">Loading your wallet…</p>
       </div>
     </div>
   )
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 pb-20">
+    <div className="p-4 sm:p-6 lg:p-10 max-w-4xl w-full mx-auto">
 
-      {/* ── Wallet Hero ─────────────────────────────────── */}
-      <div
-        className="rounded-3xl p-6 mb-5 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #1CB0F6 0%, #0d7ab0 100%)' }}
-      >
-        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-20"
-          style={{ background: 'rgba(255,255,255,0.3)' }} />
-        <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full opacity-10"
-          style={{ background: 'rgba(255,255,255,0.3)' }} />
+      {/* ── Wallet Card ─────────────────────────────────────── */}
+      <div className="bg-gradient-to-br from-[#2B70C9] to-[#0f2d6e] rounded-3xl p-6 mb-6 relative overflow-hidden">
+        {/* Grid bg */}
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage:'linear-gradient(rgba(255,255,255,.2) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.2) 1px,transparent 1px)', backgroundSize:'32px 32px' }} />
         <div className="relative z-10">
-          <p className="text-xs font-black uppercase tracking-widest mb-3"
-            style={{ color: 'rgba(255,255,255,0.7)' }}>
-            Your Wallet
-          </p>
-          <div className="flex items-center gap-3 mb-5">
-            <span className="text-5xl">🪙</span>
-            <div>
-              <div className="text-4xl font-black text-white leading-none">
-                {balance?.toLocaleString() ?? '—'}
-              </div>
-              <div className="text-sm font-bold mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                coins available
-              </div>
-            </div>
+          <p className="text-xs font-extrabold text-white/50 uppercase tracking-widest mb-1">Your Wallet</p>
+          <div className="flex items-end gap-3 mb-4">
+            <span className="text-5xl font-extrabold text-white leading-none">
+              {balance?.toLocaleString() ?? '—'}
+            </span>
+            <span className="text-2xl mb-1">🪙</span>
+            <span className="text-white/50 font-bold text-sm mb-1">coins</span>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.15)' }}>
-              <p className="text-xs font-black uppercase tracking-wider mb-1"
-                style={{ color: 'rgba(255,255,255,0.6)' }}>All-time earned</p>
-              <p className="font-black text-white text-lg">🪙 {totalEarned.toLocaleString()}</p>
+          <div className="flex gap-4 flex-wrap">
+            <div className="bg-white/10 rounded-xl px-4 py-2">
+              <p className="text-white/50 text-xs font-semibold">All-time earned</p>
+              <p className="text-white font-extrabold">🪙 {totalEarned.toLocaleString()}</p>
             </div>
-            <div className="rounded-2xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.15)' }}>
-              <p className="text-xs font-black uppercase tracking-wider mb-1"
-                style={{ color: 'rgba(255,255,255,0.6)' }}>Total spent</p>
-              <p className="font-black text-white text-lg">
+            <div className="bg-white/10 rounded-xl px-4 py-2">
+              <p className="text-white/50 text-xs font-semibold">Spent</p>
+              <p className="text-white font-extrabold">
                 🪙 {(totalEarned - (balance ?? 0)).toLocaleString()}
               </p>
             </div>
@@ -381,142 +244,125 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* ── Earn callouts ────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <div className="rounded-2xl p-4 flex items-center gap-3"
-          style={{ background: 'rgba(255,200,0,0.08)', border: '2px solid rgba(255,200,0,0.2)' }}>
+      {/* ── How to earn ─────────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="bg-card border border-amber-500/20 rounded-2xl p-4 flex items-center gap-3">
           <span className="text-2xl">🔥</span>
           <div>
-            <p className="font-black text-sm text-white">Daily Streak</p>
-            <p className="font-black text-xs" style={{ color: '#FFC800' }}>+1,000 coins/day</p>
+            <p className="font-extrabold text-sm">Daily Streak</p>
+            <p className="text-amber-400 font-extrabold text-xs">+1,000 coins</p>
+            <p className="text-muted text-xs">Every day you log in</p>
           </div>
         </div>
-        <div className="rounded-2xl p-4 flex items-center gap-3"
-          style={{ background: 'rgba(88,204,2,0.08)', border: '2px solid rgba(88,204,2,0.2)' }}>
+        <div className="bg-card border border-accent5/20 rounded-2xl p-4 flex items-center gap-3">
           <span className="text-2xl">⚡</span>
           <div>
-            <p className="font-black text-sm text-white">XP Rewards</p>
-            <p className="font-black text-xs" style={{ color: '#58CC02' }}>+100 per 1k XP</p>
+            <p className="font-extrabold text-sm">XP Rewards</p>
+            <p className="text-accent5 font-extrabold text-xs">+100 per 1,000 XP</p>
+            <p className="text-muted text-xs">Keep completing lessons</p>
           </div>
         </div>
       </div>
 
-      {/* ── Tabs ─────────────────────────────────────────── */}
-      <div className="flex gap-1 p-1 rounded-2xl mb-5"
-        style={{ background: 'rgba(255,255,255,0.06)' }}>
-        {(['shop', 'history'] as const).map(t => (
+      {/* ── Tabs ────────────────────────────────────────────── */}
+      <div className="flex gap-2 mb-6">
+        {(['shop','history'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className="flex-1 py-2.5 rounded-xl font-black text-sm transition-all"
-            style={{
-              background: tab === t ? '#1CB0F6' : 'transparent',
-              color: tab === t ? '#fff' : 'rgba(255,255,255,0.4)',
-              boxShadow: tab === t ? '0 2px 0 #0d7ab0' : 'none',
-            }}>
+            className={cn('px-5 py-2 rounded-xl font-extrabold text-sm transition-all',
+              tab === t
+                ? 'bg-gradient-to-r from-accent5 to-accent1 text-white'
+                : 'bg-card border border-white/8 text-muted hover:text-white')}>
             {t === 'shop' ? '🛍️ Shop' : '📜 My Orders'}
           </button>
         ))}
       </div>
 
-      {/* ── SHOP TAB ─────────────────────────────────────── */}
+      {/* ── SHOP TAB ─────────────────────────────────────────── */}
       {tab === 'shop' && (
         <>
           {/* Filter pills */}
           <div className="flex gap-2 flex-wrap mb-5">
-            {(['all', 'digital', 'subscription', 'physical'] as const).map(f => (
+            {(['all','digital','subscription','physical'] as const).map(f => (
               <button key={f} onClick={() => setFilter(f)}
-                className="px-4 py-2 rounded-xl text-xs font-black transition-all"
-                style={{
-                  background: filter === f ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)',
-                  color: filter === f ? '#fff' : 'rgba(255,255,255,0.4)',
-                  border: filter === f ? '2px solid rgba(255,255,255,0.25)' : '2px solid transparent',
-                }}>
-                {f === 'all' ? '✨ All'
-                  : f === 'digital' ? '📲 Digital'
-                  : f === 'subscription' ? '⚡ Subscription'
-                  : '📦 Physical'}
+                className={cn('px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all border',
+                  filter === f
+                    ? 'bg-white/15 text-white border-white/25'
+                    : 'bg-card border-white/8 text-muted hover:text-white hover:border-white/20')}>
+                {f === 'all' ? '✨ All' : categoryLabel[f]}
               </button>
             ))}
           </div>
 
+          {/* Error */}
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-2xl font-bold text-sm"
-              style={{ background: 'rgba(255,75,75,0.1)', border: '2px solid rgba(255,75,75,0.25)', color: '#FF4B4B' }}>
-              ⚠️ {error}
+            <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/25">
+              <p className="text-red-400 font-bold text-sm">⚠️ {error}</p>
             </div>
           )}
 
-          {/* REDESIGNED ITEMS GRID: Full-width image banner with better visibility */}
+          {/* Items grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredItems.map(item => {
               const canAfford = (balance ?? 0) >= item.price_coins
               const outOfStock = item.stock !== null && item.stock <= 0
-              const cat = catStyle[item.category]
-
               return (
                 <div key={item.id}
-                  className="rounded-3xl overflow-hidden transition-all flex flex-col"
-                  style={{
-                    background: '#1a1a2e',
-                    border: outOfStock
-                      ? '2px solid rgba(255,255,255,0.05)'
+                  className={cn(
+                    'bg-card border rounded-2xl overflow-hidden transition-all',
+                    outOfStock
+                      ? 'border-white/5 opacity-60'
                       : canAfford
-                      ? '2px solid rgba(88,204,2,0.3)'
-                      : '2px solid rgba(255,255,255,0.08)',
-                    opacity: outOfStock ? 0.5 : 1,
-                  }}
-                >
-                  {/* Large image banner - now prominent */}
-                  <div className="relative w-full h-48 overflow-hidden bg-black/20">
-                    <ItemImage item={item} size="banner" />
-                    
-                    {/* Category badge overlay */}
-                    <span
-                      className="absolute top-3 left-3 text-xs font-black px-2.5 py-1 rounded-full backdrop-blur-md z-10"
-                      style={{ background: cat.bg, color: cat.color, backdropFilter: 'blur(8px)' }}>
-                      {cat.label}
+                      ? 'border-accent5/25 hover:border-accent5/50 hover:shadow-lg hover:shadow-accent5/10 hover:-translate-y-0.5'
+                      : 'border-white/8 hover:border-white/15'
+                  )}>
+                  {/* Category badge */}
+                  <div className="px-4 pt-4 pb-0 flex items-center justify-between">
+                    <span className={cn(
+                      'text-xs font-extrabold px-2.5 py-1 rounded-full border',
+                      item.category === 'subscription' ? 'bg-accent5/15 text-accent5 border-accent5/25'
+                      : item.category === 'digital' ? 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25'
+                      : 'bg-amber-500/15 text-amber-400 border-amber-500/25'
+                    )}>
+                      {categoryLabel[item.category]}
                     </span>
-                    
-                    {/* Stock badge overlay */}
                     {item.stock !== null && (
-                      <span className="absolute top-3 right-3 text-xs font-bold px-2 py-1 rounded-full backdrop-blur-md z-10"
-                        style={{ background: 'rgba(0,0,0,0.7)', color: 'rgba(255,255,255,0.9)' }}>
-                        {item.stock <= 0 ? '🚫 Sold out' : `${item.stock} left`}
+                      <span className="text-xs text-muted font-semibold">
+                        {item.stock <= 0 ? '🚫 Out of stock' : `${item.stock} left`}
                       </span>
                     )}
-                    
-                    {/* Gradient overlay for better text readability if needed */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                   </div>
 
-                  {/* Content section */}
-                  <div className="p-4 flex flex-col flex-grow">
-                    <h3 className="font-black text-white text-base leading-tight mb-1">{item.name}</h3>
-                    <p className="text-xs leading-relaxed mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                      {item.description}
-                    </p>
-
-                    <div className="flex items-center justify-between mt-auto">
+                  <div className="p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      <span className="text-4xl leading-none">{item.emoji}</span>
                       <div>
-                        <div className="font-black text-xl"
-                          style={{ color: canAfford ? '#FFC800' : 'rgba(255,255,255,0.3)' }}>
+                        <h3 className="font-extrabold text-base leading-tight mb-1">{item.name}</h3>
+                        <p className="text-muted text-xs font-semibold leading-relaxed">{item.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-4">
+                      <div>
+                        <p className="text-xs text-muted font-semibold mb-0.5">Price</p>
+                        <p className={cn('font-extrabold text-xl', canAfford ? 'text-accent2' : 'text-muted')}>
                           🪙 {item.price_coins.toLocaleString()}
-                        </div>
+                        </p>
                         {!canAfford && !outOfStock && (
-                          <div className="text-xs font-bold mt-0.5" style={{ color: '#FF4B4B' }}>
+                          <p className="text-xs text-red-400/70 font-semibold mt-0.5">
                             Need {(item.price_coins - (balance ?? 0)).toLocaleString()} more
-                          </div>
+                          </p>
                         )}
                       </div>
                       <button
                         onClick={() => { setError(null); setSelectedItem(item) }}
                         disabled={!canAfford || outOfStock || redeeming}
-                        className="px-5 py-2.5 rounded-2xl font-black text-sm text-white transition-all disabled:opacity-30"
-                        style={{
-                          background: canAfford && !outOfStock ? '#58CC02' : 'rgba(255,255,255,0.08)',
-                          boxShadow: canAfford && !outOfStock ? '0 4px 0 #3d8f01' : 'none',
-                          color: canAfford && !outOfStock ? '#fff' : 'rgba(255,255,255,0.3)',
-                        }}>
-                        {outOfStock ? 'Sold out' : canAfford ? 'Redeem' : 'Need more 🪙'}
+                        className={cn(
+                          'px-5 py-2.5 rounded-xl font-extrabold text-sm transition-all',
+                          canAfford && !outOfStock
+                            ? 'bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-lg shadow-accent5/20'
+                            : 'bg-white/5 text-muted/50 cursor-not-allowed'
+                        )}>
+                        {outOfStock ? 'Out of stock' : canAfford ? 'Redeem →' : 'Not enough 🪙'}
                       </button>
                     </div>
                   </div>
@@ -527,81 +373,66 @@ export default function ShopPage() {
         </>
       )}
 
-      {/* ── HISTORY TAB ──────────────────────────────────── */}
+      {/* ── HISTORY TAB ──────────────────────────────────────── */}
       {tab === 'history' && (
         <div className="space-y-6">
+          {/* Redemptions */}
           <div>
-            <p className="text-xs font-black uppercase tracking-widest mb-3"
-              style={{ color: 'rgba(255,255,255,0.3)' }}>My Redemptions</p>
+            <p className="text-xs font-extrabold text-muted uppercase tracking-wider mb-3">
+              🛍️ Redemptions
+            </p>
             {redemptions.length === 0 ? (
-              <div className="rounded-3xl p-10 text-center"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '2px dashed rgba(255,255,255,0.1)' }}>
-                <div className="text-4xl mb-3">🛍️</div>
-                <p className="font-black text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  No redemptions yet
-                </p>
-                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                  Earn coins and spend them on cool stuff!
-                </p>
+              <div className="bg-card border border-white/8 rounded-2xl p-8 text-center">
+                <p className="text-4xl mb-2">🛍️</p>
+                <p className="text-muted font-semibold text-sm">No redemptions yet. Spend those coins!</p>
               </div>
             ) : (
-              <div className="space-y-2">
-                {redemptions.map(r => {
-                  const st = statusStyle[r.status] ?? statusStyle.pending
-                  return (
-                    <div key={r.id} className="rounded-2xl px-4 py-3 flex items-center gap-3"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid rgba(255,255,255,0.06)' }}>
-                      {r.coin_shop_items && (
-                        <ItemImage item={r.coin_shop_items} size="row" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-black text-sm text-white truncate">
-                          {r.coin_shop_items?.name ?? 'Item'}
-                        </p>
-                        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                          {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        <CoinBadge amount={r.coins_spent} positive={false} />
-                        <span className="text-xs font-black px-2 py-0.5 rounded-full"
-                          style={{ background: st.bg, color: st.color }}>
-                          {r.status}
-                        </span>
-                      </div>
+              <div className="space-y-3">
+                {redemptions.map(r => (
+                  <div key={r.id} className="bg-card border border-white/8 rounded-2xl p-4 flex items-center gap-4">
+                    <span className="text-3xl">{r.shop_items?.emoji ?? '🎁'}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-extrabold text-sm truncate">{r.shop_items?.name ?? 'Item'}</p>
+                      <p className="text-muted text-xs font-semibold">
+                        {new Date(r.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
+                      </p>
                     </div>
-                  )
-                })}
+                    <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
+                      <span className="font-extrabold text-red-400 text-sm">
+                        -🪙 {r.coins_spent.toLocaleString()}
+                      </span>
+                      <span className={cn('text-xs font-extrabold px-2 py-0.5 rounded-full border', statusColor[r.status] ?? statusColor.pending)}>
+                        {r.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
 
+          {/* Transaction history */}
           <div>
-            <p className="text-xs font-black uppercase tracking-widest mb-3"
-              style={{ color: 'rgba(255,255,255,0.3)' }}>Coin History</p>
+            <p className="text-xs font-extrabold text-muted uppercase tracking-wider mb-3">
+              📋 Coin History
+            </p>
             {transactions.length === 0 ? (
-              <div className="rounded-3xl p-8 text-center"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '2px dashed rgba(255,255,255,0.1)' }}>
-                <p className="font-black text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  Complete lessons to earn coins!
-                </p>
+              <div className="bg-card border border-white/8 rounded-2xl p-6 text-center">
+                <p className="text-muted font-semibold text-sm">No transactions yet. Complete lessons to earn coins!</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {transactions.map(tx => (
-                  <div key={tx.id} className="rounded-2xl px-4 py-3 flex items-center gap-3"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '2px solid rgba(255,255,255,0.06)' }}>
+                  <div key={tx.id} className="bg-card border border-white/8 rounded-xl px-4 py-3 flex items-center gap-3">
                     <span className="text-xl flex-shrink-0">
-                      {tx.type === 'streak_login' ? '🔥'
-                        : tx.type === 'xp_reward' ? '⚡'
-                        : tx.type === 'purchase' ? '🛍️'
-                        : '🪙'}
+                      {tx.type === 'streak_login' ? '🔥' : tx.type === 'xp_reward' ? '⚡' : tx.type === 'purchase' ? '🛍️' : '🪙'}
                     </span>
-                    <p className="flex-1 text-sm font-bold truncate"
-                      style={{ color: 'rgba(255,255,255,0.6)' }}>
+                    <p className="flex-1 text-sm font-semibold text-muted truncate">
                       {tx.description ?? tx.type}
                     </p>
-                    <CoinBadge amount={Math.abs(tx.amount)} positive={tx.amount > 0} />
+                    <p className={cn('font-extrabold text-sm flex-shrink-0', tx.amount > 0 ? 'text-accent3' : 'text-red-400')}>
+                      {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString()} 🪙
+                    </p>
                   </div>
                 ))}
               </div>
@@ -610,7 +441,7 @@ export default function ShopPage() {
         </div>
       )}
 
-      {/* ── Modals ───────────────────────────────────────── */}
+      {/* ── Modals ───────────────────────────────────────────── */}
       {selectedItem && (
         <ShippingModal
           item={selectedItem}
