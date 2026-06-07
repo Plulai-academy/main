@@ -18,22 +18,11 @@ export const signUp = async (
     options: {
       data: {
         display_name: displayName,
-        // Phone stored in auth metadata — read by the updated DB trigger
-        // and by /auth/callback after the confirmation link is clicked
         phone: phone?.trim() ?? null,
       },
       emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
   })
-
-  // NOTE: We do NOT try to write phone here.
-  // With email confirmation, the DB trigger fires AFTER the user clicks the
-  // confirmation link — not at signUp time. Writing here targets a row that
-  // does not exist yet and silently fails (0 rows updated).
-  // Phone is written reliably in two places:
-  //   1. The updated DB trigger (reads raw_user_meta_data->>'phone')
-  //   2. /auth/callback/route.ts (safety net after session exchange)
-
   return { data, error }
 }
 
@@ -75,18 +64,15 @@ export const getProfile = async (userId: string) => {
   return { data, error }
 }
 
-// Sanitize a string: strip HTML tags, trim, limit length
 function sanitizeText(s: string | undefined, maxLen: number): string | undefined {
   if (!s) return s
   return s.replace(/<[^>]*>/g, '').trim().slice(0, maxLen)
 }
 
-// Validate email format
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-// Validate phone: allow digits, spaces, +, -, (, ) — min 6, max 20 chars
 function sanitizePhone(p?: string): string | undefined {
   if (!p) return undefined
   const cleaned = p.replace(/[^\d\s\+\-\(\)]/g, '').trim().slice(0, 20)
@@ -108,35 +94,25 @@ export const upsertProfile = async (userId: string, profile: {
 }) => {
   const supabase = createClient()
 
-  // ── Sanitize all user inputs before writing to DB ─────────────
   const sanitized: typeof profile = {
     ...profile,
     display_name:  sanitizeText(profile.display_name, 50),
     dream_project: sanitizeText(profile.dream_project, 500),
-    // Validate avatar is a single emoji (rough check)
     avatar:        profile.avatar?.slice(0, 10),
-    // Clamp age to valid range
     age:           profile.age !== undefined
       ? Math.max(4, Math.min(18, Math.round(profile.age)))
       : undefined,
-    // Validate parent email
     parent_email:  profile.parent_email
       ? (isValidEmail(profile.parent_email) ? profile.parent_email.toLowerCase().trim() : undefined)
       : profile.parent_email,
-    // Whitelist age groups
     age_group:     ['mini', 'junior', 'pro', 'expert'].includes(profile.age_group ?? '')
       ? profile.age_group : undefined,
-    // Whitelist country codes
     country:       profile.country?.slice(0, 10),
-    // Limit interests array
     interests:     profile.interests?.slice(0, 10).map(i => sanitizeText(i, 50) ?? ''),
-    // Whitelist language values
     language:      ['en', 'ar', 'fr'].includes(profile.language ?? '') ? profile.language : undefined,
-    // Sanitize phone
     phone:         sanitizePhone(profile.phone),
   }
 
-  // Map 'language' input field -> 'preferred_language' DB column
   const { language: lang, ...sanitizedRest } = sanitized
   const dbPayload = {
     ...sanitizedRest,
@@ -144,9 +120,6 @@ export const upsertProfile = async (userId: string, profile: {
     updated_at: new Date().toISOString(),
   }
 
-  // Always UPDATE — the auth trigger (handle_new_user) guarantees a profile row
-  // exists for every user before they can reach onboarding or settings.
-  // Never upsert here — it would try to INSERT without email and hit NOT NULL.
   const { data, error } = await supabase
     .from('profiles')
     .update(dbPayload)
@@ -160,17 +133,14 @@ export const upsertProfile = async (userId: string, profile: {
 export const getUserProgress = async (userId: string) => {
   const supabase = createClient()
 
-  // Try to fetch first
   const { data, error } = await supabase
     .from('user_progress')
     .select('*')
     .eq('user_id', userId)
     .single()
 
-  // Row exists — return it
   if (data) return { data, error: null }
 
-  // Row missing (new user or backfill needed) — create it now
   const { data: created, error: createError } = await supabase
     .from('user_progress')
     .upsert({ user_id: userId, xp: 0, level: 1, streak: 0 }, { onConflict: 'user_id' })
@@ -183,7 +153,6 @@ export const getUserProgress = async (userId: string) => {
 export const addXP = async (userId: string, amount: number, reason: string, sourceId?: string) => {
   const supabase = createClient()
 
-  // Get current progress
   const { data: current } = await getUserProgress(userId)
   if (!current) return { error: new Error('No progress record') }
 
@@ -191,7 +160,6 @@ export const addXP = async (userId: string, amount: number, reason: string, sour
   const newLevel = Math.floor(newXP / 100) + 1
   const leveledUp = newLevel > current.level
 
-  // Update progress
   const { error: progressError } = await supabase
     .from('user_progress')
     .update({ xp: newXP, level: newLevel, updated_at: new Date().toISOString() })
@@ -199,7 +167,6 @@ export const addXP = async (userId: string, amount: number, reason: string, sour
 
   if (progressError) return { error: progressError }
 
-  // Log XP transaction
   await supabase.from('xp_transactions').insert({
     user_id:   userId,
     amount,
@@ -207,7 +174,24 @@ export const addXP = async (userId: string, amount: number, reason: string, sour
     source_id: sourceId || null,
   })
 
-  return { data: { newXP, newLevel, leveledUp }, error: null }
+  // ── Award wallet coins based on XP earned ────────────────────
+  // 100 coins per 1,000 XP (only if amount qualifies)
+  const coinsToAward = Math.floor(amount / 1000) * 100
+  if (coinsToAward > 0) {
+    try {
+      await supabase.rpc('add_coins', {
+        p_user_id:    userId,
+        p_amount:     coinsToAward,
+        p_type:       'xp_reward',
+        p_description: `⚡ ${amount.toLocaleString()} XP earned → ${coinsToAward} coins`,
+        p_reference:  sourceId ?? null,
+      })
+    } catch {
+      // Non-blocking — XP is primary, coins are secondary
+    }
+  }
+
+  return { data: { newXP, newLevel, leveledUp, coinsEarned: coinsToAward }, error: null }
 }
 
 export const updateStreak = async (userId: string) => {
@@ -254,6 +238,30 @@ export const updateStreak = async (userId: string) => {
       updated_at:       new Date().toISOString(),
     })
     .eq('user_id', userId)
+
+  // ── Award streak coins (1,000 per day, once per calendar day) ─
+  try {
+    const { data: alreadyAwarded } = await supabase
+      .from('wallet_transactions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('type', 'streak_login')
+      .gte('created_at', `${today}T00:00:00Z`)
+      .limit(1)
+      .maybeSingle()
+
+    if (!alreadyAwarded) {
+      await supabase.rpc('add_coins', {
+        p_user_id:    userId,
+        p_amount:     1000,
+        p_type:       'streak_login',
+        p_description: `🔥 Daily streak bonus — 1,000 coins!`,
+        p_reference:  today,
+      })
+    }
+  } catch {
+    // Non-blocking
+  }
 
   return { newStreak, freezeUsed, freezeTokensLeft: freezeTokens }
 }
@@ -319,6 +327,50 @@ export const getFreezeHistory = async (userId: string) => {
     .order('created_at', { ascending: false })
     .limit(10)
   return data ?? []
+}
+
+// ── WALLET ────────────────────────────────────────────────────
+
+export const getWalletBalance = async (userId: string): Promise<number> => {
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('wallets')
+    .select('balance')
+    .eq('user_id', userId)
+    .single()
+  return (data as any)?.balance ?? 0
+}
+
+export const getWalletData = async (userId: string) => {
+  const supabase = createClient()
+  const [walletRes, txRes] = await Promise.all([
+    supabase.from('wallets').select('*').eq('user_id', userId).single(),
+    supabase.from('wallet_transactions').select('*').eq('user_id', userId)
+      .order('created_at', { ascending: false }).limit(30),
+  ])
+  return {
+    wallet:       walletRes.data,
+    transactions: txRes.data ?? [],
+  }
+}
+
+export const awardCoins = async (
+  userId: string,
+  amount: number,
+  type: 'streak_login' | 'xp_reward' | 'admin_grant' | 'refund',
+  description: string,
+  referenceId?: string
+): Promise<number> => {
+  const supabase = createClient()
+  const { data, error } = await supabase.rpc('add_coins', {
+    p_user_id:    userId,
+    p_amount:     amount,
+    p_type:       type,
+    p_description: description,
+    p_reference:  referenceId ?? null,
+  })
+  if (error) throw error
+  return data as number
 }
 
 // ── CURRICULUM ────────────────────────────────────────────────
