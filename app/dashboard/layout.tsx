@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardNav from '@/components/layout/DashboardNav'
 import TrialBanner from '@/components/layout/TrialBanner'
+import { updateStreak } from '@/lib/supabase/queries'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = createClient()
@@ -27,6 +28,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   if (!profile.onboarding_done && !isAdmin) {
     redirect('/onboarding')
   }
+
+  // ── Update streak + award 1,000 coins if a new day has started ──
+  // updateStreak is idempotent: if last_active_date === today it returns
+  // immediately, so navigating between dashboard pages costs nothing.
+  // Non-blocking: wrapped in try/catch so a streak error never breaks layout.
+  try { await updateStreak(user.id) } catch (_) {}
+  // ────────────────────────────────────────────────────────────────
 
   // Compute trial / subscription status
   const now      = Date.now()
