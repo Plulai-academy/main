@@ -1,13 +1,14 @@
 // app/api/shop/items/route.ts
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET() {
   const supabase = createClient()
   const { data, error } = await supabase
-    .from('shop_items')
+    .from('coin_shop_items')
     .select('*')
     .eq('is_active', true)
     .order('sort_order')
