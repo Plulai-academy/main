@@ -126,7 +126,7 @@ export async function getShopItems(): Promise<ShopItem[]> {
 export async function getRedemptions(userId: string): Promise<ShopRedemption[]> {
   const supabase = createClient()
   const { data } = await supabase
-    .from('shop_redemptions')
+    .from('coin_shop_redemptions ')
     .select('*, shop_items(*)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
@@ -153,7 +153,7 @@ export async function redeemItem(
 
   // Create redemption record
   const { data: redemption, error: redErr } = await supabase
-    .from('shop_redemptions')
+    .from('coin_shop_redemptions ')
     .insert({
       user_id: userId,
       item_id: item.id,

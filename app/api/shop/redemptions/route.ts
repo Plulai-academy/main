@@ -17,8 +17,8 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
     const { data, error } = await supabase
-      .from('shop_redemptions')
-      .select('*, shop_items(*)')
+      .from('coin_shop_redemptions')
+      .select('*, coin_shop_items(*)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
