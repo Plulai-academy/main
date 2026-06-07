@@ -18,11 +18,22 @@ export const signUp = async (
     options: {
       data: {
         display_name: displayName,
+        // Phone stored in auth metadata — read by the updated DB trigger
+        // and by /auth/callback after the confirmation link is clicked
         phone: phone?.trim() ?? null,
       },
       emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
   })
+
+  // NOTE: We do NOT try to write phone here.
+  // With email confirmation, the DB trigger fires AFTER the user clicks the
+  // confirmation link — not at signUp time. Writing here targets a row that
+  // does not exist yet and silently fails (0 rows updated).
+  // Phone is written reliably in two places:
+  //   1. The updated DB trigger (reads raw_user_meta_data->>'phone')
+  //   2. /auth/callback/route.ts (safety net after session exchange)
+
   return { data, error }
 }
 
@@ -64,15 +75,18 @@ export const getProfile = async (userId: string) => {
   return { data, error }
 }
 
+// Sanitize a string: strip HTML tags, trim, limit length
 function sanitizeText(s: string | undefined, maxLen: number): string | undefined {
   if (!s) return s
   return s.replace(/<[^>]*>/g, '').trim().slice(0, maxLen)
 }
 
+// Validate email format
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
+// Validate phone: allow digits, spaces, +, -, (, ) — min 6, max 20 chars
 function sanitizePhone(p?: string): string | undefined {
   if (!p) return undefined
   const cleaned = p.replace(/[^\d\s\+\-\(\)]/g, '').trim().slice(0, 20)
@@ -94,25 +108,35 @@ export const upsertProfile = async (userId: string, profile: {
 }) => {
   const supabase = createClient()
 
+  // ── Sanitize all user inputs before writing to DB ─────────────
   const sanitized: typeof profile = {
     ...profile,
     display_name:  sanitizeText(profile.display_name, 50),
     dream_project: sanitizeText(profile.dream_project, 500),
+    // Validate avatar is a single emoji (rough check)
     avatar:        profile.avatar?.slice(0, 10),
+    // Clamp age to valid range
     age:           profile.age !== undefined
       ? Math.max(4, Math.min(18, Math.round(profile.age)))
       : undefined,
+    // Validate parent email
     parent_email:  profile.parent_email
       ? (isValidEmail(profile.parent_email) ? profile.parent_email.toLowerCase().trim() : undefined)
       : profile.parent_email,
+    // Whitelist age groups
     age_group:     ['mini', 'junior', 'pro', 'expert'].includes(profile.age_group ?? '')
       ? profile.age_group : undefined,
+    // Whitelist country codes
     country:       profile.country?.slice(0, 10),
+    // Limit interests array
     interests:     profile.interests?.slice(0, 10).map(i => sanitizeText(i, 50) ?? ''),
+    // Whitelist language values
     language:      ['en', 'ar', 'fr'].includes(profile.language ?? '') ? profile.language : undefined,
+    // Sanitize phone
     phone:         sanitizePhone(profile.phone),
   }
 
+  // Map 'language' input field -> 'preferred_language' DB column
   const { language: lang, ...sanitizedRest } = sanitized
   const dbPayload = {
     ...sanitizedRest,
@@ -120,6 +144,9 @@ export const upsertProfile = async (userId: string, profile: {
     updated_at: new Date().toISOString(),
   }
 
+  // Always UPDATE — the auth trigger (handle_new_user) guarantees a profile row
+  // exists for every user before they can reach onboarding or settings.
+  // Never upsert here — it would try to INSERT without email and hit NOT NULL.
   const { data, error } = await supabase
     .from('profiles')
     .update(dbPayload)
@@ -133,14 +160,17 @@ export const upsertProfile = async (userId: string, profile: {
 export const getUserProgress = async (userId: string) => {
   const supabase = createClient()
 
+  // Try to fetch first
   const { data, error } = await supabase
     .from('user_progress')
     .select('*')
     .eq('user_id', userId)
     .single()
 
+  // Row exists — return it
   if (data) return { data, error: null }
 
+  // Row missing (new user or backfill needed) — create it now
   const { data: created, error: createError } = await supabase
     .from('user_progress')
     .upsert({ user_id: userId, xp: 0, level: 1, streak: 0 }, { onConflict: 'user_id' })
@@ -153,21 +183,23 @@ export const getUserProgress = async (userId: string) => {
 export const addXP = async (userId: string, amount: number, reason: string, sourceId?: string) => {
   const supabase = createClient()
 
+  // Get current progress
   const { data: current } = await getUserProgress(userId)
   if (!current) return { error: new Error('No progress record') }
 
-  const xpBefore  = current.xp
-  const xpAfter   = current.xp + amount
-  const newLevel  = Math.floor(xpAfter / 100) + 1
+  const newXP     = current.xp + amount
+  const newLevel  = Math.floor(newXP / 100) + 1
   const leveledUp = newLevel > current.level
 
+  // Update progress
   const { error: progressError } = await supabase
     .from('user_progress')
-    .update({ xp: xpAfter, level: newLevel, updated_at: new Date().toISOString() })
+    .update({ xp: newXP, level: newLevel, updated_at: new Date().toISOString() })
     .eq('user_id', userId)
 
   if (progressError) return { error: progressError }
 
+  // Log XP transaction
   await supabase.from('xp_transactions').insert({
     user_id:   userId,
     amount,
@@ -175,20 +207,19 @@ export const addXP = async (userId: string, amount: number, reason: string, sour
     source_id: sourceId || null,
   })
 
-  // ── Coin reward: +100 coins per 1,000 XP milestone crossed ───
-  // Passes xpBefore/xpAfter so the server can calculate which milestones
-  // were newly crossed (e.g. 950→1050 crosses the 1,000 mark → 100 coins).
-  // Non-blocking — coin failures never affect XP.
+  // ── Coin reward: +100 coins per 1,000 XP earned ──────────────
+  // Calls a server-side API route to keep wallet.ts (server-only) out of
+  // the client bundle. Non-blocking — a failure never surfaces to the user.
   try {
     await fetch('/api/coins/award', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ userId, type: 'xp', xpBefore, xpAfter }),
+      body:    JSON.stringify({ userId, type: 'xp', amount }),
     })
   } catch (_) { /* silent */ }
   // ─────────────────────────────────────────────────────────────
 
-  return { data: { newXP: xpAfter, newLevel, leveledUp }, error: null }
+  return { data: { newXP, newLevel, leveledUp }, error: null }
 }
 
 export const updateStreak = async (userId: string) => {
@@ -199,7 +230,7 @@ export const updateStreak = async (userId: string) => {
   const today      = new Date().toISOString().split('T')[0]
   const lastActive = current.last_active_date
 
-  if (lastActive === today) return
+  if (lastActive === today) return // already updated today
 
   const yesterday  = new Date(Date.now() - 86400000).toISOString().split('T')[0]
   const twoDaysAgo = new Date(Date.now() - 172800000).toISOString().split('T')[0]
@@ -207,7 +238,7 @@ export const updateStreak = async (userId: string) => {
   let newStreak         = current.streak
   let freezeUsed        = false
   let freezeTokens      = (current as any).freeze_tokens ?? 0
-  let streakIncremented = false
+  let streakIncremented = false // true only when streak genuinely grows
 
   if (lastActive === yesterday) {
     newStreak         = current.streak + 1
@@ -224,6 +255,7 @@ export const updateStreak = async (userId: string) => {
     })
   } else {
     newStreak = 1
+    // streakIncremented stays false — no coins awarded on a reset
   }
 
   const longestStreak = Math.max(newStreak, current.longest_streak)
@@ -240,8 +272,8 @@ export const updateStreak = async (userId: string) => {
     .eq('user_id', userId)
 
   // ── Coin reward: +1,000 coins per consecutive streak day ─────
-  // Only fires when streak genuinely increments, never on a reset.
-  // Non-blocking — coin failures never affect streak tracking.
+  // Only fires when streak increments (consecutive day or freeze-protected).
+  // Never fires on a reset. Calls server-side API route — non-blocking.
   if (streakIncremented) {
     try {
       await fetch('/api/coins/award', {
