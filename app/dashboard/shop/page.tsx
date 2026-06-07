@@ -32,10 +32,32 @@ function getItemImage(item: ShopItem): string {
   return item.image_url ?? ITEM_IMAGES[item.name] ?? '/images/shop/placeholder.png'
 }
 
-// ── Product Image component ───────────────────────────────────
-function ItemImage({ item, size = 'card' }: { item: ShopItem; size?: 'card' | 'modal' | 'row' }) {
+// ── Enhanced Product Image component with banner support ──
+function ItemImage({ item, size = 'card' }: { item: ShopItem; size?: 'card' | 'modal' | 'row' | 'banner' }) {
   const [errored, setErrored] = useState(false)
   const src = getItemImage(item)
+
+  // Banner size: fills entire container (use fill + object-cover)
+  if (size === 'banner') {
+    if (errored) {
+      return (
+        <div className="w-full h-full flex items-center justify-center text-5xl" style={{ background: 'rgba(255,255,255,0.04)' }}>
+          {item.emoji}
+        </div>
+      )
+    }
+    return (
+      <div className="relative w-full h-full">
+        <Image
+          src={src}
+          alt={item.name}
+          fill
+          className="object-cover"
+          onError={() => setErrored(true)}
+        />
+      </div>
+    )
+  }
 
   const dims = {
     card:  { w: 80,  h: 80,  cls: 'w-20 h-20 rounded-2xl' },
@@ -432,8 +454,8 @@ export default function ShopPage() {
             </div>
           )}
 
-          {/* Items grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* REDESIGNED ITEMS GRID: Full-width image banner with better visibility */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredItems.map(item => {
               const canAfford = (balance ?? 0) >= item.price_coins
               const outOfStock = item.stock !== null && item.stock <= 0
@@ -441,7 +463,7 @@ export default function ShopPage() {
 
               return (
                 <div key={item.id}
-                  className="rounded-3xl overflow-hidden transition-all"
+                  className="rounded-3xl overflow-hidden transition-all flex flex-col"
                   style={{
                     background: '#1a1a2e',
                     border: outOfStock
@@ -452,31 +474,37 @@ export default function ShopPage() {
                     opacity: outOfStock ? 0.5 : 1,
                   }}
                 >
-                  {/* Product image — full width banner */}
-                  <div className="relative w-full h-36 overflow-hidden"
-                    style={{ background: 'rgba(255,255,255,0.04)' }}>
-                    <ItemImage item={item} size="card" />
-                    {/* Category badge over image */}
+                  {/* Large image banner - now prominent */}
+                  <div className="relative w-full h-48 overflow-hidden bg-black/20">
+                    <ItemImage item={item} size="banner" />
+                    
+                    {/* Category badge overlay */}
                     <span
-                      className="absolute top-2 left-2 text-xs font-black px-2.5 py-1 rounded-full"
+                      className="absolute top-3 left-3 text-xs font-black px-2.5 py-1 rounded-full backdrop-blur-md z-10"
                       style={{ background: cat.bg, color: cat.color, backdropFilter: 'blur(8px)' }}>
                       {cat.label}
                     </span>
+                    
+                    {/* Stock badge overlay */}
                     {item.stock !== null && (
-                      <span className="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full"
-                        style={{ background: 'rgba(0,0,0,0.6)', color: 'rgba(255,255,255,0.7)' }}>
+                      <span className="absolute top-3 right-3 text-xs font-bold px-2 py-1 rounded-full backdrop-blur-md z-10"
+                        style={{ background: 'rgba(0,0,0,0.7)', color: 'rgba(255,255,255,0.9)' }}>
                         {item.stock <= 0 ? '🚫 Sold out' : `${item.stock} left`}
                       </span>
                     )}
+                    
+                    {/* Gradient overlay for better text readability if needed */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                   </div>
 
-                  <div className="p-4">
-                    <h3 className="font-black text-white text-sm leading-tight mb-1">{item.name}</h3>
+                  {/* Content section */}
+                  <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="font-black text-white text-base leading-tight mb-1">{item.name}</h3>
                     <p className="text-xs leading-relaxed mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
                       {item.description}
                     </p>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mt-auto">
                       <div>
                         <div className="font-black text-xl"
                           style={{ color: canAfford ? '#FFC800' : 'rgba(255,255,255,0.3)' }}>
