@@ -1346,6 +1346,15 @@ export default function LessonViewClient({
       await updateSkillProgress(userId, skill.id, pct)
       if (!nextLesson && pct >= 100) await addXP(userId, skill.xp_reward, 'skill_complete', skill.id)
       await checkAndAwardBadges(userId)
+
+      // ── Award coins based on cumulative XP milestones ─────
+      fetch('/api/coins/xp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ xpEarned: lesson.xp_reward }),
+      }).catch(() => {})
+      // ──────────────────────────────────────────────────────
+
       setJustCompleted(true); setShowFeedback(true)
       showToast(`⚡ +${lesson.xp_reward} ${t.xpEarned}`)
       if (result.data && result.data.leveledUp) {
