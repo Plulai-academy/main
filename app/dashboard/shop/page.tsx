@@ -18,18 +18,9 @@ interface Redemption {
   created_at: string; coin_shop_items?: ShopItem
 }
 
-// ── Local image map — replace values with your real paths/URLs ──
-const ITEM_IMAGES: Record<string, string> = {
-  'Plulai Pro — 1 Month': '/images/shop/p1.png',
-  'Your Book':             '/images/shop/p2.png',
-  'Spotify — 1 Month':    '/images/shop/p3.png',
-  'Netflix — 1 Month':    '/images/shop/p4.png',
-  'MSI Gaming Bag':        '/images/shop/p5.png',
-  'PC Accessory Bundle':   '/images/shop/p6.png',
-}
-
+// ── Get image from DB or placeholder ──
 function getItemImage(item: ShopItem): string {
-  return item.image_url ?? ITEM_IMAGES[item.name] ?? '/images/shop/placeholder.png'
+  return item.image_url ?? '/images/shop/placeholder.png'
 }
 
 // ── Enhanced Product Image component with banner support ──
