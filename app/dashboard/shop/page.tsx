@@ -91,9 +91,9 @@ function ShippingModal({
           </button>
           <button
             onClick={() => {
-              const shipping = isPhysical
-                ? { name:form.name, address:form.address, city:form.city, phone:form.phone }
-                : {}
+            const shipping: Record<string, string> = isPhysical
+              ? { name:form.name, address:form.address, city:form.city, phone:form.phone }
+              : {}
               onConfirm(shipping, form.notes)
             }}
             disabled={!valid}
