@@ -19,24 +19,14 @@ interface Redemption {
   created_at: string; coin_shop_items?: ShopItem
 }
 
-// ── Normalise image path (fixes Windows backslashes from DB) ──
-function normaliseImageUrl(url: string | null): string | null {
-  if (!url) return null
-  // Already an absolute URL — return as-is
-  if (url.startsWith('http://') || url.startsWith('https://')) return url
-  // Convert backslashes to forward slashes and ensure leading slash
-  return '/' + url.replace(/\\/g, '/')
-}
-
 // ── Item image component ──────────────────────────────────────
 function ItemImage({ item, className }: { item: ShopItem; className?: string }) {
   const [imgError, setImgError] = useState(false)
-  const src = normaliseImageUrl(item.image_url)
 
-  if (src && !imgError) {
+  if (item.image_url && !imgError) {
     return (
       <img
-        src={src}
+        src={item.image_url}
         alt={item.name}
         onError={() => setImgError(true)}
         className={cn('object-contain', className)}
@@ -146,6 +136,7 @@ function SuccessModal({ item, onClose }: { item: ShopItem; onClose: () => void }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
       <div className="bg-[#0f1117] border border-green-500/20 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
+        {/* Confetti-style top accent */}
         <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center">
           <ItemImage item={item} className="w-full h-full" />
         </div>
@@ -399,13 +390,13 @@ export default function ShopPage() {
                   {/* Product image area */}
                   <div className="relative bg-white/3 h-44 overflow-hidden flex items-center justify-center">
                     {/* Category badge */}
-                    <div className={cn('absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-extrabold z-10', meta.bg, meta.border, meta.color)}>
+                    <div className={cn('absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-extrabold', meta.bg, meta.border, meta.color)}>
                       {meta.label}
                     </div>
 
                     {/* Stock badge */}
                     {item.stock !== null && (
-                      <div className="absolute top-3 right-3 z-10">
+                      <div className="absolute top-3 right-3">
                         {item.stock <= 0
                           ? <span className="px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-extrabold">Sold out</span>
                           : <span className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/40 text-xs font-bold">{item.stock} left</span>
@@ -413,11 +404,19 @@ export default function ShopPage() {
                       </div>
                     )}
 
-                    {/* Image or emoji via shared component */}
-                    <ItemImage
-                      item={item}
-                      className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500"
-                    />
+                    {/* Image or emoji */}
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden') }}
+                        className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : null}
+                    {/* Emoji fallback — hidden if image loads */}
+                    <div className={cn('text-6xl', item.image_url ? 'hidden' : '')}>
+                      {item.emoji}
+                    </div>
                   </div>
 
                   {/* Content */}
@@ -474,10 +473,10 @@ export default function ShopPage() {
                   <div key={r.id} className="bg-[#0f1117] border border-white/8 rounded-2xl p-4 flex items-center gap-4">
                     {/* Item image */}
                     <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/8 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                      {r.coin_shop_items ? (
-                        <ItemImage item={r.coin_shop_items} className="w-full h-full object-contain p-1" />
+                      {r.coin_shop_items?.image_url ? (
+                        <img src={r.coin_shop_items.image_url} alt={r.coin_shop_items.name} className="w-full h-full object-contain p-1" />
                       ) : (
-                        <span className="text-2xl">🎁</span>
+                        <span className="text-2xl">{r.coin_shop_items?.emoji ?? '🎁'}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
