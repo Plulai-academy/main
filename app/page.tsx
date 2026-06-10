@@ -435,9 +435,9 @@ export default function LandingPage() {
         />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px' }}>
           {[
-            { color: '#1CB0F6', icon: '💻', title: 'Coding',           sub: 'Foundation track', desc: 'Python, web dev, and game design — from zero to a working app in the browser.', tags: ['Python', 'Web dev', 'Games', 'Ages 8+'] },
-            { color: '#1D9E75', icon: '🧠', title: 'AI',               sub: 'Innovation track',  desc: 'Build real AI projects — understand machine learning by actually doing it.',         tags: ['ML', 'AI ethics', 'Projects', 'Ages 10+'] },
-            { color: '#FAA918', icon: '💡', title: 'Entrepreneurship', sub: 'Founder track',     desc: 'Idea to pitch to MVP. Built for the GCC, not Silicon Valley.',                     tags: ['Ideation', 'MVP', 'Pitch', 'Ages 11+'] },
+            { color: '#1CB0F6', icon: '💻', title: 'Coding',           sub: 'Foundation track', desc: 'Python, web dev, and game design — from zero to a working app in the browser.', tags: ['Python', 'Web dev', 'Games' ] },
+            { color: '#1D9E75', icon: '🧠', title: 'AI',               sub: 'Innovation track',  desc: 'Build real AI projects — understand machine learning by actually doing it.',         tags: ['ML', 'AI ethics', 'Projects' ] },
+            { color: '#FAA918', icon: '💡', title: 'Entrepreneurship', sub: 'Founder track',     desc: 'Idea to pitch to MVP. Built for the GCC, not Silicon Valley.',                     tags: ['Ideation', 'MVP', 'Pitch'] },
           ].map(t => (
             <div key={t.title} style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', overflow: 'hidden', background: '#0F1420' }}>
               <div style={{ height: '2px', background: t.color }} />
