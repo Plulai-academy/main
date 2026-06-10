@@ -268,9 +268,9 @@ export default function LandingPage() {
       <nav style={S.nav}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
           <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: '#1CB0F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-            <Image src="/icons/plulai.png" alt="Plulai logo" width={30} height={30} style={{ display: 'block' }} />
+            <Image src="/icons/plulai1.png" alt="Plulai logo" width={30} height={30} style={{ display: 'block' }} />
           </div>
-          <span style={{ fontSize: '18px', fontWeight: 600, color: '#F1F5F9', letterSpacing: '-0.3px' }}>Plulai</span>
+          <span style={{ fontSize: '18px', fontWeight: 600, color: '#F1F5F9', letterSpacing: '-0.3px' }}></span>
         </div>
 
         <div className="hidden md:flex" style={{ gap: '26px', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
