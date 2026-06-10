@@ -319,7 +319,7 @@ export default function LandingPage() {
         {/* Eyebrow */}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#1CB0F6', border: '1px solid rgba(28,176,246,0.3)', padding: '5px 13px', borderRadius: '20px', marginBottom: '28px' }}>
           <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#1CB0F6', display: 'block' }} />
-          Free forever · No credit card
+          15 days Free trial · No credit card
         </div>
 
         {/* Headline */}
@@ -691,7 +691,7 @@ export default function LandingPage() {
             Your child can start today.
           </h2>
           <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: '28px' }}>
-            Free forever. No credit card. Arabic and English.<br />Ages 6–18 across the GCC.
+            15 days Free trial. No credit card. Arabic and English.<br />Ages 6–18 across the GCC.
           </p>
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/auth/signup" style={{ padding: '13px 30px', borderRadius: '9px', background: '#1CB0F6', color: '#fff', fontSize: '14px', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}>
