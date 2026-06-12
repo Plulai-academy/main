@@ -348,7 +348,7 @@ export default function LandingPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: '30px', height: '30px', background: '#1CB0F6', borderRadius: '9px', overflow: 'hidden', flexShrink: 0 }}>
-            <Image src="/icons/plulai.png" alt="Plulai" width={30} height={30} style={{ display: 'block' }} />
+            <Image src="/icons/plulaiw.png" alt="Plulai" width={30} height={30} style={{ display: 'block' }} />
           </div>
           <span style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-.5px', color: '#0A0A0F', fontFamily: `${fredoka.style.fontFamily}, cursive` }}>Plulai</span>
         </div>
@@ -364,9 +364,9 @@ export default function LandingPage() {
         </div>
 
         <div style={{ display: 'flex', gap: '7px', alignItems: 'center' }}>
-          <Link href="/sharkkid" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 13px', borderRadius: '9px', background: 'linear-gradient(135deg,#FFC800,#FF9500)', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
+          {/* <Link href="/sharkkid" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 13px', borderRadius: '9px', background: 'linear-gradient(135deg,#FFC800,#FF9500)', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
             🦈 Sharkkid
-          </Link>
+          </Link> */}
           <Link href="/auth/login" className="hidden md:block" style={{ fontSize: '13px', fontWeight: 600, color: '#64748B', textDecoration: 'none', padding: '7px 12px', borderRadius: '9px', border: '1.5px solid #E8EDF2' }}>
             Log in
           </Link>
@@ -381,7 +381,7 @@ export default function LandingPage() {
         {/* Eyebrow pill */}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(28,176,246,0.12)', border: '1px solid rgba(28,176,246,0.25)', color: '#5DD3FA', fontSize: '11px', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 14px', borderRadius: '999px', marginBottom: '28px' }}>
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1CB0F6', display: 'block', flexShrink: 0 }} />
-          Free forever &nbsp;·&nbsp; 200+ learners &nbsp;·&nbsp; GCC
+          &nbsp;·&nbsp; 200+ learners &nbsp;·&nbsp; GCC
         </div>
 
         {/* Headline */}
@@ -867,13 +867,13 @@ export default function LandingPage() {
                 <div style={{ width: '28px', height: '28px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
                   <Image src="/icons/plulai.png" alt="Plulai" width={28} height={28} style={{ display: 'block' }} />
                 </div>
-                <span style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-.4px', color: '#0A0A0F', fontFamily: `${fredoka.style.fontFamily}, cursive` }}>Plulai</span>
+                {/* <span style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-.4px', color: '#0A0A0F', fontFamily: `${fredoka.style.fontFamily}, cursive` }}>Plulai</span> */}
               </div>
               <p style={{ fontSize: '12px', color: '#94A3B8', maxWidth: '180px', lineHeight: 1.6 }}>AI learning for kids in the GCC — coding, AI & entrepreneurship in Arabic and English.</p>
             </div>
             <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap' }}>
               {[
-                { title: 'Platform',     links: [['#tracks', 'Tracks'], ['#how-it-works', 'How it works'], ['#pricing', 'Pricing'], ['#quiz', 'Find a track'], ['/auth/signup', 'Sign up free'], ['/sharkkid', '🦈 Sharkkid']] },
+                { title: 'Platform',     links: [['#tracks', 'Tracks'], ['#how-it-works', 'How it works'], ['#pricing', 'Pricing'], ['#quiz', 'Find a track'], ['/auth/signup', 'Sign up free'], ] },
                 { title: 'Institutions', links: [['#schools', 'For schools'], ['mailto:schools@plulai.com', 'Request demo'], ['mailto:partners@plulai.com', 'Curriculum guide'], ['mailto:ceo@plulai.com', 'Become a partner']] },
                 { title: 'Contact',      links: [['mailto:hello@plulai.com', 'hello@plulai.com'], ['mailto:schools@plulai.com', 'schools@plulai.com'], ['mailto:partners@plulai.com', 'partners@plulai.com']] },
               ].map(col => (
