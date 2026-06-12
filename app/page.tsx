@@ -348,7 +348,7 @@ export default function LandingPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: '30px', height: '30px', background: '#1CB0F6', borderRadius: '9px', overflow: 'hidden', flexShrink: 0 }}>
-            <Image src="/icons/plulaiw.png" alt="Plulai" width={30} height={30} style={{ display: 'block' }} />
+            <Image src="/icons/plulaiw.png" alt="Plulai" width={60} height={60} style={{ display: 'block' }} />
           </div>
           {/* <span style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-.5px', color: '#0A0A0F', fontFamily: `${fredoka.style.fontFamily}, cursive` }}>Plulai</span> */}
         </div>
