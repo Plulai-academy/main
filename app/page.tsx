@@ -87,8 +87,10 @@ const PARTNERS = [
   { name: 'The Intelligent Inventor', logo: '/partners/tie.png'       },
   { name: 'Les Élites Juniors',       logo: '/partners/elites.png'    },
   { name: 'La Coupole',               logo: '/partners/lacoupole.png' },
-  { name: 'First Skills Club',        logo: '/partners/gems.png'      },
+  { name: 'First Skills Club',        logo: '/partners/fsc.jpg'      },
   { name: 'Pinacle',                  logo: '/partners/pinacle.png'   },
+  { name: 'Sfax International Fair',  logo: '/partners/foirsfax.png'   },
+   { name: 'Pinacle',                  logo: '/partners/mallsfax.png'   },
 ]
 
 // ─── Reusable ─────────────────────────────────────────────────────────────────
