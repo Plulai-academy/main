@@ -812,7 +812,7 @@ export default function LandingPage() {
                 <div style={{ width: '40px', height: '40px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
                   <Image src="/icons/plulaiw.png" alt="Plulai" width={40} height={40} style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
-                <span style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-.4px', color: '#0A0A0F', fontFamily: `${fredoka.style.fontFamily}, cursive` }}>Plulai</span>
+                {/* <span style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-.4px', color: '#0A0A0F', fontFamily: `${fredoka.style.fontFamily}, cursive` }}>Plulai</span> */}
               </div>
               <p style={{ fontSize: '12px', color: '#94A3B8', maxWidth: '180px', lineHeight: 1.6 }}>
                 AI learning for kids in the GCC — coding, AI & entrepreneurship in Arabic and English.
