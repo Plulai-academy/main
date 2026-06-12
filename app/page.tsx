@@ -650,7 +650,7 @@ export default function LandingPage() {
               Your child can<br />start today.
             </h2>
             <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, marginBottom: '28px' }}>
-              Free forever. No credit card. Arabic and English.<br />Ages 6–18 across the GCC.
+              Free forever. No credit card. Arabic and English.<br />Ages 6–18 across the mena region.
             </p>
             <div style={{ display: 'flex', gap: '9px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/auth/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '14px 30px', borderRadius: '12px', background: '#1CB0F6', color: '#fff', fontSize: '15px', fontWeight: 700, textDecoration: 'none' }}>
