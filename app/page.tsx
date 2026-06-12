@@ -90,7 +90,8 @@ const PARTNERS = [
   { name: 'First Skills Club',        logo: '/partners/fsc.jpg'      },
   { name: 'Pinacle',                  logo: '/partners/pinacle.png'   },
   { name: 'Sfax International Fair',  logo: '/partners/foirsfax.png'   },
-   { name: 'Pinacle',                  logo: '/partners/mallsfax.png'   },
+  { name: 'Growth zone',                  logo: '/partners/gz.png'   },
+  { name: 'Scouts',                  logo: '/partners/scouts.jpeg'   },
 ]
 
 // ─── Reusable ─────────────────────────────────────────────────────────────────
