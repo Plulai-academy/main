@@ -818,7 +818,7 @@ export default function LandingPage() {
                 AI learning for kids in the GCC — coding, AI & entrepreneurship in Arabic and English.
               </p>
             </div>
-
+  
             {/* Footer columns */}
             <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap' }}>
               {[
