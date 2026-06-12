@@ -320,15 +320,20 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   )
 }
 
+// ─── Global styles ────────────────────────────────────────────────────────────
+const fredokaFamily = fredoka.style.fontFamily
+const globalStyles = `
+  h1, h2, h3, h4 { font-family: ${fredokaFamily}, cursive !important; letter-spacing: -0.5px; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+`
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   return (
     <div className={nunito.className} style={{ background: '#FFFFFF', color: '#0A0A0F' }}>
-      <style>{`
-        h1, h2, h3, h4 { font-family: ${fredoka.style.fontFamily}, cursive !important; letter-spacing: -0.5px; }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
-      `}</style>
+      {/* eslint-disable-next-line react/no-danger */}
+      <style dangerouslySetInnerHTML={{ __html: globalStyles }} />
 
       {/* ── Nav ── */}
       <nav style={{
@@ -651,6 +656,7 @@ export default function LandingPage() {
           <div style={{ background: '#1A1A2E', padding: '22px 26px', display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: 'rgba(28,176,246,0.15)', border: '1px solid rgba(28,176,246,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#1CB0F6' }}>
               <Icons.School />
+            </div>
             <div>
               <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'rgba(255,255,255,0.35)', marginBottom: '3px' }}>Institutional plan</p>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: 0 }}>Schools, academies & training centres</h3>
