@@ -350,7 +350,7 @@ export default function LandingPage() {
           <div style={{ width: '30px', height: '30px', background: '#1CB0F6', borderRadius: '9px', overflow: 'hidden', flexShrink: 0 }}>
             <Image src="/icons/plulaiw.png" alt="Plulai" width={30} height={30} style={{ display: 'block' }} />
           </div>
-          <span style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-.5px', color: '#0A0A0F', fontFamily: `${fredoka.style.fontFamily}, cursive` }}>Plulai</span>
+          {/* <span style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-.5px', color: '#0A0A0F', fontFamily: `${fredoka.style.fontFamily}, cursive` }}>Plulai</span> */}
         </div>
 
         <div className="hidden md:flex" style={{ gap: '2px' }}>
@@ -865,9 +865,9 @@ export default function LandingPage() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <div style={{ width: '28px', height: '28px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
-                  <Image src="/icons/plulai.png" alt="Plulai" width={28} height={28} style={{ display: 'block' }} />
+                  <Image src="/icons/plulaiw.png" alt="Plulai" width={28} height={28} style={{ display: 'block' }} />
                 </div>
-                {/* <span style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-.4px', color: '#0A0A0F', fontFamily: `${fredoka.style.fontFamily}, cursive` }}>Plulai</span> */}
+                <span style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-.4px', color: '#0A0A0F', fontFamily: `${fredoka.style.fontFamily}, cursive` }}>Plulai</span>
               </div>
               <p style={{ fontSize: '12px', color: '#94A3B8', maxWidth: '180px', lineHeight: 1.6 }}>AI learning for kids in the GCC — coding, AI & entrepreneurship in Arabic and English.</p>
             </div>
