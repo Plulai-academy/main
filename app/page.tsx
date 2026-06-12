@@ -5,13 +5,20 @@ import Image from 'next/image'
 import { useState } from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
 type QuizOption = { label: string; sub: string; value: string; icon: string }
-type QuizStep = { id: string; question: string; options: QuizOption[] }
-type TrackResult = { icon: string; color: string; title: string; desc: string }
+type QuizStep   = { id: string; question: string; options: QuizOption[] }
+type TrackResult = { icon: string; color: string; bg: string; title: string; desc: string }
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+// bg:       #0A0A0F / #1A1A2E
+// blue:     #1CB0F6   blue-deep: #0C7FC4   blue-soft: #EBF7FE
+// green:    #58CC02   green-soft: #EAF7D4
+// amber:    #FFC800   amber-soft: #FFF8DC
+// purple:   #9B59B6   purple-soft: #F3EEF8
+// text:     #0A0A0F   sub: #64748B   dim: #94A3B8
+// border:   #E8EDF2   surface: #F8FAFC   white: #FFFFFF
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
-
 const QUIZ_STEPS: QuizStep[] = [
   {
     id: 'age',
@@ -46,81 +53,71 @@ const QUIZ_STEPS: QuizStep[] = [
 ]
 
 const TRACK_RESULT: Record<string, TrackResult> = {
-  coding: {
-    icon: '💻', color: '#1CB0F6', title: 'Coding Track',
-    desc: 'Start with Python basics. By end of module 1, your child will have a working program they built themselves.',
-  },
-  ai: {
-    icon: '🧠', color: '#1D9E75', title: 'AI Track',
-    desc: 'Start with how AI actually works, then build a machine learning project. Best for kids who love figuring out how things work.',
-  },
-  bizz: {
-    icon: '💡', color: '#FAA918', title: 'Entrepreneurship Track',
-    desc: 'From idea to pitch. Best for kids who are creative, love problem-solving, or have already started trying to build something.',
-  },
-  all: {
-    icon: '🗺️', color: '#1CB0F6', title: 'Full Curriculum',
-    desc: 'Start with Coding — the foundation for everything else. You can switch tracks any time, and the AI coach will guide the transition.',
-  },
+  coding: { icon: '💻', color: '#0C7FC4', bg: '#EBF7FE', title: 'Coding Track',           desc: 'Start with Python. By end of module 1, your child will have a working program they built themselves.' },
+  ai:     { icon: '🧠', color: '#27500A', bg: '#EAF7D4', title: 'AI Track',               desc: 'Start with how AI works, then build a machine learning project. Best for curious problem-solvers.' },
+  bizz:   { icon: '💡', color: '#633806', bg: '#FAEEDA', title: 'Entrepreneurship Track', desc: 'From idea to pitch. Best for kids who are creative and love building things.' },
+  all:    { icon: '🗺️', color: '#0C7FC4', bg: '#EBF7FE', title: 'Full Curriculum',        desc: 'Start with Coding — the foundation for everything. Switch tracks any time with AI coach guidance.' },
 }
 
 const FAQS = [
-  { q: 'What exactly is Plulai?', a: 'Plulai is an AI-powered learning platform for kids aged 6–18 in the GCC. Children learn coding, AI, and entrepreneurship through a personal AI coach, 500+ lessons, and real projects — in English and Arabic.' },
+  { q: 'What exactly is Plulai?',               a: 'Plulai is an AI-powered learning platform for kids aged 6–18 in the GCC. Children learn coding, AI, and entrepreneurship through a personal AI coach, 500+ lessons, and real projects — in English and Arabic.' },
   { q: 'Is the free plan really free — forever?', a: 'Yes — genuinely free. No credit card, no 7-day trial, no expiry. The free plan covers the first module of each track. Pro unlocks all 500+ lessons and advanced AI coaching.' },
-  { q: 'Is the Arabic real — or machine translated?', a: 'Real Arabic — not machine-translated. Full RTL interface and an AI coach that teaches natively in Arabic, with GCC-specific examples throughout. Not an English product with Arabic subtitles.' },
-  { q: 'How long are the lessons?', a: '15–25 minutes each. Designed to fit after school without replacing homework time. The streak system encourages one lesson per day — most kids end up doing two.' },
-  { q: 'Is it safe for my child?', a: "No ads — ever. AI responses are filtered for child safety. Parents control the account and receive weekly summaries. Your child's data is never sold." },
-  { q: 'How is it different from Scratch or YouTube?', a: "Plulai has a personalised AI coach that adapts to your child — Scratch doesn't. It covers AI and entrepreneurship alongside coding, works in Arabic, is designed for the GCC, and builds a real portfolio — not just a history of completed videos." },
+  { q: 'Is the Arabic real — or machine translated?', a: 'Real Arabic — not machine-translated. Full RTL interface and an AI coach that teaches natively in Arabic, with GCC-specific examples throughout.' },
+  { q: 'How long are the lessons?',              a: '15–25 minutes each. Designed to fit after school without replacing homework time. The streak system encourages one lesson per day — most kids end up doing two.' },
+  { q: 'Is it safe for my child?',               a: "No ads — ever. AI responses are filtered for child safety. Parents control the account and receive weekly summaries. Your child's data is never sold." },
+  { q: 'How is it different from Scratch or YouTube?', a: "Plulai has a personalised AI coach that adapts to your child. It covers AI and entrepreneurship alongside coding, works in Arabic, is designed for the GCC, and builds a real portfolio — not just a history of completed videos." },
 ]
 
 const PARTNERS = [
-  'Business Success',
-  'LingoVille',
-  'The Intelligent Inventor',
-  'Les Élites Juniors',
-  'La Coupole',
-  'First Skills Club',
-  'Pinacle',
+  'Business Success', 'LingoVille', 'The Intelligent Inventor',
+  'Les Élites Juniors', 'La Coupole', 'First Skills Club', 'Pinacle',
 ]
 
-// ─── Shared styles (inline, no Tailwind dependency for these) ─────────────────
-// Primary:  #1CB0F6   Green: #1D9E75   Amber: #FAA918
-// BG:       #0B0F1A   Surface: #0F1420  Border: rgba(255,255,255,0.07)
-// Text:     #F1F5F9   Muted: rgba(255,255,255,0.45)
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false)
+// ─── Reusable ─────────────────────────────────────────────────────────────────
+function SectionEyebrow({ text }: { text: string }) {
   return (
-    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }} className="last:border-0">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between gap-4 text-left"
-        style={{ padding: '18px 0' }}
-      >
-        <span style={{ fontSize: '15px', fontWeight: 500, color: '#F1F5F9' }}>{q}</span>
-        <svg
-          width="16" height="16" viewBox="0 0 16 16" fill="none"
-          style={{ flexShrink: 0, color: 'rgba(255,255,255,0.3)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-        >
-          <path d="M3 6l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      {open && (
-        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, paddingBottom: '18px' }}>{a}</p>
-      )}
-    </div>
+    <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#94A3B8', marginBottom: '8px' }}>
+      {text}
+    </p>
   )
 }
 
+function SectionTitle({ children, center }: { children: React.ReactNode; center?: boolean }) {
+  return (
+    <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 900, letterSpacing: '-.8px', lineHeight: 1.1, color: '#0A0A0F', marginBottom: '10px', textAlign: center ? 'center' : 'left' }}>
+      {children}
+    </h2>
+  )
+}
+
+function SectionSub({ children, center }: { children: React.ReactNode; center?: boolean }) {
+  return (
+    <p style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.7, marginBottom: '36px', textAlign: center ? 'center' : 'left' }}>
+      {children}
+    </p>
+  )
+}
+
+function Divider() {
+  return <div style={{ height: '1px', background: '#E8EDF2', margin: '0 24px' }} />
+}
+
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: '1px' }}>
+      <path d="M2.5 7L5.5 10L11.5 4" stroke="#58CC02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+// ─── Quiz component ───────────────────────────────────────────────────────────
 function TrackQuiz() {
-  const [step, setStep] = useState(0)
+  const [step, setStep]       = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [selected, setSelected] = useState<string | null>(null)
 
   const currentQ = QUIZ_STEPS[step - 1]
-  const result = TRACK_RESULT[answers.interest ?? 'coding']
+  const result   = TRACK_RESULT[answers.interest ?? 'coding']
 
   function next() {
     if (!selected) return
@@ -130,51 +127,30 @@ function TrackQuiz() {
     setStep(step < QUIZ_STEPS.length ? step + 1 : QUIZ_STEPS.length + 1)
   }
 
+  // Start
   if (step === 0) return (
     <div style={{ textAlign: 'center', padding: '8px 0' }}>
-      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#1CB0F6', marginBottom: '8px' }}>
-        3 questions · 60 seconds
-      </p>
-      <h3 style={{ fontSize: '22px', fontWeight: 600, color: '#F1F5F9', marginBottom: '8px', lineHeight: 1.2 }}>
-        Find your child&apos;s track
-      </h3>
-      <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', marginBottom: '24px', maxWidth: '280px', margin: '0 auto 24px' }}>
-        Tell us their age and interests. We&apos;ll recommend exactly where to start.
-      </p>
-      <button
-        onClick={() => setStep(1)}
-        style={{ padding: '12px 28px', borderRadius: '9px', background: '#1CB0F6', color: '#fff', fontWeight: 600, fontSize: '14px', border: 'none', cursor: 'pointer' }}
-      >
+      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: '#1CB0F6', marginBottom: '8px' }}>3 questions · 60 seconds</p>
+      <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0A0A0F', marginBottom: '8px', letterSpacing: '-.5px' }}>Find your child&apos;s track</h3>
+      <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '24px', maxWidth: '260px', margin: '0 auto 24px' }}>Tell us their age and interests — we&apos;ll recommend exactly where to start.</p>
+      <button onClick={() => setStep(1)} style={{ padding: '12px 28px', borderRadius: '10px', background: '#1CB0F6', color: '#fff', fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer' }}>
         Start →
       </button>
     </div>
   )
 
+  // Result
   if (step === QUIZ_STEPS.length + 1) return (
     <div style={{ textAlign: 'center', padding: '8px 0' }}>
       <div style={{ fontSize: '44px', marginBottom: '12px' }}>{result.icon}</div>
-      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: result.color, marginBottom: '6px' }}>
-        Recommended track
-      </p>
-      <h3 style={{ fontSize: '22px', fontWeight: 600, color: '#F1F5F9', marginBottom: '8px' }}>{result.title}</h3>
-      <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, maxWidth: '280px', margin: '0 auto 24px' }}>
-        {result.desc}
-      </p>
-      <Link
-        href="/auth/signup"
-        style={{
-          display: 'block', maxWidth: '280px', margin: '0 auto 10px',
-          padding: '13px 0', borderRadius: '9px', background: '#1CB0F6',
-          color: '#fff', fontWeight: 600, fontSize: '14px', textDecoration: 'none', textAlign: 'center',
-        }}
-      >
+      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: result.color, marginBottom: '6px' }}>Recommended track</p>
+      <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#0A0A0F', marginBottom: '8px', letterSpacing: '-.5px' }}>{result.title}</h3>
+      <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.65, maxWidth: '260px', margin: '0 auto 24px' }}>{result.desc}</p>
+      <Link href="/auth/signup" style={{ display: 'block', maxWidth: '260px', margin: '0 auto 10px', padding: '13px 0', borderRadius: '10px', background: '#1CB0F6', color: '#fff', fontWeight: 700, fontSize: '14px', textDecoration: 'none', textAlign: 'center' }}>
         Start {result.title} — Free →
       </Link>
-      <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)', marginBottom: '16px' }}>No credit card · Takes 60 seconds</p>
-      <button
-        onClick={() => { setStep(0); setAnswers({}); setSelected(null) }}
-        style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-      >
+      <p style={{ fontSize: '12px', color: '#94A3B8', marginBottom: '14px' }}>No credit card · 60 seconds</p>
+      <button onClick={() => { setStep(0); setAnswers({}); setSelected(null) }} style={{ fontSize: '12px', color: '#94A3B8', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
         Start over
       </button>
     </div>
@@ -184,447 +160,413 @@ function TrackQuiz() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-        <div style={{ flex: 1, height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${progress}%`, background: '#1CB0F6', borderRadius: '2px', transition: 'width 0.4s ease' }} />
+        <div style={{ flex: 1, height: '5px', borderRadius: '3px', background: '#E8EDF2', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${progress}%`, background: '#1CB0F6', borderRadius: '3px', transition: 'width .4s ease' }} />
         </div>
-        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', fontWeight: 600, flexShrink: 0 }}>{step} / {QUIZ_STEPS.length}</span>
+        <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 700, flexShrink: 0 }}>{step} / {QUIZ_STEPS.length}</span>
       </div>
-
-      <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#F1F5F9', marginBottom: '16px', lineHeight: 1.3 }}>
-        {currentQ.question}
-      </h3>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+      <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0A0A0F', marginBottom: '16px', letterSpacing: '-.3px' }}>{currentQ.question}</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '9px', marginBottom: '16px' }}>
         {currentQ.options.map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => setSelected(opt.value)}
-            style={{
-              textAlign: 'left', padding: '14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.15s',
-              border: selected === opt.value ? '2px solid #1CB0F6' : '1px solid rgba(255,255,255,0.08)',
-              background: selected === opt.value ? 'rgba(28,176,246,0.1)' : 'rgba(255,255,255,0.03)',
-            }}
-          >
+          <button key={opt.value} onClick={() => setSelected(opt.value)} style={{
+            textAlign: 'left', padding: '14px', borderRadius: '12px', cursor: 'pointer', transition: 'all .15s',
+            border: selected === opt.value ? '2px solid #1CB0F6' : '1.5px solid #E8EDF2',
+            background: selected === opt.value ? '#EBF7FE' : '#FFFFFF',
+          }}>
             <div style={{ fontSize: '20px', marginBottom: '6px' }}>{opt.icon}</div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: '#F1F5F9', lineHeight: 1.3 }}>{opt.label}</div>
-            {opt.sub && <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>{opt.sub}</div>}
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#0A0A0F', lineHeight: 1.3 }}>{opt.label}</div>
+            {opt.sub && <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>{opt.sub}</div>}
           </button>
         ))}
       </div>
-
-      <button
-        onClick={next}
-        disabled={!selected}
-        style={{
-          width: '100%', padding: '13px', borderRadius: '9px', fontWeight: 600, fontSize: '14px',
-          border: 'none', cursor: selected ? 'pointer' : 'not-allowed', transition: 'all 0.15s',
-          background: selected ? '#1CB0F6' : 'rgba(255,255,255,0.05)',
-          color: selected ? '#fff' : 'rgba(255,255,255,0.2)',
-        }}
-      >
+      <button onClick={next} disabled={!selected} style={{
+        width: '100%', padding: '13px', borderRadius: '10px', fontWeight: 700, fontSize: '14px',
+        border: 'none', cursor: selected ? 'pointer' : 'not-allowed', transition: 'all .15s',
+        background: selected ? '#1CB0F6' : '#F1F5F9',
+        color: selected ? '#fff' : '#94A3B8',
+      }}>
         {step === QUIZ_STEPS.length ? 'See my recommendation →' : 'Next →'}
       </button>
     </div>
   )
 }
 
-// ─── Reusable section heading ─────────────────────────────────────────────────
-
-function SectionHead({ eyebrow, title, sub, center }: { eyebrow: string; title: React.ReactNode; sub?: string; center?: boolean }) {
+// ─── FAQ item ─────────────────────────────────────────────────────────────────
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false)
   return (
-    <div style={{ textAlign: center ? 'center' : 'left', marginBottom: sub ? '36px' : '28px' }}>
-      <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
-        {eyebrow}
-      </p>
-      <h2 style={{ fontSize: 'clamp(24px, 3.5vw, 34px)', fontWeight: 600, letterSpacing: '-0.7px', lineHeight: 1.15, color: '#F1F5F9', marginBottom: sub ? '10px' : 0 }}>
-        {title}
-      </h2>
-      {sub && <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, maxWidth: center ? '460px' : '100%', margin: center ? '0 auto' : undefined }}>{sub}</p>}
+    <div style={{ borderBottom: '1px solid #E8EDF2' }} className="last:border-0">
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between gap-4 text-left" style={{ padding: '17px 22px' }}>
+        <span style={{ fontSize: '14px', fontWeight: 600, color: '#0A0A0F' }}>{q}</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, color: '#94A3B8', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
+          <path d="M3 6l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.7, padding: '0 22px 16px' }}>{a}</p>}
     </div>
   )
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-
-const S = {
-  page: { background: '#0B0F1A', color: '#F1F5F9', fontFamily: 'var(--font-sans, system-ui, sans-serif)' } as React.CSSProperties,
-  nav: {
-    position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '0 32px', height: '58px',
-    background: 'rgba(11,15,26,0.92)', backdropFilter: 'blur(18px)',
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
-  } as React.CSSProperties,
-  section: { padding: '72px 32px', maxWidth: '720px', margin: '0 auto' } as React.CSSProperties,
-  sep: { height: '1px', background: 'rgba(255,255,255,0.06)', margin: '0 32px' } as React.CSSProperties,
-  card: { border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', overflow: 'hidden' as const, background: '#0F1420' },
-}
-
 export default function LandingPage() {
   return (
-    <div style={S.page}>
+    <div style={{ background: '#FFFFFF', color: '#0A0A0F', fontFamily: "Inter, var(--font-sans, -apple-system, sans-serif)" }}>
 
       {/* ── Nav ── */}
-      <nav style={S.nav}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-          <div style={{ width: '60px', height: '60px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-            <Image src="/icons/plulai1.png" alt="Plulai logo" width={60} height={60} style={{ display: 'block' }} />
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 24px', height: '56px',
+        background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid #E8EDF2',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '30px', height: '30px', background: '#1CB0F6', borderRadius: '9px', overflow: 'hidden', flexShrink: 0 }}>
+            <Image src="/icons/plulai.png" alt="Plulai" width={30} height={30} style={{ display: 'block' }} />
           </div>
-          <span style={{ fontSize: '18px', fontWeight: 600, color: '#F1F5F9', letterSpacing: '-0.3px' }}></span>
+          <span style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '-.5px', color: '#0A0A0F' }}>Plulai</span>
         </div>
 
-        <div className="hidden md:flex" style={{ gap: '26px', fontSize: '13px', color: 'rgba(255,255,255,0.45)' }}>
+        <div className="hidden md:flex" style={{ gap: '2px' }}>
           {[['#tracks', 'Tracks'], ['#how-it-works', 'How it works'], ['#schools', 'For schools'], ['#pricing', 'Pricing']].map(([href, label]) => (
-            <a key={label} href={href} style={{ color: 'rgba(255,255,255,0.45)', textDecoration: 'none', transition: 'color 0.15s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#F1F5F9')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}>
+            <a key={label} href={href} style={{ fontSize: '13px', fontWeight: 500, color: '#64748B', padding: '6px 12px', borderRadius: '9px', textDecoration: 'none', transition: 'all .15s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.color = '#0A0A0F' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748B' }}>
               {label}
             </a>
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <Link href="/sharkkid" style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '7px 13px', borderRadius: '7px',
-            background: 'linear-gradient(135deg,#FAA918,#D33131)',
-            color: '#fff', fontSize: '12px', fontWeight: 600, textDecoration: 'none',
-          }}>
+        <div style={{ display: 'flex', gap: '7px', alignItems: 'center' }}>
+          <Link href="/sharkkid" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 13px', borderRadius: '9px', background: 'linear-gradient(135deg,#FFC800,#FF9500)', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
             🦈 Sharkkid
           </Link>
-          <Link href="/auth/login" className="hidden md:block" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', textDecoration: 'none', padding: '7px 12px' }}>
+          <Link href="/auth/login" className="hidden md:block" style={{ fontSize: '13px', fontWeight: 600, color: '#64748B', textDecoration: 'none', padding: '7px 12px', borderRadius: '9px', border: '1.5px solid #E8EDF2' }}>
             Log in
           </Link>
-          <Link href="/auth/signup" style={{
-            padding: '8px 18px', borderRadius: '7px', background: '#1CB0F6',
-            color: '#fff', fontSize: '13px', fontWeight: 600, textDecoration: 'none',
-          }}>
-            Start free
+          <Link href="/auth/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 18px', borderRadius: '9px', background: '#1CB0F6', color: '#fff', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
+            Start free →
           </Link>
         </div>
       </nav>
 
-      {/* ── Trust bar ── */}
-      <div style={{ marginTop: '58px', background: 'rgba(28,176,246,0.05)', borderBottom: '1px solid rgba(28,176,246,0.1)', padding: '9px 32px', display: 'flex', justifyContent: 'center', gap: '28px', flexWrap: 'wrap' }}>
-        {['500+ lessons', '200+ active learners', 'Ages 6–18', 'Arabic & English', '6 GCC countries', 'No ads, ever'].map(t => (
-          <div key={t} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>
-            <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#1CB0F6', display: 'block', flexShrink: 0 }} />
-            {t}
-          </div>
-        ))}
-      </div>
-
       {/* ── Hero ── */}
-      <section style={{ padding: '80px 32px 72px', maxWidth: '720px', margin: '0 auto', textAlign: 'center' }}>
-        {/* Eyebrow */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#1CB0F6', border: '1px solid rgba(28,176,246,0.3)', padding: '5px 13px', borderRadius: '20px', marginBottom: '28px' }}>
-          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#1CB0F6', display: 'block' }} />
-          15 days Free trial · No credit card
+      <section style={{ background: '#1A1A2E', marginTop: '56px', padding: '72px 24px 0', textAlign: 'center', overflow: 'hidden', position: 'relative' }}>
+        {/* Eyebrow pill */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(28,176,246,0.12)', border: '1px solid rgba(28,176,246,0.25)', color: '#5DD3FA', fontSize: '11px', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 14px', borderRadius: '999px', marginBottom: '28px' }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#1CB0F6', display: 'block', flexShrink: 0 }} />
+          Free forever &nbsp;·&nbsp; 200+ learners &nbsp;·&nbsp; GCC
         </div>
 
         {/* Headline */}
-        <h1 style={{ fontSize: 'clamp(34px,5.5vw,52px)', fontWeight: 700, lineHeight: 1.08, letterSpacing: '-1.2px', color: '#F1F5F9', marginBottom: '18px' }}>
+        <h1 style={{ fontSize: 'clamp(38px,6vw,58px)', fontWeight: 900, lineHeight: 1.04, letterSpacing: '-1.8px', color: '#fff', marginBottom: '18px', maxWidth: '620px', margin: '0 auto 18px' }}>
           Your child learns to{' '}
-          <span style={{ color: '#1CB0F6' }}>code,<br />build AI,</span>
-          {' '}and start a business.
+          <span style={{ color: '#1CB0F6' }}>code,<br />build AI,</span>{' '}
+          and start a business.
         </h1>
 
-        {/* Subheadline */}
-        <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, maxWidth: '460px', margin: '0 auto 36px' }}>
-          A personal AI coach. 500+ lessons. 15 minutes a day.<br />
-          Built for the GCC — in Arabic and English.
+        {/* Sub */}
+        <p style={{ fontSize: '16px', fontWeight: 400, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, maxWidth: '420px', margin: '0 auto 36px' }}>
+          A <strong style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>personal AI coach</strong> that adapts to them.{' '}
+          <strong style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>500+ lessons</strong> in Arabic & English.{' '}
+          <strong style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>15 min a day.</strong>
         </p>
 
         {/* Value chips */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '40px' }}>
-          {[
-            { icon: '🤖', text: 'Personal AI coach' },
-            { icon: '🌐', text: 'Arabic & English' },
-            { icon: '🔒', text: 'No ads, ever' },
-            { icon: '📱', text: 'Any device' },
-          ].map(({ icon, text }) => (
-            <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', padding: '6px 12px', borderRadius: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '7px', flexWrap: 'wrap', marginBottom: '36px' }}>
+          {[{ icon: '🤖', text: 'Personal AI coach' }, { icon: '🌐', text: 'Arabic & English' }, { icon: '🔒', text: 'No ads, ever' }, { icon: '📱', text: 'Any device' }].map(({ icon, text }) => (
+            <div key={text} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 500, color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', padding: '5px 12px', borderRadius: '999px' }}>
               <span>{icon}</span>{text}
             </div>
           ))}
         </div>
 
-        {/* B2C CTAs */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+        {/* CTAs */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '11px', paddingBottom: '52px' }}>
           <div style={{ display: 'flex', gap: '9px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Link href="/auth/signup" style={{ padding: '14px 32px', borderRadius: '9px', background: '#1CB0F6', color: '#fff', fontSize: '15px', fontWeight: 600, textDecoration: 'none', letterSpacing: '-0.2px' }}>
-              Start for free — 60 seconds
+            <Link href="/auth/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 700, padding: '14px 32px', borderRadius: '14px', background: '#1CB0F6', color: '#fff', textDecoration: 'none', letterSpacing: '-.2px' }}>
+              🚀 Start for free
             </Link>
-            <a href="#quiz" style={{ padding: '13px 22px', borderRadius: '9px', background: 'rgba(255,255,255,0.05)', color: '#F1F5F9', fontSize: '14px', fontWeight: 500, border: '1px solid rgba(255,255,255,0.1)', textDecoration: 'none' }}>
-              Find my child&apos;s track
+            <a href="#quiz" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '14px', fontWeight: 600, padding: '13px 22px', borderRadius: '14px', background: 'rgba(255,255,255,0.07)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.15)', textDecoration: 'none' }}>
+              🗺️ Find my child&apos;s track
             </a>
           </div>
-
-          {/* B2B divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', maxWidth: '360px' }}>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>Running a school or academy?</span>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '320px' }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', whiteSpace: 'nowrap' }}>Running a school or academy?</span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
           </div>
-
-          <a href="#schools" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '9px', background: 'transparent', color: 'rgba(255,255,255,0.55)', fontSize: '13px', fontWeight: 500, border: '1px solid rgba(255,255,255,0.1)', textDecoration: 'none' }}>
+          <a href="#schools" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, padding: '10px 20px', borderRadius: '14px', background: 'transparent', color: 'rgba(255,255,255,0.5)', border: '1.5px solid rgba(255,255,255,0.1)', textDecoration: 'none' }}>
             🏫 Request a school demo
-            <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '20px', background: 'rgba(250,169,24,0.12)', color: '#FAA918', border: '1px solid rgba(250,169,24,0.2)' }}>
-              For institutions
-            </span>
+            <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: 'rgba(255,200,0,0.15)', color: '#FFC800', border: '1px solid rgba(255,200,0,0.2)' }}>For institutions</span>
           </a>
+        </div>
+
+        {/* Hero screen mockup */}
+        <div style={{ height: '180px', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', position: 'relative' }}>
+          {/* Left float card */}
+          <div style={{ position: 'absolute', left: '10%', bottom: '60px', background: '#fff', borderRadius: '12px', border: '1px solid #E8EDF2', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', animation: 'float 3.2s ease-in-out infinite', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+            <span style={{ fontSize: '18px' }}>✅</span>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#0A0A0F' }}>Lesson complete</div>
+              <div style={{ fontSize: '10px', color: '#64748B' }}>+50 XP earned</div>
+            </div>
+          </div>
+          {/* Screen */}
+          <div style={{ width: '280px', height: '165px', background: '#0F1420', borderRadius: '14px 14px 0 0', border: '1.5px solid rgba(255,255,255,0.08)', borderBottom: 'none', overflow: 'hidden', animation: 'float 3s ease-in-out infinite' }}>
+            <div style={{ height: '30px', background: '#161D2E', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '5px' }}>
+              {['#FF5F57', '#FEBC2E', '#28C840'].map(c => <div key={c} style={{ width: '7px', height: '7px', borderRadius: '50%', background: c }} />)}
+            </div>
+            <div style={{ padding: '10px 12px' }}>
+              <div style={{ display: 'inline-block', background: 'rgba(88,204,2,0.15)', border: '1px solid rgba(88,204,2,0.3)', color: '#58CC02', fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '999px', float: 'right' }}>Live</div>
+              {[{ w: '65%', c: 'rgba(28,176,246,0.3)' }, { w: '45%', c: 'rgba(88,204,2,0.25)' }, { w: '80%', c: 'rgba(255,255,255,0.07)' }].map((l, i) => (
+                <div key={i} style={{ height: '7px', borderRadius: '3px', background: l.c, width: l.w, marginBottom: '7px' }} />
+              ))}
+              <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '6px', padding: '7px 9px' }}>
+                {[{ w: '55%', c: 'rgba(28,176,246,0.35)', ml: '0' }, { w: '38%', c: 'rgba(88,204,2,0.28)', ml: '10px' }, { w: '50%', c: 'rgba(255,200,0,0.22)', ml: '10px' }, { w: '32%', c: 'rgba(255,255,255,0.09)', ml: '0' }].map((l, i) => (
+                  <div key={i} style={{ height: '5px', borderRadius: '2px', background: l.c, width: l.w, marginLeft: l.ml, marginBottom: i < 3 ? '5px' : 0 }} />
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Right float card */}
+          <div style={{ position: 'absolute', right: '10%', bottom: '50px', background: '#fff', borderRadius: '12px', border: '1px solid #E8EDF2', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', animation: 'float 2.8s .5s ease-in-out infinite', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+            <span style={{ fontSize: '18px' }}>🔥</span>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#0A0A0F' }}>7-day streak</div>
+              <div style={{ fontSize: '10px', color: '#64748B' }}>Keep it up!</div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── Stats strip ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'rgba(255,255,255,0.07)', borderTop: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        {[
-          { n: '500+', label: 'Lessons' },
-          { n: '200+', label: 'Active learners' },
-          { n: '9.2/10', label: 'Parent rating' },
-          { n: '6', label: 'GCC countries' },
-        ].map((s, i) => (
-          <div key={i} style={{ background: '#0B0F1A', padding: '20px 16px', textAlign: 'center' }}>
-            <div style={{ fontSize: '22px', fontWeight: 700, color: '#1CB0F6', letterSpacing: '-0.5px' }}>{s.n}</div>
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', marginTop: '3px' }}>{s.label}</div>
+      <style>{`
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+      `}</style>
+
+      {/* ── Stats ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid #E8EDF2' }}>
+        {[{ n: '500+', l: 'Lessons' }, { n: '200+', l: 'Active learners' }, { n: '9.2/10', l: 'Parent rating' }, { n: '6', l: 'GCC countries' }].map((s, i) => (
+          <div key={i} style={{ padding: '20px 16px', textAlign: 'center', background: '#fff', borderRight: i < 3 ? '1px solid #E8EDF2' : 'none' }}>
+            <div style={{ fontSize: '24px', fontWeight: 900, color: '#1CB0F6', letterSpacing: '-.6px' }}>{s.n}</div>
+            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '2px' }}>{s.l}</div>
           </div>
         ))}
       </div>
 
       {/* ── What your child gets ── */}
-      <section style={S.section}>
-        <SectionHead
-          eyebrow="What your child actually gets"
-          title={<>Not videos. Not worksheets.<br />Real projects, real skills.</>}
-          sub="Every lesson ends with something your child built — not just watched. By end of month one, they have a project they can show off."
-        />
-        <div style={S.card}>
+      <section style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
+        <SectionEyebrow text="What your child actually gets" />
+        <SectionTitle>Not videos. Not worksheets.<br /><span style={{ color: '#1CB0F6' }}>Real projects, real skills.</span></SectionTitle>
+        <SectionSub>Every lesson ends with something your child built. By end of month one, they have a project they can actually show off.</SectionSub>
+        <div style={{ border: '1.5px solid #E8EDF2', borderRadius: '20px', overflow: 'hidden' }}>
           {[
-            { icon: '🤖', iconBg: 'rgba(28,176,246,0.1)',  tag: 'Always on',      tagColor: '#1CB0F6', tagBorder: 'rgba(28,176,246,0.2)',  title: 'A personal AI coach',       desc: "Adapts to your child's level. Explains things a different way until it clicks. Never impatient — in Arabic or English." },
-            { icon: '💻', iconBg: 'rgba(28,176,246,0.1)',  tag: 'Ages 8+',        tagColor: '#1CB0F6', tagBorder: 'rgba(28,176,246,0.2)',  title: 'Coding track',              desc: 'Python, web development, and game design. By week 2, your child writes their first working program from scratch.' },
-            { icon: '🧠', iconBg: 'rgba(29,158,117,0.1)',  tag: 'Ages 10+',       tagColor: '#1D9E75', tagBorder: 'rgba(29,158,117,0.2)', title: 'AI track',                  desc: 'Build with AI — not just use it. Your child creates actual machine learning projects, not just prompts chatbots.' },
-            { icon: '💡', iconBg: 'rgba(250,169,24,0.1)',  tag: 'Ages 11+',       tagColor: '#FAA918', tagBorder: 'rgba(250,169,24,0.2)',  title: 'Entrepreneurship track',    desc: 'From first idea to investor pitch. Startup thinking designed for the GCC — not Silicon Valley.' },
-            { icon: '👨‍👩‍👧', iconBg: 'rgba(168,85,247,0.1)', tag: 'Weekly reports', tagColor: '#A855F7', tagBorder: 'rgba(168,85,247,0.2)', title: 'Parent dashboard',          desc: "See exactly what your child learned, how long they practiced, and what they built — without having to ask them." },
+            { icon: '🤖', bg: '#EBF7FE', tag: 'Always on',      tagColor: '#0C7FC4', tagBg: '#EBF7FE', title: 'A personal AI coach',    desc: "Adapts to your child's level. Explains things a different way until it clicks. Never impatient — in Arabic or English." },
+            { icon: '💻', bg: '#EBF7FE', tag: 'Ages 8+',        tagColor: '#0C7FC4', tagBg: '#EBF7FE', title: 'Coding track',           desc: 'Python, web development, and game design. By week 2, your child writes their first working program from scratch.' },
+            { icon: '🧠', bg: '#EAF7D4', tag: 'Ages 10+',       tagColor: '#27500A', tagBg: '#EAF7D4', title: 'AI track',               desc: 'Build with AI — not just use it. Your child creates actual machine learning projects, not just prompts chatbots.' },
+            { icon: '💡', bg: '#FAEEDA', tag: 'Ages 11+',       tagColor: '#633806', tagBg: '#FAEEDA', title: 'Entrepreneurship track', desc: 'From first idea to investor pitch. Startup thinking designed for the GCC — not Silicon Valley.' },
+            { icon: '👨‍👩‍👧', bg: '#EEEDFE', tag: 'Weekly reports', tagColor: '#3C3489', tagBg: '#EEEDFE', title: 'Parent dashboard',      desc: "See exactly what your child learned, how long they practiced, and what they built — without having to ask them." },
           ].map((item, i, arr) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '22px', borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: item.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '20px 22px', borderBottom: i < arr.length - 1 ? '1px solid #E8EDF2' : 'none', background: '#fff', transition: 'background .15s', cursor: 'default' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#FAFBFF')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
                 {item.icon}
               </div>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
-                  <h4 style={{ fontSize: '15px', fontWeight: 500, color: '#F1F5F9', margin: 0 }}>{item.title}</h4>
-                  <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '20px', background: item.iconBg, color: item.tagColor, border: `1px solid ${item.tagBorder}` }}>
-                    {item.tag}
-                  </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#0A0A0F', margin: 0 }}>{item.title}</h4>
+                  <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: item.tagBg, color: item.tagColor }}>{item.tag}</span>
                 </div>
-                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <div style={S.sep} />
+      <Divider />
 
       {/* ── Tracks ── */}
-      <section id="tracks" style={S.section}>
-        <SectionHead
-          eyebrow="The three tracks"
-          title="Pick one. Switch anytime."
-          sub="Most kids end up doing all three. Start wherever your child is most excited."
-        />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px' }}>
+      <section id="tracks" style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
+        <SectionEyebrow text="The three tracks" />
+        <SectionTitle>Pick one. <span style={{ color: '#1CB0F6' }}>Switch anytime.</span></SectionTitle>
+        <SectionSub>Most kids end up doing all three. Start wherever your child is most excited.</SectionSub>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px' }}>
           {[
-            { color: '#1CB0F6', icon: '💻', title: 'Coding',           sub: 'Foundation track', desc: 'Python, web dev, and game design — from zero to a working app in the browser.', tags: ['Python', 'Web dev', 'Games' ] },
-            { color: '#1D9E75', icon: '🧠', title: 'AI',               sub: 'Innovation track',  desc: 'Build real AI projects — understand machine learning by actually doing it.',         tags: ['ML', 'AI ethics', 'Projects' ] },
-            { color: '#FAA918', icon: '💡', title: 'Entrepreneurship', sub: 'Founder track',     desc: 'Idea to pitch to MVP. Built for the GCC, not Silicon Valley.',                     tags: ['Ideation', 'MVP', 'Pitch'] },
+            { color: '#1CB0F6', textColor: '#0C7FC4', bg: '#EBF7FE', icon: '💻', name: 'Coding',           label: 'Foundation track', desc: 'Python, web dev, and game design — from zero to a working app in the browser.', tags: ['Python', 'Web dev', 'Games', 'Ages 8+'] },
+            { color: '#3B6D11', textColor: '#27500A', bg: '#EAF7D4', icon: '🧠', name: 'AI',               label: 'Innovation track',  desc: 'Build real AI projects — understand machine learning by actually doing it.',         tags: ['ML', 'AI ethics', 'Projects', 'Ages 10+'] },
+            { color: '#BA7517', textColor: '#633806', bg: '#FAEEDA', icon: '💡', name: 'Entrepreneurship', label: 'Founder track',     desc: 'Idea to pitch to MVP. Built for the GCC, not Silicon Valley.',                     tags: ['Ideation', 'MVP', 'Pitch', 'Ages 11+'] },
           ].map(t => (
-            <div key={t.title} style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', overflow: 'hidden', background: '#0F1420' }}>
-              <div style={{ height: '2px', background: t.color }} />
-              <div style={{ padding: '18px 16px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '9px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', marginBottom: '12px' }}>
-                  {t.icon}
-                </div>
-                <h3 style={{ fontSize: '15px', fontWeight: 500, color: '#F1F5F9', marginBottom: '3px' }}>{t.title}</h3>
-                <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.color, marginBottom: '8px' }}>{t.sub}</p>
-                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.55 }}>{t.desc}</p>
+            <div key={t.name} style={{ border: '1.5px solid #E8EDF2', borderRadius: '20px', overflow: 'hidden', background: '#fff', transition: 'all .2s', cursor: 'default' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#1CB0F6'; e.currentTarget.style.transform = 'translateY(-3px)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8EDF2'; e.currentTarget.style.transform = 'none' }}>
+              <div style={{ height: '3px', background: t.color }} />
+              <div style={{ padding: '18px 16px 14px', borderBottom: '1px solid #E8EDF2' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', marginBottom: '14px' }}>{t.icon}</div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: '#0A0A0F', marginBottom: '3px', letterSpacing: '-.3px' }}>{t.name}</div>
+                <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: t.textColor, marginBottom: '10px' }}>{t.label}</div>
+                <div style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.6 }}>{t.desc}</div>
               </div>
-              <div style={{ padding: '12px 16px', background: '#0B0F1A', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                {t.tags.map(tag => (
-                  <span key={tag} style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '20px', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}>{tag}</span>
-                ))}
+              <div style={{ padding: '12px 16px', background: '#F8FAFC', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                {t.tags.map(tag => <span key={tag} style={{ fontSize: '10px', fontWeight: 600, padding: '3px 8px', borderRadius: '999px', background: '#fff', color: '#64748B', border: '1px solid #E8EDF2' }}>{tag}</span>)}
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <div style={S.sep} />
+      <Divider />
 
       {/* ── How it works ── */}
-      <section id="how-it-works" style={S.section}>
-        <SectionHead
-          eyebrow="How it works"
-          title="From signup to first project."
-          sub="No downloads. Works on any device. Your child starts today."
-        />
+      <section id="how-it-works" style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
+        <SectionEyebrow text="How it works" />
+        <SectionTitle>From signup to <span style={{ color: '#1CB0F6' }}>first project.</span></SectionTitle>
+        <SectionSub>No downloads. Works on any device. Start today.</SectionSub>
         <div>
           {[
-            { n: '1', badge: '60 seconds',    title: 'Take the quick quiz',     desc: "Tell us your child's age and what excites them. We recommend the right track and starting point — no guessing." },
-            { n: '2', badge: 'Day 1',          title: 'Meet their AI coach',     desc: 'A personal AI tutor starts in Arabic or English — adapts to their level, always patient.' },
-            { n: '3', badge: 'End of month 1', title: 'Build something real',    desc: '15–25 minutes per day. By end of the first module, your child has a project they can actually show people.' },
+            { n: '1', badge: '60 seconds',    title: 'Take the quick quiz',  desc: "Tell us your child's age and what excites them. We recommend the right track — no guessing." },
+            { n: '2', badge: 'Day 1',          title: 'Meet their AI coach',  desc: 'A personal AI tutor starts in Arabic or English. Adapts to their level from minute one. Always patient.' },
+            { n: '3', badge: 'End of month 1', title: 'Build something real', desc: '15–25 minutes per day. By the end of the first module, your child has a real project to show.' },
           ].map((s, i, arr) => (
-            <div key={i} style={{ display: 'flex', gap: '18px', padding: '22px 0', borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
-              <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#0F1420', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.4)', flexShrink: 0, marginTop: '2px' }}>
+            <div key={i} style={{ display: 'flex', gap: '16px', padding: '22px 0', borderBottom: i < arr.length - 1 ? '1px solid #E8EDF2' : 'none' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#1CB0F6', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800, flexShrink: 0, marginTop: '2px' }}>
                 {s.n}
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
-                  <h4 style={{ fontSize: '15px', fontWeight: 500, color: '#F1F5F9', margin: 0 }}>{s.title}</h4>
-                  <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 9px', borderRadius: '20px', background: 'rgba(28,176,246,0.1)', color: '#1CB0F6', border: '1px solid rgba(28,176,246,0.2)' }}>{s.badge}</span>
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#0A0A0F', margin: 0, letterSpacing: '-.2px' }}>{s.title}</h4>
+                  <span style={{ fontSize: '10px', fontWeight: 700, padding: '3px 9px', borderRadius: '999px', background: '#EBF7FE', color: '#0C7FC4' }}>{s.badge}</span>
                 </div>
-                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.65, margin: 0 }}>{s.desc}</p>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.65, margin: 0 }}>{s.desc}</p>
               </div>
             </div>
           ))}
         </div>
-        <div style={{ textAlign: 'center', marginTop: '40px' }}>
-          <Link href="/auth/signup" style={{ display: 'inline-block', padding: '13px 32px', borderRadius: '9px', background: '#1CB0F6', color: '#fff', fontSize: '14px', fontWeight: 600, textDecoration: 'none' }}>
-            Start step 1 — it&apos;s free
+        <div style={{ textAlign: 'center', marginTop: '32px' }}>
+          <Link href="/auth/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '13px 28px', borderRadius: '12px', background: '#1CB0F6', color: '#fff', fontSize: '14px', fontWeight: 700, textDecoration: 'none' }}>
+            Start step 1 — it&apos;s free →
           </Link>
         </div>
       </section>
 
-      <div style={S.sep} />
+      <Divider />
 
       {/* ── Quiz ── */}
-      <section id="quiz" style={{ ...S.section, maxWidth: '580px' }}>
-        <SectionHead
-          eyebrow="Personalised for your child"
-          title="Not sure where to start?"
-          sub="3 questions and we'll tell you exactly which track to begin with."
-          center
-        />
-        <div style={{ background: '#0F1420', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '28px' }}>
+      <section id="quiz" style={{ padding: '72px 24px', maxWidth: '560px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <SectionEyebrow text="Personalised for your child" />
+          <SectionTitle center>Not sure where to start?</SectionTitle>
+          <SectionSub center>3 questions and we&apos;ll tell you exactly which track to begin with.</SectionSub>
+        </div>
+        <div style={{ background: '#fff', border: '1.5px solid #E8EDF2', borderRadius: '20px', padding: '28px' }}>
           <TrackQuiz />
         </div>
       </section>
 
-      <div style={S.sep} />
+      <Divider />
 
-      {/* ── For Schools (B2B) ── */}
-      <section id="schools" style={S.section}>
-        <SectionHead
-          eyebrow="For schools & institutions"
-          title="Bring Plulai into your classrooms."
-          sub="Curriculum-aligned. Teacher dashboards. Arabic-native. Aligned with GCC Vision 2031."
-        />
-        <div style={S.card}>
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '20px 24px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-            <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#0B0F1A', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
-              🏫
-            </div>
+      {/* ── Schools ── */}
+      <section id="schools" style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
+        <SectionEyebrow text="For schools & institutions" />
+        <SectionTitle>Bring Plulai into <span style={{ color: '#1CB0F6' }}>your classrooms.</span></SectionTitle>
+        <SectionSub>Curriculum-aligned. Teacher dashboards. Arabic-native. Aligned with GCC Vision 2031.</SectionSub>
+        <div style={{ border: '1.5px solid #E8EDF2', borderRadius: '20px', overflow: 'hidden' }}>
+          {/* Dark header */}
+          <div style={{ background: '#1A1A2E', padding: '22px 26px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: 'rgba(28,176,246,0.15)', border: '1px solid rgba(28,176,246,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>🏫</div>
             <div>
-              <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255,255,255,0.3)', marginBottom: '2px' }}>Institutional plan</p>
-              <h3 style={{ fontSize: '16px', fontWeight: 500, color: '#F1F5F9', margin: 0 }}>Schools, academies & training centres</h3>
+              <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'rgba(255,255,255,0.35)', marginBottom: '3px' }}>Institutional plan</p>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: 0 }}>Schools, academies & training centres</h3>
             </div>
           </div>
-          {/* Body */}
-          <div style={{ padding: '24px' }}>
-            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: '20px' }}>
+          {/* White body */}
+          <div style={{ padding: '24px 26px', background: '#fff' }}>
+            <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.7, marginBottom: '20px' }}>
               Drop Plulai into your existing schedule as a weekly enrichment class or a full-year elective. We handle localisation, teacher training, parent communication, and progress reporting — you focus on the outcomes.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '20px' }}>
-              {[{ n: '7', label: 'Partner schools' }, { n: '6', label: 'GCC countries' }, { n: '9.2', label: 'Satisfaction score' }].map(m => (
-                <div key={m.label} style={{ background: '#0B0F1A', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '14px 10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: '#F1F5F9', letterSpacing: '-0.4px' }}>{m.n}</div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '2px' }}>{m.label}</div>
+              {[{ n: '7', l: 'Partner schools' }, { n: '6', l: 'GCC countries' }, { n: '9.2', l: 'Satisfaction score' }].map(m => (
+                <div key={m.l} style={{ background: '#F8FAFC', border: '1px solid #E8EDF2', borderRadius: '10px', padding: '14px 10px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#0A0A0F', letterSpacing: '-.4px' }}>{m.n}</div>
+                  <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '1px' }}>{m.l}</div>
                 </div>
               ))}
             </div>
             <div style={{ display: 'flex', gap: '9px' }}>
-              <a href="mailto:schools@plulai.com" style={{ flex: 1, padding: '11px 0', borderRadius: '8px', background: '#1CB0F6', color: '#fff', fontSize: '13px', fontWeight: 600, textDecoration: 'none', textAlign: 'center', display: 'block' }}>
-                Book a 20-min demo
-              </a>
-              <a href="mailto:schools@plulai.com" style={{ padding: '11px 16px', borderRadius: '8px', background: 'transparent', color: 'rgba(255,255,255,0.5)', fontSize: '13px', fontWeight: 500, border: '1px solid rgba(255,255,255,0.1)', textDecoration: 'none', display: 'block' }}>
-                Download curriculum guide
-              </a>
+              <a href="mailto:schools@plulai.com" style={{ flex: 1, padding: '12px 0', borderRadius: '10px', background: '#1CB0F6', color: '#fff', fontSize: '13px', fontWeight: 700, textDecoration: 'none', textAlign: 'center', display: 'block' }}>Book a 20-min demo</a>
+              <a href="mailto:schools@plulai.com" style={{ padding: '12px 16px', borderRadius: '10px', background: 'transparent', color: '#64748B', fontSize: '13px', fontWeight: 600, border: '1.5px solid #E8EDF2', textDecoration: 'none', display: 'block' }}>Download curriculum guide</a>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── GCC ── */}
-      <section style={{ ...S.section, paddingTop: 0, textAlign: 'center' }}>
-        <SectionHead
-          eyebrow="Available across the GCC"
-          title="Real Arabic. Real GCC context."
-          sub="Not translated from English. Every example, every city, every business idea is set in the GCC."
-          center
-        />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '9px' }}>
+      <section style={{ padding: '0 24px 72px', maxWidth: '660px', margin: '0 auto', textAlign: 'center' }}>
+        <SectionEyebrow text="Available across the GCC" />
+        <SectionTitle center>Real Arabic. <span style={{ color: '#1CB0F6' }}>Real GCC context.</span></SectionTitle>
+        <SectionSub center>Not translated from English. Every lesson, every example, every business idea is set in the GCC.</SectionSub>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '8px' }}>
           {[{ flag: '🇦🇪', name: 'UAE' }, { flag: '🇸🇦', name: 'Saudi Arabia' }, { flag: '🇶🇦', name: 'Qatar' }, { flag: '🇰🇼', name: 'Kuwait' }, { flag: '🇧🇭', name: 'Bahrain' }, { flag: '🇴🇲', name: 'Oman' }].map(c => (
-            <div key={c.name} style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '14px 8px', background: '#0F1420', textAlign: 'center' }}>
-              <div style={{ fontSize: '22px', marginBottom: '5px' }}>{c.flag}</div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontWeight: 500 }}>{c.name}</div>
+            <div key={c.name} style={{ border: '1.5px solid #E8EDF2', borderRadius: '14px', padding: '14px 8px', background: '#fff', textAlign: 'center', transition: 'all .2s', cursor: 'default' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#1CB0F6'; e.currentTarget.style.background = '#EBF7FE' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#E8EDF2'; e.currentTarget.style.background = '#fff' }}>
+              <div style={{ fontSize: '24px', marginBottom: '5px' }}>{c.flag}</div>
+              <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>{c.name}</div>
             </div>
           ))}
         </div>
       </section>
 
-      <div style={S.sep} />
+      <Divider />
 
       {/* ── Pricing ── */}
-      <section id="pricing" style={S.section}>
-        <SectionHead
-          eyebrow="Pricing"
-          title="Start free. No tricks."
-          sub="The free plan never expires, needs no credit card, and doesn't lock you out after 7 days."
-        />
+      <section id="pricing" style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
+        <SectionEyebrow text="Pricing" />
+        <SectionTitle>Start free. <span style={{ color: '#1CB0F6' }}>No tricks.</span></SectionTitle>
+        <SectionSub>The free plan never expires, needs no credit card, and doesn&apos;t lock you out after 7 days.</SectionSub>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           {/* Free */}
-          <div style={{ border: '2px solid #1CB0F6', borderRadius: '14px', padding: '24px 22px', background: '#0F1420' }}>
-            <span style={{ display: 'inline-block', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '20px', background: 'rgba(28,176,246,0.1)', color: '#1CB0F6', border: '1px solid rgba(28,176,246,0.25)', marginBottom: '14px' }}>
-              Most parents start here
-            </span>
-            <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#F1F5F9', marginBottom: '4px' }}>Free</h3>
-            <div style={{ fontSize: '28px', fontWeight: 700, color: '#F1F5F9', letterSpacing: '-0.6px', marginBottom: '2px' }}>
-              AED 0 <span style={{ fontSize: '14px', fontWeight: 400, color: 'rgba(255,255,255,0.35)' }}>/month</span>
+          <div style={{ border: '2px solid #1CB0F6', borderRadius: '20px', padding: '24px 22px', background: '#fff' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div>
+                <div style={{ fontSize: '22px', fontWeight: 900, color: '#0A0A0F', letterSpacing: '-.5px', marginBottom: '2px' }}>Free</div>
+                <div style={{ fontSize: '30px', fontWeight: 900, color: '#0A0A0F', letterSpacing: '-.7px', lineHeight: 1 }}>
+                  AED 0<span style={{ fontSize: '14px', fontWeight: 400, color: '#94A3B8', letterSpacing: 0 }}> /mo</span>
+                </div>
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '999px', background: '#EBF7FE', color: '#0C7FC4' }}>Most popular</span>
             </div>
-            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginBottom: '18px' }}>Forever free. No card needed.</p>
+            <p style={{ fontSize: '12px', color: '#94A3B8', marginBottom: '18px' }}>Forever free. No card needed.</p>
+            <div style={{ height: '1px', background: '#E8EDF2', marginBottom: '18px' }} />
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '20px' }}>
               {['First module of each track', 'Personal AI coach', 'XP & streak system', 'Parent dashboard', 'Arabic & English', 'Any device'].map(f => (
-                <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: '1px' }}>
-                    <path d="M2.5 7L5.5 10L11.5 4" stroke="#1CB0F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {f}
+                <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+                  <CheckIcon />{f}
                 </li>
               ))}
             </ul>
-            <Link href="/auth/signup" style={{ display: 'block', padding: '12px 0', borderRadius: '8px', background: '#1CB0F6', color: '#fff', fontSize: '14px', fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}>
+            <Link href="/auth/signup" style={{ display: 'block', padding: '12px', borderRadius: '10px', background: '#1CB0F6', color: '#fff', fontSize: '14px', fontWeight: 700, textDecoration: 'none', textAlign: 'center' }}>
               Create free account
             </Link>
           </div>
           {/* Pro */}
-          <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '24px 22px', background: '#0F1420' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#F1F5F9', marginBottom: '4px' }}>Pro</h3>
-            <div style={{ fontSize: '28px', fontWeight: 700, color: '#F1F5F9', letterSpacing: '-0.6px', marginBottom: '2px' }}>
-              $79 <span style={{ fontSize: '14px', fontWeight: 400, color: 'rgba(255,255,255,0.35)' }}>/month</span>
+          <div style={{ border: '1.5px solid #E8EDF2', borderRadius: '20px', padding: '24px 22px', background: '#fff' }}>
+            <div style={{ fontSize: '22px', fontWeight: 900, color: '#0A0A0F', letterSpacing: '-.5px', marginBottom: '2px' }}>Pro</div>
+            <div style={{ fontSize: '30px', fontWeight: 900, color: '#0A0A0F', letterSpacing: '-.7px', lineHeight: 1, marginBottom: '4px' }}>
+              $79<span style={{ fontSize: '14px', fontWeight: 400, color: '#94A3B8', letterSpacing: 0 }}> /mo</span>
             </div>
-            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginBottom: '18px' }}>Everything in Free, plus:</p>
+            <p style={{ fontSize: '12px', color: '#94A3B8', marginBottom: '18px' }}>Everything in Free, plus:</p>
+            <div style={{ height: '1px', background: '#E8EDF2', marginBottom: '18px' }} />
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '20px' }}>
-              {['All 500+ lessons unlocked', 'Advanced AI coaching', 'Full portfolio system', 'Live project feedback', 'Certificate of completion', 'Priority support'].map(f => (
-                <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.5 }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: '1px' }}>
-                    <path d="M2.5 7L5.5 10L11.5 4" stroke="#1CB0F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  {f}
+              {['All 500+ lessons', 'Advanced AI coaching', 'Full portfolio system', 'Live project feedback', 'Completion certificate', 'Priority support'].map(f => (
+                <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+                  <CheckIcon />{f}
                 </li>
               ))}
             </ul>
-            <Link href="/auth/signup?plan=pro" style={{ display: 'block', padding: '12px 0', borderRadius: '8px', background: 'transparent', color: 'rgba(255,255,255,0.5)', fontSize: '14px', fontWeight: 600, border: '1px solid rgba(255,255,255,0.1)', textDecoration: 'none', textAlign: 'center' }}>
+            <Link href="/auth/signup?plan=pro" style={{ display: 'block', padding: '11px', borderRadius: '10px', background: 'transparent', color: '#64748B', fontSize: '14px', fontWeight: 600, border: '1.5px solid #E8EDF2', textDecoration: 'none', textAlign: 'center' }}>
               Start with Pro →
             </Link>
           </div>
@@ -632,114 +574,134 @@ export default function LandingPage() {
       </section>
 
       {/* ── Rating ── */}
-      <section style={{ ...S.section, paddingTop: 0, maxWidth: '580px' }}>
-        <div style={{ background: '#0F1420', border: '1px solid rgba(250,169,24,0.18)', borderRadius: '14px', padding: '36px 32px', textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '12px' }}>
+      <section style={{ padding: '0 24px 72px', maxWidth: '540px', margin: '0 auto' }}>
+        <div style={{ background: '#1A1A2E', borderRadius: '20px', padding: '40px 28px', textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '12px' }}>
             {[1, 2, 3, 4, 5].map(i => (
-              <svg key={i} width="22" height="22" viewBox="0 0 20 20" fill="#FAA918">
+              <svg key={i} width="22" height="22" viewBox="0 0 20 20" fill="#FFC800">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             ))}
           </div>
-          <div style={{ fontSize: '52px', fontWeight: 700, color: '#F1F5F9', letterSpacing: '-1.5px', lineHeight: 1 }}>
-            9.2<span style={{ fontSize: '22px', color: 'rgba(255,255,255,0.25)', fontWeight: 400 }}>/10</span>
+          <div style={{ fontSize: '56px', fontWeight: 900, color: '#fff', letterSpacing: '-2px', lineHeight: 1 }}>
+            9.2<span style={{ fontSize: '24px', fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>/10</span>
           </div>
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.35)', marginTop: '8px' }}>Average rating from parents across the GCC</p>
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginTop: '8px' }}>Average rating from parents across the GCC</p>
+          <p style={{ fontSize: '13px', fontStyle: 'italic', color: 'rgba(255,255,255,0.3)', marginTop: '16px', maxWidth: '300px', margin: '16px auto 0', lineHeight: 1.6 }}>
+            &ldquo;My daughter finished her first Python project in 3 weeks. She was so proud — I was speechless.&rdquo;
+          </p>
         </div>
       </section>
 
-      <div style={S.sep} />
+      <Divider />
 
       {/* ── Partners ── */}
-      <section style={S.section}>
-        <SectionHead
-          eyebrow="Partners"
-          title="Trusted by institutions across the GCC."
-          sub="Schools and organisations already working with Plulai."
-        />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px' }}>
+      <section style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
+        <SectionEyebrow text="Partners" />
+        <SectionTitle>Trusted by institutions <span style={{ color: '#1CB0F6' }}>across the GCC.</span></SectionTitle>
+        <SectionSub>Schools and organisations already working with Plulai.</SectionSub>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px' }}>
           {PARTNERS.map(name => (
-            <div key={name} style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '18px 12px', background: '#0F1420', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div key={name} style={{ border: '1.5px solid #E8EDF2', borderRadius: '14px', padding: '16px 10px', background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', transition: 'all .2s', cursor: 'default' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = '#1CB0F6')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = '#E8EDF2')}>
               <div style={{ width: '44px', height: '44px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Image src={`/partners/${name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}.png`} alt={name} width={44} height={44} style={{ objectFit: 'contain', opacity: 0.65 }} />
+                <Image
+                  src={`/partners/${name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')}.png`}
+                  alt={name}
+                  width={44}
+                  height={44}
+                  style={{ objectFit: 'contain', opacity: 0.7 }}
+                />
               </div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontWeight: 500, lineHeight: 1.3 }}>{name}</div>
+              <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, lineHeight: 1.3 }}>{name}</div>
             </div>
           ))}
-          {/* Become a partner slot */}
-          <a href="mailto:ceo@plulai.com" style={{ border: '1px dashed rgba(28,176,246,0.25)', borderRadius: '10px', padding: '18px 12px', background: 'rgba(28,176,246,0.03)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', cursor: 'pointer', textDecoration: 'none' }}>
-            <div style={{ width: '44px', height: '44px', marginBottom: '8px', background: 'rgba(28,176,246,0.08)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>+</div>
-            <div style={{ fontSize: '11px', color: 'rgba(28,176,246,0.7)', fontWeight: 500 }}>Become a partner</div>
+          <a href="mailto:ceo@plulai.com" style={{ border: '1.5px dashed #B5D4F4', borderRadius: '14px', padding: '16px 10px', background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', cursor: 'pointer', textDecoration: 'none', transition: 'all .2s' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#EBF7FE')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <div style={{ width: '44px', height: '44px', marginBottom: '8px', background: '#EBF7FE', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#1CB0F6' }}>+</div>
+            <div style={{ fontSize: '11px', color: '#378ADD', fontWeight: 600 }}>Become a partner</div>
           </a>
         </div>
       </section>
 
-      <div style={S.sep} />
+      <Divider />
 
       {/* ── FAQ ── */}
-      <section id="faq" style={S.section}>
-        <SectionHead eyebrow="FAQ" title="Everything parents ask before signing up." />
-        <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', overflow: 'hidden', padding: '0 24px', background: '#0F1420' }}>
+      <section id="faq" style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
+        <SectionEyebrow text="FAQ" />
+        <SectionTitle>Everything parents ask <span style={{ color: '#1CB0F6' }}>before signing up.</span></SectionTitle>
+        <div style={{ marginTop: '8px', border: '1.5px solid #E8EDF2', borderRadius: '20px', overflow: 'hidden', background: '#fff' }}>
           {FAQS.map((item, i) => <FaqItem key={i} q={item.q} a={item.a} />)}
         </div>
       </section>
 
       {/* ── Final CTA ── */}
-      <section style={{ padding: '0 32px 80px', maxWidth: '720px', margin: '0 auto' }}>
-        <div style={{ background: '#0F1420', border: '1px solid rgba(28,176,246,0.15)', borderRadius: '16px', padding: '52px 36px', textAlign: 'center' }}>
-          <h2 style={{ fontSize: 'clamp(26px,4vw,36px)', fontWeight: 700, letterSpacing: '-0.8px', color: '#F1F5F9', marginBottom: '10px' }}>
-            Your child can start today.
-          </h2>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: '28px' }}>
-            15 days Free trial. No credit card. Arabic and English.<br />Ages 6–18 across the GCC.
-          </p>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/auth/signup" style={{ padding: '13px 30px', borderRadius: '9px', background: '#1CB0F6', color: '#fff', fontSize: '14px', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}>
-              Create a free account →
-            </Link>
-            <a href="mailto:schools@plulai.com" style={{ padding: '12px 22px', borderRadius: '9px', background: 'transparent', color: 'rgba(255,255,255,0.55)', fontSize: '14px', fontWeight: 500, border: '1px solid rgba(255,255,255,0.1)', textDecoration: 'none', display: 'inline-block' }}>
-              Book a school demo
-            </a>
+      <section style={{ padding: '0 24px 80px', maxWidth: '660px', margin: '0 auto' }}>
+        <div style={{ background: '#1A1A2E', borderRadius: '28px', padding: '56px 32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+          {/* Subtle glow */}
+          <div style={{ position: 'absolute', width: '400px', height: '400px', background: 'rgba(28,176,246,0.07)', borderRadius: '50%', top: '-200px', left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(88,204,2,0.12)', border: '1px solid rgba(88,204,2,0.2)', color: '#58CC02', fontSize: '11px', fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', padding: '5px 12px', borderRadius: '999px', marginBottom: '20px' }}>
+              ✓ 200+ learners already started
+            </div>
+            <h2 style={{ fontSize: 'clamp(28px,4vw,42px)', fontWeight: 900, letterSpacing: '-1px', color: '#fff', marginBottom: '10px', lineHeight: 1.08 }}>
+              Your child can<br />start today.
+            </h2>
+            <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, marginBottom: '28px' }}>
+              Free forever. No credit card. Arabic and English.<br />Ages 6–18 across the GCC.
+            </p>
+            <div style={{ display: 'flex', gap: '9px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link href="/auth/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '14px 30px', borderRadius: '12px', background: '#1CB0F6', color: '#fff', fontSize: '15px', fontWeight: 700, textDecoration: 'none' }}>
+                Create a free account →
+              </Link>
+              <a href="mailto:schools@plulai.com" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '13px 22px', borderRadius: '12px', background: 'transparent', color: 'rgba(255,255,255,0.55)', fontSize: '14px', fontWeight: 600, border: '1.5px solid rgba(255,255,255,0.15)', textDecoration: 'none' }}>
+                Book a school demo
+              </a>
+            </div>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', marginTop: '18px' }}>
+              Trusted by families across UAE · Saudi Arabia · Qatar · Kuwait · Bahrain · Oman
+            </p>
           </div>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', marginTop: '18px' }}>
-            Trusted by 200+ learners across UAE · Saudi Arabia · Qatar · Kuwait · Bahrain · Oman
-          </p>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '48px 32px 28px', background: '#0B0F1A' }}>
-        <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+      <footer style={{ borderTop: '1px solid #E8EDF2', padding: '48px 24px 28px', background: '#fff' }}>
+        <div style={{ maxWidth: '660px', margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '32px', marginBottom: '40px', flexWrap: 'wrap' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                 <div style={{ width: '28px', height: '28px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
                   <Image src="/icons/plulai.png" alt="Plulai" width={28} height={28} style={{ display: 'block' }} />
                 </div>
-                <span style={{ fontSize: '17px', fontWeight: 600, color: '#F1F5F9', letterSpacing: '-0.3px' }}>Plulai</span>
+                <span style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '-.4px', color: '#0A0A0F' }}>Plulai</span>
               </div>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', maxWidth: '190px', lineHeight: 1.6 }}>
-                AI learning for kids in the GCC — coding, AI & entrepreneurship in Arabic and English.
-              </p>
+              <p style={{ fontSize: '12px', color: '#94A3B8', maxWidth: '180px', lineHeight: 1.6 }}>AI learning for kids in the GCC — coding, AI & entrepreneurship in Arabic and English.</p>
             </div>
             <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap' }}>
               {[
-                { title: 'Platform', links: [['#tracks', 'Tracks'], ['#how-it-works', 'How it works'], ['#pricing', 'Pricing'], ['#quiz', 'Find a track'], ['/auth/signup', 'Sign up free'], ['/sharkkid', '🦈 Sharkkid']] },
-                { title: 'Institutions', links: [['#schools', 'For schools'], ['mailto:schools@plulai.com', 'Request demo'], ['mailto:partners@plulai.com', 'Curriculum guide']] },
-                { title: 'Contact', links: [['mailto:hello@plulai.com', 'hello@plulai.com'], ['mailto:schools@plulai.com', 'schools@plulai.com'], ['mailto:partners@plulai.com', 'partners@plulai.com']] },
+                { title: 'Platform',     links: [['#tracks', 'Tracks'], ['#how-it-works', 'How it works'], ['#pricing', 'Pricing'], ['#quiz', 'Find a track'], ['/auth/signup', 'Sign up free'], ['/sharkkid', '🦈 Sharkkid']] },
+                { title: 'Institutions', links: [['#schools', 'For schools'], ['mailto:schools@plulai.com', 'Request demo'], ['mailto:partners@plulai.com', 'Curriculum guide'], ['mailto:ceo@plulai.com', 'Become a partner']] },
+                { title: 'Contact',      links: [['mailto:hello@plulai.com', 'hello@plulai.com'], ['mailto:schools@plulai.com', 'schools@plulai.com'], ['mailto:partners@plulai.com', 'partners@plulai.com']] },
               ].map(col => (
                 <div key={col.title}>
-                  <h4 style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.25)', marginBottom: '12px' }}>{col.title}</h4>
+                  <h4 style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: '#94A3B8', marginBottom: '12px' }}>{col.title}</h4>
                   {col.links.map(([href, label]) => (
-                    <a key={label} href={href} style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.35)', textDecoration: 'none', marginBottom: '7px' }}>{label}</a>
+                    <a key={label} href={href} style={{ display: 'block', fontSize: '12px', color: '#64748B', textDecoration: 'none', marginBottom: '7px', transition: 'color .15s' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#0A0A0F')}
+                      onMouseLeave={e => (e.currentTarget.style.color = '#64748B')}>
+                      {label}
+                    </a>
                   ))}
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.06)', flexWrap: 'wrap', gap: '8px' }}>
-            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)' }}>© {new Date().getFullYear()} Plulai. The AI learning platform for kids in the GCC.</p>
-            <a href="mailto:hello@plulai.com" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', textDecoration: 'none' }}>hello@plulai.com</a>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '20px', borderTop: '1px solid #E8EDF2', flexWrap: 'wrap', gap: '8px' }}>
+            <p style={{ fontSize: '12px', color: '#94A3B8' }}>© {new Date().getFullYear()} Plulai. The AI learning platform for kids in the GCC.</p>
+            <a href="mailto:hello@plulai.com" style={{ fontSize: '12px', color: '#94A3B8', textDecoration: 'none' }}>hello@plulai.com</a>
           </div>
         </div>
       </footer>
