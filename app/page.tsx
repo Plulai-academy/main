@@ -149,8 +149,7 @@ function Landing() {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <a href="#" className="flex items-center gap-2">
-              <div className="size-10 rounded-xl shelf-blue grid place-items-center font-display font-bold text-xl">P</div>
-              <span className="font-display text-2xl font-bold" style={{ color: "var(--brand-blue)" }}>Plulai</span>
+              <Image src="/icons/plulai1.png" alt="Plulai" width={120} height={40} className="h-10 w-auto object-contain" />
             </a>
             <div className="hidden lg:flex items-center gap-6 text-sm font-bold text-foreground/70">
               <a href="#tracks" className="hover:text-foreground transition-colors">Tracks</a>
@@ -160,8 +159,8 @@ function Landing() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button className="hidden sm:block text-sm font-bold px-4 py-2 hover:text-[var(--brand-blue)] transition-colors">Log in</button>
-            <button className="shelf-blue text-sm font-bold py-2.5 px-5 rounded-xl">Start free →</button>
+            <a href="/auth/login" className="hidden sm:block text-sm font-bold px-4 py-2 hover:text-[var(--brand-blue)] transition-colors">Log in</a>
+            <a href="https://www.plulai.com/auth/signup" className="shelf-blue text-sm font-bold py-2.5 px-5 rounded-xl">Start free →</a>
           </div>
         </div>
       </nav>
@@ -226,18 +225,18 @@ function Landing() {
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 {isSchools ? (
                   <>
-                    <button className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg">
+                    <a href="https://www.plulai.com/auth/signup" className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg">
                       Request school demo →
-                    </button>
+                    </a>
                     <button className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
                       Download curriculum PDF
                     </button>
                   </>
                 ) : (
                   <>
-                    <button className="shelf-blue font-bold py-4 px-9 rounded-2xl text-lg">
+                    <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-9 rounded-2xl text-lg">
                       Start free trial →
-                    </button>
+                    </a>
                     <button className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
                       Take 60-sec quiz
                     </button>
@@ -252,7 +251,7 @@ function Landing() {
                   <div className="size-8 rounded-full bg-[var(--brand-cyan)] ring-2 ring-background" />
                 </div>
                 <span>
-                  {isSchools ? "Already powering 20+ GCC schools" : "Trusted by 5,000+ families across the GCC"}
+                  {isSchools ? "Already powering 9+ GCC schools" : "Trusted by 200+ families across the GCC"}
                 </span>
               </div>
             </div>
