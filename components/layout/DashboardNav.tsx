@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { href:'/dashboard/coach',       icon:'/icons/coach.png',       en:'AI Coach',     ar:'المدرب الذكي',   fr:'Coach IA'     },
   { href:'/dashboard/challenges',  icon:'/icons/challenges.png',  en:'Challenges',   ar:'التحديات',       fr:'Défis'        },
   { href:'/dashboard/shop',        icon:'/icons/shop.png',        en:'Shop',         ar:'المتجر',         fr:'Boutique'     },
-  { href:'/dashboard/streak',      icon:'/icons/streak.png',      en:'Streak',       ar:'السلسلة',        fr:'Série'        },
+  // { href:'/dashboard/streak',      icon:'/icons/streak.png',      en:'Streak',       ar:'السلسلة',        fr:'Série'        },
   { href:'/dashboard/badges',      icon:'/icons/badges.png',      en:'Badges',       ar:'الشارات',        fr:'Badges'       },
   { href:'/dashboard/leaderboard', icon:'/icons/leaderboard.png', en:'Leaderboard',  ar:'المتصدرون',      fr:'Classement'   },
   { href:'/dashboard/settings',    icon:'/icons/settings.png',    en:'Settings',     ar:'الإعدادات',      fr:'Paramètres'   },
