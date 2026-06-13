@@ -2,9 +2,121 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import mascot from "@/public/images/mascot.png";
-import dashboard from "@/public/images/dashboard.png";
+import mascot from "@/assets/mascot.png";
+import dashboard from "@/assets/dashboard.png";
 
+const inlineStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');
+
+  :root {
+    --radius: 1rem;
+    --background: oklch(0.18 0.04 265);
+    --foreground: oklch(0.97 0.01 250);
+    --surface: oklch(0.23 0.045 265);
+    --surface-2: oklch(0.27 0.05 265);
+    --card: oklch(0.23 0.045 265);
+    --card-foreground: oklch(0.97 0.01 250);
+    --popover: oklch(0.23 0.045 265);
+    --popover-foreground: oklch(0.97 0.01 250);
+    --primary: oklch(0.72 0.17 230);
+    --primary-foreground: oklch(0.15 0.04 265);
+    --secondary: oklch(0.3 0.05 265);
+    --secondary-foreground: oklch(0.97 0.01 250);
+    --muted: oklch(0.27 0.04 265);
+    --muted-foreground: oklch(0.7 0.02 260);
+    --accent: oklch(0.83 0.17 220);
+    --accent-foreground: oklch(0.15 0.04 265);
+    --destructive: oklch(0.6 0.22 25);
+    --destructive-foreground: oklch(0.97 0.01 250);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 12%);
+    --ring: oklch(0.72 0.17 230);
+    --brand-blue: #1CB0F6;
+    --brand-cyan: #14D4F4;
+    --brand-deep: #2B70C9;
+    --brand-gold: #FAA918;
+    --brand-red: #D33131;
+    --brand-light: #F5F5F5;
+    --brand-muted: #6F6F6F;
+    --shadow-blue: 0 4px 0 #2B70C9;
+    --shadow-gold: 0 4px 0 #C47D00;
+    --shadow-white: 0 4px 0 #D1D5DB;
+    --shadow-dark: 0 4px 0 rgba(0,0,0,0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border-color: oklch(1 0 0 / 10%); }
+
+  html, body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Nunito', system-ui, sans-serif;
+  }
+
+  .font-display, h1, h2, h3, h4 {
+    font-family: 'Fredoka', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  /* Shelf button utilities */
+  .shelf-blue {
+    background: var(--brand-blue);
+    color: white;
+    box-shadow: var(--shadow-blue);
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .shelf-blue:active { box-shadow: 0 0 0 var(--brand-deep); transform: translateY(4px); }
+
+  .shelf-gold {
+    background: var(--brand-gold);
+    color: #1A1A2E;
+    box-shadow: var(--shadow-gold);
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .shelf-gold:active { box-shadow: 0 0 0 #C47D00; transform: translateY(4px); }
+
+  .shelf-white {
+    background: white;
+    color: #1A1A2E;
+    box-shadow: var(--shadow-white);
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .shelf-white:active { box-shadow: 0 0 0 #D1D5DB; transform: translateY(4px); }
+
+  .shelf-dark {
+    background: var(--surface);
+    color: var(--foreground);
+    box-shadow: var(--shadow-dark);
+    transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .shelf-dark:active { box-shadow: 0 0 0 rgba(0,0,0,0.4); transform: translateY(4px); }
+
+  /* Backgrounds & surfaces */
+  .bg-background { background-color: var(--background); }
+  .bg-surface { background-color: var(--surface); }
+  .bg-surface\\/40 { background-color: oklch(0.23 0.045 265 / 40%); }
+  .bg-surface\\/60 { background-color: oklch(0.23 0.045 265 / 60%); }
+  .text-foreground { color: var(--foreground); }
+  .border-border { border-color: oklch(1 0 0 / 10%); }
+  .ring-border { --tw-ring-color: oklch(1 0 0 / 10%); }
+
+  /* Animations */
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  @keyframes glow-pulse {
+    0%, 100% { opacity: .5; }
+    50% { opacity: 1; }
+  }
+
+  .animate-bob { animation: bob 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite; }
+  .animate-marquee { animation: marquee 30s linear infinite; }
+  .animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
+`;
 
 const tracks = [
   { icon: "💻", title: "Coding", desc: "From block coding to Python. Build real apps and games while learning logic.", accent: "var(--brand-blue)", pct: 33 },
@@ -29,6 +141,8 @@ function Landing() {
   const isSchools = audience === "schools";
 
   return (
+    <>
+    <style dangerouslySetInnerHTML={{ __html: inlineStyles }} />
     <div className="min-h-screen bg-background text-foreground">
       {/* NAV */}
       <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
@@ -654,6 +768,7 @@ function Landing() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
 
