@@ -11,25 +11,15 @@ const XP_PER_LEVEL = 1000
 const getLevel      = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1
 const getLevelTitle = (level: number): string => {
   const tiers = [
-    'Rookie',
-    'Explorer',
-    'Builder',
-    'Creator',
-    'Innovator',
-    'Strategist',
-    'Visionary',
-    'Elite',
-    'Legend',
-    'Grandmaster',
+    'Rookie', 'Explorer', 'Builder', 'Creator', 'Innovator',
+    'Strategist', 'Visionary', 'Elite', 'Legend', 'Grandmaster',
   ]
-
   const tierIndex = Math.floor((level - 1) / 10)
   const tierLevel = ((level - 1) % 10) + 1
-
   const tier = tiers[Math.min(tierIndex, tiers.length - 1)]
-
   return `${tier} ${tierLevel}`
 }
+
 interface Props {
   userId:               string
   profile:              any
@@ -40,11 +30,13 @@ interface Props {
   allBadges:            any[]
   todayChallenge:       any
   challengeCompletions: any[]
+  balance?:             number | null
 }
 
 export default function DashboardClient({
   userId, profile, progress, skillProgress, lessonCompletions,
   userBadges, allBadges, todayChallenge, challengeCompletions,
+  balance,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -87,6 +79,7 @@ export default function DashboardClient({
   }
 
   const lang = profile?.preferred_language || 'en'
+
   const greetingsByLang: Record<string, Record<string, string>> = {
     en: {
       mini:   `Hey ${profile.display_name}! Ready to learn something amazing today? 🌟`,
@@ -116,9 +109,16 @@ export default function DashboardClient({
 
   const statItems = [
     { emoji:'🔥', val:`${streak}`, label: lang === 'ar' ? 'أيام' : lang === 'fr' ? 'Jours' : 'days',      sublabel: lang === 'ar' ? 'متتالية' : lang === 'fr' ? 'de suite' : 'streak',   color:'text-[#FAA918]',  bg:'bg-[#FAA918]/10' },
-    { emoji:'📚', val:`${lessonCompletions.length}`, label: lang === 'ar' ? 'درس' : lang === 'fr' ? 'leçons' : 'lessons', sublabel: lang === 'ar' ? 'مكتملة' : lang === 'fr' ? 'terminées' : 'done', color:'text-[#1CB0F6]',      bg:'bg-[#1CB0F6]/10' },
+    { emoji:'📚', val:`${lessonCompletions.length}`, label: lang === 'ar' ? 'درس' : lang === 'fr' ? 'leçons' : 'lessons', sublabel: lang === 'ar' ? 'مكتملة' : lang === 'fr' ? 'terminées' : 'done', color:'text-[#1CB0F6]', bg:'bg-[#1CB0F6]/10' },
     { emoji:'🏆', val:`${earnedBadges.length}`,      label: lang === 'ar' ? 'شارة' : lang === 'fr' ? 'badges' : 'badges',   sublabel: lang === 'ar' ? 'مكتسبة' : lang === 'fr' ? 'gagnés' : 'earned',  color:'text-[#FAA918]',  bg:'bg-[#FAA918]/10' },
   ]
+
+  // i18n helpers for the balance banner
+  const balanceI18n = {
+    label:   lang === 'ar' ? 'رصيدك' : lang === 'fr' ? 'Ton solde' : 'Your balance',
+    cta:     lang === 'ar' ? 'تسوّق الآن ←' : lang === 'fr' ? 'Visiter la boutique →' : 'Visit shop →',
+    noCoins: lang === 'ar' ? 'لا يوجد رصيد بعد — أكمل التحديات لكسب العملات!' : lang === 'fr' ? 'Aucune pièce pour l\'instant — complète des défis pour en gagner !' : 'No coins yet — complete challenges to earn some!',
+  }
 
   return (
     <div className="p-4 md:p-6 lg:p-10 max-w-5xl text-[#F5F5F5]">
@@ -147,6 +147,45 @@ export default function DashboardClient({
         {toast}
       </div>
 
+      {/* ── Wallet Balance Banner ── */}
+      {balance != null && (
+        <Link
+          href="/dashboard/shop"
+          className={cn(
+            'group relative flex items-center justify-between gap-4 rounded-3xl px-5 py-4 mb-6 md:mb-8 overflow-hidden',
+            'border border-yellow-400/20 hover:border-yellow-400/40',
+            'bg-gradient-to-r from-yellow-400/8 via-yellow-300/5 to-transparent',
+            'hover:from-yellow-400/14 hover:via-yellow-300/8',
+            'transition-all duration-300 animate-slide-up',
+          )}
+        >
+          {/* ambient glow */}
+          <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-24 h-24 bg-yellow-400/15 rounded-full blur-2xl pointer-events-none" />
+
+          <div className="relative flex items-center gap-3 min-w-0">
+            {/* coin stack */}
+            <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-yellow-400/15 border border-yellow-400/25 flex items-center justify-center text-2xl shadow-inner">
+              🪙
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-yellow-300/50 leading-none mb-1">
+                {balanceI18n.label}
+              </div>
+              <div className="font-fredoka text-2xl md:text-3xl text-yellow-300 leading-none">
+                {balance > 0 ? balance.toLocaleString() : <span className="text-base font-bold text-yellow-300/50">{balanceI18n.noCoins}</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* CTA — hidden on very small screens, visible md+ */}
+          {balance > 0 && (
+            <div className="relative hidden sm:flex items-center gap-2 shrink-0 text-yellow-300/60 group-hover:text-yellow-300 font-extrabold text-sm transition-colors duration-200">
+              {balanceI18n.cta}
+            </div>
+          )}
+        </Link>
+      )}
+
       {/* Greeting */}
       <div className="mb-6 md:mb-8 animate-slide-up">
         <h1 className="font-fredoka text-2xl md:text-3xl lg:text-4xl mb-1 leading-tight text-[#F5F5F5]">
@@ -174,7 +213,6 @@ export default function DashboardClient({
 
       {/* XP Card */}
       <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 mb-5 md:mb-6 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
-        {/* Subtle ambient glow top-right */}
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#1CB0F6]/8 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative flex items-start justify-between mb-5 gap-3">
@@ -193,18 +231,15 @@ export default function DashboardClient({
           </div>
         </div>
 
-        {/* XP bar with shimmer */}
         <div className="relative h-4 md:h-5 bg-card2 rounded-full overflow-hidden mb-5 ring-1 ring-white/5">
           <div
             className="h-full rounded-full transition-all duration-700 relative overflow-hidden"
             style={{ width: `${xpPct}%`, background: 'linear-gradient(90deg, #1CB0F6 0%, #14D4F4 100%)' }}
           >
-            {/* shimmer sweep */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -skew-x-12 animate-[shimmer_2.5s_ease-in-out_infinite]" />
           </div>
         </div>
 
-        {/* Stats row */}
         <div className="grid grid-cols-3 gap-2 md:gap-3">
           {statItems.map(s => (
             <div key={s.label} className={cn('rounded-2xl p-3 md:p-4 text-center border border-white/5', s.bg)}>
@@ -308,7 +343,6 @@ export default function DashboardClient({
         <div className="lg:col-span-2 relative rounded-3xl p-5 md:p-6 shadow-xl animate-slide-up overflow-hidden border border-[#2B70C9]/15"
           style={{ background: 'linear-gradient(135deg, rgba(28,176,246,0.12) 0%, rgba(20,212,244,0.08) 100%)' }}
         >
-          {/* Decorative orbs */}
           <div className="absolute top-0 right-0 w-48 h-48 bg-[#14D4F4]/8 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-36 h-36 bg-[#2B70C9]/8 rounded-full blur-3xl pointer-events-none" />
 
