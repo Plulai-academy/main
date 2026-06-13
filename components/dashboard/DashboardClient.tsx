@@ -53,8 +53,8 @@ export default function DashboardClient({
   const streak    = progress?.streak || 0
 
   const earnedBadgeIds = userBadges.map((b: any) => b.badge_id)
-  const earnedBadges   = allBadges.filter((b: any)  => earnedBadgeIds.includes(b.id))
-  const lockedBadges   = allBadges.filter((b: any)  => !earnedBadgeIds.includes(b.id)).slice(0, 3)
+  const earnedBadges   = allBadges.filter((b: any) => earnedBadgeIds.includes(b.id))
+  const lockedBadges   = allBadges.filter((b: any) => !earnedBadgeIds.includes(b.id)).slice(0, 3)
 
   const isChallengeComplete = todayChallenge
     ? challengeCompletions.some((c: any) => c.challenge_id === todayChallenge.id)
@@ -101,6 +101,7 @@ export default function DashboardClient({
     },
   }
   const greetings = greetingsByLang[lang] ?? greetingsByLang.en
+
   const streakMsg = lang === 'ar'
     ? (streak > 0 ? `🔥 ${streak} أيام متتالية!` : '🌱 ابدأ بإتمام درس اليوم!')
     : lang === 'fr'
@@ -108,22 +109,15 @@ export default function DashboardClient({
     : (streak > 0 ? `🔥 ${streak}-day streak — keep it up!` : '🌱 Start your streak by completing a lesson today!')
 
   const statItems = [
-    { emoji:'🔥', val:`${streak}`, label: lang === 'ar' ? 'أيام' : lang === 'fr' ? 'Jours' : 'days',      sublabel: lang === 'ar' ? 'متتالية' : lang === 'fr' ? 'de suite' : 'streak',   color:'text-[#FAA918]',  bg:'bg-[#FAA918]/10' },
-    { emoji:'📚', val:`${lessonCompletions.length}`, label: lang === 'ar' ? 'درس' : lang === 'fr' ? 'leçons' : 'lessons', sublabel: lang === 'ar' ? 'مكتملة' : lang === 'fr' ? 'terminées' : 'done', color:'text-[#1CB0F6]', bg:'bg-[#1CB0F6]/10' },
-    { emoji:'🏆', val:`${earnedBadges.length}`,      label: lang === 'ar' ? 'شارة' : lang === 'fr' ? 'badges' : 'badges',   sublabel: lang === 'ar' ? 'مكتسبة' : lang === 'fr' ? 'gagnés' : 'earned',  color:'text-[#FAA918]',  bg:'bg-[#FAA918]/10' },
+    { emoji:'🔥', val:`${streak}`,                   label: lang === 'ar' ? 'أيام' : lang === 'fr' ? 'Jours'   : 'days',    sublabel: lang === 'ar' ? 'متتالية' : lang === 'fr' ? 'de suite'  : 'streak', color:'text-[#FAA918]', bg:'bg-[#FAA918]/10' },
+    { emoji:'📚', val:`${lessonCompletions.length}`, label: lang === 'ar' ? 'درس'  : lang === 'fr' ? 'leçons'  : 'lessons', sublabel: lang === 'ar' ? 'مكتملة'  : lang === 'fr' ? 'terminées' : 'done',   color:'text-[#1CB0F6]', bg:'bg-[#1CB0F6]/10' },
+    { emoji:'🏆', val:`${earnedBadges.length}`,      label: lang === 'ar' ? 'شارة' : lang === 'fr' ? 'badges'  : 'badges',  sublabel: lang === 'ar' ? 'مكتسبة'  : lang === 'fr' ? 'gagnés'    : 'earned', color:'text-[#FAA918]', bg:'bg-[#FAA918]/10' },
   ]
-
-  // i18n helpers for the balance banner
-  const balanceI18n = {
-    label:   lang === 'ar' ? 'رصيدك' : lang === 'fr' ? 'Ton solde' : 'Your balance',
-    cta:     lang === 'ar' ? 'تسوّق الآن ←' : lang === 'fr' ? 'Visiter la boutique →' : 'Visit shop →',
-    noCoins: lang === 'ar' ? 'لا يوجد رصيد بعد — أكمل التحديات لكسب العملات!' : lang === 'fr' ? 'Aucune pièce pour l\'instant — complète des défis pour en gagner !' : 'No coins yet — complete challenges to earn some!',
-  }
 
   return (
     <div className="p-4 md:p-6 lg:p-10 max-w-5xl text-[#F5F5F5]">
 
-      {/* Level-up modal */}
+      {/* ── Level-up modal ── */}
       {levelUpMsg && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md px-4"
@@ -137,7 +131,7 @@ export default function DashboardClient({
         </div>
       )}
 
-      {/* Toast */}
+      {/* ── Toast ── */}
       <div className={cn(
         'fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:w-auto z-50 px-5 py-3 rounded-2xl',
         'bg-card/95 backdrop-blur-sm border border-[#14D4F4]/40 text-[#14D4F4] font-bold text-sm shadow-xl shadow-[#14D4F4]/10',
@@ -151,42 +145,48 @@ export default function DashboardClient({
       {balance != null && (
         <Link
           href="/dashboard/shop"
-          className={cn(
-            'group relative flex items-center justify-between gap-4 rounded-3xl px-5 py-4 mb-6 md:mb-8 overflow-hidden',
-            'border border-yellow-400/20 hover:border-yellow-400/40',
-            'bg-gradient-to-r from-yellow-400/8 via-yellow-300/5 to-transparent',
-            'hover:from-yellow-400/14 hover:via-yellow-300/8',
-            'transition-all duration-300 animate-slide-up',
-          )}
+          className="flex items-center justify-between gap-4 px-5 py-4 mb-6 md:mb-8 rounded-3xl bg-card border border-white/10 hover:border-yellow-400/40 transition-all duration-200 animate-slide-up group"
         >
-          {/* ambient glow */}
-          <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-24 h-24 bg-yellow-400/15 rounded-full blur-2xl pointer-events-none" />
-
-          <div className="relative flex items-center gap-3 min-w-0">
-            {/* coin stack */}
-            <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-yellow-400/15 border border-yellow-400/25 flex items-center justify-center text-2xl shadow-inner">
+          {/* Left: icon + amount */}
+          <div className="flex items-center gap-4 min-w-0">
+            <div className={cn(
+              'w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0 border',
+              balance > 0
+                ? 'bg-yellow-400/15 border-yellow-400/30'
+                : 'bg-white/5 border-white/10 opacity-50'
+            )}>
               🪙
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-yellow-300/50 leading-none mb-1">
-                {balanceI18n.label}
+              <div className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">
+                {lang === 'ar' ? 'رصيدك' : lang === 'fr' ? 'Ton solde' : 'Your balance'}
               </div>
-              <div className="font-fredoka text-2xl md:text-3xl text-yellow-300 leading-none">
-                {balance > 0 ? balance.toLocaleString() : <span className="text-base font-bold text-yellow-300/50">{balanceI18n.noCoins}</span>}
-              </div>
+              {balance > 0 ? (
+                <div className="font-fredoka text-2xl md:text-3xl text-yellow-400 leading-none">
+                  {balance.toLocaleString()}
+                </div>
+              ) : (
+                <div className="text-sm font-semibold text-white/40">
+                  {lang === 'ar'
+                    ? 'أكمل التحديات لكسب العملات!'
+                    : lang === 'fr'
+                    ? 'Complète des défis pour gagner des pièces !'
+                    : 'Complete challenges to earn coins!'}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* CTA — hidden on very small screens, visible md+ */}
-          {balance > 0 && (
-            <div className="relative hidden sm:flex items-center gap-2 shrink-0 text-yellow-300/60 group-hover:text-yellow-300 font-extrabold text-sm transition-colors duration-200">
-              {balanceI18n.cta}
-            </div>
-          )}
+          {/* Right: CTA pill */}
+          <div className="flex items-center gap-2 shrink-0 px-4 py-2 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-sm font-bold group-hover:bg-yellow-400/20 transition-all duration-200">
+            {balance > 0
+              ? (lang === 'ar' ? '← المتجر' : lang === 'fr' ? 'Boutique →' : 'Shop →')
+              : (lang === 'ar' ? 'كيف أكسب؟' : lang === 'fr' ? 'Comment gagner ?' : 'How to earn?')}
+          </div>
         </Link>
       )}
 
-      {/* Greeting */}
+      {/* ── Greeting ── */}
       <div className="mb-6 md:mb-8 animate-slide-up">
         <h1 className="font-fredoka text-2xl md:text-3xl lg:text-4xl mb-1 leading-tight text-[#F5F5F5]">
           {greetings[profile.age_group] || greetings.pro}
@@ -194,7 +194,7 @@ export default function DashboardClient({
         <p className="text-[#6F6F6F] font-semibold text-sm md:text-base">{streakMsg}</p>
       </div>
 
-      {/* Start Learning Section */}
+      {/* ── Start Learning ── */}
       <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 mb-5 md:mb-6 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
         <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#1CB0F6]/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -211,7 +211,7 @@ export default function DashboardClient({
         </div>
       </div>
 
-      {/* XP Card */}
+      {/* ── XP Card ── */}
       <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 mb-5 md:mb-6 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#1CB0F6]/8 rounded-full blur-2xl pointer-events-none" />
 
@@ -253,7 +253,7 @@ export default function DashboardClient({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
 
-        {/* Daily Challenge */}
+        {/* ── Daily Challenge ── */}
         <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
           <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-[#2B70C9]/6 rounded-full blur-2xl pointer-events-none" />
           <div className="relative flex items-center justify-between mb-4 gap-2">
@@ -292,7 +292,7 @@ export default function DashboardClient({
           )}
         </div>
 
-        {/* Badges */}
+        {/* ── Badges ── */}
         <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
           <div className="absolute -top-8 -right-8 w-32 h-32 bg-[#FAA918]/5 rounded-full blur-2xl pointer-events-none" />
           <div className="relative flex items-center justify-between mb-4">
@@ -339,8 +339,9 @@ export default function DashboardClient({
           )}
         </div>
 
-        {/* Dream Project */}
-        <div className="lg:col-span-2 relative rounded-3xl p-5 md:p-6 shadow-xl animate-slide-up overflow-hidden border border-[#2B70C9]/15"
+        {/* ── Dream Project ── */}
+        <div
+          className="lg:col-span-2 relative rounded-3xl p-5 md:p-6 shadow-xl animate-slide-up overflow-hidden border border-[#2B70C9]/15"
           style={{ background: 'linear-gradient(135deg, rgba(28,176,246,0.12) 0%, rgba(20,212,244,0.08) 100%)' }}
         >
           <div className="absolute top-0 right-0 w-48 h-48 bg-[#14D4F4]/8 rounded-full blur-3xl pointer-events-none" />
@@ -363,7 +364,7 @@ export default function DashboardClient({
               </Link>
               <button
                 onClick={() => setShareCard({
-                  type: 'level',
+                  type:        'level',
                   childName:   profile.display_name,
                   childAvatar: profile.avatar ?? '🧑‍🚀',
                   newLevel:    level,
@@ -377,6 +378,7 @@ export default function DashboardClient({
             </div>
           </div>
         </div>
+
       </div>
 
       {shareCard && (
