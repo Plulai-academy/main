@@ -1,562 +1,220 @@
-'use client'
+import Image from "next/image";
+import { useState } from "react";
+import mascot from "@/assets/mascot.png";
+import dashboard from "@/assets/dashboard.png";
 
-import Link from 'next/link'
-import Image from 'next/image'
-import { useState } from 'react'
-import { Nunito, Fredoka } from 'next/font/google'
+const tracks = [
+  { icon: "💻", title: "Coding", desc: "From block coding to Python. Build real apps and games while learning logic.", accent: "var(--brand-blue)", pct: 33 },
+  { icon: "🧠", title: "AI & Future Tech", desc: "Understand how AI works. Prompt engineering and ML basics for curious minds.", accent: "var(--brand-cyan)", pct: 50 },
+  { icon: "💡", title: "Entrepreneurship", desc: "Launch your first digital business. Marketing, budget, and soft skills.", accent: "var(--brand-gold)", pct: 25 },
+];
 
-const nunito = Nunito({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-  display: 'swap',
-})
+const partners = ["TECHPARK", "GULF SCHOOLS", "MINISTRY OF EDU", "LEARNING HUB", "DUBAI AI", "GCC ED-COUNCIL", "RIYADH ACADEMY", "QATAR LEARNING"];
 
-const fredoka = Fredoka({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  display: 'swap',
-})
+const faqs = [
+  { q: "What exactly is Plulai?", a: "Plulai is an AI-powered learning platform for kids aged 6–18 in the GCC. Children learn coding, AI, and entrepreneurship through a personal AI coach, 500+ lessons, and real projects — in English and Arabic." },
+  { q: "What happens after the 14-day trial?", a: "After your 14-day free trial you can subscribe to Pro or continue with limited access. No credit card required to start." },
+  { q: "Is the Arabic real — or machine translated?", a: "Real Arabic — not machine-translated. Full RTL interface and an AI coach that teaches natively in Arabic, with GCC-specific examples throughout." },
+  { q: "How long are the lessons?", a: "15–25 minutes each. Designed to fit after school without replacing homework time. Most kids end up doing two." },
+  { q: "Is it safe for my child?", a: "No ads — ever. AI responses are filtered for child safety. Parents control the account and receive weekly summaries. Your child's data is never sold." },
+  { q: "How do school licenses work?", a: "Bulk seats from 50–5,000 students. Teacher dashboard, curriculum alignment, regional discounts, and dedicated support included." },
+];
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-type QuizOption  = { label: string; sub: string; value: string; icon: string }
-type QuizStep    = { id: string; question: string; options: QuizOption[] }
-type TrackResult = { icon: string; color: string; bg: string; border: string; title: string; desc: string }
+function Landing() {
+  const [audience, setAudience] = useState<"families" | "schools">("families");
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const isSchools = audience === "schools";
 
-// ─── Palette ──────────────────────────────────────────────────────────────────
-const C = {
-  blue:   '#1CB0F6',
-  cyan:   '#14D4F4',
-  deep:   '#2B70C9',
-  gold:   '#FAA918',
-  red:    '#D33131',
-  bg:     '#F5F5F5',
-  text:   '#3C3C3C',
-  muted:  '#6F6F6F',
-  white:  '#FFFFFF',
-  dark:   '#1A1A2E',
-  // border shadows (Duolingo "shelf" effect)
-  blueShadow: '#1899D6',
-  goldShadow: '#D98E00',
-  redShadow:  '#A82020',
-  greenShadow:'#58A700',
-  green:  '#58CC02',
-}
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const QUIZ_STEPS: QuizStep[] = [
-  {
-    id: 'age',
-    question: 'How old is your child?',
-    options: [
-      { label: '6–8 years',   sub: 'Mini Explorer',   value: 'mini',   icon: '🌱' },
-      { label: '9–11 years',  sub: 'Junior Creator',  value: 'junior', icon: '⚡' },
-      { label: '12–14 years', sub: 'Pro Explorer',    value: 'pro',    icon: '🚀' },
-      { label: '15–18 years', sub: 'Tech Expert',     value: 'expert', icon: '🔥' },
-    ],
-  },
-  {
-    id: 'interest',
-    question: 'What excites them most?',
-    options: [
-      { label: 'Building apps & games', sub: 'Coding track',     value: 'coding', icon: '💻' },
-      { label: 'AI & smart tech',       sub: 'AI track',         value: 'ai',     icon: '🧠' },
-      { label: 'Starting a business',   sub: 'Entrepreneurship', value: 'bizz',   icon: '💡' },
-      { label: 'Not sure yet',          sub: "We'll guide you",  value: 'all',    icon: '🗺️' },
-    ],
-  },
-  {
-    id: 'goal',
-    question: 'What matters most to you?',
-    options: [
-      { label: 'Screen time with purpose', sub: '', value: 'screen', icon: '📱' },
-      { label: 'Future career advantage',  sub: '', value: 'career', icon: '🏆' },
-      { label: 'Building confidence',      sub: '', value: 'conf',   icon: '💪' },
-      { label: 'Real skills, not theory',  sub: '', value: 'skills', icon: '🛠️' },
-    ],
-  },
-]
-
-const TRACK_RESULT: Record<string, TrackResult> = {
-  coding: { icon: '💻', color: C.blue,  bg: '#E5F6FD', border: C.blueShadow, title: 'Coding Track',           desc: 'Start with Python. By end of module 1, your child will have a working program they built themselves.' },
-  ai:     { icon: '🧠', color: C.green, bg: '#EDFFD4', border: C.greenShadow,title: 'AI Track',               desc: 'Start with how AI works, then build a machine learning project. Best for curious problem-solvers.' },
-  bizz:   { icon: '💡', color: C.gold,  bg: '#FFF4DC', border: C.goldShadow, title: 'Entrepreneurship Track', desc: 'From idea to pitch. Best for kids who are creative and love building things.' },
-  all:    { icon: '🗺️', color: C.blue,  bg: '#E5F6FD', border: C.blueShadow, title: 'Full Curriculum',        desc: 'Start with Coding — the foundation for everything. Switch tracks any time with AI coach guidance.' },
-}
-
-const FAQS = [
-  { q: 'What exactly is Plulai?',                     a: 'Plulai is an AI-powered learning platform for kids aged 6–18 in the GCC. Children learn coding, AI, and entrepreneurship through a personal AI coach, 500+ lessons, and real projects — in English and Arabic.' },
-  { q: 'What happens after the 14-day trial?',        a: 'After your 14-day free trial you can choose to subscribe to Pro or continue with limited access. No credit card is required to start — just sign up and explore.' },
-  { q: 'Is the Arabic real — or machine translated?', a: 'Real Arabic — not machine-translated. Full RTL interface and an AI coach that teaches natively in Arabic, with GCC-specific examples throughout.' },
-  { q: 'How long are the lessons?',                   a: '15–25 minutes each. Designed to fit after school without replacing homework time. The streak system encourages one lesson per day — most kids end up doing two.' },
-  { q: 'Is it safe for my child?',                    a: "No ads — ever. AI responses are filtered for child safety. Parents control the account and receive weekly summaries. Your child's data is never sold." },
-  { q: 'How is it different from Scratch or YouTube?', a: "Plulai has a personalised AI coach that adapts to your child. It covers AI and entrepreneurship alongside coding, works in Arabic, is designed for the GCC, and builds a real portfolio — not just a history of completed videos." },
-]
-
-const PARTNERS = [
-  { name: 'Business Success',         logo: '/partners/bs.png'        },
-  { name: 'LingoVille',               logo: '/partners/lingo.png'     },
-  { name: 'The Intelligent Inventor', logo: '/partners/tie.png'       },
-  { name: 'Les Élites Juniors',       logo: '/partners/elites.png'    },
-  { name: 'La Coupole',               logo: '/partners/lacoupole.png' },
-  { name: 'First Skills Club',        logo: '/partners/fsc.jpg'       },
-  { name: 'Pinacle',                  logo: '/partners/pinacle.png'   },
-  { name: 'Sfax International Fair',  logo: '/partners/foirsfax.png'  },
-  { name: 'Growth Zone',              logo: '/partners/gz.png'        },
-  { name: 'Scouts',                   logo: '/partners/scouts.jpeg'   },
-]
-
-// ─── Duolingo-style "shelf" button ────────────────────────────────────────────
-function ShelfButton({
-  href, children, bg, shadow, color = '#fff', fontSize = '15px', fullWidth = false, style = {}, onClick,
-}: {
-  href?: string; children: React.ReactNode; bg: string; shadow: string; color?: string;
-  fontSize?: string; fullWidth?: boolean; style?: React.CSSProperties; onClick?: () => void
-}) {
-  const base: React.CSSProperties = {
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    gap: '8px', padding: '14px 28px', borderRadius: '14px',
-    background: bg, color, fontSize, fontWeight: 800,
-    border: `2px solid ${shadow}`,
-    boxShadow: `0 4px 0 ${shadow}`,
-    textDecoration: 'none', cursor: 'pointer',
-    transition: 'all .1s ease',
-    width: fullWidth ? '100%' : undefined,
-    ...style,
-  }
-  const handleDown = (e: React.MouseEvent<HTMLElement>) => {
-    e.currentTarget.style.boxShadow = `0 2px 0 ${shadow}`
-    e.currentTarget.style.transform = 'translateY(2px)'
-  }
-  const handleUp = (e: React.MouseEvent<HTMLElement>) => {
-    e.currentTarget.style.boxShadow = `0 4px 0 ${shadow}`
-    e.currentTarget.style.transform = 'none'
-  }
-  if (href) return (
-    <Link href={href} style={base} onMouseDown={handleDown} onMouseUp={handleUp} onMouseLeave={handleUp}>
-      {children}
-    </Link>
-  )
   return (
-    <button onClick={onClick} style={{ ...base, border: `2px solid ${shadow}` }} onMouseDown={handleDown} onMouseUp={handleUp} onMouseLeave={handleUp}>
-      {children}
-    </button>
-  )
-}
-
-// ─── XP Bar ───────────────────────────────────────────────────────────────────
-function XPBar({ label, pct, color }: { label: string; pct: number; color: string }) {
-  return (
-    <div style={{ marginBottom: '8px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: C.muted, marginBottom: '4px' }}>
-        <span>{label}</span><span>{pct}%</span>
-      </div>
-      <div style={{ height: '12px', borderRadius: '999px', background: '#E5E5E5', overflow: 'hidden' }}>
-        <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: '999px', transition: 'width 1s ease' }} />
-      </div>
-    </div>
-  )
-}
-
-// ─── Duolingo-style card ──────────────────────────────────────────────────────
-function ShelfCard({ children, style = {} }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div style={{
-      background: C.white, borderRadius: '20px',
-      border: `2px solid #E5E5E5`,
-      boxShadow: `0 4px 0 #C9C9C9`,
-      padding: '24px', ...style
-    }}>
-      {children}
-    </div>
-  )
-}
-
-// ─── FAQ item ─────────────────────────────────────────────────────────────────
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div style={{ borderBottom: `2px solid #E5E5E5` }} className="last:border-0">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between gap-4 text-left"
-        style={{ padding: '18px 24px', background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}
-      >
-        <span style={{ fontSize: '15px', fontWeight: 700, color: C.text, fontFamily: 'inherit' }}>{q}</span>
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
-          style={{ flexShrink: 0, color: C.muted, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
-          <path d="M4 7l5 5 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      {open && <p style={{ fontSize: '14px', color: C.muted, lineHeight: 1.7, padding: '0 24px 18px' }}>{a}</p>}
-    </div>
-  )
-}
-
-// ─── Quiz ─────────────────────────────────────────────────────────────────────
-function TrackQuiz() {
-  const [step, setStep]         = useState(0)
-  const [answers, setAnswers]   = useState<Record<string, string>>({})
-  const [selected, setSelected] = useState<string | null>(null)
-
-  const currentQ = QUIZ_STEPS[step - 1]
-  const result   = TRACK_RESULT[answers.interest ?? 'coding']
-
-  function next() {
-    if (!selected) return
-    const newAnswers = { ...answers, [currentQ.id]: selected }
-    setAnswers(newAnswers)
-    setSelected(null)
-    setStep(step < QUIZ_STEPS.length ? step + 1 : QUIZ_STEPS.length + 1)
-  }
-
-  if (step === 0) return (
-    <div style={{ textAlign: 'center', padding: '8px 0' }}>
-      <div style={{ fontSize: '52px', marginBottom: '12px' }}>🎯</div>
-      <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.blue, marginBottom: '6px' }}>3 questions · 60 seconds</p>
-      <h3 style={{ fontSize: '24px', fontWeight: 800, color: C.text, marginBottom: '8px' }}>Find your child&apos;s track</h3>
-      <p style={{ fontSize: '14px', color: C.muted, margin: '0 auto 24px', maxWidth: '260px', lineHeight: 1.6 }}>Tell us their age and interests — we&apos;ll recommend exactly where to start.</p>
-      <ShelfButton bg={C.blue} shadow={C.blueShadow} onClick={() => setStep(1)}>
-        Start the quiz →
-      </ShelfButton>
-    </div>
-  )
-
-  if (step === QUIZ_STEPS.length + 1) return (
-    <div style={{ textAlign: 'center', padding: '8px 0' }}>
-      <div style={{ fontSize: '52px', marginBottom: '12px' }}>{result.icon}</div>
-      <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.07em', color: result.color, marginBottom: '6px' }}>Recommended track</p>
-      <h3 style={{ fontSize: '24px', fontWeight: 800, color: C.text, marginBottom: '8px' }}>{result.title}</h3>
-      <p style={{ fontSize: '14px', color: C.muted, lineHeight: 1.65, margin: '0 auto 24px', maxWidth: '260px' }}>{result.desc}</p>
-      <ShelfButton href="/auth/signup" bg={C.blue} shadow={C.blueShadow} fullWidth>
-        Start {result.title} — Free →
-      </ShelfButton>
-      <p style={{ fontSize: '12px', color: C.muted, margin: '12px 0 10px' }}>No credit card · 60 seconds to sign up</p>
-      <button onClick={() => { setStep(0); setAnswers({}); setSelected(null) }} style={{ fontSize: '12px', color: C.muted, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit' }}>
-        Start over
-      </button>
-    </div>
-  )
-
-  const progress = Math.round((step / QUIZ_STEPS.length) * 100)
-  return (
-    <div>
-      {/* Progress bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-        <div style={{ flex: 1, height: '14px', borderRadius: '999px', background: '#E5E5E5', overflow: 'hidden', border: '2px solid #D0D0D0' }}>
-          <div style={{ height: '100%', width: `${progress}%`, background: C.blue, borderRadius: '999px', transition: 'width .4s ease' }} />
-        </div>
-        <span style={{ fontSize: '12px', color: C.muted, fontWeight: 800, flexShrink: 0 }}>{step}/{QUIZ_STEPS.length}</span>
-      </div>
-      <h3 style={{ fontSize: '19px', fontWeight: 800, color: C.text, marginBottom: '16px' }}>{currentQ.question}</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-        {currentQ.options.map(opt => (
-          <button key={opt.value} onClick={() => setSelected(opt.value)} style={{
-            textAlign: 'left', padding: '14px', borderRadius: '14px', cursor: 'pointer',
-            border: selected === opt.value ? `2px solid ${C.blue}` : '2px solid #E5E5E5',
-            boxShadow: selected === opt.value ? `0 4px 0 ${C.blueShadow}` : '0 4px 0 #C9C9C9',
-            background: selected === opt.value ? '#E5F6FD' : C.white,
-            transition: 'all .1s', fontFamily: 'inherit',
-          }}>
-            <div style={{ fontSize: '22px', marginBottom: '6px' }}>{opt.icon}</div>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: C.text, lineHeight: 1.3 }}>{opt.label}</div>
-            {opt.sub && <div style={{ fontSize: '11px', color: C.muted, marginTop: '2px', fontWeight: 600 }}>{opt.sub}</div>}
-          </button>
-        ))}
-      </div>
-      <ShelfButton
-        bg={selected ? C.blue : '#E5E5E5'}
-        shadow={selected ? C.blueShadow : '#C9C9C9'}
-        color={selected ? '#fff' : C.muted}
-        fullWidth
-        onClick={next}
-        style={{ opacity: selected ? 1 : 0.7 }}
-      >
-        {step === QUIZ_STEPS.length ? 'See my recommendation →' : 'Next →'}
-      </ShelfButton>
-    </div>
-  )
-}
-
-// ─── Global CSS ───────────────────────────────────────────────────────────────
-const fredokaFamily = fredoka.style.fontFamily
-const globalStyles = `
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  h1, h2, h3, h4, .fredoka { font-family: ${fredokaFamily}, cursive !important; letter-spacing: -0.3px; }
-  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
-  .shelf-hover:hover { transform: translateY(-3px) !important; transition: all .2s !important; }
-`
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-export default function LandingPage() {
-  return (
-    <div className={nunito.className} style={{ background: C.bg, color: C.text }}>
-      {/* eslint-disable-next-line react/no-danger */}
-      <style dangerouslySetInnerHTML={{ __html: globalStyles }} />
-
-      {/* ── Nav ── */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 32px', height: '64px',
-        background: C.white,
-        borderBottom: `3px solid ${C.bg}`,
-      }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
-            <Image src="/icons/plulaiw.png" alt="Plulai" width={40} height={40} style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
-          </div>
-          <span style={{ fontSize: '22px', fontWeight: 700, color: C.text, fontFamily: `${fredokaFamily}, cursive` }}>Plulai</span>
-        </Link>
-
-        <div className="hidden md:flex" style={{ gap: '4px' }}>
-          {[['#tracks', 'Tracks'], ['#how-it-works', 'How it works'], ['#schools', 'For Schools'], ['#pricing', 'Pricing']].map(([href, label]) => (
-            <a key={label} href={href}
-              style={{ fontSize: '14px', fontWeight: 700, color: C.muted, padding: '7px 14px', borderRadius: '10px', textDecoration: 'none', transition: 'all .15s' }}
-              onMouseEnter={e => { e.currentTarget.style.background = C.bg; e.currentTarget.style.color = C.text }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = C.muted }}>
-              {label}
+    <div className="min-h-screen bg-background text-foreground">
+      {/* NAV */}
+      <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <a href="#" className="flex items-center gap-2">
+              <div className="size-10 rounded-xl shelf-blue grid place-items-center font-display font-bold text-xl">P</div>
+              <span className="font-display text-2xl font-bold" style={{ color: "var(--brand-blue)" }}>Plulai</span>
             </a>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <Link href="/auth/login" className="hidden md:block"
-            style={{ fontSize: '14px', fontWeight: 800, color: C.blue, textDecoration: 'none', padding: '8px 16px', borderRadius: '10px', border: `2px solid ${C.blue}` }}>
-            Log in
-          </Link>
-          <ShelfButton href="/auth/signup" bg={C.blue} shadow={C.blueShadow} fontSize="14px" style={{ padding: '10px 20px' }}>
-            Start free →
-          </ShelfButton>
+            <div className="hidden lg:flex items-center gap-6 text-sm font-bold text-foreground/70">
+              <a href="#tracks" className="hover:text-foreground transition-colors">Tracks</a>
+              <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
+              <a href="#schools" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-cyan)" }}>For Schools</a>
+              <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="hidden sm:block text-sm font-bold px-4 py-2 hover:text-[var(--brand-blue)] transition-colors">Log in</button>
+            <button className="shelf-blue text-sm font-bold py-2.5 px-5 rounded-xl">Start free →</button>
+          </div>
         </div>
       </nav>
 
-      {/* ── Hero ── */}
-      <section style={{ background: C.dark, marginTop: '64px', padding: '72px 24px 0', textAlign: 'center', overflow: 'hidden', position: 'relative' }}>
+      {/* HERO */}
+      <section className="pt-12 pb-24 px-6 overflow-hidden relative">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-40"
+          style={{
+            backgroundImage: "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(28,176,246,0.18), transparent 70%)",
+          }}
+        />
 
-        {/* Floating pill badge */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(28,176,246,0.15)', border: `2px solid rgba(28,176,246,0.3)`, color: '#5DD3FA', fontSize: '12px', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', padding: '6px 16px', borderRadius: '999px', marginBottom: '28px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: C.blue, display: 'block', flexShrink: 0 }} />
-          200+ learners &nbsp;·&nbsp; GCC
-        </div>
-
-        <h1 style={{ fontSize: 'clamp(38px,6vw,62px)', fontWeight: 700, lineHeight: 1.05, letterSpacing: '-1px', color: '#fff', maxWidth: '640px', margin: '0 auto 16px', fontFamily: `${fredokaFamily}, cursive` }}>
-          Your child learns to{' '}
-          <span style={{ color: C.blue }}>code, build AI,</span>{' '}
-          and start a business.
-        </h1>
-
-        <p style={{ fontSize: '17px', fontWeight: 500, color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, maxWidth: '420px', margin: '0 auto 36px' }}>
-          A <strong style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>personal AI coach</strong> that adapts to them.{' '}
-          <strong style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>500+ lessons</strong> in Arabic & English.{' '}
-          <strong style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>15 min a day.</strong>
-        </p>
-
-        {/* Duo-style feature pills */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '40px' }}>
-          {[
-            { icon: '🤖', text: 'AI coach' },
-            { icon: '🌍', text: 'Arabic & English' },
-            { icon: '🚫', text: 'No ads, ever' },
-            { icon: '📱', text: 'Any device' },
-          ].map(({ icon, text }) => (
-            <div key={text} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.08)', border: '2px solid rgba(255,255,255,0.12)', padding: '7px 14px', borderRadius: '999px' }}>
-              <span>{icon}</span>{text}
+        <div className="max-w-7xl mx-auto relative">
+          {/* Toggle */}
+          <div className="flex justify-center mb-12">
+            <div className="inline-flex p-1 bg-surface ring-1 ring-border rounded-2xl">
+              <button
+                onClick={() => setAudience("families")}
+                className={`px-7 py-3 rounded-xl font-bold text-sm transition-all ${
+                  !isSchools ? "shelf-blue" : "text-foreground/60 hover:text-foreground"
+                }`}
+              >
+                👨‍👩‍👧 For Families
+              </button>
+              <button
+                onClick={() => setAudience("schools")}
+                className={`px-7 py-3 rounded-xl font-bold text-sm transition-all ${
+                  isSchools ? "shelf-gold" : "text-foreground/60 hover:text-foreground"
+                }`}
+              >
+                🏫 For Schools
+              </button>
             </div>
-          ))}
-        </div>
-
-        {/* CTAs */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', paddingBottom: '52px' }}>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <ShelfButton href="/auth/signup" bg={C.blue} shadow={C.blueShadow} fontSize="16px" style={{ padding: '16px 36px' }}>
-              🚀 Start for free
-            </ShelfButton>
-            <a href="#quiz" style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              fontSize: '15px', fontWeight: 800, padding: '15px 24px', borderRadius: '14px',
-              background: 'rgba(255,255,255,0.1)', color: '#fff',
-              border: '2px solid rgba(255,255,255,0.2)',
-              boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
-              textDecoration: 'none',
-            }}>
-              🗺️ Find my child&apos;s track
-            </a>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '340px', margin: '4px 0' }}>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', whiteSpace: 'nowrap', fontWeight: 700 }}>Running a school or academy?</span>
-            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
-          </div>
-
-          <a href="#schools" style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            fontSize: '13px', fontWeight: 800, padding: '11px 22px', borderRadius: '14px',
-            background: 'transparent', color: 'rgba(255,255,255,0.55)',
-            border: '2px solid rgba(255,255,255,0.12)',
-            textDecoration: 'none',
-          }}>
-            🏫 Request a school demo
-            <span style={{ fontSize: '10px', fontWeight: 800, padding: '3px 9px', borderRadius: '999px', background: 'rgba(250,169,24,0.2)', color: C.gold, border: `1px solid rgba(250,169,24,0.3)` }}>For institutions</span>
-          </a>
-        </div>
-
-        {/* Gamified UI mockup */}
-        <div style={{ height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', position: 'relative' }}>
-          {/* Left float: lesson complete */}
-          <div style={{
-            position: 'absolute', left: '8%', bottom: '70px',
-            background: C.white, borderRadius: '14px',
-            border: `2px solid #E5E5E5`, boxShadow: `0 4px 0 #C9C9C9`,
-            padding: '11px 14px', display: 'flex', alignItems: 'center', gap: '10px',
-            animation: 'float 3.2s ease-in-out infinite',
-          }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: '#EDFFD4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>✅</div>
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: C.text }}>Lesson complete!</div>
-              <div style={{ fontSize: '10px', color: C.muted, fontWeight: 700 }}>+50 XP earned 🎉</div>
-            </div>
-          </div>
-
-          {/* Center mockup */}
-          <div style={{
-            width: '290px', height: '172px',
-            background: '#0F1420', borderRadius: '16px 16px 0 0',
-            border: '2px solid rgba(255,255,255,0.1)', borderBottom: 'none',
-            overflow: 'hidden', animation: 'float 3s ease-in-out infinite',
-          }}>
-            <div style={{ height: '32px', background: '#161D2E', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', padding: '0 12px', gap: '5px' }}>
-              {['#FF5F57', '#FEBC2E', '#28C840'].map(c => <div key={c} style={{ width: '8px', height: '8px', borderRadius: '50%', background: c }} />)}
-              <div style={{ flex: 1 }} />
-              <div style={{ fontSize: '9px', fontWeight: 700, background: 'rgba(88,204,2,0.2)', color: '#58CC02', padding: '2px 8px', borderRadius: '999px' }}>🔴 Live</div>
-            </div>
-            <div style={{ padding: '12px 14px' }}>
-              <XPBar label="Python basics" pct={72} color={C.blue} />
-              <XPBar label="Day streak" pct={45} color={C.gold} />
-              <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
-                {['🔥', '⭐', '💎'].map((e, i) => (
-                  <div key={i} style={{ flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '6px', textAlign: 'center', fontSize: '14px' }}>{e}</div>
-                ))}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--brand-cyan)]/10 ring-1 ring-[var(--brand-cyan)]/30 text-[var(--brand-cyan)] text-xs font-bold uppercase tracking-widest mb-6">
+                <span className="size-2 rounded-full bg-[var(--brand-cyan)] animate-glow" />
+                {isSchools ? "Trusted by GCC Schools" : "200+ Learners · GCC"}
               </div>
-            </div>
-          </div>
 
-          {/* Right float: streak */}
-          <div style={{
-            position: 'absolute', right: '8%', bottom: '55px',
-            background: C.white, borderRadius: '14px',
-            border: `2px solid #E5E5E5`, boxShadow: `0 4px 0 #C9C9C9`,
-            padding: '11px 14px', display: 'flex', alignItems: 'center', gap: '10px',
-            animation: 'float 2.8s .5s ease-in-out infinite',
-          }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: '#FFF4DC', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🔥</div>
-            <div>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: C.text }}>7-day streak</div>
-              <div style={{ fontSize: '10px', color: C.muted, fontWeight: 700 }}>Keep it up!</div>
-            </div>
-          </div>
-        </div>
-      </section>
+              {isSchools ? (
+                <h1 className="font-display text-5xl lg:text-6xl font-bold leading-[1.05] mb-6">
+                  Bring the future to your classroom with{" "}
+                  <span style={{ color: "var(--brand-cyan)" }}>Plulai for Schools.</span>
+                </h1>
+              ) : (
+                <h1 className="font-display text-5xl lg:text-6xl font-bold leading-[1.05] mb-6">
+                  Your child learns to{" "}
+                  <span style={{ color: "var(--brand-blue)" }}>code, build AI,</span> and start a business.
+                </h1>
+              )}
 
-      {/* ── Stats bar ── */}
-      <div style={{ background: C.white, borderBottom: `3px solid ${C.bg}` }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', maxWidth: '660px', margin: '0 auto' }}>
-          {[{ n: '500+', l: 'Lessons', icon: '📚' }, { n: '200+', l: 'Active learners', icon: '👦' }, { n: '9.2/10', l: 'Parent rating', icon: '⭐' }, { n: '6', l: 'GCC countries', icon: '🌍' }].map((s, i) => (
-            <div key={i} style={{ padding: '20px 12px', textAlign: 'center', borderRight: i < 3 ? `2px solid ${C.bg}` : 'none' }}>
-              <div style={{ fontSize: '18px', marginBottom: '2px' }}>{s.icon}</div>
-              <div style={{ fontSize: '22px', fontWeight: 900, color: C.blue, letterSpacing: '-.5px', fontFamily: `${fredokaFamily}, cursive` }}>{s.n}</div>
-              <div style={{ fontSize: '11px', color: C.muted, fontWeight: 700 }}>{s.l}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+              <p className="text-lg text-foreground/70 mb-8 max-w-xl leading-relaxed">
+                {isSchools
+                  ? "Deploy a complete coding, AI & entrepreneurship curriculum to 50–5,000 students. Teacher dashboard, Arabic + English, aligned with national standards."
+                  : "A personal AI coach that adapts to them. 500+ lessons in Arabic & English. Just 15 minutes a day."}
+              </p>
 
-      {/* ── What your child gets ── */}
-      <section style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
-        <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.blue, marginBottom: '8px' }}>What your child actually gets</p>
-        <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 700, color: C.text, marginBottom: '10px', lineHeight: 1.15, fontFamily: `${fredokaFamily}, cursive` }}>
-          Not videos. Not worksheets.<br /><span style={{ color: C.blue }}>Real projects, real skills.</span>
-        </h2>
-        <p style={{ fontSize: '15px', color: C.muted, lineHeight: 1.7, marginBottom: '36px' }}>Every lesson ends with something your child built. By end of month one, they have a project they can actually show off.</p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {[
-            { icon: '🤖', iconBg: '#E5F6FD', tag: 'Always on',      tagColor: C.blue,  tagBg: '#E5F6FD',  title: 'A personal AI coach',    desc: "Adapts to your child's level. Explains things a different way until it clicks. Never impatient — in Arabic or English." },
-            { icon: '💻', iconBg: '#E5F6FD', tag: 'Ages 8+',        tagColor: C.deep,  tagBg: '#DCF0FF',  title: 'Coding track',           desc: 'Python, web development, and game design. By week 2, your child writes their first working program from scratch.' },
-            { icon: '🧠', iconBg: '#EDFFD4', tag: 'Ages 10+',       tagColor: '#3A7D00', tagBg: '#EDFFD4', title: 'AI track',               desc: 'Build with AI — not just use it. Your child creates actual machine learning projects, not just prompts chatbots.' },
-            { icon: '💡', iconBg: '#FFF4DC', tag: 'Ages 11+',       tagColor: '#A06A00', tagBg: '#FFF4DC', title: 'Entrepreneurship track', desc: 'From first idea to investor pitch. Startup thinking designed for the GCC — not Silicon Valley.' },
-            { icon: '📊', iconBg: '#F0EDFF', tag: 'Weekly reports', tagColor: '#5C4DB5', tagBg: '#F0EDFF', title: 'Parent dashboard',      desc: "See exactly what your child learned, how long they practiced, and what they built — without having to ask them." },
-          ].map((item, i) => (
-            <div key={i} className="shelf-hover" style={{
-              display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '20px 22px',
-              background: C.white, borderRadius: '18px',
-              border: '2px solid #E5E5E5', boxShadow: '0 4px 0 #D0D0D0',
-              cursor: 'default',
-            }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: item.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '22px' }}>
-                {item.icon}
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                {isSchools ? (
+                  <>
+                    <button className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg">
+                      Request school demo →
+                    </button>
+                    <button className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
+                      Download curriculum PDF
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button className="shelf-blue font-bold py-4 px-9 rounded-2xl text-lg">
+                      Start free trial →
+                    </button>
+                    <button className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
+                      Take 60-sec quiz
+                    </button>
+                  </>
+                )}
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
-                  <h4 style={{ fontSize: '15px', fontWeight: 800, color: C.text, margin: 0 }}>{item.title}</h4>
-                  <span style={{ fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: '999px', background: item.tagBg, color: item.tagColor }}>{item.tag}</span>
+
+              <div className="flex items-center gap-3 text-sm text-foreground/50">
+                <div className="flex -space-x-2">
+                  <div className="size-8 rounded-full bg-[var(--brand-blue)] ring-2 ring-background" />
+                  <div className="size-8 rounded-full bg-[var(--brand-gold)] ring-2 ring-background" />
+                  <div className="size-8 rounded-full bg-[var(--brand-cyan)] ring-2 ring-background" />
                 </div>
-                <p style={{ fontSize: '13px', color: C.muted, lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
+                <span>
+                  {isSchools ? "Already powering 20+ GCC schools" : "Trusted by 5,000+ families across the GCC"}
+                </span>
               </div>
             </div>
+
+            {/* Mascot side */}
+            <div className="relative">
+              <div className="absolute -inset-10 rounded-full blur-3xl"
+                style={{ background: isSchools ? "var(--brand-gold)" : "var(--brand-blue)", opacity: 0.15 }} />
+              <div className="relative animate-bob">
+                <Image src={mascot} alt="Plulai AI Coach mascot" width={480} height={480} className="w-full max-w-[480px] mx-auto block" />
+              </div>
+
+              {/* Floating cards */}
+              <div className="absolute top-8 -left-2 lg:-left-8 shelf-white py-3 px-4 rounded-2xl flex items-center gap-3 max-w-[200px]">
+                <div className="size-10 rounded-full bg-[var(--brand-gold)]/20 grid place-items-center text-xl">🔥</div>
+                <div>
+                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Streak</div>
+                  <div className="text-zinc-900 font-bold text-sm">14 day streak!</div>
+                </div>
+              </div>
+
+              <div className="absolute bottom-2 -right-2 lg:-right-6 shelf-white py-3 px-4 rounded-2xl flex items-center gap-3 max-w-[220px]">
+                <div className="size-10 rounded-full bg-[var(--brand-blue)]/20 grid place-items-center text-[var(--brand-blue)] font-extrabold">L5</div>
+                <div>
+                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">Level up!</div>
+                  <div className="text-zinc-900 font-bold text-sm">Faris reached Level 5</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST MARQUEE */}
+      <section className="py-10 bg-surface/40 border-y border-border overflow-hidden">
+        <p className="text-center text-xs uppercase tracking-[0.25em] text-foreground/40 font-bold mb-6">
+          Trusted by leading institutions across the region
+        </p>
+        <div className="flex whitespace-nowrap animate-marquee">
+          {[...partners, ...partners].map((p, i) => (
+            <span key={i} className="font-display font-bold text-2xl mx-10 text-foreground/40 hover:text-foreground/80 transition-colors">
+              {p}
+            </span>
           ))}
         </div>
       </section>
 
-      {/* ── Tracks ── */}
-      <section id="tracks" style={{ padding: '72px 24px', background: C.white }}>
-        <div style={{ maxWidth: '660px', margin: '0 auto' }}>
-          <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.blue, marginBottom: '8px' }}>The three tracks</p>
-          <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 700, color: C.text, marginBottom: '10px', fontFamily: `${fredokaFamily}, cursive` }}>
-            Pick one. <span style={{ color: C.blue }}>Switch anytime.</span>
-          </h2>
-          <p style={{ fontSize: '15px', color: C.muted, lineHeight: 1.7, marginBottom: '36px' }}>Most kids end up doing all three. Start wherever your child is most excited.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {[
-              { color: C.blue,  shadow: C.blueShadow,  bg: '#E5F6FD',  icon: '💻', name: 'Coding',           label: 'Foundation track', outcome: 'Build a working app in 4 weeks',  desc: 'Python, web development, and game design — from zero to a real project in the browser.',          tags: ['Python', 'Web dev', 'Game design', 'Ages 8+'],    stat: { n: '180+', l: 'lessons' } },
-              { color: C.green, shadow: C.greenShadow, bg: '#EDFFD4',  icon: '🧠', name: 'AI',               label: 'Innovation track',  outcome: 'Train your first ML model',       desc: 'Build with AI — not just use it. Your child creates actual machine learning projects from scratch.', tags: ['Machine learning', 'AI ethics', 'Real projects', 'Ages 10+'], stat: { n: '140+', l: 'lessons' } },
-              { color: C.gold,  shadow: C.goldShadow,  bg: '#FFF4DC',  icon: '💡', name: 'Entrepreneurship', label: 'Founder track',     outcome: 'Pitch a real business idea',      desc: 'From first idea to a full investor pitch and MVP. Startup thinking designed for the GCC.',          tags: ['Ideation', 'MVP', 'Pitch deck', 'Ages 11+'],      stat: { n: '120+', l: 'lessons' } },
-            ].map(t => (
-              <div key={t.name} className="shelf-hover" style={{
-                borderRadius: '20px', overflow: 'hidden', background: C.white,
-                border: `2px solid ${t.color}33`,
-                boxShadow: `0 6px 0 ${t.shadow}44`,
-                cursor: 'default',
-              }}>
-                <div style={{ height: '5px', background: t.color }} />
-                <div style={{ display: 'flex' }}>
-                  {/* Left icon */}
-                  <div style={{ width: '96px', flexShrink: 0, background: t.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 12px', gap: '10px', borderRight: `2px solid ${t.color}22` }}>
-                    <div style={{ width: '54px', height: '54px', borderRadius: '16px', background: C.white, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 3px 0 ${t.shadow}44`, border: `2px solid ${t.color}33`, fontSize: '26px' }}>
-                      {t.icon}
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '15px', fontWeight: 800, color: C.text }}>{t.name}</div>
-                      <div style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: t.color, marginTop: '2px' }}>{t.label}</div>
-                    </div>
-                  </div>
-                  {/* Body */}
-                  <div style={{ flex: 1, padding: '20px' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: t.bg, border: `2px solid ${t.color}33`, color: t.color, fontSize: '11px', fontWeight: 800, padding: '4px 11px', borderRadius: '999px', marginBottom: '10px' }}>
-                      🎯 {t.outcome}
-                    </div>
-                    <p style={{ fontSize: '13px', color: C.muted, lineHeight: 1.6, marginBottom: '12px' }}>{t.desc}</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                      {t.tags.map(tag => <span key={tag} style={{ fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '999px', background: C.bg, color: C.muted, border: `2px solid #E5E5E5` }}>{tag}</span>)}
-                    </div>
-                  </div>
-                  {/* Stat */}
-                  <div style={{ width: '76px', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px 10px', borderLeft: `2px solid #E5E5E5`, textAlign: 'center' }}>
-                    <div style={{ fontSize: '22px', fontWeight: 900, color: t.color, letterSpacing: '-.5px', lineHeight: 1, fontFamily: `${fredokaFamily}, cursive` }}>{t.stat.n}</div>
-                    <div style={{ fontSize: '10px', color: C.muted, marginTop: '3px', fontWeight: 700 }}>{t.stat.l}</div>
-                  </div>
+      {/* TRACKS */}
+      <section id="tracks" className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-[var(--brand-cyan)] font-extrabold uppercase tracking-[0.2em] text-xs mb-3">3 Tracks · Pick yours</p>
+            <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">Choose your superpower</h2>
+            <p className="text-foreground/60 text-lg max-w-2xl mx-auto">
+              Three specialized paths designed to turn kids into creators — not just consumers.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {tracks.map((t) => (
+              <div
+                key={t.title}
+                className="group p-8 rounded-3xl bg-surface ring-1 ring-border hover:-translate-y-1 transition-transform"
+                style={{ boxShadow: `0 10px 30px -15px ${t.accent}30` }}
+              >
+                <div
+                  className="size-16 rounded-2xl grid place-items-center mb-6 text-3xl group-hover:scale-110 transition-transform"
+                  style={{ background: `${t.accent}25`, boxShadow: `inset 0 0 0 1px ${t.accent}40` }}
+                >
+                  {t.icon}
+                </div>
+                <h3 className="font-display text-2xl font-bold mb-3">{t.title}</h3>
+                <p className="text-foreground/60 mb-6 leading-relaxed">{t.desc}</p>
+                <div className="h-2 rounded-full bg-background overflow-hidden mb-2">
+                  <div className="h-full rounded-full" style={{ width: `${t.pct}%`, background: t.accent, boxShadow: `0 0 12px ${t.accent}` }} />
+                </div>
+                <div className="flex justify-between text-[11px] font-bold uppercase tracking-wider" style={{ color: t.accent }}>
+                  <span>Module 1 · {t.pct}%</span>
+                  <span>→ Explore</span>
                 </div>
               </div>
             ))}
@@ -564,355 +222,438 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── How it works ── */}
-      <section id="how-it-works" style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
-        <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.blue, marginBottom: '8px' }}>How it works</p>
-        <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 700, color: C.text, marginBottom: '10px', fontFamily: `${fredokaFamily}, cursive` }}>
-          From signup to <span style={{ color: C.blue }}>first project.</span>
-        </h2>
-        <p style={{ fontSize: '15px', color: C.muted, lineHeight: 1.7, marginBottom: '36px' }}>No downloads. Works on any device. Start today.</p>
+      {/* HOW IT WORKS */}
+      <section id="how" className="py-24 px-6 relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse 50% 40% at 20% 30%, rgba(28,176,246,0.12), transparent 60%), radial-gradient(ellipse 40% 30% at 85% 75%, rgba(250,169,24,0.10), transparent 60%)",
+          }}
+        />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="max-w-7xl mx-auto relative">
+          <div className="text-center mb-16">
+            <p className="text-[var(--brand-gold)] font-extrabold uppercase tracking-[0.2em] text-xs mb-3">The Adventure Map</p>
+            <h2 className="font-display text-4xl lg:text-5xl font-bold">A learning path that feels like a game</h2>
+            <p className="text-foreground/60 mt-4 max-w-2xl mx-auto">
+              Each level unlocks the next. Earn XP, keep streaks, beat boss-battles — and build a real project at the end of every module.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
+            {/* Game map */}
+            <div className="relative mx-auto w-full max-w-[460px]">
+              <svg viewBox="0 0 400 720" className="w-full h-auto block" aria-hidden>
+                <defs>
+                  <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#1CB0F6" />
+                    <stop offset="55%" stopColor="#14D4F4" />
+                    <stop offset="100%" stopColor="#FAA918" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M200 40 C 80 100, 80 200, 200 240 S 320 360, 200 420 S 80 540, 200 600 S 320 680, 280 700"
+                  stroke="rgba(255,255,255,0.08)"
+                  strokeWidth="22"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <path
+                  d="M200 40 C 80 100, 80 200, 200 240 S 320 360, 200 420"
+                  stroke="url(#road)"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray="2 12"
+                  fill="none"
+                />
+              </svg>
+
+              {[
+                { top: "4%",  left: "50%", icon: "✨", color: "var(--brand-blue)", state: "done", label: "Welcome" },
+                { top: "32%", left: "50%", icon: "💻", color: "var(--brand-blue)", state: "current", label: "Build your first app" },
+                { top: "57%", left: "50%", icon: "🏆", color: "var(--brand-gold)", state: "locked", label: "Boss battle", big: true },
+                { top: "82%", left: "50%", icon: "🤖", color: "var(--brand-cyan)", state: "locked", label: "Train your AI" },
+                { top: "97%", left: "70%", icon: "🌍", color: "var(--brand-gold)", state: "locked", label: "Launch project" },
+              ].map((n, i) => {
+                const size = n.big ? 92 : 72;
+                const isDone = n.state === "done";
+                const isCurrent = n.state === "current";
+                const isLocked = n.state === "locked";
+                return (
+                  <div
+                    key={i}
+                    className="absolute -translate-x-1/2 -translate-y-1/2 z-10 group"
+                    style={{ top: n.top, left: n.left }}
+                  >
+                    <button
+                      className="rounded-full grid place-items-center text-3xl transition-transform hover:scale-110"
+                      style={{
+                        width: size,
+                        height: size,
+                        background: isLocked ? "var(--surface-2)" : n.color,
+                        boxShadow: isLocked
+                          ? "0 5px 0 rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.04)"
+                          : `0 6px 0 rgba(0,0,0,0.45), 0 0 40px ${n.color}90`,
+                        filter: isLocked ? "grayscale(1)" : undefined,
+                        opacity: isLocked ? 0.5 : 1,
+                        outline: `8px solid var(--background)`,
+                      }}
+                      aria-label={n.label}
+                    >
+                      <span className={isLocked ? "opacity-40" : ""}>{isLocked ? "🔒" : n.icon}</span>
+                      {isDone && (
+                        <span className="absolute -bottom-1 -right-1 size-7 rounded-full bg-[var(--brand-gold)] grid place-items-center text-sm ring-4 ring-background">
+                          ✓
+                        </span>
+                      )}
+                    </button>
+
+                    {isCurrent && (
+                      <div className="absolute left-[calc(100%+18px)] top-1/2 -translate-y-1/2 whitespace-nowrap">
+                        <div className="relative shelf-blue px-4 py-2 rounded-xl font-bold text-sm">
+                          START
+                          <span
+                            className="absolute right-full top-1/2 -translate-y-1/2 size-0"
+                            style={{
+                              borderTop: "8px solid transparent",
+                              borderBottom: "8px solid transparent",
+                              borderRight: "10px solid var(--brand-blue)",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              <div className="absolute top-2 -left-2 sm:-left-6 shelf-white py-2 px-3 rounded-2xl flex items-center gap-2 z-20">
+                <span className="text-lg">⚡</span>
+                <div>
+                  <div className="text-[9px] font-extrabold uppercase tracking-widest text-zinc-500">XP today</div>
+                  <div className="text-zinc-900 font-bold text-sm leading-none">+120</div>
+                </div>
+              </div>
+
+              <div className="absolute bottom-6 -right-2 sm:-right-6 shelf-white py-2 px-3 rounded-2xl flex items-center gap-2 z-20">
+                <span className="text-lg">🔥</span>
+                <div>
+                  <div className="text-[9px] font-extrabold uppercase tracking-widest text-zinc-500">Streak</div>
+                  <div className="text-zinc-900 font-bold text-sm leading-none">14 days</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: legend & explainer */}
+            <div className="space-y-6">
+              <div className="p-6 rounded-3xl bg-surface ring-1 ring-border">
+                <div className="flex items-center gap-4">
+                  <div className="size-14 rounded-2xl bg-[var(--brand-blue)]/20 grid place-items-center text-2xl flex-shrink-0">💻</div>
+                  <div>
+                    <div className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--brand-blue)]">Currently unlocked</div>
+                    <div className="font-display text-xl font-bold">Build your first app</div>
+                    <div className="text-sm text-foreground/60">Module 1 · 6 lessons · ~15 min each</div>
+                  </div>
+                </div>
+                <div className="mt-5 h-2 rounded-full bg-background overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: "33%", background: "var(--brand-blue)", boxShadow: "0 0 12px var(--brand-blue)" }} />
+                </div>
+                <div className="flex justify-between mt-2 text-[11px] font-bold uppercase tracking-wider text-foreground/50">
+                  <span>2 / 6 lessons</span>
+                  <span style={{ color: "var(--brand-blue)" }}>33%</span>
+                </div>
+              </div>
+
+              <ul className="space-y-3">
+                {[
+                  { icon: "🎯", title: "Bite-sized lessons", desc: "15-min units kids actually finish." },
+                  { icon: "🤖", title: "Personal AI coach", desc: "Adapts to your child's pace and language." },
+                  { icon: "🏆", title: "Boss-battles & rewards", desc: "XP, streaks, and badges that motivate." },
+                  { icon: "🛠️", title: "Real projects", desc: "End every module with something to show." },
+                ].map((f) => (
+                  <li key={f.title} className="flex items-start gap-4 p-4 rounded-2xl bg-surface/60 ring-1 ring-border">
+                    <div className="size-10 rounded-xl bg-background grid place-items-center text-xl flex-shrink-0">{f.icon}</div>
+                    <div>
+                      <div className="font-bold text-sm">{f.title}</div>
+                      <div className="text-sm text-foreground/60">{f.desc}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button className="shelf-blue font-bold py-3.5 px-6 rounded-2xl flex-1">Start the path →</button>
+                <button className="shelf-gold font-bold py-3.5 px-6 rounded-2xl flex-1">Take the 60-sec quiz</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* B2B SECTION */}
+      <section id="schools" className="py-24 px-6 relative" style={{ background: "linear-gradient(180deg, var(--surface) 0%, var(--background) 100%)" }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="order-2 lg:order-1 relative">
+              <div className="absolute -inset-6 rounded-3xl blur-3xl opacity-30" style={{ background: "var(--brand-cyan)" }} />
+              <div className="relative rounded-2xl overflow-hidden ring-1 ring-border shadow-2xl">
+                <Image src={dashboard} alt="Teacher dashboard preview" width={1280} height={960} className="w-full block" />
+              </div>
+            </div>
+
+            <div className="order-1 lg:order-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--brand-cyan)]/15 ring-1 ring-[var(--brand-cyan)]/30 text-[var(--brand-cyan)] text-xs font-extrabold uppercase tracking-widest mb-6">
+                🏫 For Schools & Institutions
+              </div>
+              <h2 className="font-display text-4xl lg:text-5xl font-bold mb-6 leading-[1.1]">
+                Empower your whole classroom with AI.
+              </h2>
+              <p className="text-foreground/70 text-lg mb-8 leading-relaxed">
+                Plulai for Schools is a turnkey curriculum your teachers will actually love teaching — with built-in analytics, gamification, and a dedicated success manager.
+              </p>
+
+              <ul className="space-y-4 mb-10">
+                {[
+                  ["Teacher dashboard", "Track progress, attendance, and skill gaps in real-time."],
+                  ["Bulk seats 50–5,000", "Regional discounts and flexible billing for any school size."],
+                  ["AR + EN curriculum", "Aligned with Ministry of Education standards across the GCC."],
+                  ["Dedicated support", "Onboarding, training, and a customer success manager included."],
+                ].map(([title, desc]) => (
+                  <li key={title} className="flex gap-4">
+                    <div className="size-7 rounded-lg bg-[var(--brand-cyan)]/20 grid place-items-center flex-shrink-0 mt-0.5">
+                      <svg className="size-4 text-[var(--brand-cyan)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="font-bold text-foreground">{title}</div>
+                      <div className="text-foreground/60 text-sm">{desc}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="p-6 rounded-2xl bg-surface ring-1 ring-border mb-8">
+                <p className="italic text-foreground/80 mb-4">
+                  "Plulai transformed how our students engage with computer science. The Arabic integration is the best we've ever seen — and our teachers no longer fear teaching code."
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-full bg-gradient-to-br from-[var(--brand-blue)] to-[var(--brand-cyan)] grid place-items-center font-bold">AS</div>
+                  <div>
+                    <div className="text-sm font-bold">Dr. Amira Al-Sayed</div>
+                    <div className="text-xs text-foreground/50">Principal · Al-Nahda Academy, Dubai</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button className="shelf-gold font-bold py-4 px-8 rounded-2xl text-lg">Request school demo →</button>
+                <button className="shelf-dark font-bold py-4 px-8 rounded-2xl text-lg">Download brochure</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* STATS BAND */}
+      <section className="py-20 px-6 border-y border-border" style={{ background: "var(--surface)" }}>
+        <div className="max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {[
-            { n: '1', emoji: '🎯', badge: '60 seconds',    badgeColor: C.blue,  badgeBg: '#E5F6FD', title: 'Take the quick quiz',  desc: "Tell us your child's age and what excites them. We recommend the right track — no guessing." },
-            { n: '2', emoji: '🤖', badge: 'Day 1',          badgeColor: C.green, badgeBg: '#EDFFD4', title: 'Meet their AI coach',  desc: 'A personal AI tutor starts in Arabic or English. Adapts to their level from minute one. Always patient.' },
-            { n: '3', emoji: '🚀', badge: 'End of month 1', badgeColor: C.gold,  badgeBg: '#FFF4DC', title: 'Build something real', desc: '15–25 minutes per day. By the end of the first module, your child has a real project to show.' },
-          ].map((s, i) => (
-            <div key={i} style={{
-              display: 'flex', gap: '18px', padding: '22px',
-              background: C.white, borderRadius: '18px',
-              border: '2px solid #E5E5E5', boxShadow: '0 4px 0 #D0D0D0',
-            }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: C.blue, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 900, flexShrink: 0, fontFamily: `${fredokaFamily}, cursive`, boxShadow: `0 4px 0 ${C.blueShadow}` }}>
+            { n: "5,000+", l: "Active learners", c: "var(--brand-blue)" },
+            { n: "500+", l: "Bite-sized lessons", c: "var(--brand-cyan)" },
+            { n: "20+", l: "Partner schools", c: "var(--brand-gold)" },
+            { n: "98%", l: "Parent satisfaction", c: "var(--brand-red)" },
+          ].map((s) => (
+            <div key={s.l}>
+              <div className="font-display text-5xl lg:text-6xl font-bold mb-2" style={{ color: s.c, textShadow: `0 0 40px ${s.c}40` }}>
                 {s.n}
               </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
-                  <h4 style={{ fontSize: '15px', fontWeight: 800, color: C.text, margin: 0 }}>{s.emoji} {s.title}</h4>
-                  <span style={{ fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: '999px', background: s.badgeBg, color: s.badgeColor }}>{s.badge}</span>
+              <div className="text-foreground/60 font-bold uppercase tracking-wider text-xs">{s.l}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-[var(--brand-gold)] font-extrabold uppercase tracking-[0.2em] text-xs mb-3">Loved by parents & principals</p>
+            <h2 className="font-display text-4xl lg:text-5xl font-bold">What people are saying</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { quote: "My 9-year-old begs to do his lesson after school. I never thought I'd see that with coding.", name: "Layla M.", role: "Parent of 2, Riyadh", color: "var(--brand-blue)" },
+              { quote: "The Arabic isn't translated — it's native. That alone makes Plulai the best in the region.", name: "Dr. Khalid R.", role: "Principal, Doha", color: "var(--brand-cyan)" },
+              { quote: "He built his first working game in 2 weeks. The AI coach is patient in a way I never could be.", name: "Sara A.", role: "Parent, Dubai", color: "var(--brand-gold)" },
+            ].map((t) => (
+              <div key={t.name} className="p-7 rounded-3xl bg-surface ring-1 ring-border">
+                <div className="flex gap-1 mb-4" style={{ color: t.color }}>
+                  {"★★★★★".split("").map((s, i) => <span key={i}>{s}</span>)}
                 </div>
-                <p style={{ fontSize: '13px', color: C.muted, lineHeight: 1.65, margin: 0 }}>{s.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: '32px' }}>
-          <ShelfButton href="/auth/signup" bg={C.blue} shadow={C.blueShadow} fontSize="15px">
-            🚀 Start step 1 — it&apos;s free →
-          </ShelfButton>
-        </div>
-      </section>
-
-      {/* ── Quiz ── */}
-      <section id="quiz" style={{ padding: '72px 24px', background: C.white }}>
-        <div style={{ maxWidth: '560px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.blue, marginBottom: '8px' }}>Personalised for your child</p>
-            <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 700, color: C.text, marginBottom: '10px', textAlign: 'center', fontFamily: `${fredokaFamily}, cursive` }}>Not sure where to start?</h2>
-            <p style={{ fontSize: '15px', color: C.muted, lineHeight: 1.7, textAlign: 'center' }}>3 questions and we&apos;ll tell you exactly which track to begin with.</p>
-          </div>
-          <ShelfCard style={{ padding: '32px' }}>
-            <TrackQuiz />
-          </ShelfCard>
-        </div>
-      </section>
-
-      {/* ── Schools / B2B ── */}
-      <section id="schools" style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
-        <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.gold, marginBottom: '8px' }}>For schools &amp; institutions</p>
-        <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 700, color: C.text, marginBottom: '10px', fontFamily: `${fredokaFamily}, cursive` }}>
-          Bring Plulai into <span style={{ color: C.blue }}>your classrooms.</span>
-        </h2>
-        <p style={{ fontSize: '15px', color: C.muted, lineHeight: 1.7, marginBottom: '36px' }}>Curriculum-aligned. Teacher dashboards. Arabic-native. Aligned with GCC Vision 2031.</p>
-
-        {/* B2B feature cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-          {[
-            { icon: '📋', title: 'Curriculum-aligned', desc: 'Fits into existing school schedules as weekly enrichment or a full-year elective.' },
-            { icon: '👩‍🏫', title: 'Teacher dashboard', desc: 'See every student\'s progress, lesson completion, and projects in real time.' },
-            { icon: '🌐', title: 'Arabic-native', desc: 'Not translated. Full RTL with GCC-specific examples and an Arabic AI coach.' },
-            { icon: '📈', title: 'Vision 2031 aligned', desc: 'Designed around digital skills priorities for the GCC national curricula.' },
-          ].map((f, i) => (
-            <div key={i} style={{
-              padding: '20px', background: C.white, borderRadius: '18px',
-              border: '2px solid #E5E5E5', boxShadow: '0 4px 0 #D0D0D0',
-            }}>
-              <div style={{ fontSize: '28px', marginBottom: '8px' }}>{f.icon}</div>
-              <div style={{ fontSize: '14px', fontWeight: 800, color: C.text, marginBottom: '5px' }}>{f.title}</div>
-              <div style={{ fontSize: '12px', color: C.muted, lineHeight: 1.55 }}>{f.desc}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Dark B2B CTA block */}
-        <div style={{ background: C.dark, borderRadius: '24px', padding: '32px 28px', border: `3px solid ${C.blue}33`, boxShadow: `0 6px 0 rgba(20,40,80,0.5)` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
-            <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: `rgba(28,176,246,0.15)`, border: `2px solid rgba(28,176,246,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '22px' }}>
-              🏫
-            </div>
-            <div>
-              <p style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.07em', color: 'rgba(255,255,255,0.35)', marginBottom: '3px' }}>Institutional plan</p>
-              <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#fff', margin: 0 }}>Schools, academies &amp; training centres</h3>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '22px' }}>
-            {[{ n: '10+', l: 'Partner schools', icon: '🏫' }, { n: '6', l: 'GCC countries', icon: '🌍' }, { n: '9.2', l: 'Satisfaction', icon: '⭐' }].map(m => (
-              <div key={m.l} style={{ background: 'rgba(255,255,255,0.07)', border: '2px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '14px 8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '16px', marginBottom: '2px' }}>{m.icon}</div>
-                <div style={{ fontSize: '20px', fontWeight: 900, color: '#fff', fontFamily: `${fredokaFamily}, cursive` }}>{m.n}</div>
-                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '1px', fontWeight: 700 }}>{m.l}</div>
+                <p className="text-foreground/85 leading-relaxed mb-6">"{t.quote}"</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-border">
+                  <div className="size-10 rounded-full grid place-items-center font-bold text-sm"
+                    style={{ background: `${t.color}30`, color: t.color }}>
+                    {t.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm">{t.name}</div>
+                    <div className="text-xs text-foreground/50">{t.role}</div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <a href="mailto:ceo@plulai.com" style={{
-              flex: 1, padding: '13px 0', borderRadius: '12px',
-              background: C.blue, color: '#fff', fontSize: '14px', fontWeight: 800,
-              textDecoration: 'none', textAlign: 'center', display: 'block',
-              border: `2px solid ${C.blueShadow}`, boxShadow: `0 4px 0 ${C.blueShadow}`,
-            }}>📅 Book a 20-min demo</a>
-            <a href="mailto:hello@plulai.com" style={{
-              padding: '13px 18px', borderRadius: '12px',
-              background: 'transparent', color: 'rgba(255,255,255,0.6)', fontSize: '13px', fontWeight: 700,
-              border: '2px solid rgba(255,255,255,0.15)', textDecoration: 'none', display: 'block',
-            }}>📄 Curriculum guide</a>
+      {/* PRICING */}
+      <section id="pricing" className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-[var(--brand-cyan)] font-extrabold uppercase tracking-[0.2em] text-xs mb-3">Simple & fair</p>
+            <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">Pick your plan</h2>
+            <p className="text-foreground/60">Start free. Upgrade when you're ready. School pricing is custom.</p>
           </div>
-        </div>
-      </section>
 
-      {/* ── GCC ── */}
-      <section style={{ padding: '0 24px 72px', maxWidth: '660px', margin: '0 auto', textAlign: 'center' }}>
-        <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.blue, marginBottom: '8px', textAlign: 'center' }}>Available across the GCC</p>
-        <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 700, color: C.text, marginBottom: '10px', fontFamily: `${fredokaFamily}, cursive`, textAlign: 'center' }}>
-          Real Arabic. <span style={{ color: C.blue }}>Real GCC context.</span>
-        </h2>
-        <p style={{ fontSize: '15px', color: C.muted, lineHeight: 1.7, marginBottom: '32px', textAlign: 'center' }}>Not translated from English. Every lesson, every example, every business idea is set in the GCC.</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '10px' }}>
-          {[{ flag: '🇦🇪', name: 'UAE' }, { flag: '🇸🇦', name: 'Saudi' }, { flag: '🇶🇦', name: 'Qatar' }, { flag: '🇰🇼', name: 'Kuwait' }, { flag: '🇧🇭', name: 'Bahrain' }, { flag: '🇴🇲', name: 'Oman' }].map(c => (
-            <div key={c.name} className="shelf-hover" style={{
-              border: '2px solid #E5E5E5', borderRadius: '16px', padding: '16px 8px',
-              background: C.white, textAlign: 'center', cursor: 'default',
-              boxShadow: '0 4px 0 #D0D0D0',
-            }}>
-              <div style={{ fontSize: '26px', marginBottom: '6px' }}>{c.flag}</div>
-              <div style={{ fontSize: '11px', color: C.muted, fontWeight: 700 }}>{c.name}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Pricing ── */}
-      <section id="pricing" style={{ padding: '72px 24px', background: C.white }}>
-        <div style={{ maxWidth: '660px', margin: '0 auto' }}>
-          <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.blue, marginBottom: '8px' }}>Pricing</p>
-          <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 700, color: C.text, marginBottom: '10px', fontFamily: `${fredokaFamily}, cursive` }}>
-            Try free for 14 days. <span style={{ color: C.blue }}>No card needed.</span>
-          </h2>
-          <p style={{ fontSize: '15px', color: C.muted, lineHeight: 1.7, marginBottom: '36px' }}>Start your 14-day trial today — no credit card required. After the trial, choose Pro to keep going or explore the free tier.</p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="grid md:grid-cols-3 gap-6 items-stretch">
             {/* Free */}
-            <div style={{
-              border: `3px solid ${C.blue}`,
-              borderRadius: '22px', padding: '26px 22px', background: C.white,
-              boxShadow: `0 6px 0 ${C.blueShadow}`,
-              position: 'relative',
-            }}>
-              <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', background: C.blue, color: '#fff', fontSize: '11px', fontWeight: 800, padding: '4px 14px', borderRadius: '999px', whiteSpace: 'nowrap' }}>
-                ⭐ Most popular
-              </div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: C.text, fontFamily: `${fredokaFamily}, cursive`, marginBottom: '4px' }}>Free</div>
-              <div style={{ fontSize: '34px', fontWeight: 900, color: C.text, fontFamily: `${fredokaFamily}, cursive`, letterSpacing: '-.7px', lineHeight: 1 }}>
-                AED 0<span style={{ fontSize: '14px', fontWeight: 400, color: C.muted }}> /mo</span>
-              </div>
-              <p style={{ fontSize: '12px', color: C.muted, margin: '8px 0 16px', fontWeight: 600 }}>Forever free. No card needed.</p>
-              <div style={{ height: '2px', background: C.bg, marginBottom: '16px' }} />
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '22px' }}>
-                {['First module of each track', 'Personal AI coach', 'XP & streak system', 'Parent dashboard', 'Arabic & English', 'Any device'].map(f => (
-                  <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px', fontSize: '13px', color: C.text, lineHeight: 1.5, fontWeight: 600 }}>
-                    <span style={{ color: C.green, fontSize: '16px', lineHeight: 1, flexShrink: 0 }}>✓</span>{f}
-                  </li>
-                ))}
+            <div className="p-8 rounded-3xl bg-surface ring-1 ring-border flex flex-col">
+              <div className="text-foreground/50 font-extrabold uppercase tracking-widest text-xs mb-2">Explorer</div>
+              <div className="font-display text-4xl font-bold mb-1">Free</div>
+              <p className="text-sm text-foreground/60 mb-6">For trying it out</p>
+              <ul className="space-y-3 text-sm text-foreground/70 mb-8 flex-1">
+                <li>✓ First 5 lessons</li>
+                <li>✓ Coding track basics</li>
+                <li>✓ English only</li>
               </ul>
-              <ShelfButton href="/auth/signup" bg={C.blue} shadow={C.blueShadow} fullWidth>
-                Create free account
-              </ShelfButton>
+              <button className="shelf-dark py-3 rounded-xl font-bold">Get started</button>
             </div>
 
-            {/* Pro */}
-            <div style={{
-              border: `2px solid #E5E5E5`,
-              borderRadius: '22px', padding: '26px 22px', background: C.white,
-              boxShadow: `0 6px 0 #C9C9C9`,
-            }}>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: C.text, fontFamily: `${fredokaFamily}, cursive`, marginBottom: '4px' }}>Pro</div>
-              <div style={{ fontSize: '34px', fontWeight: 900, color: C.text, fontFamily: `${fredokaFamily}, cursive`, letterSpacing: '-.7px', lineHeight: 1, marginBottom: '4px' }}>
-                $79<span style={{ fontSize: '14px', fontWeight: 400, color: C.muted }}> /mo</span>
+            {/* Pro — featured */}
+            <div className="p-8 rounded-3xl relative flex flex-col" style={{ background: "var(--brand-blue)", boxShadow: "0 6px 0 var(--brand-deep), 0 20px 60px -20px var(--brand-blue)" }}>
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--brand-gold)] text-[#1A1A2E] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Most popular</div>
+              <div className="text-white/80 font-extrabold uppercase tracking-widest text-xs mb-2">Prodigy</div>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="font-display text-4xl font-bold text-white">$12</span>
+                <span className="text-white/70 font-medium">/mo</span>
               </div>
-              <p style={{ fontSize: '12px', color: C.muted, margin: '8px 0 16px', fontWeight: 600 }}>Everything in Free, plus:</p>
-              <div style={{ height: '2px', background: C.bg, marginBottom: '16px' }} />
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '22px' }}>
-                {['All 500+ lessons', 'Advanced AI coaching', 'Full portfolio system', 'Live project feedback', 'Completion certificate', 'Priority support'].map(f => (
-                  <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px', fontSize: '13px', color: C.text, lineHeight: 1.5, fontWeight: 600 }}>
-                    <span style={{ color: C.gold, fontSize: '16px', lineHeight: 1, flexShrink: 0 }}>✓</span>{f}
-                  </li>
-                ))}
+              <p className="text-sm text-white/80 mb-6">For families</p>
+              <ul className="space-y-3 text-sm text-white mb-8 flex-1">
+                <li>✓ All 3 tracks (Code · AI · Biz)</li>
+                <li>✓ Personal AI coach</li>
+                <li>✓ Arabic + English</li>
+                <li>✓ Weekly parent summary</li>
+                <li>✓ 14-day free trial</li>
               </ul>
-              <ShelfButton href="/auth/signup?plan=pro" bg={C.bg} shadow="#C9C9C9" color={C.text} fullWidth>
-                Start with Pro →
-              </ShelfButton>
+              <button className="shelf-white py-3 rounded-xl font-bold">Start free trial</button>
+            </div>
+
+            {/* Schools */}
+            <div className="p-8 rounded-3xl bg-surface ring-1 ring-[var(--brand-cyan)]/30 flex flex-col">
+              <div className="text-[var(--brand-cyan)] font-extrabold uppercase tracking-widest text-xs mb-2">Institution</div>
+              <div className="font-display text-4xl font-bold mb-1">Custom</div>
+              <p className="text-sm text-foreground/60 mb-6">For schools (50+ seats)</p>
+              <ul className="space-y-3 text-sm text-foreground/70 mb-8 flex-1">
+                <li>✓ Teacher dashboard</li>
+                <li>✓ Bulk seats with discounts</li>
+                <li>✓ LMS / SSO integration</li>
+                <li>✓ Curriculum alignment</li>
+                <li>✓ Dedicated success manager</li>
+              </ul>
+              <button className="shelf-gold py-3 rounded-xl font-bold">Contact sales →</button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Rating ── */}
-      <section style={{ padding: '72px 24px', maxWidth: '540px', margin: '0 auto' }}>
-        <div style={{ background: C.dark, borderRadius: '24px', padding: '44px 28px', textAlign: 'center', border: `3px solid rgba(28,176,246,0.2)`, boxShadow: `0 6px 0 rgba(20,40,80,0.4)` }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '4px', marginBottom: '14px' }}>
-            {[1,2,3,4,5].map(i => <span key={i} style={{ fontSize: '26px' }}>⭐</span>)}
+      {/* FAQ */}
+      <section className="py-24 px-6" style={{ background: "var(--surface)" }}>
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="font-display text-4xl font-bold">Common questions</h2>
           </div>
-          <div style={{ fontSize: '64px', fontWeight: 700, color: '#fff', letterSpacing: '-2px', lineHeight: 1, fontFamily: `${fredokaFamily}, cursive` }}>
-            9.2<span style={{ fontSize: '26px', fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>/10</span>
-          </div>
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.45)', marginTop: '8px', fontWeight: 600 }}>Average rating from parents across the GCC</p>
-          <div style={{ marginTop: '24px', padding: '18px', background: 'rgba(255,255,255,0.05)', borderRadius: '14px', border: '2px solid rgba(255,255,255,0.08)' }}>
-            <p style={{ fontSize: '14px', fontStyle: 'italic', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, margin: 0 }}>
-              &ldquo;My daughter finished her first Python project in 3 weeks. She was so proud — I was speechless.&rdquo;
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Partners ── */}
-      <section style={{ padding: '0 24px 72px', background: C.white }}>
-        <div style={{ maxWidth: '660px', margin: '0 auto', paddingTop: '72px' }}>
-          <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.blue, marginBottom: '8px' }}>Partners</p>
-          <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 700, color: C.text, marginBottom: '10px', fontFamily: `${fredokaFamily}, cursive` }}>
-            Trusted by institutions <span style={{ color: C.blue }}>across the GCC.</span>
-          </h2>
-          <p style={{ fontSize: '15px', color: C.muted, lineHeight: 1.7, marginBottom: '32px' }}>Schools and organisations already working with Plulai.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px' }}>
-            {PARTNERS.map(p => (
-              <div key={p.name} className="shelf-hover" style={{
-                border: '2px solid #E5E5E5', borderRadius: '16px', padding: '20px 12px 16px',
-                background: C.white, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                textAlign: 'center', boxShadow: '0 4px 0 #D0D0D0', cursor: 'default',
-              }}>
-                <div style={{ width: '52px', height: '52px', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Image src={p.logo} alt={p.name} width={52} height={52} style={{ objectFit: 'contain' }} />
-                </div>
-                <div style={{ fontSize: '11px', color: C.muted, fontWeight: 700, lineHeight: 1.35 }}>{p.name}</div>
+          <div className="space-y-3">
+            {faqs.map((f, i) => (
+              <div key={i} className="rounded-2xl bg-background ring-1 ring-border overflow-hidden">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between p-6 text-left"
+                >
+                  <span className="font-bold pr-4">{f.q}</span>
+                  <svg className={`size-5 text-foreground/50 transition-transform flex-shrink-0 ${openFaq === i ? "rotate-180" : ""}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {openFaq === i && (
+                  <div className="px-6 pb-6 text-foreground/70 leading-relaxed">{f.a}</div>
+                )}
               </div>
             ))}
-            <a href="mailto:ceo@plulai.com" className="shelf-hover" style={{
-              border: `2px dashed ${C.blue}66`, borderRadius: '16px', padding: '20px 12px 16px',
-              background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center',
-              textAlign: 'center', cursor: 'pointer', textDecoration: 'none', boxShadow: `0 4px 0 ${C.blue}22`,
-            }}>
-              <div style={{ width: '52px', height: '52px', marginBottom: '10px', background: '#E5F6FD', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-                ➕
-              </div>
-              <div style={{ fontSize: '11px', color: C.blue, fontWeight: 800, lineHeight: 1.35 }}>Become a partner</div>
-            </a>
           </div>
         </div>
       </section>
 
-      {/* ── FAQ ── */}
-      <section id="faq" style={{ padding: '72px 24px', maxWidth: '660px', margin: '0 auto' }}>
-        <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.blue, marginBottom: '8px' }}>FAQ</p>
-        <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 700, color: C.text, marginBottom: '28px', fontFamily: `${fredokaFamily}, cursive` }}>
-          Everything parents ask <span style={{ color: C.blue }}>before signing up.</span>
-        </h2>
-        <div style={{ border: '2px solid #E5E5E5', borderRadius: '20px', overflow: 'hidden', background: C.white, boxShadow: '0 4px 0 #D0D0D0' }}>
-          {FAQS.map((item, i) => <FaqItem key={i} q={item.q} a={item.a} />)}
-        </div>
-      </section>
-
-      {/* ── Final CTA ── */}
-      <section style={{ padding: '0 24px 80px', maxWidth: '660px', margin: '0 auto' }}>
-        <div style={{ background: C.dark, borderRadius: '28px', padding: '56px 32px', textAlign: 'center', position: 'relative', overflow: 'hidden', border: `3px solid ${C.blue}33`, boxShadow: `0 8px 0 rgba(20,40,80,0.4)` }}>
-          <div style={{ position: 'absolute', width: '500px', height: '500px', background: `rgba(28,176,246,0.06)`, borderRadius: '50%', top: '-250px', left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(88,204,2,0.15)', border: '2px solid rgba(88,204,2,0.25)', color: C.green, fontSize: '12px', fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', padding: '6px 14px', borderRadius: '999px', marginBottom: '22px' }}>
-              ✓ 200+ learners already started
-            </div>
-            <h2 style={{ fontSize: 'clamp(28px,4vw,46px)', fontWeight: 700, letterSpacing: '-1px', color: '#fff', marginBottom: '12px', lineHeight: 1.08, fontFamily: `${fredokaFamily}, cursive` }}>
-              Your child can<br />start today.
-            </h2>
-            <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.65, marginBottom: '30px', fontWeight: 600 }}>
-              Free forever. No credit card. Arabic and English.<br />Ages 6–18 across the GCC.
-            </p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <ShelfButton href="/auth/signup" bg={C.blue} shadow={C.blueShadow} fontSize="15px" style={{ padding: '15px 32px' }}>
-                🚀 Create a free account →
-              </ShelfButton>
-              <a href="mailto:ceo@plulai.com" style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                padding: '14px 24px', borderRadius: '14px',
-                background: 'transparent', color: 'rgba(255,255,255,0.55)',
-                fontSize: '14px', fontWeight: 800,
-                border: '2px solid rgba(255,255,255,0.15)',
-                boxShadow: '0 4px 0 rgba(0,0,0,0.3)',
-                textDecoration: 'none',
-              }}>
-                🏫 Book a school demo
-              </a>
-            </div>
-            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', marginTop: '20px', fontWeight: 600 }}>
-              Trusted by families across UAE · Saudi Arabia · Qatar · Kuwait · Bahrain · Oman
-            </p>
+      {/* CTA BAND */}
+      <section className="py-24 px-6 relative overflow-hidden">
+        <div className="absolute inset-0"
+          style={{ background: "radial-gradient(ellipse at center, rgba(28,176,246,0.18), transparent 60%)" }} />
+        <div className="max-w-4xl mx-auto text-center relative">
+          <div className="text-7xl mb-6">🚀</div>
+          <h2 className="font-display text-4xl lg:text-6xl font-bold mb-6 leading-tight">
+            Ready to give them a head start?
+          </h2>
+          <p className="text-foreground/70 text-lg mb-10 max-w-xl mx-auto">
+            Join thousands of families and schools building the GCC's next generation of creators.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button className="shelf-blue font-bold py-4 px-10 rounded-2xl text-lg">Start free trial →</button>
+            <button className="shelf-gold font-bold py-4 px-10 rounded-2xl text-lg">For schools</button>
           </div>
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer style={{ borderTop: `3px solid ${C.bg}`, padding: '48px 24px 28px', background: C.white }}>
-        <div style={{ maxWidth: '660px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '32px', marginBottom: '40px', flexWrap: 'wrap' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
-                  <Image src="/icons/plulaiw.png" alt="Plulai" width={38} height={38} style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <span style={{ fontSize: '20px', fontWeight: 700, color: C.text, fontFamily: `${fredokaFamily}, cursive` }}>Plulai</span>
-              </div>
-              <p style={{ fontSize: '12px', color: C.muted, maxWidth: '180px', lineHeight: 1.6, fontWeight: 600 }}>
-                AI learning for kids in the GCC — coding, AI &amp; entrepreneurship in Arabic and English.
-              </p>
+      {/* FOOTER */}
+      <footer className="border-t border-border py-12 px-6">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10 mb-10">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="size-9 rounded-xl shelf-blue grid place-items-center font-display font-bold">P</div>
+              <span className="font-display text-xl font-bold" style={{ color: "var(--brand-blue)" }}>Plulai</span>
             </div>
-
-            <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap' }}>
-              {[
-                { title: 'Platform', links: [['#tracks','Tracks'],['#how-it-works','How it works'],['#pricing','Pricing'],['#quiz','Find a track'],['/auth/signup','Sign up free']] },
-                { title: 'Institutions', links: [['#schools','For schools'],['mailto:ceo@plulai.com','Request demo'],['mailto:ceo@plulai.com','Curriculum guide'],['mailto:ceo@plulai.com','Become a partner']] },
-                { title: 'Contact', links: [['mailto:hello@plulai.com','hello@plulai.com'],['mailto:ceo@plulai.com','ceo@plulai.com']] },
-              ].map(col => (
-                <div key={col.title}>
-                  <h4 style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: C.muted, marginBottom: '12px' }}>{col.title}</h4>
-                  {col.links.map(([href, label]) => (
-                    <a key={label} href={href}
-                      style={{ display: 'block', fontSize: '12px', color: C.muted, textDecoration: 'none', marginBottom: '7px', fontWeight: 600, transition: 'color .15s' }}
-                      onMouseEnter={e => (e.currentTarget.style.color = C.blue)}
-                      onMouseLeave={e => (e.currentTarget.style.color = C.muted)}>
-                      {label}
-                    </a>
-                  ))}
-                </div>
-              ))}
-            </div>
+            <p className="text-sm text-foreground/50">Building tomorrow's leaders, today. Made for the GCC.</p>
           </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '20px', borderTop: `2px solid ${C.bg}`, flexWrap: 'wrap', gap: '8px' }}>
-            <p style={{ fontSize: '12px', color: C.muted, fontWeight: 600 }}>© {new Date().getFullYear()} Plulai. The AI learning platform for kids in the GCC.</p>
-            <a href="mailto:hello@plulai.com" style={{ fontSize: '12px', color: C.muted, textDecoration: 'none', fontWeight: 600 }}>hello@plulai.com</a>
+          {[
+            ["Product", ["Tracks", "How it works", "Pricing", "Quiz"]],
+            ["Schools", ["Overview", "Request demo", "Curriculum", "Case studies"]],
+            ["Company", ["About", "Blog", "Careers", "Contact"]],
+          ].map(([title, links]) => (
+            <div key={title as string}>
+              <h4 className="font-bold mb-4 text-sm uppercase tracking-wider">{title as string}</h4>
+              <ul className="space-y-2 text-sm text-foreground/60">
+                {(links as string[]).map((l) => (
+                  <li key={l}><a href="#" className="hover:text-foreground transition-colors">{l}</a></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="max-w-7xl mx-auto pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-foreground/40">
+          <span>© 2026 Plulai Education. All rights reserved.</span>
+          <div className="flex gap-6 uppercase tracking-wider font-bold">
+            <a href="#" className="hover:text-foreground">Privacy</a>
+            <a href="#" className="hover:text-foreground">Terms</a>
+            <a href="#" className="hover:text-foreground">العربية</a>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
+}
+
+export default function Page() {
+  return <Landing />;
 }
