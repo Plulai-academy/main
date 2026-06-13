@@ -5,6 +5,7 @@ import { useState } from "react";
 import mascot from "@/public/images/mascot.png";
 import dashboard from "@/public/images/dashboard.png";
 
+
 const tracks = [
   { icon: "💻", title: "Coding", desc: "From block coding to Python. Build real apps and games while learning logic.", accent: "var(--brand-blue)", pct: 33 },
   { icon: "🧠", title: "AI & Future Tech", desc: "Understand how AI works. Prompt engineering and ML basics for curious minds.", accent: "var(--brand-cyan)", pct: 50 },
@@ -438,7 +439,7 @@ function Landing() {
 
               <div className="p-6 rounded-2xl bg-surface ring-1 ring-border mb-8">
                 <p className="italic text-foreground/80 mb-4">
-                  "Plulai transformed how our students engage with computer science. The Arabic integration is the best we've ever seen — and our teachers no longer fear teaching code."
+                  &ldquo;Plulai transformed how our students engage with computer science. The Arabic integration is the best we&apos;ve ever seen — and our teachers no longer fear teaching code.&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="size-10 rounded-full bg-gradient-to-br from-[var(--brand-blue)] to-[var(--brand-cyan)] grid place-items-center font-bold">AS</div>
@@ -494,7 +495,7 @@ function Landing() {
                 <div className="flex gap-1 mb-4" style={{ color: t.color }}>
                   {"★★★★★".split("").map((s, i) => <span key={i}>{s}</span>)}
                 </div>
-                <p className="text-foreground/85 leading-relaxed mb-6">"{t.quote}"</p>
+                <p className="text-foreground/85 leading-relaxed mb-6">&ldquo;{t.quote}&rdquo;</p>
                 <div className="flex items-center gap-3 pt-4 border-t border-border">
                   <div className="size-10 rounded-full grid place-items-center font-bold text-sm"
                     style={{ background: `${t.color}30`, color: t.color }}>
@@ -517,7 +518,7 @@ function Landing() {
           <div className="text-center mb-16">
             <p className="text-[var(--brand-cyan)] font-extrabold uppercase tracking-[0.2em] text-xs mb-3">Simple & fair</p>
             <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">Pick your plan</h2>
-            <p className="text-foreground/60">Start free. Upgrade when you're ready. School pricing is custom.</p>
+            <p className="text-foreground/60">Start free. Upgrade when you&apos;re ready. School pricing is custom.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 items-stretch">
@@ -609,7 +610,7 @@ function Landing() {
             Ready to give them a head start?
           </h2>
           <p className="text-foreground/70 text-lg mb-10 max-w-xl mx-auto">
-            Join thousands of families and schools building the GCC's next generation of creators.
+            Join thousands of families and schools building the GCC&apos;s next generation of creators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="shelf-blue font-bold py-4 px-10 rounded-2xl text-lg">Start free trial →</button>
@@ -626,7 +627,7 @@ function Landing() {
               <div className="size-9 rounded-xl shelf-blue grid place-items-center font-display font-bold">P</div>
               <span className="font-display text-xl font-bold" style={{ color: "var(--brand-blue)" }}>Plulai</span>
             </div>
-            <p className="text-sm text-foreground/50">Building tomorrow's leaders, today. Made for the GCC.</p>
+            <p className="text-sm text-foreground/50">Building tomorrow&apos;s leaders, today. Made for the GCC.</p>
           </div>
           {[
             ["Product", ["Tracks", "How it works", "Pricing", "Quiz"]],
