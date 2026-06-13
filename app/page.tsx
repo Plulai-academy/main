@@ -85,7 +85,7 @@ const TRACK_RESULT: Record<string, TrackResult> = {
 
 const FAQS = [
   { q: 'What exactly is Plulai?',                     a: 'Plulai is an AI-powered learning platform for kids aged 6–18 in the GCC. Children learn coding, AI, and entrepreneurship through a personal AI coach, 500+ lessons, and real projects — in English and Arabic.' },
-  { q: 'Is the free plan really free — forever?',     a: 'Yes — genuinely free. No credit card, no 7-day trial, no expiry. The free plan covers the first module of each track. Pro unlocks all 500+ lessons and advanced AI coaching.' },
+  { q: 'What happens after the 14-day trial?',        a: 'After your 14-day free trial you can choose to subscribe to Pro or continue with limited access. No credit card is required to start — just sign up and explore.' },
   { q: 'Is the Arabic real — or machine translated?', a: 'Real Arabic — not machine-translated. Full RTL interface and an AI coach that teaches natively in Arabic, with GCC-specific examples throughout.' },
   { q: 'How long are the lessons?',                   a: '15–25 minutes each. Designed to fit after school without replacing homework time. The streak system encourages one lesson per day — most kids end up doing two.' },
   { q: 'Is it safe for my child?',                    a: "No ads — ever. AI responses are filtered for child safety. Parents control the account and receive weekly summaries. Your child's data is never sold." },
@@ -107,10 +107,10 @@ const PARTNERS = [
 
 // ─── Duolingo-style "shelf" button ────────────────────────────────────────────
 function ShelfButton({
-  href, children, bg, shadow, color = '#fff', fontSize = '15px', fullWidth = false, style = {},
+  href, children, bg, shadow, color = '#fff', fontSize = '15px', fullWidth = false, style = {}, onClick,
 }: {
   href?: string; children: React.ReactNode; bg: string; shadow: string; color?: string;
-  fontSize?: string; fullWidth?: boolean; style?: React.CSSProperties
+  fontSize?: string; fullWidth?: boolean; style?: React.CSSProperties; onClick?: () => void
 }) {
   const base: React.CSSProperties = {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -137,7 +137,7 @@ function ShelfButton({
     </Link>
   )
   return (
-    <button style={{ ...base, border: `2px solid ${shadow}` }} onMouseDown={handleDown} onMouseUp={handleUp} onMouseLeave={handleUp}>
+    <button onClick={onClick} style={{ ...base, border: `2px solid ${shadow}` }} onMouseDown={handleDown} onMouseUp={handleUp} onMouseLeave={handleUp}>
       {children}
     </button>
   )
@@ -709,9 +709,9 @@ export default function LandingPage() {
         <div style={{ maxWidth: '660px', margin: '0 auto' }}>
           <p style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.08em', color: C.blue, marginBottom: '8px' }}>Pricing</p>
           <h2 style={{ fontSize: 'clamp(26px,3.5vw,36px)', fontWeight: 700, color: C.text, marginBottom: '10px', fontFamily: `${fredokaFamily}, cursive` }}>
-            Start free. <span style={{ color: C.blue }}>No tricks.</span>
+            Try free for 14 days. <span style={{ color: C.blue }}>No card needed.</span>
           </h2>
-          <p style={{ fontSize: '15px', color: C.muted, lineHeight: 1.7, marginBottom: '36px' }}>The free plan never expires, needs no credit card, and doesn&apos;t lock you out after 7 days.</p>
+          <p style={{ fontSize: '15px', color: C.muted, lineHeight: 1.7, marginBottom: '36px' }}>Start your 14-day trial today — no credit card required. After the trial, choose Pro to keep going or explore the free tier.</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             {/* Free */}
