@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import mascot from "@/assets/mascot.png";
-import dashboard from "@/assets/dashboard.png";
+import mascot from "@/public/images/mascot.png";
+import dashboard from "@/public/images/dashboard.png";
 
 const inlineStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');
