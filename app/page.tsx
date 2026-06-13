@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import mascot from "@/assets/mascot.png";
-import dashboard from "@/assets/dashboard.png";
+import mascot from "@/public/images/mascot.png";
+import dashboard from "@/public/images/dashboard.png";
 
 const tracks = [
   { icon: "💻", title: "Coding", desc: "From block coding to Python. Build real apps and games while learning logic.", accent: "var(--brand-blue)", pct: 33 },
