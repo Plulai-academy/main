@@ -57,7 +57,6 @@ const inlineStyles = `
     letter-spacing: -0.02em;
   }
 
-  /* Shelf button utilities */
   .shelf-blue {
     background: var(--brand-blue);
     color: white;
@@ -90,7 +89,6 @@ const inlineStyles = `
   }
   .shelf-dark:active { box-shadow: 0 0 0 rgba(0,0,0,0.4); transform: translateY(4px); }
 
-  /* Backgrounds & surfaces */
   .bg-background { background-color: var(--background); }
   .bg-surface { background-color: var(--surface); }
   .bg-surface\\/40 { background-color: oklch(0.23 0.045 265 / 40%); }
@@ -99,7 +97,74 @@ const inlineStyles = `
   .border-border { border-color: oklch(1 0 0 / 10%); }
   .ring-border { --tw-ring-color: oklch(1 0 0 / 10%); }
 
-  /* Animations */
+  /* Mobile menu */
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    inset: 0;
+    top: 80px;
+    z-index: 49;
+    background: oklch(0.18 0.04 265 / 97%);
+    backdrop-filter: blur(16px);
+    padding: 24px;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid oklch(1 0 0 / 10%);
+    overflow-y: auto;
+  }
+  .mobile-menu.open { display: flex; }
+
+  .mobile-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 16px;
+    text-decoration: none;
+    color: oklch(0.97 0.01 250 / 80%);
+    transition: background .15s, color .15s;
+    gap: 10px;
+  }
+  .mobile-nav-link:hover, .mobile-nav-link:active {
+    background: oklch(0.27 0.05 265);
+    color: oklch(0.97 0.01 250);
+  }
+
+  .mobile-nav-divider {
+    height: 1px;
+    background: oklch(1 0 0 / 8%);
+    margin: 8px 0;
+  }
+
+  /* Hamburger icon */
+  .hamburger {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    background: var(--surface);
+    border: 1px solid oklch(1 0 0 / 12%);
+    border-radius: 10px;
+    padding: 0;
+  }
+  .hamburger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--foreground);
+    border-radius: 2px;
+    transition: transform .2s ease, opacity .2s ease;
+    transform-origin: center;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
   @keyframes bob {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
@@ -112,10 +177,15 @@ const inlineStyles = `
     0%, 100% { opacity: .5; }
     50% { opacity: 1; }
   }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
   .animate-bob { animation: bob 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite; }
   .animate-marquee { animation: marquee 30s linear infinite; }
   .animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
+  .mobile-menu.open { animation: slideDown .2s ease forwards; }
 `;
 
 const tracks = [
@@ -123,8 +193,6 @@ const tracks = [
   { icon: "🧠", title: "AI & Future Tech", desc: "Understand how AI works. Prompt engineering and ML basics for curious minds.", accent: "var(--brand-cyan)", pct: 50 },
   { icon: "💡", title: "Entrepreneurship", desc: "Launch your first digital business. Marketing, budget, and soft skills.", accent: "var(--brand-gold)", pct: 25 },
 ];
-
-const partners = ["TECHPARK", "GULF SCHOOLS", "MINISTRY OF EDU", "LEARNING HUB", "DUBAI AI", "GCC ED-COUNCIL", "RIYADH ACADEMY", "QATAR LEARNING"];
 
 const faqs = [
   { q: "What exactly is Plulai?", a: "Plulai is an AI-powered learning platform for kids aged 6–18 in the GCC. Children learn coding, AI, and entrepreneurship through a personal AI coach, 500+ lessons, and real projects — in English and Arabic." },
@@ -167,12 +235,16 @@ const footerLinks: FooterColumn[] = [
 function Landing() {
   const [audience, setAudience] = useState<"families" | "schools">("families");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isSchools = audience === "schools";
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
     <>
     <style dangerouslySetInnerHTML={{ __html: inlineStyles }} />
     <div className="min-h-screen bg-background text-foreground">
+
       {/* NAV */}
       <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -180,6 +252,7 @@ function Landing() {
             <a href="#" className="flex items-center gap-2">
               <Image src="/icons/plulai1.png" alt="Plulai" width={120} height={40} className="h-10 w-auto object-contain" />
             </a>
+            {/* Desktop links */}
             <div className="hidden lg:flex items-center gap-6 text-sm font-bold text-foreground/70">
               <a href="#tracks" className="hover:text-foreground transition-colors">Tracks</a>
               <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
@@ -188,12 +261,46 @@ function Landing() {
               <a href="/shop" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-gold)" }}>🛍️ Shop</a>
             </div>
           </div>
+
           <div className="flex items-center gap-3">
+            {/* Desktop auth */}
             <a href="/auth/login" className="hidden sm:block text-sm font-bold px-4 py-2 hover:text-[var(--brand-blue)] transition-colors">Log in</a>
             <a href="https://www.plulai.com/auth/signup" className="shelf-blue text-sm font-bold py-2.5 px-5 rounded-xl">Start free →</a>
+            {/* Hamburger — mobile only */}
+            <button
+              className={`lg:hidden hamburger ${mobileMenuOpen ? "open" : ""}`}
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
+            >
+              <span />
+              <span />
+              <span />
+            </button>
           </div>
         </div>
       </nav>
+
+      {/* MOBILE MENU */}
+      <div className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`} role="dialog" aria-label="Navigation menu">
+        <a href="#tracks"  className="mobile-nav-link" onClick={closeMobileMenu}>📚 Tracks</a>
+        <a href="#how"     className="mobile-nav-link" onClick={closeMobileMenu}>🗺️ How it works</a>
+        <a href="#schools" className="mobile-nav-link" onClick={closeMobileMenu} style={{ color: "var(--brand-cyan)" }}>🏫 For Schools</a>
+        <a href="#pricing" className="mobile-nav-link" onClick={closeMobileMenu}>💳 Pricing</a>
+        <a href="/shop"    className="mobile-nav-link" onClick={closeMobileMenu} style={{ color: "var(--brand-gold)" }}>🛍️ Shop</a>
+
+        <div className="mobile-nav-divider" />
+
+        <a href="/auth/login" className="mobile-nav-link" onClick={closeMobileMenu}>🔑 Log in</a>
+        <a
+          href="https://www.plulai.com/auth/signup"
+          className="shelf-blue font-bold py-4 px-6 rounded-2xl text-center text-base mt-2"
+          onClick={closeMobileMenu}
+          style={{ textDecoration: "none" }}
+        >
+          Start free trial →
+        </a>
+      </div>
 
       {/* HERO */}
       <section className="pt-12 pb-24 px-6 overflow-hidden relative">
@@ -254,17 +361,13 @@ function Landing() {
 
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 {isSchools ? (
-                  <>
-                    <a href="https://www.plulai.com/schools" className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg">
-                      Request school demo →
-                    </a>
-                  </>
+                  <a href="https://www.plulai.com/schools" className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg">
+                    Request school demo →
+                  </a>
                 ) : (
-                  <>
-                    <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-9 rounded-2xl text-lg">
-                      Start free trial →
-                    </a>
-                  </>
+                  <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-9 rounded-2xl text-lg">
+                    Start free trial →
+                  </a>
                 )}
               </div>
 
@@ -288,7 +391,6 @@ function Landing() {
                 <Image src={mascot} alt="Plulai AI Coach mascot" width={480} height={480} className="w-full max-w-[480px] mx-auto block" />
               </div>
 
-              {/* Floating cards */}
               <div className="absolute top-8 -left-2 lg:-left-8 shelf-white py-3 px-4 rounded-2xl flex items-center gap-3 max-w-[200px]">
                 <div className="size-10 rounded-full bg-[var(--brand-gold)]/20 grid place-items-center text-xl">🔥</div>
                 <div>
@@ -384,7 +486,6 @@ function Landing() {
           </div>
 
           <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
-            {/* Game map */}
             <div className="relative mx-auto w-full max-w-[460px]">
               <svg viewBox="0 0 400 720" className="w-full h-auto block" aria-hidden>
                 <defs>
@@ -412,27 +513,22 @@ function Landing() {
               </svg>
 
               {[
-                { top: "4%",  left: "50%", icon: "✨", color: "var(--brand-blue)", state: "done", label: "Welcome" },
+                { top: "4%",  left: "50%", icon: "✨", color: "var(--brand-blue)", state: "done",    label: "Welcome" },
                 { top: "32%", left: "50%", icon: "💻", color: "var(--brand-blue)", state: "current", label: "Build your first app" },
-                { top: "57%", left: "50%", icon: "🏆", color: "var(--brand-gold)", state: "locked", label: "Boss battle", big: true },
-                { top: "82%", left: "50%", icon: "🤖", color: "var(--brand-cyan)", state: "locked", label: "Train your AI" },
-                { top: "97%", left: "70%", icon: "🌍", color: "var(--brand-gold)", state: "locked", label: "Launch project" },
+                { top: "57%", left: "50%", icon: "🏆", color: "var(--brand-gold)", state: "locked",  label: "Boss battle", big: true },
+                { top: "82%", left: "50%", icon: "🤖", color: "var(--brand-cyan)", state: "locked",  label: "Train your AI" },
+                { top: "97%", left: "70%", icon: "🌍", color: "var(--brand-gold)", state: "locked",  label: "Launch project" },
               ].map((n, i) => {
                 const size = n.big ? 92 : 72;
-                const isDone = n.state === "done";
-                const isCurrent = n.state === "current";
                 const isLocked = n.state === "locked";
+                const isCurrent = n.state === "current";
+                const isDone = n.state === "done";
                 return (
-                  <div
-                    key={i}
-                    className="absolute -translate-x-1/2 -translate-y-1/2 z-10 group"
-                    style={{ top: n.top, left: n.left }}
-                  >
+                  <div key={i} className="absolute -translate-x-1/2 -translate-y-1/2 z-10 group" style={{ top: n.top, left: n.left }}>
                     <button
                       className="rounded-full grid place-items-center text-3xl transition-transform hover:scale-110"
                       style={{
-                        width: size,
-                        height: size,
+                        width: size, height: size,
                         background: isLocked ? "var(--surface-2)" : n.color,
                         boxShadow: isLocked
                           ? "0 5px 0 rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.04)"
@@ -445,24 +541,14 @@ function Landing() {
                     >
                       <span className={isLocked ? "opacity-40" : ""}>{isLocked ? "🔒" : n.icon}</span>
                       {isDone && (
-                        <span className="absolute -bottom-1 -right-1 size-7 rounded-full bg-[var(--brand-gold)] grid place-items-center text-sm ring-4 ring-background">
-                          ✓
-                        </span>
+                        <span className="absolute -bottom-1 -right-1 size-7 rounded-full bg-[var(--brand-gold)] grid place-items-center text-sm ring-4 ring-background">✓</span>
                       )}
                     </button>
-
                     {isCurrent && (
                       <div className="absolute left-[calc(100%+18px)] top-1/2 -translate-y-1/2 whitespace-nowrap">
                         <div className="relative shelf-blue px-4 py-2 rounded-xl font-bold text-sm">
                           START
-                          <span
-                            className="absolute right-full top-1/2 -translate-y-1/2 size-0"
-                            style={{
-                              borderTop: "8px solid transparent",
-                              borderBottom: "8px solid transparent",
-                              borderRight: "10px solid var(--brand-blue)",
-                            }}
-                          />
+                          <span className="absolute right-full top-1/2 -translate-y-1/2 size-0" style={{ borderTop: "8px solid transparent", borderBottom: "8px solid transparent", borderRight: "10px solid var(--brand-blue)" }} />
                         </div>
                       </div>
                     )}
@@ -477,7 +563,6 @@ function Landing() {
                   <div className="text-zinc-900 font-bold text-sm leading-none">+120</div>
                 </div>
               </div>
-
               <div className="absolute bottom-6 -right-2 sm:-right-6 shelf-white py-2 px-3 rounded-2xl flex items-center gap-2 z-20">
                 <span className="text-lg">🔥</span>
                 <div>
@@ -487,7 +572,6 @@ function Landing() {
               </div>
             </div>
 
-            {/* Right: legend & explainer */}
             <div className="space-y-6">
               <div className="p-6 rounded-3xl bg-surface ring-1 ring-border">
                 <div className="flex items-center gap-4">
@@ -510,7 +594,7 @@ function Landing() {
               <ul className="space-y-3">
                 {[
                   { icon: "🎯", title: "Bite-sized lessons", desc: "15-min units kids actually finish." },
-                  { icon: "🤖", title: "Personal AI coach", desc: "Adapts to your child's pace and language." },
+                  { icon: "🤖", title: "Personal AI coach",  desc: "Adapts to your child's pace and language." },
                   { icon: "🏆", title: "Boss-battles & rewards", desc: "XP, streaks, and badges that motivate." },
                   { icon: "🛠️", title: "Real projects", desc: "End every module with something to show." },
                 ].map((f) => (
@@ -542,7 +626,6 @@ function Landing() {
                 <Image src={dashboard} alt="Teacher dashboard preview" width={1280} height={960} className="w-full block" />
               </div>
             </div>
-
             <div className="order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--brand-cyan)]/15 ring-1 ring-[var(--brand-cyan)]/30 text-[var(--brand-cyan)] text-xs font-extrabold uppercase tracking-widest mb-6">
                 🏫 For Schools & Institutions
@@ -553,12 +636,11 @@ function Landing() {
               <p className="text-foreground/70 text-lg mb-8 leading-relaxed">
                 Plulai for Schools is a turnkey curriculum your teachers will actually love teaching — with built-in analytics, gamification, and a dedicated success manager.
               </p>
-
               <ul className="space-y-4 mb-10">
                 {[
                   ["Bulk seats 50–5,000", "Regional discounts and flexible billing for any school size."],
-                  ["AR + EN curriculum", "Aligned with Ministry of Education standards across the GCC."],
-                  ["Dedicated support", "Onboarding, training, and a customer success manager included."],
+                  ["AR + EN curriculum",  "Aligned with Ministry of Education standards across the GCC."],
+                  ["Dedicated support",   "Onboarding, training, and a customer success manager included."],
                 ].map(([title, desc]) => (
                   <li key={title} className="flex gap-4">
                     <div className="size-7 rounded-lg bg-[var(--brand-cyan)]/20 grid place-items-center flex-shrink-0 mt-0.5">
@@ -573,7 +655,6 @@ function Landing() {
                   </li>
                 ))}
               </ul>
-
               <div className="flex flex-col sm:flex-row gap-4">
                 <a href="mailto:hello@plulai.com" className="shelf-gold font-bold py-4 px-8 rounded-2xl text-lg text-center">Request school demo →</a>
                 <a href="mailto:hello@plulai.com" className="shelf-dark font-bold py-4 px-8 rounded-2xl text-lg text-center">Download brochure</a>
@@ -587,15 +668,13 @@ function Landing() {
       <section className="py-20 px-6 border-y border-border" style={{ background: "var(--surface)" }}>
         <div className="max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {[
-            { n: "200+", l: "Active learners", c: "var(--brand-blue)" },
-            { n: "500+", l: "Bite-sized lessons", c: "var(--brand-cyan)" },
-            { n: "9+", l: "Partner schools", c: "var(--brand-gold)" },
-            { n: "9.2/10", l: "User satisfaction", c: "var(--brand-blue)" },
+            { n: "200+",   l: "Active learners",    c: "var(--brand-blue)" },
+            { n: "500+",   l: "Bite-sized lessons",  c: "var(--brand-cyan)" },
+            { n: "9+",     l: "Partner schools",     c: "var(--brand-gold)" },
+            { n: "9.2/10", l: "User satisfaction",   c: "var(--brand-blue)" },
           ].map((s) => (
             <div key={s.l}>
-              <div className="font-display text-5xl lg:text-6xl font-bold mb-2" style={{ color: s.c, textShadow: `0 0 40px ${s.c}40` }}>
-                {s.n}
-              </div>
+              <div className="font-display text-5xl lg:text-6xl font-bold mb-2" style={{ color: s.c, textShadow: `0 0 40px ${s.c}40` }}>{s.n}</div>
               <div className="text-foreground/60 font-bold uppercase tracking-wider text-xs">{s.l}</div>
             </div>
           ))}
@@ -621,8 +700,7 @@ function Landing() {
                 </div>
                 <p className="text-foreground/85 leading-relaxed mb-6">&ldquo;{t.quote}&rdquo;</p>
                 <div className="flex items-center gap-3 pt-4 border-t border-border">
-                  <div className="size-10 rounded-full grid place-items-center font-bold text-sm"
-                    style={{ background: `${t.color}30`, color: t.color }}>
+                  <div className="size-10 rounded-full grid place-items-center font-bold text-sm" style={{ background: `${t.color}30`, color: t.color }}>
                     {t.name.charAt(0)}
                   </div>
                   <div>
@@ -644,9 +722,7 @@ function Landing() {
             <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">Pick your plan</h2>
             <p className="text-foreground/60">Start free. Upgrade when you&apos;re ready. School pricing is custom.</p>
           </div>
-
           <div className="grid md:grid-cols-3 gap-6 items-stretch">
-            {/* Free */}
             <div className="p-8 rounded-3xl bg-surface ring-1 ring-border flex flex-col">
               <div className="text-foreground/50 font-extrabold uppercase tracking-widest text-xs mb-2">Explorer</div>
               <div className="font-display text-4xl font-bold mb-1">Free</div>
@@ -658,8 +734,6 @@ function Landing() {
               </ul>
               <a href="https://www.plulai.com/auth/signup" className="shelf-dark py-3 rounded-xl font-bold text-center">Get started</a>
             </div>
-
-            {/* Pro — featured */}
             <div className="p-8 rounded-3xl relative flex flex-col" style={{ background: "var(--brand-blue)", boxShadow: "0 6px 0 var(--brand-deep), 0 20px 60px -20px var(--brand-blue)" }}>
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--brand-gold)] text-[#1A1A2E] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Most popular</div>
               <div className="text-white/80 font-extrabold uppercase tracking-widest text-xs mb-2">Prodigy</div>
@@ -677,8 +751,6 @@ function Landing() {
               </ul>
               <a href="https://www.plulai.com/auth/signup" className="shelf-white py-3 rounded-xl font-bold text-center">Start free trial</a>
             </div>
-
-            {/* Schools */}
             <div className="p-8 rounded-3xl bg-surface ring-1 ring-[var(--brand-cyan)]/30 flex flex-col">
               <div className="text-[var(--brand-cyan)] font-extrabold uppercase tracking-widest text-xs mb-2">Institution</div>
               <div className="font-display text-4xl font-bold mb-1">Custom</div>
@@ -705,19 +777,13 @@ function Landing() {
           <div className="space-y-3">
             {faqs.map((f, i) => (
               <div key={i} className="rounded-2xl bg-background ring-1 ring-border overflow-hidden">
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-6 text-left"
-                >
+                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between p-6 text-left">
                   <span className="font-bold pr-4">{f.q}</span>
-                  <svg className={`size-5 text-foreground/50 transition-transform flex-shrink-0 ${openFaq === i ? "rotate-180" : ""}`}
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className={`size-5 text-foreground/50 transition-transform flex-shrink-0 ${openFaq === i ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                {openFaq === i && (
-                  <div className="px-6 pb-6 text-foreground/70 leading-relaxed">{f.a}</div>
-                )}
+                {openFaq === i && <div className="px-6 pb-6 text-foreground/70 leading-relaxed">{f.a}</div>}
               </div>
             ))}
           </div>
@@ -726,13 +792,10 @@ function Landing() {
 
       {/* CTA BAND */}
       <section className="py-24 px-6 relative overflow-hidden">
-        <div className="absolute inset-0"
-          style={{ background: "radial-gradient(ellipse at center, rgba(28,176,246,0.18), transparent 60%)" }} />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(28,176,246,0.18), transparent 60%)" }} />
         <div className="max-w-4xl mx-auto text-center relative">
           <div className="text-7xl mb-6">🚀</div>
-          <h2 className="font-display text-4xl lg:text-6xl font-bold mb-6 leading-tight">
-            Ready to give them a head start?
-          </h2>
+          <h2 className="font-display text-4xl lg:text-6xl font-bold mb-6 leading-tight">Ready to give them a head start?</h2>
           <p className="text-foreground/70 text-lg mb-10 max-w-xl mx-auto">
             Join thousands of families and schools building the GCC&apos;s next generation of creators.
           </p>
@@ -757,9 +820,7 @@ function Landing() {
               <h4 className="font-bold mb-4 text-sm uppercase tracking-wider">{title}</h4>
               <ul className="space-y-2 text-sm text-foreground/60">
                 {links.map(({ label, href }) => (
-                  <li key={label}>
-                    <a href={href} className="hover:text-foreground transition-colors">{label}</a>
-                  </li>
+                  <li key={label}><a href={href} className="hover:text-foreground transition-colors">{label}</a></li>
                 ))}
               </ul>
             </div>
