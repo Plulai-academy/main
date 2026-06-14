@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFswQa_imQJ5pXkYuTmLt2E5CUEzyZ3m5bD5r869aAvlZatBFvVWicGZAZ_FJ_86VgEA/exec";
 
 const BOOK = {
   coverImage: "/images/bookcover.png",
