@@ -4,8 +4,6 @@ import Image from "next/image";
 import { useState } from "react";
 
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5bt7Xko23cWxXITCNvQwHaTUvuF6QkxEIcdEpHFJC340rCGYjZu0sEoK2qKYVI_Nt/exec";
-
 const BOOK = {
   coverImage: "/images/bookcover.png",
   currency: "د.ت",
@@ -78,28 +76,14 @@ const inlineStyles = `
     direction: rtl;
   }
 
-  .shelf-blue {
-    background: var(--brand-blue); color: white;
-    box-shadow: var(--shadow-blue);
-    transition: transform .1s ease, box-shadow .1s ease;
-    cursor: pointer; border: none;
-  }
-  .shelf-blue:active { box-shadow: 0 0 0 var(--brand-deep); transform: translateY(4px); }
-  .shelf-blue:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
   .shelf-gold {
     background: var(--brand-gold); color: #1A1A2E;
-    box-shadow: var(--shadow-gold);
+    box-shadow: 0 4px 0 #C47D00;
     transition: transform .1s ease, box-shadow .1s ease;
     cursor: pointer; border: none;
   }
   .shelf-gold:active { box-shadow: 0 0 0 #C47D00; transform: translateY(4px); }
   .shelf-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-  .shelf-dark {
-    background: var(--surface); color: var(--foreground);
-    box-shadow: var(--shadow-dark);
-  }
 
   @keyframes bob {
     0%, 100% { transform: translateY(0); }
@@ -109,14 +93,9 @@ const inlineStyles = `
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  @keyframes glow-pulse {
-    0%, 100% { opacity: .5; }
-    50%       { opacity: 1; }
-  }
 
-  .animate-bob    { animation: bob 4s cubic-bezier(0.34,1.56,0.64,1) infinite; }
-  .animate-in     { animation: fadeInUp 0.4s ease forwards; }
-  .animate-glow   { animation: glow-pulse 2s ease-in-out infinite; }
+  .animate-bob  { animation: bob 4s cubic-bezier(0.34,1.56,0.64,1) infinite; }
+  .animate-in   { animation: fadeInUp 0.4s ease forwards; }
 
   input, select, textarea {
     font-family: 'Cairo', system-ui, sans-serif;
@@ -135,20 +114,14 @@ const inlineStyles = `
   }
   .qty-btn:hover { background: var(--brand-blue); }
 
-  /* Version toggle pill */
   .ver-btn {
     flex: 1; padding: 10px 0; border-radius: 14px;
     font-weight: 800; font-size: 15px; border: none;
     cursor: pointer; transition: all .15s ease;
     display: flex; align-items: center; justify-content: center; gap: 7px;
   }
-  .ver-btn-active {
-    background: var(--brand-blue); color: white;
-    box-shadow: 0 4px 0 var(--brand-deep);
-  }
-  .ver-btn-inactive {
-    background: transparent; color: var(--muted-foreground);
-  }
+  .ver-btn-active   { background: var(--brand-blue); color: white; box-shadow: 0 4px 0 var(--brand-deep); }
+  .ver-btn-inactive { background: transparent; color: var(--muted-foreground); }
   .ver-btn-inactive:hover { color: var(--foreground); }
 
   .discount-badge {
@@ -169,10 +142,11 @@ const GOVERNORATES = [
   "قابس","مدنين","تطاوين","ولاية أخرى",
 ];
 
-type Version = "fr" | "en";
+type Version  = "fr" | "en";
 type FormState = { name: string; phone: string; governorate: string; address: string };
-type Status = "idle" | "loading" | "success" | "error";
+type Status   = "idle" | "loading" | "success" | "error";
 
+// ── Success screen ────────────────────────────────────────────────────────────
 function SuccessScreen({ name }: { name: string }) {
   return (
     <div className="animate-in" style={{ textAlign: "center", padding: "48px 24px" }}>
@@ -199,6 +173,7 @@ function SuccessScreen({ name }: { name: string }) {
   );
 }
 
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function ShopPage() {
   const [version, setVersion] = useState<Version>("fr");
   const [qty, setQty]         = useState(1);
@@ -206,67 +181,71 @@ export default function ShopPage() {
   const [status, setStatus]   = useState<Status>("idle");
   const [errors, setErrors]   = useState<Partial<FormState>>({});
 
-  const v            = BOOK.versions[version];
-  const subtotal     = qty * v.price;
-  const total        = subtotal + BOOK.deliveryCost;
+  const v        = BOOK.versions[version];
+  const subtotal = qty * v.price;
+  const total    = subtotal + BOOK.deliveryCost;
 
-  const validate = () => {
+  // ── Validation ──────────────────────────────────────────────────────────────
+  const validate = (): boolean => {
     const e: Partial<FormState> = {};
-    if (!form.name.trim())                                            e.name        = "الاسم مطلوب";
-    if (!form.phone.trim() || !/^[0-9+\s]{8,15}$/.test(form.phone)) e.phone       = "رقم هاتف غلط";
-    if (!form.governorate)                                            e.governorate = "اختر الولاية";
-    if (!form.address.trim() || form.address.trim().length < 8)      e.address     = "زد تفاصيل أكثر للعنوان";
+    if (!form.name.trim())                                             e.name        = "الاسم مطلوب";
+    if (!form.phone.trim() || !/^[0-9+\s]{8,15}$/.test(form.phone))  e.phone       = "رقم هاتف غلط";
+    if (!form.governorate)                                             e.governorate = "اختر الولاية";
+    if (!form.address.trim() || form.address.trim().length < 8)       e.address     = "زد تفاصيل أكثر للعنوان";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
+  // ── Submit — calls our own API route, which proxies to Google Script ────────
+  // This avoids the Content-Security-Policy block that prevents the browser
+  // from calling script.google.com directly.
   const handleSubmit = async () => {
     if (!validate()) return;
     setStatus("loading");
 
-    const payload: Record<string, string> = {
-      timestamp:   new Date().toLocaleString("ar-TN"),
-      name:        form.name,
-      phone:       form.phone,
-      governorate: form.governorate,
-      address:     form.address,
-      version:     `${v.flag} ${v.label}`,
-      quantity:    String(qty),
-      total:       `${total} ${BOOK.currency}`,
-    };
-
-    // Google Apps Script doesn't return CORS headers, so we must use
-    // no-cors. This makes the response opaque (unreadable), but the fetch
-    // Promise only rejects on a real network failure (offline / DNS).
-    // If the Promise resolves — even with an opaque response — the script
-    // received the request and wrote the row, so we treat it as success.
-    const formBody = Object.entries(payload)
-      .map(([k, val]) => `${encodeURIComponent(k)}=${encodeURIComponent(val)}`)
-      .join("&");
-
     try {
-      await fetch(GOOGLE_SCRIPT_URL, {
+      const res = await fetch("/api/order", {
         method: "POST",
-        mode: "no-cors",                                    // required for Apps Script
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formBody,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          timestamp:   new Date().toLocaleString("ar-TN"),
+          name:        form.name,
+          phone:       form.phone,
+          governorate: form.governorate,
+          address:     form.address,
+          version:     `${v.flag} ${v.label}`,
+          quantity:    String(qty),
+          total:       `${total} ${BOOK.currency}`,
+        }),
       });
-      // Resolves → request reached Google → row was written
-      setStatus("success");
+
+      if (res.ok) {
+        setStatus("success");
+      } else {
+        setStatus("error");
+      }
     } catch {
-      // Rejects only on real network failure (offline, DNS error, etc.)
       setStatus("error");
     }
   };
 
-  const inputField = (key: keyof FormState, label: string, placeholder: string, type = "text") => (
+  // ── Reusable text input ─────────────────────────────────────────────────────
+  const inputField = (
+    key: keyof FormState,
+    label: string,
+    placeholder: string,
+    type = "text",
+  ) => (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <label style={{ fontWeight: 700, fontSize: 14 }}>{label}</label>
       <input
         type={type}
         placeholder={placeholder}
         value={form[key]}
-        onChange={(e) => { setForm(f => ({ ...f, [key]: e.target.value })); setErrors(er => ({ ...er, [key]: undefined })); }}
+        onChange={(e) => {
+          setForm((f) => ({ ...f, [key]: e.target.value }));
+          setErrors((er) => ({ ...er, [key]: undefined }));
+        }}
         style={{
           padding: "12px 16px", borderRadius: 12,
           background: "var(--surface-2)",
@@ -274,16 +253,21 @@ export default function ShopPage() {
           color: "var(--foreground)", width: "100%",
         }}
       />
-      {errors[key] && <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>{errors[key]}</span>}
+      {errors[key] && (
+        <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>
+          {errors[key]}
+        </span>
+      )}
     </div>
   );
 
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: inlineStyles }} />
       <div style={{ minHeight: "100vh", background: "var(--background)", direction: "rtl" }}>
 
-        {/* ── NAV ── */}
+        {/* NAV */}
         <nav style={{
           position: "sticky", top: 0, zIndex: 50,
           backdropFilter: "blur(12px)",
@@ -305,7 +289,7 @@ export default function ShopPage() {
           </div>
         </nav>
 
-        {/* ── TRUST BAND ── */}
+        {/* TRUST BAND */}
         <div style={{
           background: "linear-gradient(180deg, rgba(28,176,246,0.1) 0%, transparent 100%)",
           borderBottom: "1px solid var(--border)",
@@ -316,7 +300,7 @@ export default function ShopPage() {
           </span>
         </div>
 
-        {/* ── MAIN ── */}
+        {/* MAIN */}
         <main style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px" }}>
           {status === "success" ? (
             <div style={{ maxWidth: 500, margin: "0 auto" }}>
@@ -325,12 +309,11 @@ export default function ShopPage() {
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 48, alignItems: "start" }}>
 
-              {/* ──── LEFT: book info ──── */}
+              {/* LEFT: book info */}
               <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
 
-                {/* Cover */}
+                {/* Cover + discount badge */}
                 <div style={{ position: "relative", width: "100%", maxWidth: 300, margin: "0 auto" }}>
-                  {/* Discount ribbon */}
                   <div style={{
                     position: "absolute", top: -12, left: -12, zIndex: 10,
                     background: "var(--brand-red)", color: "white",
@@ -374,13 +357,12 @@ export default function ShopPage() {
                     {v.subtitle}
                   </p>
 
-                  {/* Meta pills */}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {[
                       { icon: "📄", label: v.pages },
                       { icon: "🌐", label: v.language },
                       { icon: "🚚", label: BOOK.delivery },
-                    ].map(m => (
+                    ].map((m) => (
                       <span key={m.label} style={{
                         display: "inline-flex", alignItems: "center", gap: 5,
                         padding: "5px 12px", borderRadius: 999,
@@ -390,9 +372,8 @@ export default function ShopPage() {
                     ))}
                   </div>
 
-                  {/* Features */}
                   <ul style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {v.features.map(f => (
+                    {v.features.map((f) => (
                       <li key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontFamily: "Tajawal, sans-serif" }}>
                         <span style={{
                           width: 22, height: 22, borderRadius: 8, flexShrink: 0,
@@ -409,7 +390,7 @@ export default function ShopPage() {
                 </div>
               </div>
 
-              {/* ──── RIGHT: order form ──── */}
+              {/* RIGHT: order form */}
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
                 {/* VERSION TOGGLE */}
@@ -424,7 +405,7 @@ export default function ShopPage() {
                     background: "var(--surface-2)", borderRadius: 16,
                     border: "1px solid var(--border)",
                   }}>
-                    {(["fr", "en"] as Version[]).map(vk => (
+                    {(["fr", "en"] as Version[]).map((vk) => (
                       <button
                         key={vk}
                         onClick={() => setVersion(vk)}
@@ -436,7 +417,6 @@ export default function ShopPage() {
                     ))}
                   </div>
 
-                  {/* Selected version badge */}
                   <div style={{
                     display: "flex", alignItems: "center", gap: 10,
                     padding: "10px 14px", borderRadius: 12,
@@ -453,10 +433,7 @@ export default function ShopPage() {
                       <span style={{ fontWeight: 900, color: "var(--brand-blue)", fontSize: 18 }}>
                         {v.price} {BOOK.currency}
                       </span>
-                      <span style={{
-                        fontSize: 12, color: "var(--muted-foreground)",
-                        textDecoration: "line-through",
-                      }}>
+                      <span style={{ fontSize: 12, color: "var(--muted-foreground)", textDecoration: "line-through" }}>
                         {v.originalPrice} {BOOK.currency}
                       </span>
                     </div>
@@ -471,16 +448,12 @@ export default function ShopPage() {
                 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      {/* Discounted price */}
                       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                         <span style={{ fontSize: 36, fontWeight: 900, color: "var(--brand-blue)", fontFamily: "Cairo" }}>
                           {v.price}
                         </span>
                         <span style={{ fontSize: 18, color: "var(--muted-foreground)" }}>{BOOK.currency}</span>
-                        <span style={{
-                          fontSize: 18, color: "var(--muted-foreground)",
-                          textDecoration: "line-through",
-                        }}>
+                        <span style={{ fontSize: 18, color: "var(--muted-foreground)", textDecoration: "line-through" }}>
                           {v.originalPrice} {BOOK.currency}
                         </span>
                       </div>
@@ -492,9 +465,9 @@ export default function ShopPage() {
                       </div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <button className="qty-btn" onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
+                      <button className="qty-btn" onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
                       <span style={{ fontWeight: 900, fontSize: 20, minWidth: 24, textAlign: "center" }}>{qty}</span>
-                      <button className="qty-btn" onClick={() => setQty(q => Math.min(10, q + 1))}>+</button>
+                      <button className="qty-btn" onClick={() => setQty((q) => Math.min(10, q + 1))}>+</button>
                     </div>
                   </div>
                 </div>
@@ -522,7 +495,10 @@ export default function ShopPage() {
                     <label style={{ fontWeight: 700, fontSize: 14 }}>الولاية</label>
                     <select
                       value={form.governorate}
-                      onChange={(e) => { setForm(f => ({ ...f, governorate: e.target.value })); setErrors(er => ({ ...er, governorate: undefined })); }}
+                      onChange={(e) => {
+                        setForm((f) => ({ ...f, governorate: e.target.value }));
+                        setErrors((er) => ({ ...er, governorate: undefined }));
+                      }}
                       style={{
                         padding: "12px 16px", borderRadius: 12,
                         background: "var(--surface-2)",
@@ -532,9 +508,13 @@ export default function ShopPage() {
                       }}
                     >
                       <option value="">اختر ولايتك</option>
-                      {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+                      {GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
                     </select>
-                    {errors.governorate && <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>{errors.governorate}</span>}
+                    {errors.governorate && (
+                      <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>
+                        {errors.governorate}
+                      </span>
+                    )}
                   </div>
 
                   {/* Address */}
@@ -544,7 +524,10 @@ export default function ShopPage() {
                       placeholder="الحي، الشارع، رقم المنزل أو الشقة..."
                       value={form.address}
                       rows={3}
-                      onChange={(e) => { setForm(f => ({ ...f, address: e.target.value })); setErrors(er => ({ ...er, address: undefined })); }}
+                      onChange={(e) => {
+                        setForm((f) => ({ ...f, address: e.target.value }));
+                        setErrors((er) => ({ ...er, address: undefined }));
+                      }}
                       style={{
                         padding: "12px 16px", borderRadius: 12,
                         background: "var(--surface-2)",
@@ -553,7 +536,11 @@ export default function ShopPage() {
                         fontFamily: "Tajawal, sans-serif", direction: "rtl", textAlign: "right",
                       }}
                     />
-                    {errors.address && <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>{errors.address}</span>}
+                    {errors.address && (
+                      <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>
+                        {errors.address}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -563,26 +550,16 @@ export default function ShopPage() {
                   border: "1px solid rgba(28,176,246,0.2)", padding: "16px 20px",
                   display: "flex", flexDirection: "column", gap: 8,
                 }}>
-                  {/* Book line */}
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
                     <span style={{ color: "var(--muted-foreground)" }}>{v.flag} {v.title} × {qty}</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      {qty > 1 && (
-                        <span style={{ color: "var(--muted-foreground)", fontSize: 12, textDecoration: "line-through" }}>
-                          {qty * v.originalPrice} {BOOK.currency}
-                        </span>
-                      )}
-                      <span style={{ fontWeight: 700 }}>{subtotal} {BOOK.currency}</span>
-                    </div>
+                    <span style={{ fontWeight: 700 }}>{subtotal} {BOOK.currency}</span>
                   </div>
 
-                  {/* Delivery */}
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
                     <span style={{ color: "var(--muted-foreground)" }}>التوصيل 🚚</span>
                     <span style={{ fontWeight: 700 }}>{BOOK.deliveryCost} {BOOK.currency}</span>
                   </div>
 
-                  {/* Savings callout */}
                   <div style={{
                     display: "flex", justifyContent: "space-between", fontSize: 13,
                     padding: "8px 12px", borderRadius: 10,
@@ -594,7 +571,6 @@ export default function ShopPage() {
                     </span>
                   </div>
 
-                  {/* Total */}
                   <div style={{ borderTop: "1px solid var(--border)", marginTop: 4, paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
                     <span style={{ fontWeight: 800 }}>الجملة</span>
                     <span style={{ fontWeight: 900, fontSize: 18, color: "var(--brand-blue)" }}>{total} {BOOK.currency}</span>
