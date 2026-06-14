@@ -144,6 +144,7 @@ const footerLinks: FooterColumn[] = [
       { label: "Tracks",       href: "#tracks"  },
       { label: "How it works", href: "#how"     },
       { label: "Pricing",      href: "#pricing" },
+      { label: "Shop",         href: "/shop"    },
     ],
   },
   {
@@ -184,6 +185,7 @@ function Landing() {
               <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
               <a href="#schools" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-cyan)" }}>For Schools</a>
               <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+              <a href="/shop" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-gold)" }}>🛍️ Shop</a>
             </div>
           </div>
           <div className="flex items-center gap-3">
