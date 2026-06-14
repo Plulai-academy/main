@@ -53,7 +53,6 @@ const inlineStyles = `
     direction: rtl;
   }
 
-  /* RTL overrides */
   [dir="rtl"] { direction: rtl; text-align: right; }
 
   .font-display, h1, h2, h3, h4 {
@@ -66,7 +65,6 @@ const inlineStyles = `
     font-family: 'Tajawal', system-ui, sans-serif;
   }
 
-  /* Shelf button utilities */
   .shelf-blue {
     background: var(--brand-blue);
     color: white;
@@ -99,7 +97,6 @@ const inlineStyles = `
   }
   .shelf-dark:active { box-shadow: 0 0 0 rgba(0,0,0,0.4); transform: translateY(4px); }
 
-  /* Backgrounds & surfaces */
   .bg-background { background-color: var(--background); }
   .bg-surface { background-color: var(--surface); }
   .bg-surface\\/40 { background-color: oklch(0.23 0.045 265 / 40%); }
@@ -108,7 +105,76 @@ const inlineStyles = `
   .border-border { border-color: oklch(1 0 0 / 10%); }
   .ring-border { --tw-ring-color: oklch(1 0 0 / 10%); }
 
-  /* Animations */
+  /* Mobile menu — RTL version opens from right */
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    inset: 0;
+    top: 80px;
+    z-index: 49;
+    background: oklch(0.18 0.04 265 / 97%);
+    backdrop-filter: blur(16px);
+    padding: 24px;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid oklch(1 0 0 / 10%);
+    overflow-y: auto;
+    direction: rtl;
+  }
+  .mobile-menu.open { display: flex; }
+
+  .mobile-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 16px;
+    text-decoration: none;
+    color: oklch(0.97 0.01 250 / 80%);
+    transition: background .15s, color .15s;
+    gap: 10px;
+    font-family: 'Cairo', sans-serif;
+  }
+  .mobile-nav-link:hover, .mobile-nav-link:active {
+    background: oklch(0.27 0.05 265);
+    color: oklch(0.97 0.01 250);
+  }
+
+  .mobile-nav-divider {
+    height: 1px;
+    background: oklch(1 0 0 / 8%);
+    margin: 8px 0;
+  }
+
+  /* Hamburger */
+  .hamburger {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    background: var(--surface);
+    border: 1px solid oklch(1 0 0 / 12%);
+    border-radius: 10px;
+    padding: 0;
+  }
+  .hamburger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--foreground);
+    border-radius: 2px;
+    transition: transform .2s ease, opacity .2s ease;
+    transform-origin: center;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
   @keyframes bob {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
@@ -121,20 +187,18 @@ const inlineStyles = `
     0%, 100% { opacity: .5; }
     50% { opacity: 1; }
   }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
   .animate-bob { animation: bob 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite; }
   .animate-marquee-rtl { animation: marquee-rtl 30s linear infinite; }
   .animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
+  .mobile-menu.open { animation: slideDown .2s ease forwards; }
 
-  /* RTL floating card positional fixes */
-  .float-card-start {
-    right: auto;
-    left: -0.5rem;
-  }
-  .float-card-end {
-    left: auto;
-    right: -0.5rem;
-  }
+  .float-card-start { right: auto; left: -0.5rem; }
+  .float-card-end { left: auto; right: -0.5rem; }
   @media (min-width: 1024px) {
     .float-card-start { left: -2rem; }
     .float-card-end { right: -1.5rem; }
@@ -186,7 +250,10 @@ const footerLinksAr = [
 function Landing() {
   const [audience, setAudience] = useState<"families" | "schools">("families");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isSchools = audience === "schools";
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
     <>
@@ -200,6 +267,7 @@ function Landing() {
             <a href="/ar" className="flex items-center gap-2">
               <Image src="/icons/plulai1.png" alt="بلولاي" width={120} height={40} className="h-10 w-auto object-contain" />
             </a>
+            {/* Desktop links */}
             <div className="hidden lg:flex items-center gap-6 text-sm font-bold text-foreground/70">
               <a href="#tracks" className="hover:text-foreground transition-colors">المسارات</a>
               <a href="#how" className="hover:text-foreground transition-colors">كيف يعمل</a>
@@ -208,13 +276,55 @@ function Landing() {
               <a href="/shop" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-gold)" }}>🛍️ المتجر</a>
             </div>
           </div>
+
           <div className="flex items-center gap-3">
+            {/* Desktop auth */}
             <a href="/auth/login" className="hidden sm:block text-sm font-bold px-4 py-2 hover:text-[var(--brand-blue)] transition-colors">تسجيل الدخول</a>
             <a href="https://www.plulai.com/auth/signup" className="shelf-blue text-sm font-bold py-2.5 px-5 rounded-xl">ابدأ مجاناً ←</a>
             <a href="/" className="hidden sm:block text-xs font-bold px-3 py-1.5 rounded-lg bg-surface/60 ring-1 ring-border text-foreground/50 hover:text-foreground transition-colors">EN</a>
+            {/* Hamburger — mobile only */}
+            <button
+              className={`lg:hidden hamburger ${mobileMenuOpen ? "open" : ""}`}
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              aria-label="فتح القائمة"
+              aria-expanded={mobileMenuOpen}
+            >
+              <span />
+              <span />
+              <span />
+            </button>
           </div>
         </div>
       </nav>
+
+      {/* MOBILE MENU */}
+      <div className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`} role="dialog" aria-label="قائمة التنقل">
+        <a href="#tracks"  className="mobile-nav-link" onClick={closeMobileMenu}>📚 المسارات</a>
+        <a href="#how"     className="mobile-nav-link" onClick={closeMobileMenu}>🗺️ كيف يعمل</a>
+        <a href="#schools" className="mobile-nav-link" onClick={closeMobileMenu} style={{ color: "var(--brand-cyan)" }}>🏫 للمدارس</a>
+        <a href="#pricing" className="mobile-nav-link" onClick={closeMobileMenu}>💳 الأسعار</a>
+        <a href="/shop"    className="mobile-nav-link" onClick={closeMobileMenu} style={{ color: "var(--brand-gold)" }}>🛍️ المتجر</a>
+
+        <div className="mobile-nav-divider" />
+
+        <a href="/auth/login" className="mobile-nav-link" onClick={closeMobileMenu}>🔑 تسجيل الدخول</a>
+        <a
+          href="https://www.plulai.com/auth/signup"
+          className="shelf-blue font-bold py-4 px-6 rounded-2xl text-center text-base mt-2"
+          onClick={closeMobileMenu}
+          style={{ textDecoration: "none", fontFamily: "'Cairo', sans-serif" }}
+        >
+          ابدأ التجربة المجانية ←
+        </a>
+        <a
+          href="/"
+          className="mobile-nav-link"
+          onClick={closeMobileMenu}
+          style={{ color: "oklch(0.97 0.01 250 / 40%)", justifyContent: "center", fontSize: 13 }}
+        >
+          Switch to English
+        </a>
+      </div>
 
       {/* HERO */}
       <section className="pt-12 pb-24 px-6 overflow-hidden relative">
@@ -247,7 +357,6 @@ function Landing() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Text side */}
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--brand-cyan)]/10 ring-1 ring-[var(--brand-cyan)]/30 text-[var(--brand-cyan)] text-xs font-bold uppercase tracking-widest mb-6">
                 <span className="size-2 rounded-full bg-[var(--brand-cyan)] animate-glow" />
@@ -299,10 +408,7 @@ function Landing() {
 
             {/* Mascot side */}
             <div className="relative">
-              <div
-                className="absolute -inset-10 rounded-full blur-3xl"
-                style={{ background: isSchools ? "var(--brand-gold)" : "var(--brand-blue)", opacity: 0.15 }}
-              />
+              <div className="absolute -inset-10 rounded-full blur-3xl" style={{ background: isSchools ? "var(--brand-gold)" : "var(--brand-blue)", opacity: 0.15 }} />
               <div className="relative animate-bob">
                 <Image src={mascot} alt="مدرّب بلولاي الذكي" width={480} height={480} className="w-full max-w-[480px] mx-auto block" />
               </div>
@@ -311,7 +417,7 @@ function Landing() {
                 <div className="size-10 rounded-full bg-[var(--brand-gold)]/20 grid place-items-center text-xl">🔥</div>
                 <div>
                   <div className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">السلسلة</div>
-                  <div className="text-zinc-900 font-bold text-sm">14 يوماً مجانا !</div>
+                  <div className="text-zinc-900 font-bold text-sm">14 يوماً مجاناً!</div>
                 </div>
               </div>
 
@@ -356,15 +462,8 @@ function Landing() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {tracks.map((t) => (
-              <div
-                key={t.title}
-                className="group p-8 rounded-3xl bg-surface ring-1 ring-border hover:-translate-y-1 transition-transform"
-                style={{ boxShadow: `0 10px 30px -15px ${t.accent}30` }}
-              >
-                <div
-                  className="size-16 rounded-2xl grid place-items-center mb-6 text-3xl group-hover:scale-110 transition-transform"
-                  style={{ background: `${t.accent}25`, boxShadow: `inset 0 0 0 1px ${t.accent}40` }}
-                >
+              <div key={t.title} className="group p-8 rounded-3xl bg-surface ring-1 ring-border hover:-translate-y-1 transition-transform" style={{ boxShadow: `0 10px 30px -15px ${t.accent}30` }}>
+                <div className="size-16 rounded-2xl grid place-items-center mb-6 text-3xl group-hover:scale-110 transition-transform" style={{ background: `${t.accent}25`, boxShadow: `inset 0 0 0 1px ${t.accent}40` }}>
                   {t.icon}
                 </div>
                 <h3 className="font-display text-2xl font-bold mb-3">{t.title}</h3>
@@ -384,13 +483,7 @@ function Landing() {
 
       {/* HOW IT WORKS */}
       <section id="how" className="py-24 px-6 relative overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse 50% 40% at 80% 30%, rgba(28,176,246,0.12), transparent 60%), radial-gradient(ellipse 40% 30% at 15% 75%, rgba(250,169,24,0.10), transparent 60%)",
-          }}
-        />
+        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "radial-gradient(ellipse 50% 40% at 80% 30%, rgba(28,176,246,0.12), transparent 60%), radial-gradient(ellipse 40% 30% at 15% 75%, rgba(250,169,24,0.10), transparent 60%)" }} />
 
         <div className="max-w-7xl mx-auto relative">
           <div className="text-center mb-16">
@@ -453,49 +546,29 @@ function Landing() {
                     <stop offset="100%" stopColor="#FAA918" />
                   </linearGradient>
                 </defs>
-                <path
-                  d="M200 40 C 80 100, 80 200, 200 240 S 320 360, 200 420 S 80 540, 200 600 S 320 680, 280 700"
-                  stroke="rgba(255,255,255,0.08)"
-                  strokeWidth="22"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                <path
-                  d="M200 40 C 80 100, 80 200, 200 240 S 320 360, 200 420"
-                  stroke="url(#road)"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  strokeDasharray="2 12"
-                  fill="none"
-                />
+                <path d="M200 40 C 80 100, 80 200, 200 240 S 320 360, 200 420 S 80 540, 200 600 S 320 680, 280 700" stroke="rgba(255,255,255,0.08)" strokeWidth="22" strokeLinecap="round" fill="none" />
+                <path d="M200 40 C 80 100, 80 200, 200 240 S 320 360, 200 420" stroke="url(#road)" strokeWidth="6" strokeLinecap="round" strokeDasharray="2 12" fill="none" />
               </svg>
 
               {[
-                { top: "4%",  left: "50%", icon: "✨", color: "var(--brand-blue)", state: "done", label: "مرحباً" },
+                { top: "4%",  left: "50%", icon: "✨", color: "var(--brand-blue)", state: "done",    label: "مرحباً" },
                 { top: "32%", left: "50%", icon: "💻", color: "var(--brand-blue)", state: "current", label: "ابنِ تطبيقك الأول" },
-                { top: "57%", left: "50%", icon: "🏆", color: "var(--brand-gold)", state: "locked", label: "معركة الزعيم", big: true },
-                { top: "82%", left: "50%", icon: "🤖", color: "var(--brand-cyan)", state: "locked", label: "درِّب ذكاءك الاصطناعي" },
-                { top: "97%", left: "70%", icon: "🌍", color: "var(--brand-gold)", state: "locked", label: "أطلق مشروعك" },
+                { top: "57%", left: "50%", icon: "🏆", color: "var(--brand-gold)", state: "locked",  label: "معركة الزعيم", big: true },
+                { top: "82%", left: "50%", icon: "🤖", color: "var(--brand-cyan)", state: "locked",  label: "درِّب ذكاءك الاصطناعي" },
+                { top: "97%", left: "70%", icon: "🌍", color: "var(--brand-gold)", state: "locked",  label: "أطلق مشروعك" },
               ].map((n, i) => {
                 const size = n.big ? 92 : 72;
                 const isDone = n.state === "done";
                 const isCurrent = n.state === "current";
                 const isLocked = n.state === "locked";
                 return (
-                  <div
-                    key={i}
-                    className="absolute -translate-x-1/2 -translate-y-1/2 z-10 group"
-                    style={{ top: n.top, left: n.left }}
-                  >
+                  <div key={i} className="absolute -translate-x-1/2 -translate-y-1/2 z-10 group" style={{ top: n.top, left: n.left }}>
                     <button
                       className="rounded-full grid place-items-center text-3xl transition-transform hover:scale-110"
                       style={{
-                        width: size,
-                        height: size,
+                        width: size, height: size,
                         background: isLocked ? "var(--surface-2)" : n.color,
-                        boxShadow: isLocked
-                          ? "0 5px 0 rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.04)"
-                          : `0 6px 0 rgba(0,0,0,0.45), 0 0 40px ${n.color}90`,
+                        boxShadow: isLocked ? "0 5px 0 rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.04)" : `0 6px 0 rgba(0,0,0,0.45), 0 0 40px ${n.color}90`,
                         filter: isLocked ? "grayscale(1)" : undefined,
                         opacity: isLocked ? 0.5 : 1,
                         outline: `8px solid var(--background)`,
@@ -504,24 +577,14 @@ function Landing() {
                     >
                       <span className={isLocked ? "opacity-40" : ""}>{isLocked ? "🔒" : n.icon}</span>
                       {isDone && (
-                        <span className="absolute -bottom-1 -right-1 size-7 rounded-full bg-[var(--brand-gold)] grid place-items-center text-sm ring-4 ring-background">
-                          ✓
-                        </span>
+                        <span className="absolute -bottom-1 -right-1 size-7 rounded-full bg-[var(--brand-gold)] grid place-items-center text-sm ring-4 ring-background">✓</span>
                       )}
                     </button>
-
                     {isCurrent && (
                       <div className="absolute right-[calc(100%+18px)] top-1/2 -translate-y-1/2 whitespace-nowrap">
                         <div className="relative shelf-blue px-4 py-2 rounded-xl font-bold text-sm">
                           ابدأ
-                          <span
-                            className="absolute left-full top-1/2 -translate-y-1/2 size-0"
-                            style={{
-                              borderTop: "8px solid transparent",
-                              borderBottom: "8px solid transparent",
-                              borderLeft: "10px solid var(--brand-blue)",
-                            }}
-                          />
+                          <span className="absolute left-full top-1/2 -translate-y-1/2 size-0" style={{ borderTop: "8px solid transparent", borderBottom: "8px solid transparent", borderLeft: "10px solid var(--brand-blue)" }} />
                         </div>
                       </div>
                     )}
@@ -536,7 +599,6 @@ function Landing() {
                   <div className="text-zinc-900 font-bold text-sm leading-none">+120</div>
                 </div>
               </div>
-
               <div className="absolute bottom-6 -left-2 sm:-left-6 shelf-white py-2 px-3 rounded-2xl flex items-center gap-2 z-20">
                 <span className="text-lg">🔥</span>
                 <div>
@@ -559,7 +621,6 @@ function Landing() {
                 <Image src={dashboard} alt="معاينة لوحة تحكّم المعلّم" width={1280} height={960} className="w-full block" />
               </div>
             </div>
-
             <div className="order-1 lg:order-1">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--brand-cyan)]/15 ring-1 ring-[var(--brand-cyan)]/30 text-[var(--brand-cyan)] text-xs font-extrabold uppercase tracking-widest mb-6">
                 🏫 للمدارس والمؤسسات
@@ -570,7 +631,6 @@ function Landing() {
               <p className="text-foreground/70 text-lg mb-8 leading-loose font-body">
                 بلولاي للمدارس منهج جاهز للتطبيق سيحبّ معلّموك تدريسه — مع تحليلات مدمجة وتلعيب ومدير نجاح مخصّص.
               </p>
-
               <ul className="space-y-4 mb-10">
                 {[
                   ["مقاعد جماعية من 50 إلى 5000", "خصومات إقليمية وفوترة مرنة لأي حجم مدرسة."],
@@ -590,7 +650,6 @@ function Landing() {
                   </li>
                 ))}
               </ul>
-
               <div className="flex flex-col sm:flex-row gap-4">
                 <a href="mailto:hello@plulai.com" className="shelf-gold font-bold py-4 px-8 rounded-2xl text-lg text-center">اطلب عرضاً للمدرسة ←</a>
                 <a href="mailto:hello@plulai.com" className="shelf-dark font-bold py-4 px-8 rounded-2xl text-lg text-center">تحميل الكتيّب</a>
@@ -604,15 +663,13 @@ function Landing() {
       <section className="py-20 px-6 border-y border-border" style={{ background: "var(--surface)" }}>
         <div className="max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {[
-            { n: "+200", l: "متعلّم نشط", c: "var(--brand-blue)" },
-            { n: "+500", l: "درس قصير", c: "var(--brand-cyan)" },
-            { n: "+9", l: "مدرسة شريكة", c: "var(--brand-gold)" },
-            { n: "9.2/10", l: "رضا المستخدمين", c: "var(--brand-blue)" },
+            { n: "+200",   l: "متعلّم نشط",      c: "var(--brand-blue)" },
+            { n: "+500",   l: "درس قصير",         c: "var(--brand-cyan)" },
+            { n: "+9",     l: "مدرسة شريكة",      c: "var(--brand-gold)" },
+            { n: "9.2/10", l: "رضا المستخدمين",   c: "var(--brand-blue)" },
           ].map((s) => (
             <div key={s.l}>
-              <div className="font-display text-5xl lg:text-6xl font-bold mb-2" style={{ color: s.c, textShadow: `0 0 40px ${s.c}40` }}>
-                {s.n}
-              </div>
+              <div className="font-display text-5xl lg:text-6xl font-bold mb-2" style={{ color: s.c, textShadow: `0 0 40px ${s.c}40` }}>{s.n}</div>
               <div className="text-foreground/60 font-bold uppercase tracking-wider text-xs">{s.l}</div>
             </div>
           ))}
@@ -633,17 +690,10 @@ function Landing() {
               { quote: "بنى أول لعبة تعمل فعلاً خلال أسبوعين. المدرّب الذكي صبور بطريقة لا أستطيعها أنا!", name: "سارة أ.", role: "أمّ، دبي", color: "var(--brand-gold)" },
             ].map((t) => (
               <div key={t.name} className="p-7 rounded-3xl bg-surface ring-1 ring-border">
-                <div className="flex gap-1 mb-4" style={{ color: t.color }}>
-                  {"★★★★★".split("").map((s, i) => <span key={i}>{s}</span>)}
-                </div>
+                <div className="flex gap-1 mb-4" style={{ color: t.color }}>{"★★★★★".split("").map((s, i) => <span key={i}>{s}</span>)}</div>
                 <p className="text-foreground/85 leading-loose mb-6 font-body">&ldquo;{t.quote}&rdquo;</p>
                 <div className="flex items-center gap-3 pt-4 border-t border-border">
-                  <div
-                    className="size-10 rounded-full grid place-items-center font-bold text-sm"
-                    style={{ background: `${t.color}30`, color: t.color }}
-                  >
-                    {t.name.charAt(0)}
-                  </div>
+                  <div className="size-10 rounded-full grid place-items-center font-bold text-sm" style={{ background: `${t.color}30`, color: t.color }}>{t.name.charAt(0)}</div>
                   <div>
                     <div className="font-bold text-sm">{t.name}</div>
                     <div className="text-xs text-foreground/50">{t.role}</div>
@@ -663,7 +713,6 @@ function Landing() {
             <h2 className="font-display text-4xl lg:text-5xl font-bold mb-4">اختر خطّتك</h2>
             <p className="text-foreground/60 font-body">ابدأ مجاناً. اشترك عندما تكون جاهزاً. أسعار المدارس مخصّصة.</p>
           </div>
-
           <div className="grid md:grid-cols-3 gap-6 items-stretch">
             <div className="p-8 rounded-3xl bg-surface ring-1 ring-border flex flex-col">
               <div className="text-foreground/50 font-extrabold uppercase tracking-widest text-xs mb-2">المستكشف</div>
@@ -676,7 +725,6 @@ function Landing() {
               </ul>
               <a href="https://www.plulai.com/auth/signup" className="shelf-dark py-3 rounded-xl font-bold text-center">ابدأ الآن</a>
             </div>
-
             <div className="p-8 rounded-3xl relative flex flex-col" style={{ background: "var(--brand-blue)", boxShadow: "0 6px 0 var(--brand-deep), 0 20px 60px -20px var(--brand-blue)" }}>
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--brand-gold)] text-[#1A1A2E] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap">الأكثر شعبية</div>
               <div className="text-white/80 font-extrabold uppercase tracking-widest text-xs mb-2">النابغة</div>
@@ -694,7 +742,6 @@ function Landing() {
               </ul>
               <a href="https://www.plulai.com/auth/signup" className="shelf-white py-3 rounded-xl font-bold text-center">ابدأ التجربة المجانية</a>
             </div>
-
             <div className="p-8 rounded-3xl bg-surface ring-1 ring-[var(--brand-cyan)]/30 flex flex-col">
               <div className="text-[var(--brand-cyan)] font-extrabold uppercase tracking-widest text-xs mb-2">المؤسسات</div>
               <div className="font-display text-4xl font-bold mb-1">مخصّص</div>
@@ -721,21 +768,13 @@ function Landing() {
           <div className="space-y-3">
             {faqs.map((f, i) => (
               <div key={i} className="rounded-2xl bg-background ring-1 ring-border overflow-hidden">
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-6 text-right"
-                >
-                  <svg
-                    className={`size-5 text-foreground/50 transition-transform flex-shrink-0 ${openFaq === i ? "rotate-180" : ""}`}
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                  >
+                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between p-6 text-right">
+                  <svg className={`size-5 text-foreground/50 transition-transform flex-shrink-0 ${openFaq === i ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                   </svg>
                   <span className="font-bold pr-4">{f.q}</span>
                 </button>
-                {openFaq === i && (
-                  <div className="px-6 pb-6 text-foreground/70 leading-loose font-body text-right">{f.a}</div>
-                )}
+                {openFaq === i && <div className="px-6 pb-6 text-foreground/70 leading-loose font-body text-right">{f.a}</div>}
               </div>
             ))}
           </div>
@@ -744,8 +783,7 @@ function Landing() {
 
       {/* CTA BAND */}
       <section className="py-24 px-6 relative overflow-hidden">
-        <div className="absolute inset-0"
-          style={{ background: "radial-gradient(ellipse at center, rgba(28,176,246,0.18), transparent 60%)" }} />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(28,176,246,0.18), transparent 60%)" }} />
         <div className="max-w-4xl mx-auto text-center relative">
           <div className="text-7xl mb-6">🚀</div>
           <h2 className="font-display text-4xl lg:text-6xl font-bold mb-6 leading-tight">
@@ -775,9 +813,7 @@ function Landing() {
               <h4 className="font-bold mb-4 text-sm uppercase tracking-wider">{title}</h4>
               <ul className="space-y-2 text-sm text-foreground/60 font-body">
                 {links.map(({ label, href }) => (
-                  <li key={label}>
-                    <a href={href} className="hover:text-foreground transition-colors">{label}</a>
-                  </li>
+                  <li key={label}><a href={href} className="hover:text-foreground transition-colors">{label}</a></li>
                 ))}
               </ul>
             </div>
