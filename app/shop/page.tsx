@@ -13,15 +13,15 @@ const BOOK = {
       label: "Français",
       flag: "🇫🇷",
       title: "Version Française",
-      subtitle: "وصف مختصر وجذّاب للكتاب يشرح ما سيكتسبه القارئ من هذا الكتاب الرائع.",
+      subtitle: "كتاب مخصّص للأطفال بين 6 و18 سنة يتعلّمون فيه Python وهندسة البرومبت والذكاء الاصطناعي، مع وصول مجاني لمنصة Plulai لمدة 3 أشهر.",
       price: 25,
       originalPrice: 45,
-      pages: "٢٤٠ صفحة",
       language: "Français",
       features: [
         "Contenu original en français",
         "أمثلة عملية وتطبيقية",
-        "مناسب للمبتدئين والمحترفين",
+        "مناسب للأطفال من 6 إلى 18 سنة",
+        "وصول مجاني لـ Plulai لمدة 3 أشهر",
         "توصيل لجميع ولايات تونس",
       ],
     },
@@ -29,20 +29,20 @@ const BOOK = {
       label: "English",
       flag: "🇬🇧",
       title: "English Version",
-      subtitle: "وصف مختصر وجذّاب للكتاب يشرح ما سيكتسبه القارئ من هذا الكتاب الرائع.",
+      subtitle: "A book for kids aged 6 to 18 to learn Python, prompt engineering, and AI — with free access to Plulai for 3 months.",
       price: 25,
       originalPrice: 45,
-      pages: "٢٤٠ صفحة",
       language: "English",
       features: [
         "Original content in English",
-        "أمثلة عملية وتطبيقية",
-        "مناسب للمبتدئين والمحترفين",
-        "توصيل لجميع ولايات تونس",
+        "Practical examples and exercises",
+        "For kids aged 6 to 18",
+        "Free 3-month access to Plulai",
+        "Delivery across all of Tunisia",
       ],
     },
   },
-  delivery: "٢–٤ أيام عمل",
+  delivery: "2–4 أيام عمل",
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -84,6 +84,17 @@ const inlineStyles = `
   }
   .shelf-gold:active { box-shadow: 0 0 0 #C47D00; transform: translateY(4px); }
   .shelf-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .btn-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 10px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--muted-foreground); font-size: 13px; font-weight: 700;
+    cursor: pointer; text-decoration: none;
+    transition: color .15s, border-color .15s;
+    font-family: 'Cairo', sans-serif;
+  }
+  .btn-back:hover { color: var(--foreground); border-color: var(--brand-blue); }
 
   @keyframes bob {
     0%, 100% { transform: translateY(0); }
@@ -196,9 +207,6 @@ export default function ShopPage() {
     return Object.keys(e).length === 0;
   };
 
-  // ── Submit — calls our own API route, which proxies to Google Script ────────
-  // This avoids the Content-Security-Policy block that prevents the browser
-  // from calling script.google.com directly.
   const handleSubmit = async () => {
     if (!validate()) return;
     setStatus("loading");
@@ -275,9 +283,14 @@ export default function ShopPage() {
           borderBottom: "1px solid var(--border)",
         }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <a href="/ar" style={{ textDecoration: "none" }}>
-              <Image src="/icons/plulai1.png" alt="بلولاي" width={120} height={40} style={{ height: 40, width: "auto", objectFit: "contain" }} />
-            </a>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <a href="https://plulai.com" className="btn-back">
+                ← الرجوع
+              </a>
+              <a href="/ar" style={{ textDecoration: "none" }}>
+                <Image src="/icons/plulai1.png" alt="بلولاي" width={120} height={40} style={{ height: 40, width: "auto", objectFit: "contain" }} />
+              </a>
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 13, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>الدفع عند الاستلام</span>
               <span style={{
@@ -296,7 +309,7 @@ export default function ShopPage() {
           padding: "12px 24px", textAlign: "center",
         }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: "var(--brand-cyan)", fontFamily: "Tajawal, sans-serif" }}>
-            🚚 التوصيل لجميع ولايات تونس &nbsp;·&nbsp; الدفع عند الاستلام &nbsp;·&nbsp; ضمان استرجاع ٧ أيام
+            🚚 التوصيل لجميع ولايات تونس &nbsp;·&nbsp; الدفع عند الاستلام &nbsp;·&nbsp; ضمان استرجاع 7 أيام
           </span>
         </div>
 
@@ -359,9 +372,9 @@ export default function ShopPage() {
 
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {[
-                      { icon: "📄", label: v.pages },
                       { icon: "🌐", label: v.language },
                       { icon: "🚚", label: BOOK.delivery },
+                      { icon: "🎓", label: "6–18 سنة" },
                     ].map((m) => (
                       <span key={m.label} style={{
                         display: "inline-flex", alignItems: "center", gap: 5,
@@ -426,7 +439,7 @@ export default function ShopPage() {
                     <div>
                       <div style={{ fontWeight: 800, fontSize: 13 }}>{v.title}</div>
                       <div style={{ fontSize: 12, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>
-                        {v.language} · {v.pages}
+                        {v.language} · 6–18 سنة
                       </div>
                     </div>
                     <div style={{ marginRight: "auto", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
@@ -458,7 +471,7 @@ export default function ShopPage() {
                         </span>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                        <span className="discount-badge">تخفيض ٤٤٪ 🔥</span>
+                        <span className="discount-badge">تخفيض 44% 🔥</span>
                         <span style={{ fontSize: 12, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>
                           تدفع عند ما يوصلك الكتاب
                         </span>
@@ -483,7 +496,7 @@ export default function ShopPage() {
                       background: "var(--brand-blue)", color: "white",
                       borderRadius: 8, width: 28, height: 28, display: "grid", placeItems: "center",
                       fontWeight: 900, fontSize: 14, flexShrink: 0,
-                    }}>١</span>
+                    }}>1</span>
                     <span style={{ fontWeight: 800, fontSize: 17 }}>بيانات التوصيل</span>
                   </div>
 
