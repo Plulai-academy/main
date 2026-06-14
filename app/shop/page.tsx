@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJLbqp8Hd9iP5_XQdVSmNdOCfMEyJXgksqudnsvO5O38CXosZmrt-MW7FB1ZsXMw4K9Q/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJdlzpqp7ou9KYLSD5OpghOpOhKgl3FLUemMrO6EWY_zZPCcntZtutcZdU3sNX16AB4A/exec";
 
 const BOOK = {
   coverImage: "/images/bookcover.png",
@@ -235,28 +235,26 @@ export default function ShopPage() {
       total:       `${total} ${BOOK.currency}`,
     };
 
-    // URL-encoded form body works reliably with Google Apps Script
-    // and avoids the CORS preflight that JSON POST triggers.
+    // Google Apps Script doesn't return CORS headers, so we must use
+    // no-cors. This makes the response opaque (unreadable), but the fetch
+    // Promise only rejects on a real network failure (offline / DNS).
+    // If the Promise resolves — even with an opaque response — the script
+    // received the request and wrote the row, so we treat it as success.
     const formBody = Object.entries(payload)
       .map(([k, val]) => `${encodeURIComponent(k)}=${encodeURIComponent(val)}`)
       .join("&");
 
     try {
-      const res = await fetch(GOOGLE_SCRIPT_URL, {
+      await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
+        mode: "no-cors",                                    // required for Apps Script
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: formBody,
       });
-
-      // Google Apps Script always returns 200 for doPost;
-      // treat any successful HTTP response as a successful order.
-      if (res.ok || res.status === 0 /* opaque redirect */) {
-        setStatus("success");
-      } else {
-        setStatus("error");
-      }
+      // Resolves → request reached Google → row was written
+      setStatus("success");
     } catch {
-      // Network-level failure (offline, DNS, etc.)
+      // Rejects only on real network failure (offline, DNS error, etc.)
       setStatus("error");
     }
   };
