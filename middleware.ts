@@ -30,6 +30,7 @@ export async function middleware(request: NextRequest) {
   const isPublicPath =
     pathname === '/' ||
     pathname === '/pricing' ||
+    pathname === '/privacy' ||
     pathname === '/sharkkid' ||
     pathname === '/schools' ||
     pathname === '/comp' ||
