@@ -156,6 +156,33 @@ const faqs = [
   { q: "كيف تعمل تراخيص المدارس؟", a: "مقاعد جماعية من 50 إلى 5000 طالب. لوحة تحكّم للمعلمين، ومواءمة مع المناهج الوطنية، وخصومات إقليمية، ودعم مخصّص — كل ذلك مشمول." },
 ];
 
+// Arabic footer links matching the English structure
+const footerLinksAr = [
+  {
+    title: "المنتج",
+    links: [
+      { label: "المسارات", href: "#tracks" },
+      { label: "كيف يعمل", href: "#how" },
+      { label: "الأسعار", href: "#pricing" },
+    ],
+  },
+  {
+    title: "المدارس",
+    links: [
+      { label: "نظرة عامة", href: "#schools" },
+      { label: "اطلب عرضاً", href: "mailto:hello@plulai.com" },
+      { label: "المنهج", href: "/schools" },
+    ],
+  },
+  {
+    title: "الشركة",
+    links: [
+      { label: "من نحن", href: "/about" },
+      { label: "اتصل بنا", href: "mailto:hello@plulai.com" },
+    ],
+  },
+];
+
 function Landing() {
   const [audience, setAudience] = useState<"families" | "schools">("families");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -247,7 +274,7 @@ function Landing() {
 
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 {isSchools ? (
-                  <a href="https://www.plulai.com/auth/signup" className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg text-center">
+                  <a href="https://www.plulai.com/schools" className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg text-center">
                     اطلب عرضاً للمدرسة ←
                   </a>
                 ) : (
@@ -343,7 +370,6 @@ function Landing() {
                 <h3 className="font-display text-2xl font-bold mb-3">{t.title}</h3>
                 <p className="text-foreground/60 mb-6 leading-loose font-body">{t.desc}</p>
                 <div className="h-2 rounded-full bg-background overflow-hidden mb-2">
-                  {/* Progress bar fills RTL correctly with flex-row-reverse or margin-right */}
                   <div className="h-full rounded-full" style={{ width: `${t.pct}%`, background: t.accent, boxShadow: `0 0 12px ${t.accent}`, marginRight: "auto" }} />
                 </div>
                 <div className="flex justify-between text-[11px] font-bold uppercase tracking-wider" style={{ color: t.accent }}>
@@ -740,7 +766,7 @@ function Landing() {
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* FOOTER — Updated with English-like links structure */}
       <footer className="border-t border-border py-12 px-6">
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10 mb-10">
           <div>
@@ -749,16 +775,14 @@ function Landing() {
             </div>
             <p className="text-sm text-foreground/50 font-body">نبني قادة الغد، اليوم. صُنع من أجل الخليج.</p>
           </div>
-          {[
-            ["المنتج", ["المسارات", "كيف يعمل", "الأسعار", "الاختبار السريع"]],
-            ["المدارس", ["نظرة عامة", "اطلب عرضاً", "المنهج", "دراسات الحالة"]],
-            ["الشركة", ["من نحن", "المدوّنة", "الوظائف", "التواصل"]],
-          ].map(([title, links]) => (
-            <div key={title as string}>
-              <h4 className="font-bold mb-4 text-sm uppercase tracking-wider">{title as string}</h4>
+          {footerLinksAr.map(({ title, links }) => (
+            <div key={title}>
+              <h4 className="font-bold mb-4 text-sm uppercase tracking-wider">{title}</h4>
               <ul className="space-y-2 text-sm text-foreground/60 font-body">
-                {(links as string[]).map((l) => (
-                  <li key={l}><a href="#" className="hover:text-foreground transition-colors">{l}</a></li>
+                {links.map(({ label, href }) => (
+                  <li key={label}>
+                    <a href={href} className="hover:text-foreground transition-colors">{label}</a>
+                  </li>
                 ))}
               </ul>
             </div>
