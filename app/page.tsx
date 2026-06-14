@@ -550,7 +550,7 @@ function Landing() {
                 ))}
               </ul>
 
-              <div className="p-6 rounded-2xl bg-surface ring-1 ring-border mb-8">
+              {/* <div className="p-6 rounded-2xl bg-surface ring-1 ring-border mb-8">
                 <p className="italic text-foreground/80 mb-4">
                   &ldquo;Plulai transformed how our students engage with computer science. The Arabic integration is the best we&apos;ve ever seen — and our teachers no longer fear teaching code.&rdquo;
                 </p>
@@ -561,7 +561,7 @@ function Landing() {
                     <div className="text-xs text-foreground/50">Principal · Al-Nahda Academy, Dubai</div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <a href="mailto:hello@plulai.com" className="shelf-gold font-bold py-4 px-8 rounded-2xl text-lg text-center">Request school demo →</a>
