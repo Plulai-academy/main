@@ -12,7 +12,7 @@ const BOOK = {
   title: "اسم الكتاب",
   subtitle: "وصف مختصر وجذّاب للكتاب يشرح ما سيكتسبه القارئ من هذا الكتاب الرائع.",
   // ↑ Replace subtitle with your real description
-  coverImage: "/images/book-cover.png", // ← put your book image here
+  coverImage: "public/images/bookcover.png", // ← put your book image here
   price: "29",
   currency: "د.ت",
   pages: "٢٤٠ صفحة",
