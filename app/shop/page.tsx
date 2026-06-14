@@ -4,7 +4,7 @@ import { useState } from "react";
 
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
 // 1. Replace with your Google Apps Script Web App URL (see setup guide below)
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNtgmDzLnhaajqSk_AQZfv0rMu87vNNCAiB3j9Q15FwDzwTXgKGJou_6zKXQ8112wM/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
 // 2. Book details — swap these out
 const BOOK = {
@@ -528,7 +528,7 @@ export default function ShopPage() {
                 )}
 
                 <p style={{ fontSize: 12, color: "var(--muted-foreground)", textAlign: "center", fontFamily: "Tajawal, sans-serif", lineHeight: 1.7 }}>
-                  بالضغط على "اطلب الآن" توافق على شروط الاستخدام وسياسة الخصوصية.
+                  بالضغط على &quot;اطلب الآن&quot; توافق على شروط الاستخدام وسياسة الخصوصية.
                   <br />لا يلزم دفع مسبق — الدفع عند استلام الكتاب.
                 </p>
               </div>
@@ -546,7 +546,45 @@ export default function ShopPage() {
 
       </div>
 
+      {/*
+      ═══════════════════════════════════════════════════════════════════
+      GOOGLE SHEETS SETUP — Run once, takes ~5 minutes
+      ═══════════════════════════════════════════════════════════════════
 
+      1. Open Google Sheets → create a new sheet named "Orders"
+         Add these headers in row 1:
+         Timestamp | Name | Phone | City | Address | Quantity | Total | Book
+
+      2. In the sheet: Extensions → Apps Script → paste this code:
+
+      function doPost(e) {
+        var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
+        var data = JSON.parse(e.postData.contents);
+        sheet.appendRow([
+          data.timestamp,
+          data.name,
+          data.phone,
+          data.city,
+          data.address,
+          data.quantity,
+          data.total,
+          data.book,
+        ]);
+        return ContentService
+          .createTextOutput(JSON.stringify({ result: "success" }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      3. Deploy → New deployment → Web app
+         - Execute as: Me
+         - Who has access: Anyone
+         → Copy the Web App URL
+
+      4. Paste the URL into GOOGLE_SCRIPT_URL at the top of this file.
+
+      Done! Every order will appear as a new row in Google Sheets.
+      ═══════════════════════════════════════════════════════════════════
+      */}
     </>
   );
 }
