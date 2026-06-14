@@ -156,7 +156,6 @@ const faqs = [
   { q: "كيف تعمل تراخيص المدارس؟", a: "مقاعد جماعية من 50 إلى 5000 طالب. لوحة تحكّم للمعلمين، ومواءمة مع المناهج الوطنية، وخصومات إقليمية، ودعم مخصّص — كل ذلك مشمول." },
 ];
 
-// Arabic footer links matching the English structure
 const footerLinksAr = [
   {
     title: "المنتج",
@@ -164,6 +163,7 @@ const footerLinksAr = [
       { label: "المسارات", href: "#tracks" },
       { label: "كيف يعمل", href: "#how" },
       { label: "الأسعار", href: "#pricing" },
+      { label: "المتجر", href: "/shop" },
     ],
   },
   {
@@ -205,6 +205,7 @@ function Landing() {
               <a href="#how" className="hover:text-foreground transition-colors">كيف يعمل</a>
               <a href="#schools" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-cyan)" }}>للمدارس</a>
               <a href="#pricing" className="hover:text-foreground transition-colors">الأسعار</a>
+              <a href="/shop" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-gold)" }}>🛍️ المتجر</a>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -246,7 +247,7 @@ function Landing() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Text side — appears first visually in RTL (right side) */}
+            {/* Text side */}
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--brand-cyan)]/10 ring-1 ring-[var(--brand-cyan)]/30 text-[var(--brand-cyan)] text-xs font-bold uppercase tracking-widest mb-6">
                 <span className="size-2 rounded-full bg-[var(--brand-cyan)] animate-glow" />
@@ -306,7 +307,6 @@ function Landing() {
                 <Image src={mascot} alt="مدرّب بلولاي الذكي" width={480} height={480} className="w-full max-w-[480px] mx-auto block" />
               </div>
 
-              {/* Floating cards — RTL flipped positions */}
               <div className="absolute top-8 -right-2 lg:-right-8 shelf-white py-3 px-4 rounded-2xl flex items-center gap-3 max-w-[200px]">
                 <div className="size-10 rounded-full bg-[var(--brand-gold)]/20 grid place-items-center text-xl">🔥</div>
                 <div>
@@ -327,7 +327,7 @@ function Landing() {
         </div>
       </section>
 
-      {/* TRUST MARQUEE — RTL direction */}
+      {/* TRUST MARQUEE */}
       <section className="py-10 bg-surface/40 border-y border-border overflow-hidden">
         <p className="text-center text-xs uppercase tracking-[0.25em] text-foreground/40 font-bold mb-6">
           موثوق من المؤسسات الرائدة في المنطقة
@@ -402,7 +402,6 @@ function Landing() {
           </div>
 
           <div className="grid lg:grid-cols-[1fr_1.1fr] gap-12 items-center">
-            {/* Right: legend & explainer — shown first in RTL */}
             <div className="space-y-6 order-1 lg:order-1">
               <div className="p-6 rounded-3xl bg-surface ring-1 ring-border">
                 <div className="flex items-center gap-4">
@@ -554,7 +553,6 @@ function Landing() {
       <section id="schools" className="py-24 px-6 relative" style={{ background: "linear-gradient(180deg, var(--surface) 0%, var(--background) 100%)" }}>
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Dashboard image — left side in RTL */}
             <div className="order-2 lg:order-2 relative">
               <div className="absolute -inset-6 rounded-3xl blur-3xl opacity-30" style={{ background: "var(--brand-cyan)" }} />
               <div className="relative rounded-2xl overflow-hidden ring-1 ring-border shadow-2xl">
@@ -667,7 +665,6 @@ function Landing() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 items-stretch">
-            {/* Free */}
             <div className="p-8 rounded-3xl bg-surface ring-1 ring-border flex flex-col">
               <div className="text-foreground/50 font-extrabold uppercase tracking-widest text-xs mb-2">المستكشف</div>
               <div className="font-display text-4xl font-bold mb-1">مجاناً</div>
@@ -680,7 +677,6 @@ function Landing() {
               <a href="https://www.plulai.com/auth/signup" className="shelf-dark py-3 rounded-xl font-bold text-center">ابدأ الآن</a>
             </div>
 
-            {/* Pro — featured */}
             <div className="p-8 rounded-3xl relative flex flex-col" style={{ background: "var(--brand-blue)", boxShadow: "0 6px 0 var(--brand-deep), 0 20px 60px -20px var(--brand-blue)" }}>
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--brand-gold)] text-[#1A1A2E] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap">الأكثر شعبية</div>
               <div className="text-white/80 font-extrabold uppercase tracking-widest text-xs mb-2">النابغة</div>
@@ -699,7 +695,6 @@ function Landing() {
               <a href="https://www.plulai.com/auth/signup" className="shelf-white py-3 rounded-xl font-bold text-center">ابدأ التجربة المجانية</a>
             </div>
 
-            {/* Schools */}
             <div className="p-8 rounded-3xl bg-surface ring-1 ring-[var(--brand-cyan)]/30 flex flex-col">
               <div className="text-[var(--brand-cyan)] font-extrabold uppercase tracking-widest text-xs mb-2">المؤسسات</div>
               <div className="font-display text-4xl font-bold mb-1">مخصّص</div>
@@ -766,7 +761,7 @@ function Landing() {
         </div>
       </section>
 
-      {/* FOOTER — Updated with English-like links structure */}
+      {/* FOOTER */}
       <footer className="border-t border-border py-12 px-6">
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10 mb-10">
           <div>
