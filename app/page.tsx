@@ -588,7 +588,7 @@ function Landing() {
             { n: "200+", l: "Active learners", c: "var(--brand-blue)" },
             { n: "500+", l: "Bite-sized lessons", c: "var(--brand-cyan)" },
             { n: "9+", l: "Partner schools", c: "var(--brand-gold)" },
-            { n: "9.2/10", l: "User satisfaction", c: "var(--brand-red)" },
+            { n: "9.2/10", l: "User satisfaction", c: "var(--brand-blue)" },
           ].map((s) => (
             <div key={s.l}>
               <div className="font-display text-5xl lg:text-6xl font-bold mb-2" style={{ color: s.c, textShadow: `0 0 40px ${s.c}40` }}>

@@ -609,7 +609,7 @@ function Landing() {
             { n: "+200", l: "متعلّم نشط", c: "var(--brand-blue)" },
             { n: "+500", l: "درس قصير", c: "var(--brand-cyan)" },
             { n: "+9", l: "مدرسة شريكة", c: "var(--brand-gold)" },
-            { n: "9.2/10", l: "رضا المستخدمين", c: "var(--brand-red)" },
+            { n: "9.2/10", l: "رضا المستخدمين", c: "var(--brand-blue)" },
           ].map((s) => (
             <div key={s.l}>
               <div className="font-display text-5xl lg:text-6xl font-bold mb-2" style={{ color: s.c, textShadow: `0 0 40px ${s.c}40` }}>
