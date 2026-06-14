@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import mascot from "@/public/images/mascot.png";
-import dashboard from "@/public/images/dashboard.png";
+import mascot from "@/assets/mascot.png";
+import dashboard from "@/assets/dashboard.png";
 
 const inlineStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -290,12 +290,14 @@ function Landing() {
         <p className="text-center text-xs uppercase tracking-[0.25em] text-foreground/40 font-bold mb-6">
           Trusted by leading institutions across the region
         </p>
-        <div className="flex whitespace-nowrap animate-marquee">
-          {[...partners, ...partners].map((p, i) => (
-            <span key={i} className="font-display font-bold text-2xl mx-10 text-foreground/40 hover:text-foreground/80 transition-colors">
-              {p}
-            </span>
-          ))}
+        <div className="flex whitespace-nowrap animate-marquee items-center">
+          {[...Array(2)].map((_, round) =>
+            ["p1","p2","p3","p4","p5","p6","p7","p8","p9"].map((p, i) => (
+              <div key={`${round}-${i}`} className="mx-10 flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity">
+                <img src={`/partners/${p}.png`} alt={`Partner ${i + 1}`} className="h-10 w-auto object-contain" />
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -499,8 +501,7 @@ function Landing() {
               </ul>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button className="shelf-blue font-bold py-3.5 px-6 rounded-2xl flex-1">Start the path →</button>
-                <button className="shelf-gold font-bold py-3.5 px-6 rounded-2xl flex-1">Take the 60-sec quiz</button>
+                <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-3.5 px-6 rounded-2xl flex-1 text-center">Start the path →</a>
               </div>
             </div>
           </div>
@@ -531,7 +532,6 @@ function Landing() {
 
               <ul className="space-y-4 mb-10">
                 {[
-                  ["Teacher dashboard", "Track progress, attendance, and skill gaps in real-time."],
                   ["Bulk seats 50–5,000", "Regional discounts and flexible billing for any school size."],
                   ["AR + EN curriculum", "Aligned with Ministry of Education standards across the GCC."],
                   ["Dedicated support", "Onboarding, training, and a customer success manager included."],
@@ -564,8 +564,8 @@ function Landing() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="shelf-gold font-bold py-4 px-8 rounded-2xl text-lg">Request school demo →</button>
-                <button className="shelf-dark font-bold py-4 px-8 rounded-2xl text-lg">Download brochure</button>
+                <a href="mailto:hello@plulai.com" className="shelf-gold font-bold py-4 px-8 rounded-2xl text-lg text-center">Request school demo →</a>
+                <a href="mailto:hello@plulai.com" className="shelf-dark font-bold py-4 px-8 rounded-2xl text-lg text-center">Download brochure</a>
               </div>
             </div>
           </div>
@@ -576,10 +576,10 @@ function Landing() {
       <section className="py-20 px-6 border-y border-border" style={{ background: "var(--surface)" }}>
         <div className="max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {[
-            { n: "5,000+", l: "Active learners", c: "var(--brand-blue)" },
+            { n: "200+", l: "Active learners", c: "var(--brand-blue)" },
             { n: "500+", l: "Bite-sized lessons", c: "var(--brand-cyan)" },
-            { n: "20+", l: "Partner schools", c: "var(--brand-gold)" },
-            { n: "98%", l: "Parent satisfaction", c: "var(--brand-red)" },
+            { n: "9+", l: "Partner schools", c: "var(--brand-gold)" },
+            { n: "9.2/10", l: "User satisfaction", c: "var(--brand-red)" },
           ].map((s) => (
             <div key={s.l}>
               <div className="font-display text-5xl lg:text-6xl font-bold mb-2" style={{ color: s.c, textShadow: `0 0 40px ${s.c}40` }}>
@@ -639,13 +639,13 @@ function Landing() {
             <div className="p-8 rounded-3xl bg-surface ring-1 ring-border flex flex-col">
               <div className="text-foreground/50 font-extrabold uppercase tracking-widest text-xs mb-2">Explorer</div>
               <div className="font-display text-4xl font-bold mb-1">Free</div>
-              <p className="text-sm text-foreground/60 mb-6">For trying it out</p>
+              <p className="text-sm text-foreground/60 mb-6">14-day trial, no credit card</p>
               <ul className="space-y-3 text-sm text-foreground/70 mb-8 flex-1">
                 <li>✓ First 5 lessons</li>
                 <li>✓ Coding track basics</li>
                 <li>✓ English only</li>
               </ul>
-              <button className="shelf-dark py-3 rounded-xl font-bold">Get started</button>
+              <a href="https://www.plulai.com/auth/signup" className="shelf-dark py-3 rounded-xl font-bold text-center">Get started</a>
             </div>
 
             {/* Pro — featured */}
@@ -653,7 +653,7 @@ function Landing() {
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--brand-gold)] text-[#1A1A2E] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Most popular</div>
               <div className="text-white/80 font-extrabold uppercase tracking-widest text-xs mb-2">Prodigy</div>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="font-display text-4xl font-bold text-white">$12</span>
+                <span className="font-display text-4xl font-bold text-white">$70</span>
                 <span className="text-white/70 font-medium">/mo</span>
               </div>
               <p className="text-sm text-white/80 mb-6">For families</p>
@@ -664,7 +664,7 @@ function Landing() {
                 <li>✓ Weekly parent summary</li>
                 <li>✓ 14-day free trial</li>
               </ul>
-              <button className="shelf-white py-3 rounded-xl font-bold">Start free trial</button>
+              <a href="https://www.plulai.com/auth/signup" className="shelf-white py-3 rounded-xl font-bold text-center">Start free trial</a>
             </div>
 
             {/* Schools */}
@@ -726,8 +726,8 @@ function Landing() {
             Join thousands of families and schools building the GCC&apos;s next generation of creators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="shelf-blue font-bold py-4 px-10 rounded-2xl text-lg">Start free trial →</button>
-            <button className="shelf-gold font-bold py-4 px-10 rounded-2xl text-lg">For schools</button>
+            <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-10 rounded-2xl text-lg text-center">Start free trial →</a>
+            <a href="/schools" className="shelf-gold font-bold py-4 px-10 rounded-2xl text-lg text-center">For schools</a>
           </div>
         </div>
       </section>
@@ -737,8 +737,7 @@ function Landing() {
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10 mb-10">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="size-9 rounded-xl shelf-blue grid place-items-center font-display font-bold">P</div>
-              <span className="font-display text-xl font-bold" style={{ color: "var(--brand-blue)" }}>Plulai</span>
+              <Image src="/icons/plulai1.png" alt="Plulai" width={100} height={32} className="h-8 w-auto object-contain" />
             </div>
             <p className="text-sm text-foreground/50">Building tomorrow&apos;s leaders, today. Made for the GCC.</p>
           </div>
