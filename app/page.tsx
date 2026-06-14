@@ -135,6 +135,34 @@ const faqs = [
   { q: "How do school licenses work?", a: "Bulk seats from 50–5,000 students. Teacher dashboard, curriculum alignment, regional discounts, and dedicated support included." },
 ];
 
+type FooterColumn = { title: string; links: { label: string; href: string }[] };
+
+const footerLinks: FooterColumn[] = [
+  {
+    title: "Product",
+    links: [
+      { label: "Tracks",       href: "#tracks"  },
+      { label: "How it works", href: "#how"     },
+      { label: "Pricing",      href: "#pricing" },
+    ],
+  },
+  {
+    title: "Schools",
+    links: [
+      { label: "Overview",     href: "#schools"                },
+      { label: "Request demo", href: "mailto:hello@plulai.com" },
+      { label: "Curriculum",   href: "/schools"                },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About",   href: "/about"                   },
+      { label: "Contact", href: "mailto:hello@plulai.com"  },
+    ],
+  },
+];
+
 function Landing() {
   const [audience, setAudience] = useState<"families" | "schools">("families");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -228,18 +256,12 @@ function Landing() {
                     <a href="https://www.plulai.com/auth/signup" className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg">
                       Request school demo →
                     </a>
-                    {/* <button className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
-                      Download curriculum PDF
-                    </button> */}
                   </>
                 ) : (
                   <>
                     <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-9 rounded-2xl text-lg">
                       Start free trial →
                     </a>
-                    {/* <button className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
-                      Take 60-sec quiz
-                    </button> */}
                   </>
                 )}
               </div>
@@ -550,19 +572,6 @@ function Landing() {
                 ))}
               </ul>
 
-              {/* <div className="p-6 rounded-2xl bg-surface ring-1 ring-border mb-8">
-                <p className="italic text-foreground/80 mb-4">
-                  &ldquo;Plulai transformed how our students engage with computer science. The Arabic integration is the best we&apos;ve ever seen — and our teachers no longer fear teaching code.&rdquo;
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-full bg-gradient-to-br from-[var(--brand-blue)] to-[var(--brand-cyan)] grid place-items-center font-bold">AS</div>
-                  <div>
-                    <div className="text-sm font-bold">Dr. Amira Al-Sayed</div>
-                    <div className="text-xs text-foreground/50">Principal · Al-Nahda Academy, Dubai</div>
-                  </div>
-                </div>
-              </div> */}
-
               <div className="flex flex-col sm:flex-row gap-4">
                 <a href="mailto:hello@plulai.com" className="shelf-gold font-bold py-4 px-8 rounded-2xl text-lg text-center">Request school demo →</a>
                 <a href="mailto:hello@plulai.com" className="shelf-dark font-bold py-4 px-8 rounded-2xl text-lg text-center">Download brochure</a>
@@ -727,7 +736,7 @@ function Landing() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-10 rounded-2xl text-lg text-center">Start free trial →</a>
-            <a href="/schools" className="shelf-gold font-bold py-4 px-10 rounded-2xl text-lg text-center">For schools</a>
+            <a href="#schools" className="shelf-gold font-bold py-4 px-10 rounded-2xl text-lg text-center">For schools</a>
           </div>
         </div>
       </section>
@@ -741,16 +750,14 @@ function Landing() {
             </div>
             <p className="text-sm text-foreground/50">Building tomorrow&apos;s leaders, today. Made for the GCC.</p>
           </div>
-          {[
-            ["Product", ["Tracks", "How it works", "Pricing", "Quiz"]],
-            ["Schools", ["Overview", "Request demo", "Curriculum", "Case studies"]],
-            ["Company", ["About", "Blog", "Careers", "Contact"]],
-          ].map(([title, links]) => (
-            <div key={title as string}>
-              <h4 className="font-bold mb-4 text-sm uppercase tracking-wider">{title as string}</h4>
+          {footerLinks.map(({ title, links }) => (
+            <div key={title}>
+              <h4 className="font-bold mb-4 text-sm uppercase tracking-wider">{title}</h4>
               <ul className="space-y-2 text-sm text-foreground/60">
-                {(links as string[]).map((l) => (
-                  <li key={l}><a href="#" className="hover:text-foreground transition-colors">{l}</a></li>
+                {links.map(({ label, href }) => (
+                  <li key={label}>
+                    <a href={href} className="hover:text-foreground transition-colors">{label}</a>
+                  </li>
                 ))}
               </ul>
             </div>

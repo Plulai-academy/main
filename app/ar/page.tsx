@@ -284,7 +284,7 @@ function Landing() {
                 <div className="size-10 rounded-full bg-[var(--brand-gold)]/20 grid place-items-center text-xl">🔥</div>
                 <div>
                   <div className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">السلسلة</div>
-                  <div className="text-zinc-900 font-bold text-sm">14 يوماً متواصلاً!</div>
+                  <div className="text-zinc-900 font-bold text-sm">14 يوماً مجانا !</div>
                 </div>
               </div>
 
