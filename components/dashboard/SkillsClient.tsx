@@ -6,10 +6,26 @@ import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
 
 /* ─── i18n ─────────────────────────────────────────────────────────── */
-const UI: Record<Language, Record<string, string>> = {
-  en: { unit: 'Unit', start: 'START', mastered: 'Mastered', xp: 'XP', reward: 'Unit Reward', lessons: 'lessons' },
-  ar: { unit: 'الوحدة', start: 'ابدأ', mastered: 'أتقنت', xp: 'XP', reward: 'مكافأة', lessons: 'دروس' },
-  fr: { unit: 'Unité', start: 'COMMENCER', mastered: 'Maîtrisé', xp: 'XP', reward: 'Récompense', lessons: 'leçons' },
+const UI: Record<string, Record<string, string>> = {
+  en: { unit: 'Unit', start: "LET'S GO!", mastered: 'Mastered!', xp: 'XP', reward: 'Treasure!', lessons: 'lessons' },
+  ar: { unit: 'الوحدة', start: 'هيا بنا!', mastered: 'أتقنت!', xp: 'XP', reward: 'كنز!', lessons: 'دروس' },
+  fr: { unit: 'Unité', start: 'C\u2019EST PARTI!', mastered: 'Réussi!', xp: 'XP', reward: 'Trésor!', lessons: 'leçons' },
+}
+
+/* ─── Kid palette (your colors) ────────────────────────────────────── */
+const C = {
+  bg:        '#0E1A33',
+  bg2:       '#152347',
+  surface:   '#1B2A55',
+  line:      '#2A3A6E',
+  ink:       '#F5F5F5',
+  muted:     '#A9B4D1',
+  blue:      '#1CB0F6',
+  cyan:      '#14D4F4',
+  deep:      '#2B70C9',
+  gold:      '#FAA918',
+  red:       '#D33131',
+  paper:     '#F5F5F5',
 }
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
@@ -26,25 +42,19 @@ interface Props {
   language:       string
 }
 
-/* ─── Snake-path geometry ───────────────────────────────────────────── */
-const SVG_W     = 340   // internal SVG coordinate width
-const VG        = 148   // vertical gap between bubble centres (px in SVG units)
-const AMP       = 82    // left-right amplitude
-const BUBBLE_R  = 38    // bubble radius for progress ring
-const UNIT_SIZE = 4     // skills per unit section
+/* ─── Geometry ─────────────────────────────────────────────────────── */
+const SVG_W     = 360
+const VG        = 160
+const AMP       = 95
+const BUBBLE_R  = 44
+const UNIT_SIZE = 4
 
-/** Centre-X for bubble at absolute index i */
-function getCx(i: number): number {
-  const pat = [0, 0.7, 1, 0.7, 0, -0.7, -1, -0.7]
+const getCx = (i: number) => {
+  const pat = [0, 0.75, 1, 0.75, 0, -0.75, -1, -0.75]
   return SVG_W / 2 + pat[i % pat.length] * AMP
 }
+const getCy = (i: number) => i * VG + 80
 
-/** Centre-Y for bubble at local (within-unit) index i */
-function getCy(i: number): number {
-  return i * VG + 60
-}
-
-/** Smooth cubic-bezier path through a list of {x, y} points */
 function bezierPath(pts: { x: number; y: number }[]): string {
   if (pts.length < 2) return ''
   let d = `M${pts[0].x} ${pts[0].y}`
@@ -55,127 +65,240 @@ function bezierPath(pts: { x: number; y: number }[]): string {
   return d
 }
 
+/* deterministic "random" so SSR matches CSR */
+const rand = (seed: number) => {
+  const x = Math.sin(seed) * 10000
+  return x - Math.floor(x)
+}
+
 /* ─── Component ─────────────────────────────────────────────────────── */
 export default function SkillsClient({
   userId, tracks, skills, skillProgress, lessonCountMap, language,
 }: Props) {
-  const [activeTrack, setActiveTrack] = useState(tracks[0]?.id ?? '')
+  const [activeTrack, setActiveTrack] = useState<string>(tracks[0]?.id ?? '')
 
   const lang  = (language || 'en') as Language
   const t     = UI[lang]
   const isRtl = lang === 'ar'
 
-  /* progress lookup */
   const progressMap = useMemo(
     () => Object.fromEntries(skillProgress.map(p => [p.skill_node_id, p.progress_pct])),
     [skillProgress],
   )
-
-  /* skills for the active track, sorted */
   const trackSkills = useMemo(
     () => skills.filter(s => s.track_id === activeTrack).sort((a, b) => a.sort_order - b.sort_order),
     [skills, activeTrack],
   )
-
-  /* group into units */
   const units = useMemo(() => {
-    const result: Skill[][] = []
-    for (let i = 0; i < trackSkills.length; i += UNIT_SIZE) result.push(trackSkills.slice(i, i + UNIT_SIZE))
-    return result
+    const r: Skill[][] = []
+    for (let i = 0; i < trackSkills.length; i += UNIT_SIZE) r.push(trackSkills.slice(i, i + UNIT_SIZE))
+    return r
   }, [trackSkills])
 
-  const isUnlocked = (skill: Skill) => skill.required_nodes.every(r => (progressMap[r] ?? 0) >= 100)
-  const isComplete = (id: string)   => (progressMap[id] ?? 0) >= 100
+  const isUnlocked = (s: Skill) => s.required_nodes.every(r => (progressMap[r] ?? 0) >= 100)
+  const isComplete = (id: string) => (progressMap[id] ?? 0) >= 100
+
+  // rotating themes per unit
+  const themes = [
+    { color: C.blue, mascot: '🐻', name: 'Bear Bay'      },
+    { color: C.gold, mascot: '🦊', name: 'Fox Forest'    },
+    { color: C.red,  mascot: '🐲', name: 'Dragon Den'    },
+    { color: C.cyan, mascot: '🐬', name: 'Dolphin Cove'  },
+    { color: C.deep, mascot: '🦉', name: 'Owl Outpost'   },
+  ]
 
   return (
     <div
-      className="min-h-screen bg-[#09090f] pb-28"
       dir={isRtl ? 'rtl' : 'ltr'}
-      style={{ fontFamily: "'Nunito', sans-serif" }}
+      className="relative min-h-screen w-full overflow-hidden pb-32"
+      style={{
+        fontFamily: "'Baloo 2','Nunito',system-ui,sans-serif",
+        background: `radial-gradient(900px 500px at 50% -150px, ${C.deep}55, transparent 60%), linear-gradient(180deg, ${C.bg} 0%, ${C.bg2} 100%)`,
+        color: C.ink,
+      }}
     >
-      {/* ── Google Font ── */}
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');`}</style>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap');
+        @keyframes floatY    { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-10px) rotate(2deg)} }
+        @keyframes wiggle    { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
+        @keyframes bounceY   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        @keyframes ringPulse { 0%,100%{transform:scale(1);opacity:.45} 50%{transform:scale(1.18);opacity:0} }
+        @keyframes twinkle   { 0%,100%{opacity:.25;transform:scale(.9)} 50%{opacity:1;transform:scale(1.1)} }
+        @keyframes drift     { 0%{transform:translateX(0)} 100%{transform:translateX(20px)} }
+        .k-float   { animation: floatY 3.6s ease-in-out infinite; }
+        .k-wiggle  { animation: wiggle 1.4s ease-in-out infinite; }
+        .k-bounce  { animation: bounceY 1.6s ease-in-out infinite; }
+        .k-twinkle { animation: twinkle 2.4s ease-in-out infinite; }
+        .k-drift   { animation: drift 6s ease-in-out infinite alternate; }
+        .k-pulse-ring::after{
+          content:""; position:absolute; inset:-10px; border-radius:9999px;
+          border:4px solid currentColor; animation: ringPulse 1.6s ease-out infinite;
+        }
+        .k-press:active{ transform: translateY(6px) !important; }
+      `}</style>
+
+      {/* floating background clouds & stars */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {Array.from({ length: 18 }).map((_, i) => {
+          const top  = rand(i + 1) * 100
+          const left = rand(i + 9) * 100
+          const size = 10 + rand(i + 17) * 14
+          const isStar = i % 3 === 0
+          return (
+            <div
+              key={i}
+              className={isStar ? 'k-twinkle absolute' : 'k-drift absolute'}
+              style={{
+                top: `${top}%`, left: `${left}%`,
+                fontSize: size, color: isStar ? C.gold : '#ffffff22',
+                animationDelay: `${rand(i + 33) * 4}s`,
+              }}
+            >
+              {isStar ? '✦' : '☁'}
+            </div>
+          )
+        })}
+      </div>
 
       {/* ── TRACK SELECTOR ── */}
-      <div className="sticky top-0 z-50 bg-[#09090f]/90 backdrop-blur border-b border-white/5">
-        <div className="flex gap-2.5 justify-center flex-wrap px-4 py-3">
-          {tracks.map(track => (
-            <button
-              key={track.id}
-              onClick={() => setActiveTrack(track.id)}
-              className={cn(
-                'flex items-center gap-2 px-5 py-2 rounded-full text-[13px] font-extrabold transition-all duration-200',
-                'border border-[#1e1e35] bg-[#111120]',
-                activeTrack === track.id
-                  ? 'bg-[#1e1b4b] border-[#6366f1] text-[#a5b4fc] shadow-[0_0_20px_#6366f130]'
-                  : 'text-[#4a5568] hover:border-[#4338ca] hover:text-[#a5b4fc]',
-              )}
-            >
-              <span className="text-lg">{track.emoji}</span>
-              <span className="hidden sm:inline">{track.name}</span>
-            </button>
-          ))}
+      <div
+        className="sticky top-0 z-30 backdrop-blur"
+        style={{ background: `${C.bg}cc`, borderBottom: `2px solid ${C.line}` }}
+      >
+        <div className="mx-auto flex max-w-3xl gap-2 overflow-x-auto px-4 py-3">
+          {tracks.map(track => {
+            const active = activeTrack === track.id
+            return (
+              <button
+                key={track.id}
+                onClick={() => setActiveTrack(track.id)}
+                className="k-press flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-extrabold uppercase tracking-wide transition-transform"
+                style={{
+                  background: active ? C.blue : C.surface,
+                  color: active ? '#fff' : C.ink,
+                  border: `3px solid ${active ? C.cyan : C.line}`,
+                  boxShadow: `0 5px 0 ${active ? C.deep : '#0c1730'}`,
+                }}
+              >
+                <span className="text-lg">{track.emoji}</span>
+                {track.name}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      {/* ── UNIT SECTIONS ── */}
-      <div className="max-w-[420px] mx-auto px-4 pt-6">
+      {/* ── UNITS ── */}
+      <div className="relative mx-auto max-w-md px-4 pt-6">
         {units.map((unitSkills, unitIdx) => {
           const unitBase = unitIdx * UNIT_SIZE
-
-          /* geometry points for this unit (local Y, absolute X) */
           const pts = unitSkills.map((_, i) => ({ x: getCx(unitBase + i), y: getCy(i) }))
-
-          /* full dashed track */
           const fullPath = bezierPath(pts)
-
-          /* green progress path */
           const progPts = unitSkills
             .map((s, i) => ({ s, i }))
             .filter(({ s }) => isComplete(s.id) || (isUnlocked(s) && !isComplete(s.id)))
             .map(({ i }) => pts[i])
           const progPath = bezierPath(progPts)
-
-          const svgH = unitSkills.length * VG + 60
+          const svgH = unitSkills.length * VG + 80
+          const theme = themes[unitIdx % themes.length]
 
           return (
-            <div key={unitIdx}>
-
-              {/* Unit Banner */}
-              <div className="relative flex items-center justify-between bg-[#111120] border border-[#1e1e35] rounded-2xl px-5 py-4 mb-8 overflow-hidden">
-                {/* top accent line */}
-                <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-[#818cf8] to-transparent" />
-                <div>
-                  <p className="text-[10px] font-black text-[#818cf8] tracking-[.2em] uppercase mb-1">
-                    {t.unit} {unitIdx + 1}
-                  </p>
-                  <h2 className="text-[17px] font-extrabold text-white leading-tight">
-                    {unitSkills[0].title} Foundations
-                  </h2>
+            <section key={unitIdx} className="mb-14">
+              {/* Unit Banner — cartoon sign */}
+              <div
+                className="relative mb-6 overflow-hidden rounded-[28px] px-6 py-5"
+                style={{
+                  background: `linear-gradient(135deg, ${theme.color}, ${theme.color}cc)`,
+                  border: `4px solid #ffffff20`,
+                  boxShadow: `0 8px 0 rgba(0,0,0,.25), inset 0 -6px 0 rgba(0,0,0,.18), inset 0 3px 0 rgba(255,255,255,.35)`,
+                }}
+              >
+                {/* polka dots */}
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-25"
+                  style={{
+                    backgroundImage: `radial-gradient(#fff 2px, transparent 2px)`,
+                    backgroundSize: '18px 18px',
+                  }}
+                />
+                <div className="relative flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-white/85">
+                      {t.unit} {unitIdx + 1}
+                    </div>
+                    <div className="mt-0.5 text-2xl font-black leading-tight text-white drop-shadow-[0_2px_0_rgba(0,0,0,.2)]">
+                      {theme.name}
+                    </div>
+                    <div className="mt-0.5 text-[12px] font-bold text-white/85">
+                      {unitSkills[0].title}
+                    </div>
+                  </div>
+                  <div className="k-float text-[56px] drop-shadow-[0_4px_0_rgba(0,0,0,.25)]">
+                    {theme.mascot}
+                  </div>
                 </div>
-                <span className="text-3xl">{unitSkills[0].emoji}</span>
               </div>
 
-              {/* Snake Map */}
-              <div className="relative" style={{ height: svgH + 60 }}>
-
-                {/* SVG path layer */}
+              {/* Snake map */}
+              <div className="relative" style={{ height: svgH }}>
+                {/* soft glow under path */}
                 <svg
                   viewBox={`0 0 ${SVG_W} ${svgH}`}
-                  className="absolute inset-0 w-full overflow-visible pointer-events-none"
-                  style={{ height: svgH }}
+                  className="absolute inset-0 h-full w-full"
                   preserveAspectRatio="xMidYMin meet"
                 >
-                  {/* base track – dark solid + dashed overlay */}
-                  <path d={fullPath} fill="none" stroke="#1e1e35" strokeWidth="12" strokeLinecap="round" />
-                  <path d={fullPath} fill="none" stroke="#1e1e35" strokeWidth="3"  strokeLinecap="round" strokeDasharray="2 18" />
-                  {/* progress glow */}
+                  <defs>
+                    <linearGradient id={`pg-${unitIdx}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"  stopColor={C.cyan} />
+                      <stop offset="100%" stopColor={C.blue} />
+                    </linearGradient>
+                  </defs>
+
+                  {/* outer glow */}
+                  <path d={fullPath} stroke={`${theme.color}33`} strokeWidth={24} fill="none" strokeLinecap="round" />
+                  {/* dashed footprints */}
+                  <path
+                    d={fullPath}
+                    stroke="#ffffff22"
+                    strokeWidth={6}
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeDasharray="2 22"
+                  />
                   {progPath && (
-                    <path d={progPath} fill="none" stroke="#22c55e" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
+                    <path
+                      d={progPath}
+                      stroke={`url(#pg-${unitIdx})`}
+                      strokeWidth={8}
+                      fill="none"
+                      strokeLinecap="round"
+                      opacity={0.9}
+                    />
                   )}
                 </svg>
 
-                {/* Bubble nodes */}
+                {/* scattered candy decorations */}
+                {unitSkills.map((_, idx) => {
+                  const x = getCx(unitBase + idx) + (rand(unitIdx * 7 + idx) - 0.5) * 160
+                  const y = getCy(idx) + (rand(unitIdx * 11 + idx) - 0.5) * 60
+                  const emojis = ['🍭', '🌟', '🍀', '🎈', '🍩', '🪁']
+                  const e = emojis[(unitIdx + idx) % emojis.length]
+                  return (
+                    <div
+                      key={`d-${idx}`}
+                      className="k-float pointer-events-none absolute text-2xl opacity-70"
+                      style={{
+                        left: `${(x / SVG_W) * 100}%`,
+                        top: y - 20,
+                        animationDelay: `${rand(idx + 5) * 3}s`,
+                      }}
+                    >
+                      {e}
+                    </div>
+                  )
+                })}
+
+                {/* Bubbles */}
                 {unitSkills.map((skill, skillIdx) => {
                   const absIdx   = unitBase + skillIdx
                   const unlocked = isUnlocked(skill)
@@ -186,101 +309,124 @@ export default function SkillsClient({
                   const leftPct  = (getCx(absIdx) / SVG_W) * 100
                   const topPx    = getCy(skillIdx)
 
-                  const circ     = 2 * Math.PI * BUBBLE_R
-                  const offset   = circ - (circ * prog) / 100
+                  const circ   = 2 * Math.PI * BUBBLE_R
+                  const offset = circ - (circ * prog) / 100
+                  const icon   = complete ? '⭐' : unlocked ? skill.emoji : '🔒'
 
-                  const icon = complete ? '⭐' : unlocked ? skill.emoji : '🔒'
-
-                  const bubbleCls = cn(
-                    'relative flex items-center justify-center w-[76px] h-[76px] rounded-full text-[30px]',
-                    'border-none cursor-pointer transition-transform duration-150 outline-none select-none',
-                    'hover:scale-110 active:scale-95',
-                    complete
-                      ? 'bg-[#78350f] border-2 border-[#f59e0b] shadow-[0_7px_0_#451a03,0_0_30px_#fbbf2430]'
-                      : isActive
-                      ? 'bg-[#1e3a5f] border-2 border-[#38bdf8] shadow-[0_7px_0_#1e3a5f,0_0_40px_#38bdf840] animate-pulse'
-                      : unlocked
-                      ? 'bg-[#166534] border-2 border-[#22c55e] shadow-[0_7px_0_#14532d,0_0_30px_#4ade8020]'
-                      : 'bg-[#1e1e2e] border-2 border-[#2d2d45] shadow-[0_5px_0_#0d0d1a] opacity-60 cursor-default',
-                  )
+                  const face = complete ? C.gold : isActive ? C.blue : unlocked ? C.deep : C.surface
+                  const ring = complete ? '#B57600' : isActive ? '#0E5A8A' : unlocked ? '#163E70' : C.line
+                  const text = complete ? '#3a1d00' : '#fff'
 
                   return (
                     <div
                       key={skill.id}
-                      className="absolute flex flex-col items-center"
-                      style={{ left: `${leftPct}%`, top: topPx, transform: 'translate(-50%, -50%)' }}
+                      className="group absolute -translate-x-1/2"
+                      style={{ left: `${leftPct}%`, top: topPx - BUBBLE_R - 4 }}
                     >
-                      {/* START pill */}
+                      {/* START speech bubble */}
                       {isActive && (
-                        <div
-                          className="absolute -top-11 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest"
-                          style={{ background: '#38bdf8', color: '#0c1a24', boxShadow: '0 4px 14px #38bdf840' }}
-                        >
-                          {t.start}
-                          <span
-                            className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45"
-                            style={{ background: '#38bdf8' }}
-                          />
+                        <div className="k-bounce absolute -top-14 left-1/2 -translate-x-1/2">
+                          <div
+                            className="relative rounded-2xl px-3.5 py-2 text-[12px] font-black uppercase tracking-wider"
+                            style={{
+                              background: C.paper,
+                              color: C.blue,
+                              boxShadow: `0 4px 0 ${C.muted}, 0 0 0 3px #fff inset`,
+                            }}
+                          >
+                            {t.start}
+                            <div
+                              className="absolute left-1/2 top-full h-0 w-0 -translate-x-1/2"
+                              style={{
+                                borderLeft: '9px solid transparent',
+                                borderRight: '9px solid transparent',
+                                borderTop: `9px solid ${C.paper}`,
+                              }}
+                            />
+                          </div>
                         </div>
                       )}
 
-                      <Link
-                        href={unlocked ? `/dashboard/skills/${skill.id}` : '#'}
-                        className={bubbleCls}
-                        aria-label={`${skill.title}${!unlocked ? ' — locked' : complete ? ' — mastered' : ''}`}
-                        tabIndex={unlocked ? 0 : -1}
+                      {/* ground shadow */}
+                      <div
+                        className="absolute left-1/2 top-[86px] h-3 w-20 -translate-x-1/2 rounded-full"
+                        style={{ background: 'rgba(0,0,0,.35)', filter: 'blur(4px)' }}
+                      />
+
+                      <button
+                        disabled={!unlocked}
+                        onClick={() => unlocked && (window.location.href = `/lesson/${skill.id}`)}
+                        className={cn(
+                          'k-press relative flex h-[88px] w-[88px] items-center justify-center rounded-full text-[38px] select-none transition-transform',
+                          unlocked ? 'hover:-translate-y-[3px]' : 'cursor-default opacity-70',
+                          isActive && 'k-pulse-ring k-wiggle',
+                        )}
+                        style={{
+                          background: `radial-gradient(circle at 35% 30%, #ffffff55, transparent 55%), ${face}`,
+                          border: `4px solid ${ring}`,
+                          boxShadow: `0 10px 0 ${ring}, 0 0 40px ${face}55`,
+                          color: text,
+                        }}
                       >
                         {/* sheen */}
                         <span
-                          className="absolute top-2 left-2.5 right-2.5 rounded-full pointer-events-none"
-                          style={{ height: '35%', background: 'rgba(255,255,255,.12)' }}
+                          className="pointer-events-none absolute left-3 right-3 top-3 h-3 rounded-full"
+                          style={{ background: 'rgba(255,255,255,.5)', filter: 'blur(1px)' }}
                         />
 
                         {/* progress ring */}
                         {prog > 0 && prog < 100 && (
-                          <svg
-                            className="absolute pointer-events-none"
-                            style={{ inset: -10, width: 'calc(100% + 20px)', height: 'calc(100% + 20px)' }}
-                            viewBox="0 0 96 96"
-                          >
-                            <circle cx="48" cy="48" r={BUBBLE_R} fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="5" />
+                          <svg className="absolute inset-0 -rotate-90" viewBox="0 0 96 96">
+                            <circle cx="48" cy="48" r={BUBBLE_R} stroke="rgba(0,0,0,.25)" strokeWidth="6" fill="none" />
                             <circle
                               cx="48" cy="48" r={BUBBLE_R}
-                              fill="none" stroke="white" strokeWidth="5" strokeLinecap="round"
-                              strokeDasharray={circ.toFixed(1)}
-                              strokeDashoffset={offset.toFixed(1)}
-                              transform="rotate(-90 48 48)"
-                              opacity="0.7"
+                              stroke={C.cyan} strokeWidth="6" fill="none"
+                              strokeLinecap="round"
+                              strokeDasharray={circ}
+                              strokeDashoffset={offset}
                             />
                           </svg>
                         )}
 
-                        <span className="relative z-10">{icon}</span>
-                      </Link>
+                        <span className="relative drop-shadow-[0_3px_0_rgba(0,0,0,.25)]">{icon}</span>
+                      </button>
 
-                      {/* label */}
-                      <p className={cn('mt-3 text-[13px] font-extrabold text-center whitespace-nowrap', unlocked ? 'text-[#e2e8f0]' : 'text-[#4a5568]')}>
+                      {/* label chip */}
+                      <div
+                        className="relative mx-auto mt-3 w-max max-w-[140px] rounded-full px-3 py-1 text-center text-[11px] font-extrabold uppercase tracking-wider"
+                        style={{
+                          background: unlocked ? C.surface : '#ffffff10',
+                          color: unlocked ? C.ink : C.muted,
+                          border: `2px solid ${unlocked ? C.line : '#ffffff15'}`,
+                          boxShadow: unlocked ? `0 3px 0 #0c1730` : 'none',
+                        }}
+                      >
                         {skill.title}
-                      </p>
+                      </div>
+
                       {complete && (
-                        <p className="text-[9px] font-black text-[#fbbf24] tracking-[.18em] uppercase mt-0.5">
-                          {t.mastered}
-                        </p>
+                        <div
+                          className="mx-auto mt-2 w-fit rounded-full px-2.5 py-[2px] text-[9px] font-black uppercase tracking-widest"
+                          style={{ background: C.gold, color: '#3a1d00', boxShadow: `0 2px 0 #B57600` }}
+                        >
+                          ⭐ {t.mastered}
+                        </div>
                       )}
 
-                      {/* desktop hover card */}
+                      {/* hover card */}
                       {unlocked && (
-                        <div className={cn(
-                          'absolute top-1/2 -translate-y-1/2 w-52 z-50 pointer-events-none',
-                          'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
-                          'bg-[#111120] border border-[#1e1e35] rounded-2xl p-4 shadow-2xl hidden lg:block',
-                          getCx(absIdx) > SVG_W / 2 ? 'right-[115%]' : 'left-[115%]',
-                        )}>
-                          <p className="text-sm font-extrabold text-white mb-1">{skill.title}</p>
-                          <p className="text-xs text-[#6b7280] leading-relaxed mb-3">{skill.description}</p>
-                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest border-t border-[#1e1e35] pt-3">
-                            <span className="text-[#fbbf24]">+{skill.xp_reward} {t.xp}</span>
-                            <span className="text-[#4a5568]">{lessonCountMap[skill.id] ?? 0} {t.lessons}</span>
+                        <div
+                          className={cn(
+                            'pointer-events-none absolute top-1/2 hidden w-60 -translate-y-1/2 rounded-2xl p-3.5 opacity-0 shadow-2xl transition-opacity group-hover:opacity-100 md:block',
+                            getCx(absIdx) > SVG_W / 2 ? 'right-[120%]' : 'left-[120%]',
+                          )}
+                          style={{ background: C.paper, color: '#1B2A55', border: `3px solid ${C.line}` }}
+                        >
+                          <div className="text-sm font-black">{skill.title}</div>
+                          <div className="mt-1 text-xs font-semibold opacity-75">{skill.description}</div>
+                          <div className="mt-2 flex items-center justify-between text-[11px] font-extrabold">
+                            <span style={{ color: C.red }}>+{skill.xp_reward} {t.xp}</span>
+                            <span style={{ color: C.blue }}>{lessonCountMap[skill.id] ?? 0} {t.lessons}</span>
                           </div>
                         </div>
                       )}
@@ -289,35 +435,48 @@ export default function SkillsClient({
                 })}
               </div>
 
-              {/* Unit reward chest */}
-              {/* <div className="flex flex-col items-center py-8 opacity-35 hover:opacity-90 transition-opacity cursor-pointer group">
-                <div className="w-14 h-14 rounded-2xl bg-[#111120] border-2 border-dashed border-[#1e1e35] flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
+              {/* Treasure chest at unit end */}
+              <div className="mt-6 flex flex-col items-center">
+                <div
+                  className="k-float relative flex h-20 w-20 items-center justify-center rounded-3xl text-4xl"
+                  style={{
+                    background: `linear-gradient(135deg, ${C.gold}, #ffcd5b)`,
+                    border: `4px solid #B57600`,
+                    boxShadow: `0 8px 0 #8a5400, 0 0 40px ${C.gold}66`,
+                  }}
+                >
                   🎁
+                  <span className="k-twinkle absolute -top-2 -right-2 text-xl" style={{ color: C.gold }}>✦</span>
                 </div>
-                <p className="mt-2 text-[9px] font-black text-[#4a5568] tracking-[.15em] uppercase">{t.reward}</p>
-              </div> */}
-
-            </div>
+                <div
+                  className="mt-3 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-widest"
+                  style={{ background: C.gold, color: '#3a1d00', boxShadow: `0 3px 0 #8a5400` }}
+                >
+                  {t.reward}
+                </div>
+              </div>
+            </section>
           )
         })}
       </div>
 
-      {/* ── QUICK-JUMP SIDEBAR ── */}
-      <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col gap-3">
-        {units.map((unitSkills, i) => {
-          const anyUnlocked = unitSkills.some(s => isUnlocked(s))
-          return (
-            <div key={i} className="group relative flex items-center justify-end gap-2">
-              <span className="absolute right-6 opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap text-[10px] font-black text-[#818cf8] tracking-widest uppercase bg-[#111120] border border-[#1e1e35] px-3 py-1.5 rounded-lg shadow">
-                {t.unit} {i + 1}
-              </span>
-              <div className={cn(
-                'w-2.5 h-2.5 rounded-full border transition-all duration-200 group-hover:scale-125',
-                anyUnlocked ? 'bg-[#22c55e] border-[#166534]' : 'bg-[#1e1e2e] border-[#2d2d45]',
-              )} />
-            </div>
-          )
-        })}
+      {/* Mascot helper bottom-right */}
+      <div
+        className={cn(
+          'fixed bottom-5 z-40 flex items-end gap-2',
+          isRtl ? 'left-5' : 'right-5',
+        )}
+      >
+        <div
+          className="hidden rounded-2xl px-3 py-2 text-[12px] font-extrabold sm:block"
+          style={{
+            background: C.paper, color: C.deep,
+            boxShadow: `0 4px 0 ${C.muted}`,
+          }}
+        >
+          You can do it! 🎉
+        </div>
+        <div className="k-bounce text-5xl drop-shadow-[0_4px_0_rgba(0,0,0,.3)]">🦉</div>
       </div>
     </div>
   )
