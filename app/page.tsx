@@ -759,9 +759,9 @@ function Landing() {
         <div className="max-w-7xl mx-auto pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-foreground/40">
           <span>© 2026 Plulai Education. All rights reserved.</span>
           <div className="flex gap-6 uppercase tracking-wider font-bold">
-            <a href="#" className="hover:text-foreground">Privacy</a>
-            <a href="#" className="hover:text-foreground">Terms</a>
-            <a href="#" className="hover:text-foreground">العربية</a>
+            <a href="/privacy" className="hover:text-foreground">Privacy</a>
+            <a href="/terms" className="hover:text-foreground">Terms</a>
+            <a href="/ar" className="hover:text-foreground">العربية</a>
           </div>
         </div>
       </footer>
