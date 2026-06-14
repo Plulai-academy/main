@@ -237,9 +237,9 @@ function Landing() {
                     <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-9 rounded-2xl text-lg">
                       Start free trial →
                     </a>
-                    <button className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
+                    {/* <button className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
                       Take 60-sec quiz
-                    </button>
+                    </button> */}
                   </>
                 )}
               </div>
