@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
@@ -10,16 +11,18 @@ const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exe
 const BOOK = {
   title: "اسم الكتاب",
   subtitle: "وصف مختصر وجذّاب للكتاب يشرح ما سيكتسبه القارئ من هذا الكتاب الرائع.",
-  price: "49",
-  currency: "ر.س",
+  // ↑ Replace subtitle with your real description
+  coverImage: "/images/book-cover.png", // ← put your book image here
+  price: "29",
+  currency: "د.ت",
   pages: "٢٤٠ صفحة",
   language: "العربية",
-  delivery: "٣–٥ أيام عمل",
+  delivery: "٢–٤ أيام عمل",
   features: [
-    "محتوى أصيل باللغة العربية",
+    "محتوى أصيل بالعربية",
     "أمثلة عملية وتطبيقية",
     "مناسب للمبتدئين والمحترفين",
-    "شحن لجميع دول الخليج",
+    "توصيل لجميع ولايات تونس",
   ],
 };
 // ─────────────────────────────────────────────────────────────────────────────
@@ -74,6 +77,7 @@ const inlineStyles = `
     border: none;
   }
   .shelf-gold:active { box-shadow: 0 0 0 #C47D00; transform: translateY(4px); }
+  .shelf-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: var(--shadow-gold); }
 
   .shelf-dark {
     background: var(--surface);
@@ -111,7 +115,6 @@ const inlineStyles = `
     outline-offset: 2px;
   }
 
-  /* Quantity stepper */
   .qty-btn {
     width: 36px; height: 36px;
     border-radius: 10px;
@@ -128,54 +131,74 @@ const inlineStyles = `
   .qty-btn:hover { background: var(--brand-blue); }
 `;
 
-// Saudi Arabia cities (Gulf-friendly)
-const CITIES = [
-  "الرياض", "جدة", "مكة المكرمة", "المدينة المنورة", "الدمام",
-  "الخبر", "تبوك", "بريدة", "أبها", "نجران", "حائل", "الطائف",
-  "الكويت", "أبوظبي", "دبي", "الشارقة", "الدوحة", "المنامة", "مسقط",
-  "أخرى",
+// All 24 Tunisian governorates
+const GOVERNORATES = [
+  "تونس", "أريانة", "بن عروس", "منوبة",
+  "نابل", "زغوان", "بنزرت", "باجة",
+  "جندوبة", "الكاف", "سليانة", "القصرين",
+  "سيدي بوزيد", "سوسة", "المنستير", "المهدية",
+  "صفاقس", "قفصة", "توزر", "قبلي",
+  "قابس", "مدنين", "تطاوين", "ولاية أخرى",
 ];
 
-type FormState = { name: string; phone: string; city: string; address: string };
+type FormState = { name: string; phone: string; governorate: string; address: string };
 type Status = "idle" | "loading" | "success" | "error";
 
 function BookCover() {
+  const [imgError, setImgError] = useState(false);
+
+  if (!imgError) {
+    return (
+      <div className="animate-bob" style={{ width: "100%", maxWidth: 300, margin: "0 auto", position: "relative" }}>
+        <Image
+          src={BOOK.coverImage}
+          alt={BOOK.title}
+          width={300}
+          height={400}
+          onError={() => setImgError(true)}
+          style={{
+            width: "100%", height: "auto",
+            borderRadius: 16,
+            boxShadow: "0 30px 60px -10px rgba(28,176,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)",
+            display: "block",
+          }}
+        />
+        <div style={{
+          position: "absolute", top: 16, right: 16,
+          background: "var(--brand-gold)", color: "#1A1A2E",
+          borderRadius: 10, padding: "4px 10px",
+          fontSize: 12, fontWeight: 900,
+        }}>
+          جديد
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback placeholder if image not found
   return (
     <div
       className="animate-bob"
       style={{
         width: "100%", maxWidth: 300, margin: "0 auto",
-        aspectRatio: "3/4",
-        borderRadius: 16,
+        aspectRatio: "3/4", borderRadius: 16,
         background: "linear-gradient(145deg, #1CB0F6 0%, #2B70C9 60%, #14D4F4 100%)",
         boxShadow: "0 30px 60px -10px rgba(28,176,246,0.45), 0 0 0 1px rgba(255,255,255,0.1)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 32,
-        position: "relative",
-        overflow: "hidden",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        padding: 32, position: "relative", overflow: "hidden",
       }}
     >
-      {/* decorative circles */}
       <div style={{ position: "absolute", top: -30, left: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
       <div style={{ position: "absolute", bottom: -20, right: -20, width: 90, height: 90, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
-
       <div style={{ fontSize: 64, marginBottom: 16 }}>📘</div>
       <div style={{ color: "white", fontWeight: 900, fontSize: 22, textAlign: "center", lineHeight: 1.3, marginBottom: 8 }}>
         {BOOK.title}
       </div>
-      <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, textAlign: "center", fontFamily: "Tajawal, sans-serif" }}>
-        {BOOK.subtitle.slice(0, 40)}…
-      </div>
-
-      {/* badge */}
       <div style={{
         position: "absolute", top: 16, right: 16,
         background: "var(--brand-gold)", color: "#1A1A2E",
-        borderRadius: 10, padding: "4px 10px",
-        fontSize: 12, fontWeight: 900,
+        borderRadius: 10, padding: "4px 10px", fontSize: 12, fontWeight: 900,
       }}>
         جديد
       </div>
@@ -188,11 +211,11 @@ function SuccessScreen({ name }: { name: string }) {
     <div className="animate-in" style={{ textAlign: "center", padding: "48px 24px" }}>
       <div style={{ fontSize: 72, marginBottom: 24 }}>🎉</div>
       <h2 style={{ fontFamily: "Cairo", fontWeight: 900, fontSize: 28, marginBottom: 12 }}>
-        تم استلام طلبك، {name}!
+        يعيشك {name}، وصلنا الطلب!
       </h2>
-      <p style={{ color: "var(--muted-foreground)", fontSize: 16, lineHeight: 1.8, fontFamily: "Tajawal, sans-serif", marginBottom: 32 }}>
-        سيتصل بك فريقنا خلال ٢٤ ساعة لتأكيد الطلب وترتيب التوصيل.
-        <br />الدفع عند الاستلام.
+      <p style={{ color: "var(--muted-foreground)", fontSize: 16, lineHeight: 1.9, fontFamily: "Tajawal, sans-serif", marginBottom: 32 }}>
+        فريقنا باش يتصل بيك في أقرب وقت باش يأكّد الطلب ويحدّد موعد التوصيل.
+        <br />الدفع عند الاستلام — ما فيش حاجة تدفع دابا.
       </p>
       <div style={{
         display: "inline-flex", alignItems: "center", gap: 12,
@@ -201,8 +224,8 @@ function SuccessScreen({ name }: { name: string }) {
       }}>
         <span style={{ fontSize: 28 }}>📦</span>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontWeight: 800, fontSize: 15 }}>التوصيل المتوقع</div>
-          <div style={{ color: "var(--brand-gold)", fontWeight: 700 }}>٣–٥ أيام عمل</div>
+          <div style={{ fontWeight: 800, fontSize: 15 }}>وقت التوصيل المتوقّع</div>
+          <div style={{ color: "var(--brand-gold)", fontWeight: 700 }}>{BOOK.delivery}</div>
         </div>
       </div>
     </div>
@@ -211,7 +234,7 @@ function SuccessScreen({ name }: { name: string }) {
 
 export default function ShopPage() {
   const [qty, setQty] = useState(1);
-  const [form, setForm] = useState<FormState>({ name: "", phone: "", city: "", address: "" });
+  const [form, setForm] = useState<FormState>({ name: "", phone: "", governorate: "", address: "" });
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<Partial<FormState>>({});
 
@@ -220,9 +243,9 @@ export default function ShopPage() {
   const validate = () => {
     const e: Partial<FormState> = {};
     if (!form.name.trim()) e.name = "الاسم مطلوب";
-    if (!form.phone.trim() || !/^[0-9+\s]{8,15}$/.test(form.phone.trim())) e.phone = "رقم هاتف غير صحيح";
-    if (!form.city) e.city = "المدينة مطلوبة";
-    if (!form.address.trim() || form.address.trim().length < 10) e.address = "العنوان قصير جداً";
+    if (!form.phone.trim() || !/^[0-9+\s]{8,15}$/.test(form.phone.trim())) e.phone = "رقم هاتف غلط";
+    if (!form.governorate) e.governorate = "اختر الولاية";
+    if (!form.address.trim() || form.address.trim().length < 8) e.address = "زد تفاصيل أكثر للعنوان";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -230,27 +253,23 @@ export default function ShopPage() {
   const handleSubmit = async () => {
     if (!validate()) return;
     setStatus("loading");
-
     try {
       const payload = {
-        timestamp: new Date().toLocaleString("ar-SA"),
+        timestamp: new Date().toLocaleString("ar-TN"),
         name: form.name,
         phone: form.phone,
-        city: form.city,
+        governorate: form.governorate,
         address: form.address,
         quantity: qty,
         total: `${total} ${BOOK.currency}`,
         book: BOOK.title,
       };
-
-      // Google Apps Script accepts POST with no-cors
       await fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       setStatus("success");
     } catch {
       setStatus("error");
@@ -261,8 +280,7 @@ export default function ShopPage() {
     key: keyof FormState,
     label: string,
     placeholder: string,
-    type: string = "text",
-    extra?: React.InputHTMLAttributes<HTMLInputElement>
+    type: string = "text"
   ) => (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <label style={{ fontWeight: 700, fontSize: 14 }}>{label}</label>
@@ -271,14 +289,11 @@ export default function ShopPage() {
         placeholder={placeholder}
         value={form[key]}
         onChange={(e) => { setForm(f => ({ ...f, [key]: e.target.value })); setErrors(er => ({ ...er, [key]: undefined })); }}
-        {...extra}
         style={{
-          padding: "12px 16px",
-          borderRadius: 12,
+          padding: "12px 16px", borderRadius: 12,
           background: "var(--surface-2)",
           border: errors[key] ? "1.5px solid var(--brand-red)" : "1.5px solid var(--border)",
-          color: "var(--foreground)",
-          width: "100%",
+          color: "var(--foreground)", width: "100%",
         }}
       />
       {errors[key] && <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>{errors[key]}</span>}
@@ -299,8 +314,7 @@ export default function ShopPage() {
         }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <a href="/ar" style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--foreground)", textDecoration: "none" }}>
-              {/* swap <img src="/icons/plulai1.png" /> if you have the logo */}
-              <span style={{ fontFamily: "Cairo", fontWeight: 900, fontSize: 22, color: "var(--brand-blue)" }}>بلولاي</span>
+              <Image src="/icons/plulai1.png" alt="بلولاي" width={120} height={40} style={{ height: 40, width: "auto", objectFit: "contain" }} />
             </a>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 13, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>الدفع عند الاستلام</span>
@@ -313,21 +327,19 @@ export default function ShopPage() {
           </div>
         </nav>
 
-        {/* HERO BAND */}
+        {/* TRUST BAND */}
         <div style={{
           background: "linear-gradient(180deg, rgba(28,176,246,0.1) 0%, transparent 100%)",
           borderBottom: "1px solid var(--border)",
-          padding: "12px 24px",
-          textAlign: "center",
+          padding: "12px 24px", textAlign: "center",
         }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: "var(--brand-cyan)", fontFamily: "Tajawal, sans-serif" }}>
-            🚚 شحن مجاني لجميع دول الخليج · الدفع عند الاستلام · ضمان استرداد ٧ أيام
+            🚚 التوصيل لجميع ولايات تونس &nbsp;·&nbsp; الدفع عند الاستلام &nbsp;·&nbsp; ضمان استرجاع ٧ أيام
           </span>
         </div>
 
         {/* MAIN */}
         <main style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px" }}>
-
           {status === "success" ? (
             <div style={{ maxWidth: 500, margin: "0 auto" }}>
               <SuccessScreen name={form.name} />
@@ -335,22 +347,19 @@ export default function ShopPage() {
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 48, alignItems: "start" }}>
 
-              {/* ── LEFT: Book info ── */}
+              {/* ── Book info ── */}
               <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
                 <BookCover />
 
-                {/* Details card */}
                 <div style={{
-                  background: "var(--surface)",
-                  borderRadius: 20,
-                  border: "1px solid var(--border)",
-                  padding: 24,
+                  background: "var(--surface)", borderRadius: 20,
+                  border: "1px solid var(--border)", padding: 24,
                   display: "flex", flexDirection: "column", gap: 16,
                 }}>
                   <h1 style={{ fontFamily: "Cairo", fontWeight: 900, fontSize: 26, lineHeight: 1.3 }}>
                     {BOOK.title}
                   </h1>
-                  <p style={{ color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif", lineHeight: 1.8, fontSize: 15 }}>
+                  <p style={{ color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif", lineHeight: 1.9, fontSize: 15 }}>
                     {BOOK.subtitle}
                   </p>
 
@@ -372,7 +381,7 @@ export default function ShopPage() {
                     ))}
                   </div>
 
-                  {/* Feature list */}
+                  {/* Features */}
                   <ul style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {BOOK.features.map(f => (
                       <li key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontFamily: "Tajawal, sans-serif" }}>
@@ -391,7 +400,7 @@ export default function ShopPage() {
                 </div>
               </div>
 
-              {/* ── RIGHT: Order form ── */}
+              {/* ── Order form ── */}
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
                 {/* Price + Qty */}
@@ -405,10 +414,10 @@ export default function ShopPage() {
                       <div style={{ fontSize: 36, fontWeight: 900, color: "var(--brand-blue)", fontFamily: "Cairo" }}>
                         {BOOK.price} <span style={{ fontSize: 18, color: "var(--muted-foreground)" }}>{BOOK.currency}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>الدفع عند الاستلام</div>
+                      <div style={{ fontSize: 13, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>
+                        تدفع عند ما يوصلك الكتاب
+                      </div>
                     </div>
-
-                    {/* Quantity */}
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <button className="qty-btn" onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
                       <span style={{ fontWeight: 900, fontSize: 20, minWidth: 24, textAlign: "center" }}>{qty}</span>
@@ -422,13 +431,13 @@ export default function ShopPage() {
                       padding: "10px 14px", borderRadius: 12,
                       background: "rgba(250,169,24,0.1)", border: "1px solid rgba(250,169,24,0.25)",
                     }}>
-                      <span style={{ fontWeight: 700, fontSize: 14 }}>الإجمالي</span>
+                      <span style={{ fontWeight: 700, fontSize: 14 }}>الجملة</span>
                       <span style={{ fontWeight: 900, color: "var(--brand-gold)", fontSize: 16 }}>{total} {BOOK.currency}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Form */}
+                {/* Form fields */}
                 <div style={{
                   background: "var(--surface)", borderRadius: 20,
                   border: "1px solid var(--border)", padding: 24,
@@ -443,34 +452,34 @@ export default function ShopPage() {
                     <span style={{ fontWeight: 800, fontSize: 17 }}>بيانات التوصيل</span>
                   </div>
 
-                  {field("name", "الاسم الكامل", "محمد أحمد")}
-                  {field("phone", "رقم الجوال", "+966 5X XXX XXXX", "tel")}
+                  {field("name", "الاسم الكامل", "محمد علي")}
+                  {field("phone", "رقم الهاتف", "2X XXX XXX", "tel")}
 
-                  {/* City select */}
+                  {/* Governorate select */}
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <label style={{ fontWeight: 700, fontSize: 14 }}>المدينة</label>
+                    <label style={{ fontWeight: 700, fontSize: 14 }}>الولاية</label>
                     <select
-                      value={form.city}
-                      onChange={(e) => { setForm(f => ({ ...f, city: e.target.value })); setErrors(er => ({ ...er, city: undefined })); }}
+                      value={form.governorate}
+                      onChange={(e) => { setForm(f => ({ ...f, governorate: e.target.value })); setErrors(er => ({ ...er, governorate: undefined })); }}
                       style={{
                         padding: "12px 16px", borderRadius: 12,
                         background: "var(--surface-2)",
-                        border: errors.city ? "1.5px solid var(--brand-red)" : "1.5px solid var(--border)",
-                        color: form.city ? "var(--foreground)" : "var(--muted-foreground)",
+                        border: errors.governorate ? "1.5px solid var(--brand-red)" : "1.5px solid var(--border)",
+                        color: form.governorate ? "var(--foreground)" : "var(--muted-foreground)",
                         width: "100%", appearance: "none",
                       }}
                     >
-                      <option value="">اختر مدينتك</option>
-                      {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="">اختر ولايتك</option>
+                      {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
-                    {errors.city && <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>{errors.city}</span>}
+                    {errors.governorate && <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>{errors.governorate}</span>}
                   </div>
 
-                  {/* Address textarea */}
+                  {/* Address */}
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <label style={{ fontWeight: 700, fontSize: 14 }}>العنوان التفصيلي</label>
                     <textarea
-                      placeholder="الحي، الشارع، رقم البناء / الشقة..."
+                      placeholder="الحي، الشارع، رقم المنزل أو الشقة..."
                       value={form.address}
                       rows={3}
                       onChange={(e) => { setForm(f => ({ ...f, address: e.target.value })); setErrors(er => ({ ...er, address: undefined })); }}
@@ -478,10 +487,8 @@ export default function ShopPage() {
                         padding: "12px 16px", borderRadius: 12,
                         background: "var(--surface-2)",
                         border: errors.address ? "1.5px solid var(--brand-red)" : "1.5px solid var(--border)",
-                        color: "var(--foreground)",
-                        width: "100%", resize: "vertical",
-                        fontFamily: "Tajawal, sans-serif",
-                        direction: "rtl", textAlign: "right",
+                        color: "var(--foreground)", width: "100%", resize: "vertical",
+                        fontFamily: "Tajawal, sans-serif", direction: "rtl", textAlign: "right",
                       }}
                     />
                     {errors.address && <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>{errors.address}</span>}
@@ -499,11 +506,11 @@ export default function ShopPage() {
                     <span style={{ fontWeight: 700 }}>{total} {BOOK.currency}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
-                    <span style={{ color: "var(--muted-foreground)" }}>الشحن</span>
+                    <span style={{ color: "var(--muted-foreground)" }}>التوصيل</span>
                     <span style={{ color: "var(--brand-cyan)", fontWeight: 800 }}>مجاني 🎁</span>
                   </div>
                   <div style={{ borderTop: "1px solid var(--border)", marginTop: 4, paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontWeight: 800 }}>الإجمالي</span>
+                    <span style={{ fontWeight: 800 }}>الجملة</span>
                     <span style={{ fontWeight: 900, fontSize: 18, color: "var(--brand-blue)" }}>{total} {BOOK.currency}</span>
                   </div>
                 </div>
@@ -515,7 +522,7 @@ export default function ShopPage() {
                   disabled={status === "loading"}
                   style={{ padding: "16px 24px", borderRadius: 16, fontSize: 18, fontWeight: 900, fontFamily: "Cairo", width: "100%" }}
                 >
-                  {status === "loading" ? "⏳ جاري الإرسال..." : `اطلب الآن · ${total} ${BOOK.currency} ←`}
+                  {status === "loading" ? "⏳ نحكّموا الطلب..." : `اطلب توّا · ${total} ${BOOK.currency} ←`}
                 </button>
 
                 {status === "error" && (
@@ -523,13 +530,13 @@ export default function ShopPage() {
                     background: "rgba(211,49,49,0.1)", border: "1px solid rgba(211,49,49,0.3)",
                     borderRadius: 12, padding: "12px 16px", fontSize: 14, color: "var(--brand-red)", fontWeight: 700,
                   }}>
-                    حدث خطأ. تحقق من اتصالك أو تواصل معنا مباشرةً.
+                    صرا مشكل. تحقّق من النت ولّا تواصل معنا مباشرةً.
                   </div>
                 )}
 
                 <p style={{ fontSize: 12, color: "var(--muted-foreground)", textAlign: "center", fontFamily: "Tajawal, sans-serif", lineHeight: 1.7 }}>
-                  بالضغط على &quot;اطلب الآن&quot; توافق على شروط الاستخدام وسياسة الخصوصية.
-                  <br />لا يلزم دفع مسبق — الدفع عند استلام الكتاب.
+                  بالضغط على &quot;اطلب توّا&quot; توافق على شروط الاستخدام وسياسة الخصوصية.
+                  <br />ما فيش دفع مسبق — تدفع غير عند ما يوصلك الكتاب.
                 </p>
               </div>
 
@@ -545,46 +552,6 @@ export default function ShopPage() {
         </footer>
 
       </div>
-
-      {/*
-      ═══════════════════════════════════════════════════════════════════
-      GOOGLE SHEETS SETUP — Run once, takes ~5 minutes
-      ═══════════════════════════════════════════════════════════════════
-
-      1. Open Google Sheets → create a new sheet named "Orders"
-         Add these headers in row 1:
-         Timestamp | Name | Phone | City | Address | Quantity | Total | Book
-
-      2. In the sheet: Extensions → Apps Script → paste this code:
-
-      function doPost(e) {
-        var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
-        var data = JSON.parse(e.postData.contents);
-        sheet.appendRow([
-          data.timestamp,
-          data.name,
-          data.phone,
-          data.city,
-          data.address,
-          data.quantity,
-          data.total,
-          data.book,
-        ]);
-        return ContentService
-          .createTextOutput(JSON.stringify({ result: "success" }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
-
-      3. Deploy → New deployment → Web app
-         - Execute as: Me
-         - Who has access: Anyone
-         → Copy the Web App URL
-
-      4. Paste the URL into GOOGLE_SCRIPT_URL at the top of this file.
-
-      Done! Every order will appear as a new row in Google Sheets.
-      ═══════════════════════════════════════════════════════════════════
-      */}
     </>
   );
 }
