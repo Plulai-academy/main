@@ -253,7 +253,7 @@ function Landing() {
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 {isSchools ? (
                   <>
-                    <a href="https://www.plulai.com/auth/signup" className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg">
+                    <a href="https://www.plulai.com/schools" className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg">
                       Request school demo →
                     </a>
                   </>
