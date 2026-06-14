@@ -228,9 +228,9 @@ function Landing() {
                     <a href="https://www.plulai.com/auth/signup" className="shelf-gold font-bold py-4 px-9 rounded-2xl text-lg">
                       Request school demo →
                     </a>
-                    <button className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
+                    {/* <button className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
                       Download curriculum PDF
-                    </button>
+                    </button> */}
                   </>
                 ) : (
                   <>
