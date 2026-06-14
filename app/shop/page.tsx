@@ -4,18 +4,20 @@ import Image from "next/image";
 import { useState } from "react";
 
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFswQa_imQJ5pXkYuTmLt2E5CUEzyZ3m5bD5r869aAvlZatBFvVWicGZAZ_FJ_86VgEA/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJLbqp8Hd9iP5_XQdVSmNdOCfMEyJXgksqudnsvO5O38CXosZmrt-MW7FB1ZsXMw4K9Q/exec";
 
 const BOOK = {
   coverImage: "/images/bookcover.png",
   currency: "د.ت",
+  deliveryCost: 8,
   versions: {
     fr: {
       label: "Français",
       flag: "🇫🇷",
       title: "Version Française",
       subtitle: "وصف مختصر وجذّاب للكتاب يشرح ما سيكتسبه القارئ من هذا الكتاب الرائع.",
-      price: "29",
+      price: 25,
+      originalPrice: 45,
       pages: "٢٤٠ صفحة",
       language: "Français",
       features: [
@@ -30,7 +32,8 @@ const BOOK = {
       flag: "🇬🇧",
       title: "English Version",
       subtitle: "وصف مختصر وجذّاب للكتاب يشرح ما سيكتسبه القارئ من هذا الكتاب الرائع.",
-      price: "29",
+      price: 25,
+      originalPrice: 45,
       pages: "٢٤٠ صفحة",
       language: "English",
       features: [
@@ -60,6 +63,7 @@ const inlineStyles = `
     --brand-deep: #2B70C9;
     --brand-gold: #FAA918;
     --brand-red: #D33131;
+    --brand-green: #2ECC71;
     --shadow-blue: 0 4px 0 #2B70C9;
     --shadow-gold: 0 4px 0 #C47D00;
     --shadow-dark: 0 4px 0 rgba(0,0,0,0.4);
@@ -146,6 +150,14 @@ const inlineStyles = `
     background: transparent; color: var(--muted-foreground);
   }
   .ver-btn-inactive:hover { color: var(--foreground); }
+
+  .discount-badge {
+    display: inline-flex; align-items: center;
+    background: rgba(211,49,49,0.15); color: var(--brand-red);
+    border: 1px solid rgba(211,49,49,0.35);
+    border-radius: 999px; padding: 2px 10px;
+    font-size: 12px; font-weight: 900;
+  }
 `;
 
 const GOVERNORATES = [
@@ -194,15 +206,16 @@ export default function ShopPage() {
   const [status, setStatus]   = useState<Status>("idle");
   const [errors, setErrors]   = useState<Partial<FormState>>({});
 
-  const v     = BOOK.versions[version];
-  const total = qty * parseInt(v.price);
+  const v            = BOOK.versions[version];
+  const subtotal     = qty * v.price;
+  const total        = subtotal + BOOK.deliveryCost;
 
   const validate = () => {
     const e: Partial<FormState> = {};
-    if (!form.name.trim())                                           e.name        = "الاسم مطلوب";
+    if (!form.name.trim())                                            e.name        = "الاسم مطلوب";
     if (!form.phone.trim() || !/^[0-9+\s]{8,15}$/.test(form.phone)) e.phone       = "رقم هاتف غلط";
-    if (!form.governorate)                                           e.governorate  = "اختر الولاية";
-    if (!form.address.trim() || form.address.trim().length < 8)     e.address      = "زد تفاصيل أكثر للعنوان";
+    if (!form.governorate)                                            e.governorate = "اختر الولاية";
+    if (!form.address.trim() || form.address.trim().length < 8)      e.address     = "زد تفاصيل أكثر للعنوان";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -210,23 +223,40 @@ export default function ShopPage() {
   const handleSubmit = async () => {
     if (!validate()) return;
     setStatus("loading");
+
+    const payload: Record<string, string> = {
+      timestamp:   new Date().toLocaleString("ar-TN"),
+      name:        form.name,
+      phone:       form.phone,
+      governorate: form.governorate,
+      address:     form.address,
+      version:     `${v.flag} ${v.label}`,
+      quantity:    String(qty),
+      total:       `${total} ${BOOK.currency}`,
+    };
+
+    // URL-encoded form body works reliably with Google Apps Script
+    // and avoids the CORS preflight that JSON POST triggers.
+    const formBody = Object.entries(payload)
+      .map(([k, val]) => `${encodeURIComponent(k)}=${encodeURIComponent(val)}`)
+      .join("&");
+
     try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST", mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          timestamp:   new Date().toLocaleString("ar-TN"),
-          name:        form.name,
-          phone:       form.phone,
-          governorate: form.governorate,
-          address:     form.address,
-          version:     `${v.flag} ${v.label}`,
-          quantity:    qty,
-          total:       `${total} ${BOOK.currency}`,
-        }),
+      const res = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formBody,
       });
-      setStatus("success");
+
+      // Google Apps Script always returns 200 for doPost;
+      // treat any successful HTTP response as a successful order.
+      if (res.ok || res.status === 0 /* opaque redirect */) {
+        setStatus("success");
+      } else {
+        setStatus("error");
+      }
     } catch {
+      // Network-level failure (offline, DNS, etc.)
       setStatus("error");
     }
   };
@@ -301,17 +331,33 @@ export default function ShopPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
 
                 {/* Cover */}
-                <div className="animate-bob" style={{ width: "100%", maxWidth: 300, margin: "0 auto", position: "relative" }}>
-                  <Image
-                    src={BOOK.coverImage}
-                    alt={v.title}
-                    width={300}
-                    height={400}
-                    style={{
-                      width: "100%", height: "auto", borderRadius: 16, display: "block",
-                      boxShadow: "0 30px 60px -10px rgba(28,176,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)",
-                    }}
-                  />
+                <div style={{ position: "relative", width: "100%", maxWidth: 300, margin: "0 auto" }}>
+                  {/* Discount ribbon */}
+                  <div style={{
+                    position: "absolute", top: -12, left: -12, zIndex: 10,
+                    background: "var(--brand-red)", color: "white",
+                    borderRadius: 999, width: 64, height: 64,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    fontFamily: "Cairo", fontWeight: 900, lineHeight: 1.1,
+                    boxShadow: "0 4px 12px rgba(211,49,49,0.5)",
+                  }}>
+                    <span style={{ fontSize: 10 }}>خصم</span>
+                    <span style={{ fontSize: 18 }}>44%</span>
+                  </div>
+
+                  <div className="animate-bob">
+                    <Image
+                      src={BOOK.coverImage}
+                      alt={v.title}
+                      width={300}
+                      height={400}
+                      style={{
+                        width: "100%", height: "auto", borderRadius: 16, display: "block",
+                        boxShadow: "0 30px 60px -10px rgba(28,176,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)",
+                      }}
+                    />
+                  </div>
+
                   <div style={{
                     position: "absolute", top: 14, right: 14,
                     background: "var(--brand-gold)", color: "#1A1A2E",
@@ -405,8 +451,16 @@ export default function ShopPage() {
                         {v.language} · {v.pages}
                       </div>
                     </div>
-                    <div style={{ marginRight: "auto", fontWeight: 900, color: "var(--brand-blue)", fontSize: 18 }}>
-                      {v.price} {BOOK.currency}
+                    <div style={{ marginRight: "auto", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                      <span style={{ fontWeight: 900, color: "var(--brand-blue)", fontSize: 18 }}>
+                        {v.price} {BOOK.currency}
+                      </span>
+                      <span style={{
+                        fontSize: 12, color: "var(--muted-foreground)",
+                        textDecoration: "line-through",
+                      }}>
+                        {v.originalPrice} {BOOK.currency}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -419,11 +473,24 @@ export default function ShopPage() {
                 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <div style={{ fontSize: 36, fontWeight: 900, color: "var(--brand-blue)", fontFamily: "Cairo" }}>
-                        {v.price} <span style={{ fontSize: 18, color: "var(--muted-foreground)" }}>{BOOK.currency}</span>
+                      {/* Discounted price */}
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                        <span style={{ fontSize: 36, fontWeight: 900, color: "var(--brand-blue)", fontFamily: "Cairo" }}>
+                          {v.price}
+                        </span>
+                        <span style={{ fontSize: 18, color: "var(--muted-foreground)" }}>{BOOK.currency}</span>
+                        <span style={{
+                          fontSize: 18, color: "var(--muted-foreground)",
+                          textDecoration: "line-through",
+                        }}>
+                          {v.originalPrice} {BOOK.currency}
+                        </span>
                       </div>
-                      <div style={{ fontSize: 13, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>
-                        تدفع عند ما يوصلك الكتاب
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                        <span className="discount-badge">تخفيض ٤٤٪ 🔥</span>
+                        <span style={{ fontSize: 12, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>
+                          تدفع عند ما يوصلك الكتاب
+                        </span>
                       </div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -432,17 +499,6 @@ export default function ShopPage() {
                       <button className="qty-btn" onClick={() => setQty(q => Math.min(10, q + 1))}>+</button>
                     </div>
                   </div>
-
-                  {qty > 1 && (
-                    <div style={{
-                      display: "flex", justifyContent: "space-between",
-                      padding: "10px 14px", borderRadius: 12,
-                      background: "rgba(250,169,24,0.1)", border: "1px solid rgba(250,169,24,0.25)",
-                    }}>
-                      <span style={{ fontWeight: 700, fontSize: 14 }}>الجملة</span>
-                      <span style={{ fontWeight: 900, color: "var(--brand-gold)", fontSize: 16 }}>{total} {BOOK.currency}</span>
-                    </div>
-                  )}
                 </div>
 
                 {/* DELIVERY FORM */}
@@ -509,14 +565,38 @@ export default function ShopPage() {
                   border: "1px solid rgba(28,176,246,0.2)", padding: "16px 20px",
                   display: "flex", flexDirection: "column", gap: 8,
                 }}>
+                  {/* Book line */}
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
                     <span style={{ color: "var(--muted-foreground)" }}>{v.flag} {v.title} × {qty}</span>
-                    <span style={{ fontWeight: 700 }}>{total} {BOOK.currency}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      {qty > 1 && (
+                        <span style={{ color: "var(--muted-foreground)", fontSize: 12, textDecoration: "line-through" }}>
+                          {qty * v.originalPrice} {BOOK.currency}
+                        </span>
+                      )}
+                      <span style={{ fontWeight: 700 }}>{subtotal} {BOOK.currency}</span>
+                    </div>
                   </div>
+
+                  {/* Delivery */}
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
-                    <span style={{ color: "var(--muted-foreground)" }}>التوصيل</span>
-                    <span style={{ color: "var(--brand-cyan)", fontWeight: 800 }}>مجاني 🎁</span>
+                    <span style={{ color: "var(--muted-foreground)" }}>التوصيل 🚚</span>
+                    <span style={{ fontWeight: 700 }}>{BOOK.deliveryCost} {BOOK.currency}</span>
                   </div>
+
+                  {/* Savings callout */}
+                  <div style={{
+                    display: "flex", justifyContent: "space-between", fontSize: 13,
+                    padding: "8px 12px", borderRadius: 10,
+                    background: "rgba(46,204,113,0.08)", border: "1px solid rgba(46,204,113,0.2)",
+                  }}>
+                    <span style={{ color: "var(--brand-green)", fontWeight: 700 }}>💰 وفّرت</span>
+                    <span style={{ color: "var(--brand-green)", fontWeight: 800 }}>
+                      {qty * (v.originalPrice - v.price)} {BOOK.currency}
+                    </span>
+                  </div>
+
+                  {/* Total */}
                   <div style={{ borderTop: "1px solid var(--border)", marginTop: 4, paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
                     <span style={{ fontWeight: 800 }}>الجملة</span>
                     <span style={{ fontWeight: 900, fontSize: 18, color: "var(--brand-blue)" }}>{total} {BOOK.currency}</span>
@@ -559,7 +639,6 @@ export default function ShopPage() {
           </p>
         </footer>
       </div>
-
     </>
   );
 }
