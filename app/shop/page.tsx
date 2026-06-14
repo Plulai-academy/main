@@ -4,26 +4,44 @@ import Image from "next/image";
 import { useState } from "react";
 
 // ─── CONFIGURATION ────────────────────────────────────────────────────────────
-// 1. Replace with your Google Apps Script Web App URL (see setup guide below)
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
-// 2. Book details — swap these out
 const BOOK = {
-  title: "اسم الكتاب",
-  subtitle: "وصف مختصر وجذّاب للكتاب يشرح ما سيكتسبه القارئ من هذا الكتاب الرائع.",
-  // ↑ Replace subtitle with your real description
-  coverImage: "public/images/bookcover.png", // ← put your book image here
-  price: "29",
+  coverImage: "/images/bookcover.png",
   currency: "د.ت",
-  pages: "٢٤٠ صفحة",
-  language: "العربية",
+  versions: {
+    fr: {
+      label: "Français",
+      flag: "🇫🇷",
+      title: "Version Française",
+      subtitle: "وصف مختصر وجذّاب للكتاب يشرح ما سيكتسبه القارئ من هذا الكتاب الرائع.",
+      price: "29",
+      pages: "٢٤٠ صفحة",
+      language: "Français",
+      features: [
+        "Contenu original en français",
+        "أمثلة عملية وتطبيقية",
+        "مناسب للمبتدئين والمحترفين",
+        "توصيل لجميع ولايات تونس",
+      ],
+    },
+    en: {
+      label: "English",
+      flag: "🇬🇧",
+      title: "English Version",
+      subtitle: "وصف مختصر وجذّاب للكتاب يشرح ما سيكتسبه القارئ من هذا الكتاب الرائع.",
+      price: "29",
+      pages: "٢٤٠ صفحة",
+      language: "English",
+      features: [
+        "Original content in English",
+        "أمثلة عملية وتطبيقية",
+        "مناسب للمبتدئين والمحترفين",
+        "توصيل لجميع ولايات تونس",
+      ],
+    },
+  },
   delivery: "٢–٤ أيام عمل",
-  features: [
-    "محتوى أصيل بالعربية",
-    "أمثلة عملية وتطبيقية",
-    "مناسب للمبتدئين والمحترفين",
-    "توصيل لجميع ولايات تونس",
-  ],
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -31,7 +49,6 @@ const inlineStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
 
   :root {
-    --radius: 1rem;
     --background: oklch(0.18 0.04 265);
     --foreground: oklch(0.97 0.01 250);
     --surface: oklch(0.23 0.045 265);
@@ -58,153 +75,91 @@ const inlineStyles = `
   }
 
   .shelf-blue {
-    background: var(--brand-blue);
-    color: white;
+    background: var(--brand-blue); color: white;
     box-shadow: var(--shadow-blue);
     transition: transform .1s ease, box-shadow .1s ease;
-    cursor: pointer;
-    border: none;
+    cursor: pointer; border: none;
   }
   .shelf-blue:active { box-shadow: 0 0 0 var(--brand-deep); transform: translateY(4px); }
-  .shelf-blue:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: var(--shadow-blue); }
+  .shelf-blue:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
   .shelf-gold {
-    background: var(--brand-gold);
-    color: #1A1A2E;
+    background: var(--brand-gold); color: #1A1A2E;
     box-shadow: var(--shadow-gold);
     transition: transform .1s ease, box-shadow .1s ease;
-    cursor: pointer;
-    border: none;
+    cursor: pointer; border: none;
   }
   .shelf-gold:active { box-shadow: 0 0 0 #C47D00; transform: translateY(4px); }
-  .shelf-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: var(--shadow-gold); }
+  .shelf-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
   .shelf-dark {
-    background: var(--surface);
-    color: var(--foreground);
+    background: var(--surface); color: var(--foreground);
     box-shadow: var(--shadow-dark);
-    transition: transform .1s ease, box-shadow .1s ease;
   }
 
   @keyframes bob {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-  @keyframes glow-pulse {
-    0%, 100% { opacity: .5; }
-    50% { opacity: 1; }
+    50%       { transform: translateY(-8px); }
   }
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes glow-pulse {
+    0%, 100% { opacity: .5; }
+    50%       { opacity: 1; }
+  }
 
-  .animate-bob { animation: bob 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite; }
-  .animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
-  .animate-in { animation: fadeInUp 0.4s ease forwards; }
+  .animate-bob    { animation: bob 4s cubic-bezier(0.34,1.56,0.64,1) infinite; }
+  .animate-in     { animation: fadeInUp 0.4s ease forwards; }
+  .animate-glow   { animation: glow-pulse 2s ease-in-out infinite; }
 
   input, select, textarea {
     font-family: 'Cairo', system-ui, sans-serif;
-    font-size: 1rem;
-    direction: rtl;
-    text-align: right;
+    font-size: 1rem; direction: rtl; text-align: right;
   }
-
   input:focus, select:focus, textarea:focus {
-    outline: 2px solid var(--brand-blue);
-    outline-offset: 2px;
+    outline: 2px solid var(--brand-blue); outline-offset: 2px;
   }
 
   .qty-btn {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--foreground);
-    font-size: 1.2rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: grid;
-    place-items: center;
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--foreground); font-size: 1.2rem; font-weight: 700;
+    cursor: pointer; display: grid; place-items: center;
     transition: background .15s;
   }
   .qty-btn:hover { background: var(--brand-blue); }
+
+  /* Version toggle pill */
+  .ver-btn {
+    flex: 1; padding: 10px 0; border-radius: 14px;
+    font-weight: 800; font-size: 15px; border: none;
+    cursor: pointer; transition: all .15s ease;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .ver-btn-active {
+    background: var(--brand-blue); color: white;
+    box-shadow: 0 4px 0 var(--brand-deep);
+  }
+  .ver-btn-inactive {
+    background: transparent; color: var(--muted-foreground);
+  }
+  .ver-btn-inactive:hover { color: var(--foreground); }
 `;
 
-// All 24 Tunisian governorates
 const GOVERNORATES = [
-  "تونس", "أريانة", "بن عروس", "منوبة",
-  "نابل", "زغوان", "بنزرت", "باجة",
-  "جندوبة", "الكاف", "سليانة", "القصرين",
-  "سيدي بوزيد", "سوسة", "المنستير", "المهدية",
-  "صفاقس", "قفصة", "توزر", "قبلي",
-  "قابس", "مدنين", "تطاوين", "ولاية أخرى",
+  "تونس","أريانة","بن عروس","منوبة",
+  "نابل","زغوان","بنزرت","باجة",
+  "جندوبة","الكاف","سليانة","القصرين",
+  "سيدي بوزيد","سوسة","المنستير","المهدية",
+  "صفاقس","قفصة","توزر","قبلي",
+  "قابس","مدنين","تطاوين","ولاية أخرى",
 ];
 
+type Version = "fr" | "en";
 type FormState = { name: string; phone: string; governorate: string; address: string };
 type Status = "idle" | "loading" | "success" | "error";
-
-function BookCover() {
-  const [imgError, setImgError] = useState(false);
-
-  if (!imgError) {
-    return (
-      <div className="animate-bob" style={{ width: "100%", maxWidth: 300, margin: "0 auto", position: "relative" }}>
-        <Image
-          src={BOOK.coverImage}
-          alt={BOOK.title}
-          width={300}
-          height={400}
-          onError={() => setImgError(true)}
-          style={{
-            width: "100%", height: "auto",
-            borderRadius: 16,
-            boxShadow: "0 30px 60px -10px rgba(28,176,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)",
-            display: "block",
-          }}
-        />
-        <div style={{
-          position: "absolute", top: 16, right: 16,
-          background: "var(--brand-gold)", color: "#1A1A2E",
-          borderRadius: 10, padding: "4px 10px",
-          fontSize: 12, fontWeight: 900,
-        }}>
-          جديد
-        </div>
-      </div>
-    );
-  }
-
-  // Fallback placeholder if image not found
-  return (
-    <div
-      className="animate-bob"
-      style={{
-        width: "100%", maxWidth: 300, margin: "0 auto",
-        aspectRatio: "3/4", borderRadius: 16,
-        background: "linear-gradient(145deg, #1CB0F6 0%, #2B70C9 60%, #14D4F4 100%)",
-        boxShadow: "0 30px 60px -10px rgba(28,176,246,0.45), 0 0 0 1px rgba(255,255,255,0.1)",
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        padding: 32, position: "relative", overflow: "hidden",
-      }}
-    >
-      <div style={{ position: "absolute", top: -30, left: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
-      <div style={{ position: "absolute", bottom: -20, right: -20, width: 90, height: 90, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
-      <div style={{ fontSize: 64, marginBottom: 16 }}>📘</div>
-      <div style={{ color: "white", fontWeight: 900, fontSize: 22, textAlign: "center", lineHeight: 1.3, marginBottom: 8 }}>
-        {BOOK.title}
-      </div>
-      <div style={{
-        position: "absolute", top: 16, right: 16,
-        background: "var(--brand-gold)", color: "#1A1A2E",
-        borderRadius: 10, padding: "4px 10px", fontSize: 12, fontWeight: 900,
-      }}>
-        جديد
-      </div>
-    </div>
-  );
-}
 
 function SuccessScreen({ name }: { name: string }) {
   return (
@@ -233,19 +188,21 @@ function SuccessScreen({ name }: { name: string }) {
 }
 
 export default function ShopPage() {
-  const [qty, setQty] = useState(1);
-  const [form, setForm] = useState<FormState>({ name: "", phone: "", governorate: "", address: "" });
-  const [status, setStatus] = useState<Status>("idle");
-  const [errors, setErrors] = useState<Partial<FormState>>({});
+  const [version, setVersion] = useState<Version>("fr");
+  const [qty, setQty]         = useState(1);
+  const [form, setForm]       = useState<FormState>({ name: "", phone: "", governorate: "", address: "" });
+  const [status, setStatus]   = useState<Status>("idle");
+  const [errors, setErrors]   = useState<Partial<FormState>>({});
 
-  const total = qty * parseInt(BOOK.price);
+  const v     = BOOK.versions[version];
+  const total = qty * parseInt(v.price);
 
   const validate = () => {
     const e: Partial<FormState> = {};
-    if (!form.name.trim()) e.name = "الاسم مطلوب";
-    if (!form.phone.trim() || !/^[0-9+\s]{8,15}$/.test(form.phone.trim())) e.phone = "رقم هاتف غلط";
-    if (!form.governorate) e.governorate = "اختر الولاية";
-    if (!form.address.trim() || form.address.trim().length < 8) e.address = "زد تفاصيل أكثر للعنوان";
+    if (!form.name.trim())                                           e.name        = "الاسم مطلوب";
+    if (!form.phone.trim() || !/^[0-9+\s]{8,15}$/.test(form.phone)) e.phone       = "رقم هاتف غلط";
+    if (!form.governorate)                                           e.governorate  = "اختر الولاية";
+    if (!form.address.trim() || form.address.trim().length < 8)     e.address      = "زد تفاصيل أكثر للعنوان";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -254,21 +211,19 @@ export default function ShopPage() {
     if (!validate()) return;
     setStatus("loading");
     try {
-      const payload = {
-        timestamp: new Date().toLocaleString("ar-TN"),
-        name: form.name,
-        phone: form.phone,
-        governorate: form.governorate,
-        address: form.address,
-        quantity: qty,
-        total: `${total} ${BOOK.currency}`,
-        book: BOOK.title,
-      };
       await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
+        method: "POST", mode: "no-cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          timestamp:   new Date().toLocaleString("ar-TN"),
+          name:        form.name,
+          phone:       form.phone,
+          governorate: form.governorate,
+          address:     form.address,
+          version:     `${v.flag} ${v.label}`,
+          quantity:    qty,
+          total:       `${total} ${BOOK.currency}`,
+        }),
       });
       setStatus("success");
     } catch {
@@ -276,12 +231,7 @@ export default function ShopPage() {
     }
   };
 
-  const field = (
-    key: keyof FormState,
-    label: string,
-    placeholder: string,
-    type: string = "text"
-  ) => (
+  const inputField = (key: keyof FormState, label: string, placeholder: string, type = "text") => (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <label style={{ fontWeight: 700, fontSize: 14 }}>{label}</label>
       <input
@@ -305,7 +255,7 @@ export default function ShopPage() {
       <style dangerouslySetInnerHTML={{ __html: inlineStyles }} />
       <div style={{ minHeight: "100vh", background: "var(--background)", direction: "rtl" }}>
 
-        {/* NAV */}
+        {/* ── NAV ── */}
         <nav style={{
           position: "sticky", top: 0, zIndex: 50,
           backdropFilter: "blur(12px)",
@@ -313,7 +263,7 @@ export default function ShopPage() {
           borderBottom: "1px solid var(--border)",
         }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <a href="/ar" style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--foreground)", textDecoration: "none" }}>
+            <a href="/ar" style={{ textDecoration: "none" }}>
               <Image src="/icons/plulai1.png" alt="بلولاي" width={120} height={40} style={{ height: 40, width: "auto", objectFit: "contain" }} />
             </a>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -327,7 +277,7 @@ export default function ShopPage() {
           </div>
         </nav>
 
-        {/* TRUST BAND */}
+        {/* ── TRUST BAND ── */}
         <div style={{
           background: "linear-gradient(180deg, rgba(28,176,246,0.1) 0%, transparent 100%)",
           borderBottom: "1px solid var(--border)",
@@ -338,7 +288,7 @@ export default function ShopPage() {
           </span>
         </div>
 
-        {/* MAIN */}
+        {/* ── MAIN ── */}
         <main style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 24px" }}>
           {status === "success" ? (
             <div style={{ maxWidth: 500, margin: "0 auto" }}>
@@ -347,27 +297,44 @@ export default function ShopPage() {
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 48, alignItems: "start" }}>
 
-              {/* ── Book info ── */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-                <BookCover />
+              {/* ──── LEFT: book info ──── */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
 
+                {/* Cover */}
+                <div className="animate-bob" style={{ width: "100%", maxWidth: 300, margin: "0 auto", position: "relative" }}>
+                  <Image
+                    src={BOOK.coverImage}
+                    alt={v.title}
+                    width={300}
+                    height={400}
+                    style={{
+                      width: "100%", height: "auto", borderRadius: 16, display: "block",
+                      boxShadow: "0 30px 60px -10px rgba(28,176,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)",
+                    }}
+                  />
+                  <div style={{
+                    position: "absolute", top: 14, right: 14,
+                    background: "var(--brand-gold)", color: "#1A1A2E",
+                    borderRadius: 10, padding: "4px 10px", fontSize: 12, fontWeight: 900,
+                  }}>جديد</div>
+                </div>
+
+                {/* Details card */}
                 <div style={{
                   background: "var(--surface)", borderRadius: 20,
                   border: "1px solid var(--border)", padding: 24,
                   display: "flex", flexDirection: "column", gap: 16,
                 }}>
-                  <h1 style={{ fontFamily: "Cairo", fontWeight: 900, fontSize: 26, lineHeight: 1.3 }}>
-                    {BOOK.title}
-                  </h1>
+                  <h1 style={{ fontFamily: "Cairo", fontWeight: 900, fontSize: 24, lineHeight: 1.3 }}>{v.title}</h1>
                   <p style={{ color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif", lineHeight: 1.9, fontSize: 15 }}>
-                    {BOOK.subtitle}
+                    {v.subtitle}
                   </p>
 
                   {/* Meta pills */}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {[
-                      { icon: "📄", label: BOOK.pages },
-                      { icon: "🌐", label: BOOK.language },
+                      { icon: "📄", label: v.pages },
+                      { icon: "🌐", label: v.language },
                       { icon: "🚚", label: BOOK.delivery },
                     ].map(m => (
                       <span key={m.label} style={{
@@ -375,15 +342,13 @@ export default function ShopPage() {
                         padding: "5px 12px", borderRadius: 999,
                         background: "var(--surface-2)", border: "1px solid var(--border)",
                         fontSize: 13, fontWeight: 700,
-                      }}>
-                        {m.icon} {m.label}
-                      </span>
+                      }}>{m.icon} {m.label}</span>
                     ))}
                   </div>
 
                   {/* Features */}
                   <ul style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {BOOK.features.map(f => (
+                    {v.features.map(f => (
                       <li key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontFamily: "Tajawal, sans-serif" }}>
                         <span style={{
                           width: 22, height: 22, borderRadius: 8, flexShrink: 0,
@@ -400,10 +365,53 @@ export default function ShopPage() {
                 </div>
               </div>
 
-              {/* ── Order form ── */}
+              {/* ──── RIGHT: order form ──── */}
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-                {/* Price + Qty */}
+                {/* VERSION TOGGLE */}
+                <div style={{
+                  background: "var(--surface)", borderRadius: 20,
+                  border: "1px solid var(--border)", padding: 20,
+                  display: "flex", flexDirection: "column", gap: 12,
+                }}>
+                  <span style={{ fontWeight: 800, fontSize: 15 }}>اختر نسخة الكتاب</span>
+                  <div style={{
+                    display: "flex", gap: 8, padding: 6,
+                    background: "var(--surface-2)", borderRadius: 16,
+                    border: "1px solid var(--border)",
+                  }}>
+                    {(["fr", "en"] as Version[]).map(vk => (
+                      <button
+                        key={vk}
+                        onClick={() => setVersion(vk)}
+                        className={`ver-btn ${version === vk ? "ver-btn-active" : "ver-btn-inactive"}`}
+                      >
+                        <span>{BOOK.versions[vk].flag}</span>
+                        <span>{BOOK.versions[vk].label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Selected version badge */}
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    padding: "10px 14px", borderRadius: 12,
+                    background: "rgba(28,176,246,0.08)", border: "1px solid rgba(28,176,246,0.2)",
+                  }}>
+                    <span style={{ fontSize: 20 }}>{v.flag}</span>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: 13 }}>{v.title}</div>
+                      <div style={{ fontSize: 12, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>
+                        {v.language} · {v.pages}
+                      </div>
+                    </div>
+                    <div style={{ marginRight: "auto", fontWeight: 900, color: "var(--brand-blue)", fontSize: 18 }}>
+                      {v.price} {BOOK.currency}
+                    </div>
+                  </div>
+                </div>
+
+                {/* PRICE + QTY */}
                 <div style={{
                   background: "var(--surface)", borderRadius: 20,
                   border: "1px solid var(--border)", padding: 24,
@@ -412,7 +420,7 @@ export default function ShopPage() {
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
                       <div style={{ fontSize: 36, fontWeight: 900, color: "var(--brand-blue)", fontFamily: "Cairo" }}>
-                        {BOOK.price} <span style={{ fontSize: 18, color: "var(--muted-foreground)" }}>{BOOK.currency}</span>
+                        {v.price} <span style={{ fontSize: 18, color: "var(--muted-foreground)" }}>{BOOK.currency}</span>
                       </div>
                       <div style={{ fontSize: 13, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>
                         تدفع عند ما يوصلك الكتاب
@@ -437,7 +445,7 @@ export default function ShopPage() {
                   )}
                 </div>
 
-                {/* Form fields */}
+                {/* DELIVERY FORM */}
                 <div style={{
                   background: "var(--surface)", borderRadius: 20,
                   border: "1px solid var(--border)", padding: 24,
@@ -452,10 +460,10 @@ export default function ShopPage() {
                     <span style={{ fontWeight: 800, fontSize: 17 }}>بيانات التوصيل</span>
                   </div>
 
-                  {field("name", "الاسم الكامل", "محمد علي")}
-                  {field("phone", "رقم الهاتف", "2X XXX XXX", "tel")}
+                  {inputField("name",  "الاسم الكامل", "محمد علي")}
+                  {inputField("phone", "رقم الهاتف",   "2X XXX XXX", "tel")}
 
-                  {/* Governorate select */}
+                  {/* Governorate */}
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <label style={{ fontWeight: 700, fontSize: 14 }}>الولاية</label>
                     <select
@@ -495,14 +503,14 @@ export default function ShopPage() {
                   </div>
                 </div>
 
-                {/* Order summary */}
+                {/* ORDER SUMMARY */}
                 <div style={{
                   background: "rgba(28,176,246,0.06)", borderRadius: 16,
                   border: "1px solid rgba(28,176,246,0.2)", padding: "16px 20px",
                   display: "flex", flexDirection: "column", gap: 8,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
-                    <span style={{ color: "var(--muted-foreground)" }}>{BOOK.title} × {qty}</span>
+                    <span style={{ color: "var(--muted-foreground)" }}>{v.flag} {v.title} × {qty}</span>
                     <span style={{ fontWeight: 700 }}>{total} {BOOK.currency}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
@@ -515,7 +523,7 @@ export default function ShopPage() {
                   </div>
                 </div>
 
-                {/* Submit */}
+                {/* SUBMIT */}
                 <button
                   className="shelf-gold"
                   onClick={handleSubmit}
@@ -550,8 +558,8 @@ export default function ShopPage() {
             © 2026 Plulai Education · جميع الحقوق محفوظة
           </p>
         </footer>
-
       </div>
+
     </>
   );
 }
