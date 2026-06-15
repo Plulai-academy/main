@@ -126,6 +126,27 @@ export const getWelcomeMessage = (
       fr: `${name}. Contexte chargé — ${iStr.fr}, objectif : "${d}...". Direct et technique dès maintenant. Qu'est-ce qu'on résout aujourd'hui ?`,
     },
   }
+
+  // Sanitize dream project for welcome messages too — fall back to a
+  // generic, still-personalized message if the dream project is junk.
+  if (isJunkText(dream)) {
+    const fallbackMsgs: Record<AgeGroup, Record<Language, string>> = {
+      mini: msgs.mini,
+      junior: msgs.junior,
+      pro: {
+        en: `Hey ${name}. I'm your personal AI mentor. You're into ${iStr.en} — let's figure out something awesome to build together. Where do you want to start?`,
+        ar: `مرحباً ${name}. أنا مرشدك الشخصي. أنت مهتم بـ${iStr.ar} — هيا نكتشف شيئاً رائعاً لنبنيه معاً. من أين تريد البدء؟`,
+        fr: `Hey ${name}. Je suis ton mentor IA personnel. Tu t'intéresses à ${iStr.fr} — trouvons ensemble un projet génial à construire. Par où veux-tu commencer ?`,
+      },
+      expert: {
+        en: `${name}. Context loaded — ${iStr.en}. Still mapping out your dream project? No problem, we'll figure it out as we go. What are we solving today?`,
+        ar: `${name}. تم تحميل السياق — ${iStr.ar}. لم تحدد مشروع حلمك بعد؟ لا مشكلة، سنكتشفه معاً. ماذا نحل اليوم؟`,
+        fr: `${name}. Contexte chargé — ${iStr.fr}. Pas encore d'idée de projet de rêve ? Pas de problème, on la trouvera ensemble. Qu'est-ce qu'on résout aujourd'hui ?`,
+      },
+    }
+    return fallbackMsgs[ageGroup]?.[lang] ?? fallbackMsgs[ageGroup]?.en ?? ''
+  }
+
   return msgs[ageGroup]?.[lang] ?? msgs[ageGroup]?.en ?? ''
 }
 
@@ -153,6 +174,58 @@ export const STARTER_PROMPTS: Record<AgeGroup, Record<Language, string[]>> = {
   },
 }
 
+// ── Dream-project sanitization ────────────────────────────────
+// Detects keyboard-mash, placeholder spam, and other junk so the
+// coach never references it as if it's a meaningful goal.
+//
+// Heuristics (any one triggers "junk"):
+//  - Empty / whitespace-only / too short (< 5 chars after trim)
+//  - No vowels in a run of 5+ letters (e.g. "ddddddddddddddddddd", "trgghtr")
+//  - A single character repeated 4+ times in a row (e.g. "ffffff", "Vvcgbbbnbccch")
+//  - Matches common keyboard-row mash patterns (qwerty-adjacent runs)
+//  - Looks like a stray email / raw username (matches the user's own email pattern is handled upstream;
+//    here we just catch obvious "no spaces + no real word chars + long" cases)
+export const isJunkText = (text: string): boolean => {
+  if (!text) return true
+  const trimmed = text.trim()
+  if (trimmed.length < 5) return true
+
+  const lower = trimmed.toLowerCase()
+
+  // Repeated single character 4+ times in a row (e.g. "ddddddddddddddddddd")
+  if (/(.)\1{3,}/.test(lower)) return true
+
+  // Long run of letters with no vowels at all (gibberish consonant clusters)
+  // e.g. "trgghtr", "azertyuijhg" actually has vowels — but most pure mash strings don't
+  const letterRuns = lower.match(/[a-z]{5,}/g) ?? []
+  for (const run of letterRuns) {
+    const vowelCount = (run.match(/[aeiou]/g) ?? []).length
+    const vowelRatio = vowelCount / run.length
+    // Real words/sentences have roughly 30-50% vowels. Below ~12% is almost
+    // always keyboard mash (e.g. "trgghtr" = 0%, "hjklkjhbv" = 0%).
+    if (vowelRatio < 0.12) return true
+  }
+
+  // Common QWERTY-row mashes / placeholder patterns seen in onboarding data
+  const KNOWN_JUNK_PATTERNS = [
+    /^az?ert[yu]/i,      // azerty / azertyuijhg variants
+    /^qwer/i,            // qwerty variants
+    /^asdf/i,
+    /^[a-z]{1,3}$/i,     // single/double/triple letter only, e.g. "ttggg"
+    /^(ttggg|trgghtr)/i, // observed onboarding junk
+  ]
+  if (KNOWN_JUNK_PATTERNS.some(p => p.test(lower.replace(/\s+/g, '')))) return true
+
+  // No spaces AND no vowels at all across the whole string AND length > 6
+  // catches things like "Vvcgbbbnbccch", "azertyhjklkjhbv"
+  if (!/\s/.test(trimmed) && trimmed.length > 6) {
+    const totalVowels = (lower.match(/[aeiou]/g) ?? []).length
+    if (totalVowels / trimmed.length < 0.15) return true
+  }
+
+  return false
+}
+
 // ── Build the system prompt sent to the AI ────────────────────
 export interface CoachContext {
   name: string
@@ -163,11 +236,32 @@ export interface CoachContext {
   language: Language
   currentTopic?: string
   currentLesson?: string
+  // Tier 2 additions (optional — safe to omit, see queries.ts changes)
+  totalXp?: number
+  streakDays?: number
+  recentRatings?: { feeling: string; lessonId: string }[]
+  finishedAllAvailable?: boolean
 }
 
 export const buildSystemPrompt = (ctx: CoachContext): string => {
   const persona  = PERSONAS[ctx.ageGroup]?.[ctx.language] ?? PERSONAS[ctx.ageGroup]?.en ?? ''
   const langRule = LANG_INSTRUCTION[ctx.language]
+
+  const dreamIsJunk = isJunkText(ctx.dreamProject)
+
+  const dreamProjectLine = dreamIsJunk
+    ? `- Dream project: not yet defined clearly — do NOT invent or reference a "dream project" by name. If relevant, gently ask what they'd love to build, based on their interests.`
+    : `- Dream project: "${ctx.dreamProject}"`
+
+  const personalizationRules = [
+    `- Use their name naturally (not every message — just occasionally).`,
+    `- Relate examples to their interests when possible.`,
+    dreamIsJunk
+      ? `- Their dream project field looks like placeholder/test text (e.g. random keyboard mash) — IGNORE it completely. Never repeat it back to them or treat it as meaningful.`
+      : `- Reference their dream project to motivate them when it is relevant.`,
+    `- If they seem confused, try a completely different angle or analogy.`,
+    `- Celebrate effort briefly and genuinely; never make them feel bad for not knowing something.`,
+  ]
 
   return `${persona}
 
@@ -175,14 +269,10 @@ STUDENT PROFILE:
 - Name: ${ctx.name}
 - Age: ${ctx.age} years old
 - Interests: ${ctx.interests.join(', ')}
-- Dream project: "${ctx.dreamProject}"
+${dreamProjectLine}
 
 PERSONALIZATION RULES:
-- Use their name naturally (not every message — just occasionally).
-- Relate examples to their interests when possible.
-- Reference their dream project to motivate them when it is relevant.
-- If they seem confused, try a completely different angle or analogy.
-- Celebrate effort briefly and genuinely; never make them feel bad for not knowing something.
+${personalizationRules.join('\n')}
 ${ctx.currentTopic  ? `\nCURRENT TOPIC: ${ctx.currentTopic}`  : ''}
 ${ctx.currentLesson ? `CURRENT LESSON: ${ctx.currentLesson}` : ''}
 
