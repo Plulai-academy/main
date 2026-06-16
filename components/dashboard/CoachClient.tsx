@@ -63,99 +63,70 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
   const [streaming, setStream]      = useState('')
   const [showLangMenu, setLangMenu] = useState(false)
 
-  const endRef    = useRef<HTMLDivElement>(null)
-  const inputRef  = useRef<HTMLInputElement>(null)
-  const xpGiven   = useRef(false)
-  // ── FIX: guard so the topic auto-send only fires once on mount,
-  //    never again when the user switches language mid-session.
-  const initDone  = useRef(false)
-  const dir       = lang === 'ar' ? 'rtl' : 'ltr'
+  const endRef   = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const xpGiven  = useRef(false)
+  const dir      = lang === 'ar' ? 'rtl' : 'ltr'
 
-  // ── Build welcome message for the current language ────────────
-  // Extracted so we can call it both on mount and on lang switch
-  // without re-triggering the auto-send side-effect.
-  const buildWelcome = (activeLang: Language): Msg => ({
-    role: 'assistant',
-    content: getWelcomeMessage(
-      profile.display_name,
-      profile.age_group as AgeGroup,
-      activeLang,
-      profile.interests ?? [],
-      profile.dream_project ?? ''
-    ),
-    ts: new Date().toISOString(),
-  })
-
-  // ── ONE-TIME mount init ───────────────────────────────────────
-  // Runs exactly once. Sets the welcome message and, if a topic/lesson
-  // was passed via URL params, fires the auto-send for that context.
-  // Does NOT depend on `lang` — language switches are handled separately below.
+  // ── Init messages ───────────────────────────────────────────
   useEffect(() => {
-    if (!profile || initDone.current) return
-    initDone.current = true
-
+    if (!profile) return
     const topic  = searchParams?.get('topic')  ?? ''
     const lesson = searchParams?.get('lesson') ?? ''
-    const activeLang = (profile.preferred_language ?? 'en') as Language
 
-    const welcome = buildWelcome(activeLang)
-    const base: Msg[] = [welcome]
+    let welcome = getWelcomeMessage(
+      profile.display_name,
+      profile.age_group as AgeGroup,
+      lang,
+      profile.interests ?? [],
+      profile.dream_project ?? ''
+    )
+
+    // Replace "AI Coach" or generic terms with "Jimmy" in the welcome message if possible
+    welcome = welcome.replace(/AI Coach/gi, 'Jimmy').replace(/المدرب بالذكاء الاصطناعي/gi, 'جيمي').replace(/Coach IA/gi, 'Jimmy')
+
+    const base: Msg[] = [{ role: 'assistant', content: welcome, ts: new Date().toISOString() }]
 
     if (topic || lesson) {
-      // Build the context message in the user's language
       const ctx: Record<Language, string> = {
         en: `I'm studying "${lesson || topic}" in the ${topic} track. Can you help me understand it, Jimmy?`,
         ar: `أنا أدرس "${lesson || topic}" في مسار ${topic}. هل يمكنك مساعدتي يا جيمي؟`,
         fr: `J'étudie "${lesson || topic}" dans le parcours ${topic}. Peux-tu m'aider, Jimmy ?`,
       }
-      const userMsg: Msg = { role: 'user', content: ctx[activeLang], ts: new Date().toISOString() }
-      base.push(userMsg)
-      setMsgs(base)
-      // Small delay so the welcome message renders before the spinner appears
-      setTimeout(() => sendMsg(userMsg.content, base), 500)
-    } else {
-      setMsgs(base)
+      base.push({ role: 'user', content: ctx[lang as Language], ts: new Date().toISOString() })
+    }
+
+    setMsgs(base)
+    setInput('')
+    setStream('')
+
+    if ((topic || lesson) && base[base.length - 1]?.role === 'user') {
+      setTimeout(() => send(base[base.length - 1].content, base), 500)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // ← empty dep array: mount only
-
-  // ── Language switch handler ───────────────────────────────────
-  // When the user picks a new language, ONLY replace the welcome message
-  // (index 0) with a translated version. All subsequent conversation
-  // messages stay untouched — no re-init, no re-send.
-  const switchLang = (l: Language) => {
-    setLangMenu(false)
-    setLang(l)
-    startLangTransition(async () => { await updateUserLanguage(userId, l) })
-
-    setMsgs(prev => {
-      if (prev.length === 0) return [buildWelcome(l)]
-      // Only replace the very first message (the welcome) — keep the rest
-      return [buildWelcome(l), ...prev.slice(1)]
-    })
-  }
+  }, [lang])
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streaming])
 
-  // ── Core send function ────────────────────────────────────────
-  // Named `sendMsg` (not `send`) to avoid shadowing the outer `send`
-  // reference in the mount effect closure.
-  const sendMsg = async (text?: string, msgsOverride?: Msg[]) => {
+  const switchLang = (l: Language) => {
+    setLangMenu(false)
+    setLang(l)
+    startLangTransition(async () => { await updateUserLanguage(userId, l) })
+  }
+
+  const send = async (text?: string, msgsOverride?: Msg[]) => {
     const txt = (text ?? input).trim()
     if (!txt || loading) return
 
-    const base    = msgsOverride ?? messages
+    const base = msgsOverride ?? messages
     const userMsg: Msg = { role: 'user', content: txt, ts: new Date().toISOString() }
+    const next = [...base, userMsg]
 
-    // Only append userMsg if it isn't already the last message in base
-    // (prevents duplicate rendering when called from the mount effect
-    // which pre-adds the user message before calling sendMsg).
-    const lastMsg = base[base.length - 1]
-    const alreadyAppended = lastMsg?.role === 'user' && lastMsg?.content === txt
-    const display = alreadyAppended ? base : [...base, userMsg]
-
+    const display = base[base.length - 1]?.content === txt && base[base.length - 1]?.role === 'user'
+      ? base
+      : next
     setMsgs(display)
     setInput('')
     setLoading(true)
@@ -171,18 +142,13 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
         .slice(-10)
         .map((m: Msg) => ({ role: m.role as string, content: m.content }))
       const currentMsgs = display
-        .slice(1) // skip welcome message — it's UI-only context, not conversation
+        .slice(1)
         .map((m: Msg) => ({ role: m.role as string, content: m.content }))
-
-      // Dedup: remove messages that appear identically in history AND current
-      // (prevents sending the same assistant turn twice when history overlaps)
+      
       const seen = new Set<string>()
       const toSend = [...historyContext, ...currentMsgs]
         .reverse()
-        .filter(m => {
-          const k = m.role + '::' + m.content
-          return seen.has(k) ? false : (seen.add(k), true)
-        })
+        .filter(m => { const k = m.role + m.content; return seen.has(k) ? false : (seen.add(k), true) })
         .reverse()
 
       const res = await fetch('/api/chat', {
@@ -381,13 +347,13 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
       <div className="flex-shrink-0 p-4 lg:p-6 bg-gradient-to-t from-black via-black/80 to-transparent z-10">
         <div className="max-w-4xl mx-auto space-y-4">
           
-          {/* Starter prompts — show until the user sends their first message */}
+          {/* Starter prompts */}
           {messages.length <= 1 && starters.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
               {starters.map((s: string) => (
                 <button
                   key={s}
-                  onClick={() => sendMsg(s)}
+                  onClick={() => send(s)}
                   className="bg-card/50 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-2.5 text-sm font-bold text-[#6F6F6F] hover:text-[#1CB0F6] hover:border-[#1CB0F6]/30 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-[#1CB0F6]/10"
                 >
                   {s}
@@ -406,13 +372,13 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
                 placeholder={INPUT_PH[lang as Language]}
                 value={input}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && !e.shiftKey && sendMsg()}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && !e.shiftKey && send()}
                 disabled={loading}
                 dir={lang === 'ar' ? 'rtl' : 'ltr'}
                 maxLength={2000}
               />
               <button
-                onClick={() => sendMsg()}
+                onClick={() => send()}
                 disabled={loading || !input.trim()}
                 className={cn(
                   "w-12 h-12 rounded-2xl flex items-center justify-center transition-all flex-shrink-0 shadow-lg",
