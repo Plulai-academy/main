@@ -1,15 +1,5 @@
 'use client'
 // components/dashboard/LessonCompletionPanel.tsx
-//
-// Renders AFTER a lesson is marked complete.
-// Replaces the bare "Lesson complete! Great work!" green box with:
-//
-//  1. Celebration header (XP earned, streak)
-//  2. Universal project submission (always visible, optional)
-//  3. "What's Next" — next lesson card OR end-of-skill / end-of-track guidance
-//
-// Drop this inside LessonViewClient where the existing isDone block is:
-//   {isDone && <LessonCompletionPanel ... />}
 
 import React, { useState } from 'react'
 import Link from 'next/link'
@@ -38,13 +28,11 @@ const T = {
     finishedAll:     "You've completed everything available! 🏆",
     suggestNext:     "What's next for you:",
     askCoach:        '🤖 Ask Jimmy what to build next',
-    exploreML:       'Try the ML Explorer track',
-    exploreAI4Y:     'Try the AI4Youth challenge',
-    explorePF:       'Continue Python Foundation',
     buildProject:    'Build your capstone project',
     shareProgress:   'Share your progress',
     viewPortfolio:   'View my portfolio',
     coachPromptFinished: "I just finished all available lessons on Plulai. What should I build or learn next based on my interests?",
+    exploreTracks:   'Explore more tracks',
   },
   ar: {
     congrats:        'اكتمل الدرس!',
@@ -67,13 +55,11 @@ const T = {
     finishedAll:     'أكملت كل المحتوى المتاح! 🏆',
     suggestNext:     'ماذا بعد:',
     askCoach:        '🤖 اسأل جيمي ماذا تبني بعد',
-    exploreML:       'جرّب مسار تعلم الآلة',
-    exploreAI4Y:     'جرّب تحدي AI4Youth',
-    explorePF:       'واصل أساسيات Python',
     buildProject:    'ابنِ مشروعك الختامي',
     shareProgress:   'شارك تقدمك',
     viewPortfolio:   'عرض محفظتي',
     coachPromptFinished: 'أكملت جميع الدروس المتاحة على Plulai. ماذا أبني أو أتعلم بعد بناءً على اهتماماتي؟',
+    exploreTracks:   'استكشف المزيد من المسارات',
   },
   fr: {
     congrats:        'Leçon terminée !',
@@ -96,13 +82,11 @@ const T = {
     finishedAll:     "Tu as tout complété ! 🏆",
     suggestNext:     'La suite pour toi :',
     askCoach:        '🤖 Demander à Jimmy quoi construire',
-    exploreML:       'Essaie la piste ML Explorer',
-    exploreAI4Y:     "Essaie le défi AI4Youth",
-    explorePF:       'Continue Python Foundation',
     buildProject:    'Construis ton projet final',
     shareProgress:   'Partage ta progression',
     viewPortfolio:   'Voir mon portfolio',
     coachPromptFinished: "Je viens de terminer toutes les leçons disponibles sur Plulai. Que devrais-je construire ou apprendre ensuite selon mes intérêts ?",
+    exploreTracks:   'Explorer plus de pistes',
   },
 }
 
@@ -115,23 +99,27 @@ interface NextLesson {
   duration_mins: number
 }
 
+interface SuggestedTrack {
+  id: string
+  name: string
+  emoji: string
+  description: string
+}
+
 interface Props {
-  userId:            string
-  lessonId:          string
-  lessonTitle:       string
-  lessonEmoji:       string
-  xpEarned:          number
-  streak:            number
-  skillId:           string
-  skillTitle:        string
-  nextLesson:        NextLesson | null
-  // Pass the track IDs the user has NOT yet started/completed
-  // so we can suggest the right "what's next" track.
-  // If null, we show generic suggestions.
-  missingTrackIds?:  string[]
-  lang:              'en' | 'ar' | 'fr'
-  alreadySubmitted?: boolean   // true if lesson_submissions row already exists
-  finishedAllTracks?: boolean  // true if user_skill_progress shows 100% everywhere
+  userId:             string
+  lessonId:           string
+  lessonTitle:        string
+  lessonEmoji:        string
+  xpEarned:           number
+  streak:             number
+  skillId:            string
+  skillTitle:         string
+  nextLesson:         NextLesson | null
+  suggestedTracks?:   SuggestedTrack[]
+  lang:               'en' | 'ar' | 'fr'
+  alreadySubmitted?:  boolean
+  finishedAllTracks?: boolean
 }
 
 // ── URL validator ─────────────────────────────────────────────
@@ -158,7 +146,7 @@ function SubmissionForm({
     let valid = true
     if (projectUrl && !isValidUrl(projectUrl)) { setUrlError(t.invalidUrl);   valid = false }
     if (videoUrl   && !isValidUrl(videoUrl))   { setVideoError(t.invalidUrl); valid = false }
-    if (!projectUrl && !videoUrl) return  // nothing to save — silently ignore
+    if (!projectUrl && !videoUrl) return
     if (!valid) return
 
     setStatus('saving')
@@ -241,7 +229,6 @@ function SubmissionForm({
           className="w-full bg-white/4 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-semibold text-white placeholder:text-white/20 outline-none focus:border-accent5/40 transition-all"
         />
         {videoError && <p className="text-xs text-red-400 font-semibold mt-1">{videoError}</p>}
-        {/* Loom nudge */}
         <p className="text-xs text-muted/50 font-semibold mt-1.5">
           No video?{' '}
           <a href="https://loom.com" target="_blank" rel="noopener noreferrer"
@@ -276,16 +263,16 @@ function SubmissionForm({
 
 // ── What's Next suggestions ───────────────────────────────────
 function WhatsNext({
-  nextLesson, skillId, skillTitle, missingTrackIds,
+  nextLesson, skillId, skillTitle, suggestedTracks,
   finishedAllTracks, lang, coachUrl,
 }: {
-  nextLesson:       NextLesson | null
-  skillId:          string
-  skillTitle:       string
-  missingTrackIds?: string[]
+  nextLesson:         NextLesson | null
+  skillId:            string
+  skillTitle:         string
+  suggestedTracks?:   SuggestedTrack[]
   finishedAllTracks?: boolean
-  lang:             'en' | 'ar' | 'fr'
-  coachUrl:         string
+  lang:               'en' | 'ar' | 'fr'
+  coachUrl:           string
 }) {
   const t   = T[lang]
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
@@ -314,40 +301,7 @@ function WhatsNext({
 
   // ── Case 2: finished this skill, more tracks available ────
   if (!finishedAllTracks) {
-    const missing = missingTrackIds ?? []
-
-    // Map track IDs to suggestion cards
-    // If we don't know which tracks are missing, show generic suggestions
-    const suggestions: { label: string; href: string; emoji: string; description: string }[] = []
-
-    if (missing.includes('ml-explorer') || missing.length === 0) {
-      suggestions.push({
-        label: t.exploreML, emoji: '🧠',
-        href: '/dashboard/skills?track=ml-explorer',
-        description: lang === 'ar' ? 'Python → إحصاء → ML كامل' : lang === 'fr' ? 'Python → Stats → ML complet' : 'Python → Stats → full ML pipeline',
-      })
-    }
-    if (missing.includes('ai4youth') || missing.length === 0) {
-      suggestions.push({
-        label: t.exploreAI4Y, emoji: '🚀',
-        href: '/dashboard/skills?track=ai4youth',
-        description: lang === 'ar' ? 'ابنِ منتجاً حقيقياً في 10 أيام' : lang === 'fr' ? 'Construis un vrai produit en 10 jours' : 'Build a real product in 10 days',
-      })
-    }
-    if (missing.includes('python-foundation') || missing.length === 0) {
-      suggestions.push({
-        label: t.explorePF, emoji: '🐍',
-        href: '/dashboard/skills?track=python-foundation',
-        description: lang === 'ar' ? 'من الصفر إلى مطور Python حقيقي' : lang === 'fr' ? 'De zéro à développeur Python' : 'Zero to real Python developer',
-      })
-    }
-
-    // Always add "build your project" as a suggestion
-    suggestions.push({
-      label: t.buildProject, emoji: '🏗️',
-      href: coachUrl,
-      description: lang === 'ar' ? 'دعني أساعدك في التخطيط لمشروعك' : lang === 'fr' ? 'Laisse-moi t\'aider à planifier ton projet' : 'Let Jimmy help you plan it',
-    })
+    const tracks = suggestedTracks ?? []
 
     return (
       <div className="space-y-3" dir={dir}>
@@ -358,23 +312,37 @@ function WhatsNext({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {suggestions.slice(0, 4).map((s, i) => (
+          {tracks.map((tr) => (
             <Link
-              key={i}
-              href={s.href}
+              key={tr.id}
+              href={`/dashboard/skills?track=${tr.id}`}
               className="flex items-center gap-3 p-3.5 bg-white/3 border border-white/8 rounded-2xl hover:border-accent5/30 hover:bg-accent5/5 transition-all group"
             >
-              <span className="text-2xl flex-shrink-0">{s.emoji}</span>
+              <span className="text-2xl flex-shrink-0">{tr.emoji}</span>
               <div className="min-w-0">
-                <p className="text-sm font-extrabold truncate">{s.label}</p>
-                <p className="text-xs text-muted font-semibold truncate">{s.description}</p>
+                <p className="text-sm font-extrabold truncate">{tr.name}</p>
+                <p className="text-xs text-muted font-semibold truncate">{tr.description}</p>
               </div>
               <span className="ml-auto text-muted/40 group-hover:text-accent5 transition-colors flex-shrink-0">→</span>
             </Link>
           ))}
+
+          {/* Fallback if no suggested tracks */}
+          {tracks.length === 0 && (
+            <Link
+              href="/dashboard/skills"
+              className="flex items-center gap-3 p-3.5 bg-white/3 border border-white/8 rounded-2xl hover:border-accent5/30 hover:bg-accent5/5 transition-all group col-span-2"
+            >
+              <span className="text-2xl flex-shrink-0">🚀</span>
+              <div className="min-w-0">
+                <p className="text-sm font-extrabold">{t.exploreTracks}</p>
+              </div>
+              <span className="ml-auto text-muted/40 group-hover:text-accent5 transition-colors flex-shrink-0">→</span>
+            </Link>
+          )}
         </div>
 
-        {/* Always show the coach link */}
+        {/* Coach link */}
         <Link
           href={coachUrl}
           className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-extrabold text-sm border-2 border-accent5/30 text-accent5 hover:bg-accent5/10 transition-all"
@@ -407,7 +375,6 @@ function WhatsNext({
         </p>
       </div>
 
-      {/* Big CTA: talk to Jimmy */}
       <Link
         href={coachUrl}
         className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-xl transition-all"
@@ -416,7 +383,6 @@ function WhatsNext({
         {t.askCoach}
       </Link>
 
-      {/* Secondary: portfolio */}
       <Link
         href="/dashboard/portfolio"
         className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-extrabold text-sm border border-white/15 text-muted hover:text-white hover:border-white/30 transition-all"
@@ -438,13 +404,12 @@ function WhatsNext({
 export default function LessonCompletionPanel({
   userId, lessonId, lessonTitle, lessonEmoji,
   xpEarned, streak, skillId, skillTitle,
-  nextLesson, missingTrackIds, lang,
+  nextLesson, suggestedTracks, lang,
   alreadySubmitted, finishedAllTracks,
 }: Props) {
   const t   = T[lang]
   const dir = lang === 'ar' ? 'rtl' : 'ltr'
 
-  // Coach URL pre-filled with context so Jimmy knows what just happened
   const coachPrompt = finishedAllTracks
     ? T[lang].coachPromptFinished
     : `I just completed "${lessonTitle}" on Plulai. What should I build or try next?`
@@ -488,7 +453,7 @@ export default function LessonCompletionPanel({
           nextLesson={nextLesson}
           skillId={skillId}
           skillTitle={skillTitle}
-          missingTrackIds={missingTrackIds}
+          suggestedTracks={suggestedTracks}
           finishedAllTracks={finishedAllTracks}
           lang={lang}
           coachUrl={coachUrl}

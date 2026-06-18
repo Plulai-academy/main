@@ -257,6 +257,7 @@ interface Props {
   userAvatar?:  string
   streak:            number
   finishedAllTracks: boolean
+  suggestedTracks:   { id: string; name: string; emoji: string; description: string }[]
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1263,7 +1264,7 @@ function SubmitWorkActivity({
 export default function LessonViewClient({
   userId, lesson, skill, completion, totalLessons, lessonIndex,
   prevLesson, nextLesson, language, userName, userAvatar = '🧑‍🚀',
-  streak, finishedAllTracks,
+  streak, finishedAllTracks,suggestedTracks,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()

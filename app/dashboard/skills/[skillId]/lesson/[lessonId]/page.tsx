@@ -64,9 +64,9 @@ const { data: siblings } = await supabase
     .single()
 
   // Has the user completed every available skill node for their age group?
-  const { data: allNodes } = await supabase
+ const { data: allNodes } = await supabase
     .from('skill_nodes')
-    .select('id')
+    .select('id, track_id')
     .eq('is_active', true)
     .contains('age_groups', [profile?.age_group ?? 'pro'])
 
@@ -75,6 +75,26 @@ const { data: siblings } = await supabase
     .select('skill_node_id')
     .eq('user_id', user.id)
     .not('completed_at', 'is', null)
+// Fetch all active tracks for "what's next" suggestions
+const { data: allTracks } = await supabase
+  .from('tracks')
+  .select('id, name, emoji, description')
+  .eq('is_active', true)
+  .order('sort_order')
+
+// Find which track IDs the user hasn't completed a skill in yet
+const completedTrackIds = new Set(
+  (completedNodes ?? [])
+    .map((n: any) => {
+      // Match skill_node_id back to its track_id
+      return allNodes?.find((sn: any) => sn.id === n.skill_node_id)?.track_id
+    })
+    .filter(Boolean)
+)
+
+const suggestedTracks = (allTracks ?? [])
+  .filter((tr: any) => !completedTrackIds.has(tr.id))
+  .slice(0, 3) // max 3 suggestions
 
   const finishedAllTracks =
     (allNodes?.length ?? 0) > 0 &&
@@ -100,6 +120,7 @@ const { data: siblings } = await supabase
       userAvatar={profile?.avatar ?? '🧑‍🚀'}
       streak={progressData?.streak ?? 0}
       finishedAllTracks={finishedAllTracks}
+      suggestedTracks={suggestedTracks}
     />
     
   )
