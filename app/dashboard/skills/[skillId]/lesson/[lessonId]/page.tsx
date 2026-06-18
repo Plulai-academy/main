@@ -51,14 +51,34 @@ export default async function LessonPage({ params }: Props) {
     .eq('is_active', true)
 
   // Load sibling lessons for next/prev navigation
-  const { data: siblings } = await supabase
+const { data: siblings } = await supabase
     .from('lessons')
-    .select('id, title, emoji, sort_order')
+    .select('id, title, emoji, sort_order, xp_reward, duration_mins')
     .eq('skill_node_id', params.skillId)
+
+// Real streak for the completion panel
+  const { data: progressData } = await supabase
+    .from('user_progress')
+    .select('streak')
+    .eq('user_id', user.id)
+    .single()
+
+  // Has the user completed every available skill node for their age group?
+  const { data: allNodes } = await supabase
+    .from('skill_nodes')
+    .select('id')
     .eq('is_active', true)
     .contains('age_groups', [profile?.age_group ?? 'pro'])
-    .order('sort_order')
 
+  const { data: completedNodes } = await supabase
+    .from('user_skill_progress')
+    .select('skill_node_id')
+    .eq('user_id', user.id)
+    .not('completed_at', 'is', null)
+
+  const finishedAllTracks =
+    (allNodes?.length ?? 0) > 0 &&
+    (completedNodes?.length ?? 0) >= (allNodes?.length ?? 0)
   const currentIdx   = (siblings ?? []).findIndex((l: any) => l.id === params.lessonId)
   const prevLesson   = currentIdx > 0 ? siblings![currentIdx - 1] : null
   const nextLesson   = currentIdx < (siblings?.length ?? 0) - 1 ? siblings![currentIdx + 1] : null
@@ -78,6 +98,9 @@ export default async function LessonPage({ params }: Props) {
       language={profile?.preferred_language ?? 'en'}
       userName={profile?.display_name ?? 'Learner'}
       userAvatar={profile?.avatar ?? '🧑‍🚀'}
+      streak={progressData?.streak ?? 0}
+      finishedAllTracks={finishedAllTracks}
     />
+    
   )
 }

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
 import ShareCardModal, { type ShareCardProps } from '@/components/share/ShareCardGenerator'
 import LessonFeedback from '@/components/dashboard/LessonFeedback'
-
+import LessonCompletionPanel from '@/components/dashboard/LessonCompletionPanel'
 // ─────────────────────────────────────────────────────────────────────────────
 // i18n
 // ─────────────────────────────────────────────────────────────────────────────
@@ -255,6 +255,8 @@ interface Props {
   language:     string
   userName:     string
   userAvatar?:  string
+  streak:            number
+  finishedAllTracks: boolean
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1261,6 +1263,7 @@ function SubmitWorkActivity({
 export default function LessonViewClient({
   userId, lesson, skill, completion, totalLessons, lessonIndex,
   prevLesson, nextLesson, language, userName, userAvatar = '🧑‍🚀',
+  streak, finishedAllTracks,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -1945,13 +1948,21 @@ export default function LessonViewClient({
       )}
 
       {isDone && (
-        <div className="bg-accent3/8 border border-accent3/30 rounded-2xl p-5 sm:p-6 mb-5 sm:mb-6 text-center">
-          <div className="text-4xl mb-2">🎉</div>
-          <p className="font-extrabold text-accent3">
-            {lang === 'ar' ? 'درس مكتمل! أحسنت!' : lang === 'fr' ? 'Leçon complète ! Excellent !' : 'Lesson complete! Great work!'}
-          </p>
-        </div>
-      )}
+        <LessonCompletionPanel
+          userId={userId}
+          lessonId={lesson.id}
+          lessonTitle={lesson.title}
+          lessonEmoji={lesson.emoji}
+          xpEarned={lesson.xp_reward}
+          streak={streak}
+          skillId={skill.id}
+          skillTitle={skill.title}
+          nextLesson={nextLesson ?? null}
+          lang={lang as 'en' | 'ar' | 'fr'}
+          finishedAllTracks={finishedAllTracks}
+        />
+      
+)}
 
       {/* Prev / Next nav */}
       <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-5 sm:pt-6 border-t border-white/5">
