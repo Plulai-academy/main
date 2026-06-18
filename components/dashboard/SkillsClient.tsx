@@ -2,322 +2,340 @@
 // components/dashboard/SkillsClient.tsx
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
 
-/* ─── i18n ─────────────────────────────────────────────────────────── */
-const UI: Record<Language, Record<string, string>> = {
-  en: { unit: 'Unit', start: 'START', mastered: 'Mastered', xp: 'XP', reward: 'Unit Reward', lessons: 'lessons' },
-  ar: { unit: 'الوحدة', start: 'ابدأ', mastered: 'أتقنت', xp: 'XP', reward: 'مكافأة', lessons: 'دروس' },
-  fr: { unit: 'Unité', start: 'COMMENCER', mastered: 'Maîtrisé', xp: 'XP', reward: 'Récompense', lessons: 'leçons' },
+const UI: Record<string, Record<string, string>> = {
+  en: {
+    goodMorning: 'Good morning',
+    goodAfternoon: 'Good afternoon',
+    goodEvening: 'Good evening',
+    streak: 'day streak',
+    keepGoing: 'keep it going',
+    upNext: 'Up next',
+    start: 'Start lesson',
+    continue: 'Continue',
+    done: 'done',
+    of: 'of',
+    inThisTrack: 'In this track',
+    min: 'min',
+    locked: 'Complete previous skills to unlock',
+    mastered: 'Mastered',
+    switchTrack: 'Switch track',
+    allDone: "You've completed this track!",
+    allDoneDesc: 'Explore another track to keep learning.',
+    explore: 'Explore tracks',
+  },
+  ar: {
+    goodMorning: 'صباح الخير',
+    goodAfternoon: 'مساء الخير',
+    goodEvening: 'مساء الخير',
+    streak: 'أيام متتالية',
+    keepGoing: 'واصل!',
+    upNext: 'التالي',
+    start: 'ابدأ الدرس',
+    continue: 'واصل',
+    done: 'مكتملة',
+    of: 'من',
+    inThisTrack: 'في هذا المسار',
+    min: 'دقيقة',
+    locked: 'أكمل المهارات السابقة للفتح',
+    mastered: 'أتقنت',
+    switchTrack: 'تغيير المسار',
+    allDone: 'أكملت هذا المسار!',
+    allDoneDesc: 'استكشف مساراً آخر لمواصلة التعلم.',
+    explore: 'استكشف المسارات',
+  },
+  fr: {
+    goodMorning: 'Bonjour',
+    goodAfternoon: 'Bon après-midi',
+    goodEvening: 'Bonsoir',
+    streak: 'jours de suite',
+    keepGoing: 'continue !',
+    upNext: 'Ensuite',
+    start: 'Commencer',
+    continue: 'Continuer',
+    done: 'terminées',
+    of: 'sur',
+    inThisTrack: 'Dans cette piste',
+    min: 'min',
+    locked: 'Termine les étapes précédentes pour débloquer',
+    mastered: 'Maîtrisé',
+    switchTrack: 'Changer de piste',
+    allDone: 'Tu as terminé cette piste !',
+    allDoneDesc: "Explore une autre piste pour continuer.",
+    explore: 'Explorer les pistes',
+  },
 }
 
-/* ─── Types ─────────────────────────────────────────────────────────── */
 interface Track     { id: string; name: string; emoji: string; color: string }
 interface Skill     { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
 interface SkillProg { skill_node_id: string; progress_pct: number; completed_at: string | null }
 
 interface Props {
-  userId:         string
-  tracks:         Track[]
-  skills:         Skill[]
-  skillProgress:  SkillProg[]
-  lessonCountMap: Record<string, number>
-  language:       string
+  userId:                  string
+  tracks:                  Track[]
+  skills:                  Skill[]
+  skillProgress:           SkillProg[]
+  lessonCountMap:          Record<string, number>
+  language:                string
+  userName:                string
+  streak:                  number
+  currentTrackId:          string | null
+  nextSkillId:             string | null
+  firstIncompleteLessonId: string | null
 }
 
-/* ─── Snake-path geometry ───────────────────────────────────────────── */
-const SVG_W     = 340   // internal SVG coordinate width
-const VG        = 148   // vertical gap between bubble centres (px in SVG units)
-const AMP       = 82    // left-right amplitude
-const BUBBLE_R  = 38    // bubble radius for progress ring
-const UNIT_SIZE = 4     // skills per unit section
-
-/** Centre-X for bubble at absolute index i */
-function getCx(i: number): number {
-  const pat = [0, 0.7, 1, 0.7, 0, -0.7, -1, -0.7]
-  return SVG_W / 2 + pat[i % pat.length] * AMP
+function getGreeting(lang: string): string {
+  const h = new Date().getHours()
+  const t = UI[lang] ?? UI.en
+  if (h < 12) return t.goodMorning
+  if (h < 18) return t.goodAfternoon
+  return t.goodEvening
 }
 
-/** Centre-Y for bubble at local (within-unit) index i */
-function getCy(i: number): number {
-  return i * VG + 60
-}
-
-/** Smooth cubic-bezier path through a list of {x, y} points */
-function bezierPath(pts: { x: number; y: number }[]): string {
-  if (pts.length < 2) return ''
-  let d = `M${pts[0].x} ${pts[0].y}`
-  for (let k = 0; k < pts.length - 1; k++) {
-    const my = (pts[k].y + pts[k + 1].y) / 2
-    d += ` C${pts[k].x} ${my},${pts[k + 1].x} ${my},${pts[k + 1].x} ${pts[k + 1].y}`
-  }
-  return d
-}
-
-/* ─── Component ─────────────────────────────────────────────────────── */
 export default function SkillsClient({
-  userId, tracks, skills, skillProgress, lessonCountMap, language,
+  userId, tracks, skills, skillProgress, lessonCountMap,
+  language, userName, streak, currentTrackId, nextSkillId, firstIncompleteLessonId,
 }: Props) {
-  const [activeTrack, setActiveTrack] = useState(tracks[0]?.id ?? '')
+  const router = useRouter()
+  const lang = (language || 'en') as Language
+  const t    = UI[lang] ?? UI.en
+  const dir  = lang === 'ar' ? 'rtl' : 'ltr'
 
-  const lang  = (language || 'en') as Language
-  const t     = UI[lang]
-  const isRtl = lang === 'ar'
+  const [activeTrackId, setActiveTrackId] = useState(currentTrackId ?? tracks[0]?.id ?? '')
+  const [showTrackPicker, setShowTrackPicker] = useState(false)
 
-  /* progress lookup */
   const progressMap = useMemo(
     () => Object.fromEntries(skillProgress.map(p => [p.skill_node_id, p.progress_pct])),
     [skillProgress],
   )
 
-  /* skills for the active track, sorted */
+  const isUnlocked = (skill: Skill) =>
+    !skill.required_nodes?.length ||
+    skill.required_nodes.every(r => (progressMap[r] ?? 0) >= 100)
+
+  const isComplete = (id: string) => (progressMap[id] ?? 0) >= 100
+
   const trackSkills = useMemo(
-    () => skills.filter(s => s.track_id === activeTrack).sort((a, b) => a.sort_order - b.sort_order),
-    [skills, activeTrack],
+    () => skills.filter(s => s.track_id === activeTrackId).sort((a, b) => a.sort_order - b.sort_order),
+    [skills, activeTrackId],
   )
 
-  /* group into units */
-  const units = useMemo(() => {
-    const result: Skill[][] = []
-    for (let i = 0; i < trackSkills.length; i += UNIT_SIZE) result.push(trackSkills.slice(i, i + UNIT_SIZE))
-    return result
-  }, [trackSkills])
+  const activeTrack = tracks.find(t => t.id === activeTrackId)
 
-  const isUnlocked = (skill: Skill) => skill.required_nodes.every(r => (progressMap[r] ?? 0) >= 100)
-  const isComplete = (id: string)   => (progressMap[id] ?? 0) >= 100
+  // Hero skill: first unlocked + incomplete, or the nextSkillId from server
+  const heroSkill = useMemo(() => {
+    if (activeTrackId === currentTrackId && nextSkillId) {
+      return trackSkills.find(s => s.id === nextSkillId) ?? null
+    }
+    return trackSkills.find(s => isUnlocked(s) && !isComplete(s.id)) ?? null
+  }, [trackSkills, nextSkillId, activeTrackId, currentTrackId])
+
+  const heroLessonId = activeTrackId === currentTrackId ? firstIncompleteLessonId : null
+
+  const heroProgress = heroSkill ? (progressMap[heroSkill.id] ?? 0) : 0
+  const heroLessonCount = heroSkill ? (lessonCountMap[heroSkill.id] ?? 0) : 0
+  const doneLessons = heroLessonCount > 0 ? Math.round((heroProgress / 100) * heroLessonCount) : 0
+  const allTrackDone = trackSkills.length > 0 && trackSkills.every(s => isComplete(s.id))
+
+  const heroHref = heroSkill && heroLessonId
+    ? `/dashboard/skills/${heroSkill.id}/lesson/${heroLessonId}`
+    : heroSkill
+    ? `/dashboard/skills/${heroSkill.id}`
+    : '/dashboard/skills'
 
   return (
     <div
-      className="min-h-screen bg-[#09090f] pb-28"
-      dir={isRtl ? 'rtl' : 'ltr'}
+      className="min-h-screen bg-[#09090f] pb-28 select-none"
+      dir={dir}
       style={{ fontFamily: "'Nunito', sans-serif" }}
     >
-      {/* ── Google Font ── */}
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;700;800;900&display=swap');`}</style>
 
-      {/* ── TRACK SELECTOR ── */}
-      <div className="sticky top-0 z-50 bg-[#09090f]/90 backdrop-blur border-b border-white/5">
-        <div className="flex gap-2.5 justify-center flex-wrap px-4 py-3">
-          {tracks.map(track => (
+      {/* ── HEADER ── */}
+      <div className="px-6 pt-8 pb-2">
+        <p className="text-[13px] text-white/40 mb-1">{getGreeting(lang)}</p>
+        {userName ? (
+          <h1 className="text-[26px] font-bold text-white leading-tight mb-6">{userName}</h1>
+        ) : null}
+
+        {/* Streak */}
+        {streak > 0 && (
+          <div className="flex items-center gap-2 mb-6">
+            <span className="text-[18px]">🔥</span>
+            <span className="text-[14px] font-bold text-white">{streak}</span>
+            <span className="text-[14px] text-white/50">{t.streak} — {t.keepGoing}</span>
+          </div>
+        )}
+
+        {/* Track row */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            {activeTrack && (
+              <>
+                <span className="text-[18px]">{activeTrack.emoji}</span>
+                <span className="text-[15px] font-bold text-white">{activeTrack.name}</span>
+              </>
+            )}
+          </div>
+          {tracks.length > 1 && (
             <button
-              key={track.id}
-              onClick={() => setActiveTrack(track.id)}
-              className={cn(
-                'flex items-center gap-2 px-5 py-2 rounded-full text-[13px] font-extrabold transition-all duration-200',
-                'border border-[#1e1e35] bg-[#111120]',
-                activeTrack === track.id
-                  ? 'bg-[#1e1b4b] border-[#6366f1] text-[#a5b4fc] shadow-[0_0_20px_#6366f130]'
-                  : 'text-[#4a5568] hover:border-[#4338ca] hover:text-[#a5b4fc]',
-              )}
+              onClick={() => setShowTrackPicker(v => !v)}
+              className="text-[12px] text-white/40 hover:text-white/70 transition-colors flex items-center gap-1"
             >
-              <span className="text-lg">{track.emoji}</span>
-              <span className="hidden sm:inline">{track.name}</span>
+              {t.switchTrack}
+              <span className="text-[10px]">{showTrackPicker ? '▲' : '▼'}</span>
             </button>
-          ))}
+          )}
         </div>
+
+        {/* Track picker */}
+        {showTrackPicker && (
+          <div className="flex flex-wrap gap-2 mb-5">
+            {tracks.map(tr => (
+              <button
+                key={tr.id}
+                onClick={() => { setActiveTrackId(tr.id); setShowTrackPicker(false) }}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2 rounded-full text-[13px] border transition-all',
+                  tr.id === activeTrackId
+                    ? 'bg-[#1e1b3a] border-[#534AB7] text-[#AFA9EC]'
+                    : 'bg-[#141420] border-white/8 text-white/50 hover:border-white/20',
+                )}
+              >
+                <span>{tr.emoji}</span>
+                <span>{tr.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* ── UNIT SECTIONS ── */}
-      <div className="max-w-[420px] mx-auto px-4 pt-6">
-        {units.map((unitSkills, unitIdx) => {
-          const unitBase = unitIdx * UNIT_SIZE
+      {/* ── HERO CARD ── */}
+      <div className="px-6 mb-6">
+        {allTrackDone ? (
+          <div className="bg-[#141420] border border-white/8 rounded-[24px] p-7 text-center">
+            <div className="text-[44px] mb-3">🏆</div>
+            <p className="text-[18px] font-bold text-white mb-2">{t.allDone}</p>
+            <p className="text-[14px] text-white/50 mb-5">{t.allDoneDesc}</p>
+            <button
+              onClick={() => setShowTrackPicker(true)}
+              className="px-6 py-3 rounded-[14px] bg-[#7F77DD] text-white text-[15px] font-bold"
+            >
+              {t.explore}
+            </button>
+          </div>
+        ) : heroSkill ? (
+          <div className="bg-[#141420] border border-white/8 rounded-[24px] overflow-hidden relative">
+            {/* top accent */}
+            <div className="h-[3px] bg-[#7F77DD]" />
+            <div className="p-7">
+              <p className="text-[11px] font-bold tracking-[0.1em] text-white/30 uppercase mb-3">{t.upNext}</p>
+              <span className="text-[44px] block mb-4">{heroSkill.emoji}</span>
+              <h2 className="text-[20px] font-bold text-white leading-tight mb-2">{heroSkill.title}</h2>
+              <p className="text-[14px] text-white/50 leading-relaxed mb-5">{heroSkill.description}</p>
 
-          /* geometry points for this unit (local Y, absolute X) */
-          const pts = unitSkills.map((_, i) => ({ x: getCx(unitBase + i), y: getCy(i) }))
-
-          /* full dashed track */
-          const fullPath = bezierPath(pts)
-
-          /* green progress path */
-          const progPts = unitSkills
-            .map((s, i) => ({ s, i }))
-            .filter(({ s }) => isComplete(s.id) || (isUnlocked(s) && !isComplete(s.id)))
-            .map(({ i }) => pts[i])
-          const progPath = bezierPath(progPts)
-
-          const svgH = unitSkills.length * VG + 60
-
-          return (
-            <div key={unitIdx}>
-
-              {/* Unit Banner */}
-              <div className="relative flex items-center justify-between bg-[#111120] border border-[#1e1e35] rounded-2xl px-5 py-4 mb-8 overflow-hidden">
-                {/* top accent line */}
-                <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-[#818cf8] to-transparent" />
-                <div>
-                  <p className="text-[10px] font-black text-[#818cf8] tracking-[.2em] uppercase mb-1">
-                    {t.unit} {unitIdx + 1}
-                  </p>
-                  <h2 className="text-[17px] font-extrabold text-white leading-tight">
-                    {unitSkills[0].title} Foundations
-                  </h2>
-                </div>
-                <span className="text-3xl">{unitSkills[0].emoji}</span>
+              <div className="flex items-center gap-4 mb-6">
+                <span className="text-[13px] font-bold text-[#AFA9EC]">+{heroSkill.xp_reward} XP</span>
+                <span className="text-[13px] text-white/40">{heroLessonCount} lessons</span>
               </div>
 
-              {/* Snake Map */}
-              <div className="relative" style={{ height: svgH + 60 }}>
-
-                {/* SVG path layer */}
-                <svg
-                  viewBox={`0 0 ${SVG_W} ${svgH}`}
-                  className="absolute inset-0 w-full overflow-visible pointer-events-none"
-                  style={{ height: svgH }}
-                  preserveAspectRatio="xMidYMin meet"
+              <div className="flex items-center justify-between">
+                <Link
+                  href={heroHref}
+                  className="px-6 py-3 rounded-[14px] bg-[#7F77DD] text-white text-[15px] font-bold transition-all active:scale-95 active:bg-[#534AB7]"
                 >
-                  {/* base track – dark solid + dashed overlay */}
-                  <path d={fullPath} fill="none" stroke="#1e1e35" strokeWidth="12" strokeLinecap="round" />
-                  <path d={fullPath} fill="none" stroke="#1e1e35" strokeWidth="3"  strokeLinecap="round" strokeDasharray="2 18" />
-                  {/* progress glow */}
-                  {progPath && (
-                    <path d={progPath} fill="none" stroke="#22c55e" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
-                  )}
-                </svg>
+                  {heroProgress > 0 ? t.continue : t.start}
+                </Link>
 
-                {/* Bubble nodes */}
-                {unitSkills.map((skill, skillIdx) => {
-                  const absIdx   = unitBase + skillIdx
-                  const unlocked = isUnlocked(skill)
-                  const complete = isComplete(skill.id)
-                  const isActive = unlocked && !complete
-                  const prog     = progressMap[skill.id] ?? 0
-
-                  const leftPct  = (getCx(absIdx) / SVG_W) * 100
-                  const topPx    = getCy(skillIdx)
-
-                  const circ     = 2 * Math.PI * BUBBLE_R
-                  const offset   = circ - (circ * prog) / 100
-
-                  const icon = complete ? '⭐' : unlocked ? skill.emoji : '🔒'
-
-                  const bubbleCls = cn(
-                    'relative flex items-center justify-center w-[76px] h-[76px] rounded-full text-[30px]',
-                    'border-none cursor-pointer transition-transform duration-150 outline-none select-none',
-                    'hover:scale-110 active:scale-95',
-                    complete
-                      ? 'bg-[#78350f] border-2 border-[#f59e0b] shadow-[0_7px_0_#451a03,0_0_30px_#fbbf2430]'
-                      : isActive
-                      ? 'bg-[#1e3a5f] border-2 border-[#38bdf8] shadow-[0_7px_0_#1e3a5f,0_0_40px_#38bdf840] animate-pulse'
-                      : unlocked
-                      ? 'bg-[#166534] border-2 border-[#22c55e] shadow-[0_7px_0_#14532d,0_0_30px_#4ade8020]'
-                      : 'bg-[#1e1e2e] border-2 border-[#2d2d45] shadow-[0_5px_0_#0d0d1a] opacity-60 cursor-default',
-                  )
-
-                  return (
-                    <div
-                      key={skill.id}
-                      className="absolute flex flex-col items-center"
-                      style={{ left: `${leftPct}%`, top: topPx, transform: 'translate(-50%, -50%)' }}
-                    >
-                      {/* START pill */}
-                      {isActive && (
-                        <div
-                          className="absolute -top-11 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest"
-                          style={{ background: '#38bdf8', color: '#0c1a24', boxShadow: '0 4px 14px #38bdf840' }}
-                        >
-                          {t.start}
-                          <span
-                            className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45"
-                            style={{ background: '#38bdf8' }}
-                          />
-                        </div>
-                      )}
-
-                      <Link
-                        href={unlocked ? `/dashboard/skills/${skill.id}` : '#'}
-                        className={bubbleCls}
-                        aria-label={`${skill.title}${!unlocked ? ' — locked' : complete ? ' — mastered' : ''}`}
-                        tabIndex={unlocked ? 0 : -1}
-                      >
-                        {/* sheen */}
-                        <span
-                          className="absolute top-2 left-2.5 right-2.5 rounded-full pointer-events-none"
-                          style={{ height: '35%', background: 'rgba(255,255,255,.12)' }}
-                        />
-
-                        {/* progress ring */}
-                        {prog > 0 && prog < 100 && (
-                          <svg
-                            className="absolute pointer-events-none"
-                            style={{ inset: -10, width: 'calc(100% + 20px)', height: 'calc(100% + 20px)' }}
-                            viewBox="0 0 96 96"
-                          >
-                            <circle cx="48" cy="48" r={BUBBLE_R} fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="5" />
-                            <circle
-                              cx="48" cy="48" r={BUBBLE_R}
-                              fill="none" stroke="white" strokeWidth="5" strokeLinecap="round"
-                              strokeDasharray={circ.toFixed(1)}
-                              strokeDashoffset={offset.toFixed(1)}
-                              transform="rotate(-90 48 48)"
-                              opacity="0.7"
-                            />
-                          </svg>
-                        )}
-
-                        <span className="relative z-10">{icon}</span>
-                      </Link>
-
-                      {/* label */}
-                      <p className={cn('mt-3 text-[13px] font-extrabold text-center whitespace-nowrap', unlocked ? 'text-[#e2e8f0]' : 'text-[#4a5568]')}>
-                        {skill.title}
-                      </p>
-                      {complete && (
-                        <p className="text-[9px] font-black text-[#fbbf24] tracking-[.18em] uppercase mt-0.5">
-                          {t.mastered}
-                        </p>
-                      )}
-
-                      {/* desktop hover card */}
-                      {unlocked && (
-                        <div className={cn(
-                          'absolute top-1/2 -translate-y-1/2 w-52 z-50 pointer-events-none',
-                          'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
-                          'bg-[#111120] border border-[#1e1e35] rounded-2xl p-4 shadow-2xl hidden lg:block',
-                          getCx(absIdx) > SVG_W / 2 ? 'right-[115%]' : 'left-[115%]',
-                        )}>
-                          <p className="text-sm font-extrabold text-white mb-1">{skill.title}</p>
-                          <p className="text-xs text-[#6b7280] leading-relaxed mb-3">{skill.description}</p>
-                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest border-t border-[#1e1e35] pt-3">
-                            <span className="text-[#fbbf24]">+{skill.xp_reward} {t.xp}</span>
-                            <span className="text-[#4a5568]">{lessonCountMap[skill.id] ?? 0} {t.lessons}</span>
-                          </div>
-                        </div>
-                      )}
+                {heroLessonCount > 0 && (
+                  <div className="text-right">
+                    <p className="text-[12px] text-white/30 mb-1">
+                      {doneLessons} {t.of} {heroLessonCount} {t.done}
+                    </p>
+                    <div className="w-[80px] h-[4px] bg-white/8 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#7F77DD] rounded-full transition-all duration-700"
+                        style={{ width: `${heroProgress}%` }}
+                      />
                     </div>
-                  )
-                })}
+                  </div>
+                )}
               </div>
-
-              {/* Unit reward chest */}
-              {/* <div className="flex flex-col items-center py-8 opacity-35 hover:opacity-90 transition-opacity cursor-pointer group">
-                <div className="w-14 h-14 rounded-2xl bg-[#111120] border-2 border-dashed border-[#1e1e35] flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                  🎁
-                </div>
-                <p className="mt-2 text-[9px] font-black text-[#4a5568] tracking-[.15em] uppercase">{t.reward}</p>
-              </div> */}
-
             </div>
-          )
-        })}
+          </div>
+        ) : null}
       </div>
 
-      {/* ── QUICK-JUMP SIDEBAR ── */}
-      <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col gap-3">
-        {units.map((unitSkills, i) => {
-          const anyUnlocked = unitSkills.some(s => isUnlocked(s))
-          return (
-            <div key={i} className="group relative flex items-center justify-end gap-2">
-              <span className="absolute right-6 opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap text-[10px] font-black text-[#818cf8] tracking-widest uppercase bg-[#111120] border border-[#1e1e35] px-3 py-1.5 rounded-lg shadow">
-                {t.unit} {i + 1}
-              </span>
-              <div className={cn(
-                'w-2.5 h-2.5 rounded-full border transition-all duration-200 group-hover:scale-125',
-                anyUnlocked ? 'bg-[#22c55e] border-[#166534]' : 'bg-[#1e1e2e] border-[#2d2d45]',
-              )} />
-            </div>
-          )
-        })}
+      {/* ── LESSON LIST ── */}
+      <div className="px-6">
+        <p className="text-[11px] font-bold tracking-[0.1em] text-white/30 uppercase mb-3">{t.inThisTrack}</p>
+        <div className="flex flex-col gap-2">
+          {trackSkills.map(skill => {
+            const complete  = isComplete(skill.id)
+            const unlocked  = isUnlocked(skill)
+            const isCurrent = skill.id === heroSkill?.id
+            const prog      = progressMap[skill.id] ?? 0
+
+            return (
+              <Link
+                key={skill.id}
+                href={unlocked ? `/dashboard/skills/${skill.id}` : '#'}
+                className={cn(
+                  'flex items-center gap-4 px-4 py-3.5 rounded-[16px] border transition-all',
+                  complete
+                    ? 'bg-[#141420] border-white/5 opacity-50'
+                    : isCurrent
+                    ? 'bg-[#1e1b3a] border-[#534AB7]'
+                    : unlocked
+                    ? 'bg-[#141420] border-white/8 hover:border-white/15'
+                    : 'bg-[#141420] border-white/5 opacity-35 pointer-events-none',
+                )}
+              >
+                {/* Icon */}
+                <div className={cn(
+                  'w-[40px] h-[40px] rounded-[12px] flex items-center justify-center text-[20px] flex-shrink-0',
+                  complete ? 'bg-[#0d2318]' : isCurrent ? 'bg-[#1e1b3a]' : 'bg-[#1a1a2e]',
+                )}>
+                  {complete ? '⭐' : unlocked ? skill.emoji : '🔒'}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className={cn(
+                    'text-[14px] font-bold truncate',
+                    complete ? 'text-white/40' : 'text-white',
+                  )}>
+                    {skill.title}
+                  </p>
+                  <p className="text-[12px] text-white/30">
+                    {complete
+                      ? t.mastered
+                      : unlocked && prog > 0
+                      ? `${prog}% — ${lessonCountMap[skill.id] ?? 0} lessons`
+                      : `${lessonCountMap[skill.id] ?? 0} lessons · +${skill.xp_reward} XP`}
+                  </p>
+                </div>
+
+                {/* Right indicator */}
+                {complete && (
+                  <div className="w-[22px] h-[22px] rounded-full bg-[#1D9E75] flex items-center justify-center flex-shrink-0">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                )}
+                {!complete && unlocked && (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
+                    <path d="M6 3l5 5-5 5" stroke={isCurrent ? '#7F77DD' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </Link>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
