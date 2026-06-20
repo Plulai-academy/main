@@ -7,83 +7,245 @@ import { setCurrentTrack } from '@/app/dashboard/skills/actions'
 
 const UI: Record<string, Record<string, string>> = {
   en: {
-    continueBtn: 'Continue',
-    startBtn:    'Start',
-    lessonOf:    'Lesson',
-    of:          'of',
-    locked:      'Locked lesson',
-    completed:   'Completed lesson',
-    current:     'Current lesson, tap to start',
-    allDone:     'Track complete',
-    allDoneSub:  "You've mastered every skill here.",
-    switching:   'Loading…',
-    back:        'Back',
+    continueBtn: 'Continue', startBtn: 'Start', jumpHere: 'JUMP HERE?',
+    lessonOf: 'Lesson', of: 'of',
+    locked: 'Locked lesson', completed: 'Completed lesson', current: 'Current lesson, tap to start',
+    allDone: 'Track complete', allDoneSub: "You've mastered every skill here.",
+    switching: 'Loading…', back: 'Back',
   },
   ar: {
-    continueBtn: 'واصل',
-    startBtn:    'ابدأ',
-    lessonOf:    'الدرس',
-    of:          'من',
-    locked:      'درس مقفل',
-    completed:   'درس مكتمل',
-    current:     'الدرس الحالي، اضغط للبدء',
-    allDone:     'المسار مكتمل',
-    allDoneSub:  'أتقنت كل المهارات هنا.',
-    switching:   'جارٍ التحميل…',
-    back:        'رجوع',
+    continueBtn: 'واصل', startBtn: 'ابدأ', jumpHere: 'اقفز هنا؟',
+    lessonOf: 'الدرس', of: 'من',
+    locked: 'درس مقفل', completed: 'درس مكتمل', current: 'الدرس الحالي، اضغط للبدء',
+    allDone: 'المسار مكتمل', allDoneSub: 'أتقنت كل المهارات هنا.',
+    switching: 'جارٍ التحميل…', back: 'رجوع',
   },
   fr: {
-    continueBtn: 'Continuer',
-    startBtn:    'Commencer',
-    lessonOf:    'Leçon',
-    of:          'sur',
-    locked:      'Leçon verrouillée',
-    completed:   'Leçon terminée',
-    current:     'Leçon actuelle, appuie pour commencer',
-    allDone:     'Piste terminée',
-    allDoneSub:  'Tu as maîtrisé toutes les compétences ici.',
-    switching:   'Chargement…',
-    back:        'Retour',
+    continueBtn: 'Continuer', startBtn: 'Commencer', jumpHere: 'SAUTER ICI ?',
+    lessonOf: 'Leçon', of: 'sur',
+    locked: 'Leçon verrouillée', completed: 'Leçon terminée', current: 'Leçon actuelle, appuie pour commencer',
+    allDone: 'Piste terminée', allDoneSub: 'Tu as maîtrisé toutes les compétences ici.',
+    switching: 'Chargement…', back: 'Retour',
   },
 }
 
-// ── Icon placeholders ───────────────────────────────────────────────
-// Drop your real files in public/icons using these exact names (or
-// update the paths below) and they'll show up automatically — no
-// other code changes needed.
 const ICONS = {
   streak: '/icons/streak.png',
   gems:   '/icons/gem.png',
 }
+// Drop /icons/mascot.png in public to replace the SVG silhouette automatically.
+const MASCOT_SRC: string | null = null
 
-interface Track     { id: string; name: string; emoji: string; color: string }
-interface Skill      { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
-interface SkillProg { skill_node_id: string; progress_pct: number; completed_at: string | null }
+interface Track    { id: string; name: string; emoji: string; color: string }
+interface Skill    { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
+interface SkillProg{ skill_node_id: string; progress_pct: number; completed_at: string | null }
 
 interface Props {
-  userId:                          string
-  tracks:                          Track[]
-  initialTrackId:                  string | null
-  skills:                          Skill[]
-  skillProgress:                   SkillProg[]
-  lessonCountMap:                  Record<string, number>
-  language:                        string
-  streak:                          number
-  gems:                            number
-  initialCurrentSkillId:           string | null
-  initialFirstIncompleteLessonId:  string | null
+  userId: string
+  tracks: Track[]
+  initialTrackId: string | null
+  skills: Skill[]
+  skillProgress: SkillProg[]
+  lessonCountMap: Record<string, number>
+  language: string
+  streak: number
+  gems: number
+  initialCurrentSkillId: string | null
+  initialFirstIncompleteLessonId: string | null
 }
 
 const OFFSET_PATTERN = [0, -1, 1, 0]
 
-// Caps the zig-zag offset to a viewport-relative value so it never pushes
-// the path wider than the screen on small phones, while still reaching the
-// full 54px swing on larger viewports.
 function offsetTransform(offset: number) {
   if (offset === 0) return undefined
   return `translateX(calc(${offset} * min(14vw, 54px)))`
 }
 
+// ─── Inline SVG icon set ────────────────────────────────────────────
+type IconKind = 'book' | 'star' | 'chest' | 'trophy' | 'fastForward' | 'lock' | 'check'
+
+function NodeIcon({ kind, className }: { kind: IconKind; className?: string }) {
+  const common = { className, fill: 'currentColor', viewBox: '0 0 24 24' as const }
+  switch (kind) {
+    case 'book':
+      return (
+        <svg {...common}><path d="M5 4a2 2 0 0 1 2-2h11v17H7a2 2 0 0 0-2 2V4Zm2 14h9V4H7v14Zm0 2h9v1H7a1 1 0 0 1 0-1Z"/></svg>
+      )
+    case 'star':
+      return (
+        <svg {...common}><path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.4 6.5L12 17.3l-6 3.1 1.4-6.5L2.5 9.3l6.6-.7L12 2.5Z"/></svg>
+      )
+    case 'chest':
+      return (
+        <svg {...common}><path d="M4 9a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v2h-8v-1h-2v1H4V9Zm0 4h6v1h2v-1h8v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6Zm7 0v2h2v-2h-2Z"/></svg>
+      )
+    case 'trophy':
+      return (
+        <svg {...common}><path d="M6 3h12v3h3v3a4 4 0 0 1-4 4 6 6 0 0 1-4 3.9V19h3v2H8v-2h3v-2.1A6 6 0 0 1 7 13a4 4 0 0 1-4-4V6h3V3Zm0 5H5v1a2 2 0 0 0 1 1.7V8Zm12 0v2.7A2 2 0 0 0 19 9V8h-1Z"/></svg>
+      )
+    case 'fastForward':
+      return (
+        <svg {...common} viewBox="0 0 24 24"><path d="M4 5l8 7-8 7V5Zm9 0l8 7-8 7V5Z"/></svg>
+      )
+    case 'lock':
+      return (
+        <svg {...common}><path d="M7 10V8a5 5 0 0 1 10 0v2h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1Zm2 0h6V8a3 3 0 0 0-6 0v2Z"/></svg>
+      )
+    case 'check':
+      return (
+        <svg {...common}><path d="M9.5 16.6 4.9 12l-1.4 1.4 6 6L21 7.9l-1.4-1.4z"/></svg>
+      )
+  }
+}
+
+function iconForIndex(idx: number): IconKind {
+  const set: IconKind[] = ['book', 'star', 'chest', 'trophy']
+  return set[idx % set.length]
+}
+
+// ─── 3D oval node ──────────────────────────────────────────────────
+function PathNode({
+  state, icon, complete, onClick, disabled, label, offset, isCurrent,
+}: {
+  state: 'done' | 'current' | 'locked'
+  icon: IconKind
+  complete: boolean
+  onClick: () => void
+  disabled: boolean
+  label: string
+  offset: number
+  isCurrent: boolean
+}) {
+  const palette =
+    state === 'current'
+      ? { front: '#1CB0F6', base: '#1280B8', text: '#FFFFFF' }
+      : state === 'done'
+      ? { front: '#FAA918', base: '#B87A0E', text: '#FFFFFF' }
+      : { front: '#2A323A', base: '#1B2026', text: '#5B6772' }
+
+  return (
+    <div
+      className="relative flex-shrink-0"
+      style={{
+        transform: offsetTransform(offset),
+        width: 'clamp(72px, 22vw, 96px)',
+        height: 'clamp(72px, 22vw, 96px)',
+        marginBottom: 'clamp(28px, 8vw, 44px)',
+      }}
+    >
+      {/* Base shadow oval */}
+      {state !== 'locked' && (
+        <div
+          aria-hidden
+          className="absolute inset-0 rounded-[50%/60%]"
+          style={{
+            backgroundColor: palette.base,
+            transform: 'translateY(6px)',
+          }}
+        />
+      )}
+
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        className={cn(
+          'absolute inset-0 rounded-[50%/60%] flex items-center justify-center',
+          'transition-transform duration-100 ease-out',
+          !disabled && 'hover:-translate-y-0.5 active:translate-y-[4px]',
+          disabled && 'cursor-default',
+        )}
+        style={{
+          backgroundColor: palette.front,
+          color: palette.text,
+          boxShadow:
+            state === 'locked'
+              ? 'inset 0 -3px 0 rgba(0,0,0,0.25)'
+              : 'inset 0 6px 0 rgba(255,255,255,0.22), inset 0 -4px 0 rgba(0,0,0,0.18)',
+        }}
+      >
+        <NodeIcon
+          kind={isCurrent ? 'fastForward' : icon}
+          className="w-[46%] h-[46%] drop-shadow-[0_2px_0_rgba(0,0,0,0.15)]"
+        />
+
+        {/* Completion badge */}
+        {complete && !isCurrent && (
+          <span
+            aria-hidden
+            className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
+            style={{
+              backgroundColor: '#58CC02',
+              boxShadow: '0 2px 0 rgba(0,0,0,0.25)',
+            }}
+          >
+            <NodeIcon kind="check" className="w-4 h-4 text-white" />
+          </span>
+        )}
+      </button>
+    </div>
+  )
+}
+
+// ─── JUMP HERE bubble ──────────────────────────────────────────────
+function JumpBubble({ text }: { text: string }) {
+  return (
+    <div
+      className="absolute left-1/2 -translate-x-1/2 z-20 select-none pointer-events-none"
+      style={{
+        top: 'clamp(-58px, -16vw, -52px)',
+        animation: 'jumpBob 1.6s ease-in-out infinite',
+      }}
+    >
+      <div
+        className="relative rounded-2xl px-4 py-2 bg-white shadow-[0_4px_0_rgba(0,0,0,0.15)]"
+        style={{ color: '#1CB0F6' }}
+      >
+        <span className="font-extrabold tracking-wide text-sm whitespace-nowrap">
+          {text}
+        </span>
+        {/* Tail */}
+        <span
+          aria-hidden
+          className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-3 h-3 bg-white rotate-45"
+        />
+      </div>
+    </div>
+  )
+}
+
+// ─── Mascot silhouette ─────────────────────────────────────────────
+function MascotPlaceholder() {
+  if (MASCOT_SRC) {
+    return (
+      <img
+        src={MASCOT_SRC}
+        alt=""
+        aria-hidden
+        className="select-none pointer-events-none opacity-40"
+        style={{ width: 'clamp(110px, 28vw, 170px)' }}
+      />
+    )
+  }
+  return (
+    <svg
+      viewBox="0 0 120 140"
+      aria-hidden
+      className="select-none pointer-events-none opacity-25"
+      style={{ width: 'clamp(110px, 28vw, 170px)', color: '#5B6772' }}
+      fill="currentColor"
+    >
+      <ellipse cx="60" cy="55" rx="38" ry="42" />
+      <rect x="28" y="80" width="64" height="50" rx="24" />
+      <circle cx="48" cy="52" r="5" fill="#0B0F14" />
+      <circle cx="72" cy="52" r="5" fill="#0B0F14" />
+      <ellipse cx="60" cy="110" rx="18" ry="14" fill="#3a4550" />
+    </svg>
+  )
+}
+
+// ─── Main component ────────────────────────────────────────────────
 export default function SkillsClient({
   userId, tracks, initialTrackId, skills, skillProgress, lessonCountMap,
   language, streak, gems, initialCurrentSkillId, initialFirstIncompleteLessonId,
@@ -93,14 +255,14 @@ export default function SkillsClient({
   const t    = UI[lang] ?? UI.en
   const dir  = lang === 'ar' ? 'rtl' : 'ltr'
 
-  const [activeTrackId, setActiveTrackId] = useState(initialTrackId)
-  const [currentSkillId, setCurrentSkillId] = useState(initialCurrentSkillId)
-  const [firstIncompleteLessonId, setFirstIncompleteLessonId] = useState(initialFirstIncompleteLessonId)
+  const [activeTrackId, setActiveTrackId] = useState<string | null>(initialTrackId)
+  const [currentSkillId, setCurrentSkillId] = useState<string | null>(initialCurrentSkillId)
+  const [firstIncompleteLessonId, setFirstIncompleteLessonId] = useState<string | null>(initialFirstIncompleteLessonId)
   const [showPicker, setShowPicker] = useState(false)
   const [switching, setSwitching] = useState(false)
 
-  const currentNodeRef = useRef<HTMLButtonElement>(null)
-  const pickerRef = useRef<HTMLDivElement>(null)
+  const currentNodeRef = useRef<HTMLDivElement | null>(null)
+  const pickerRef = useRef<HTMLDivElement | null>(null)
 
   const progressMap = useMemo(
     () => Object.fromEntries(skillProgress.map(p => [p.skill_node_id, p.progress_pct])),
@@ -108,29 +270,23 @@ export default function SkillsClient({
   )
 
   const orderedSkills = useMemo(
-    () => skills
-      .filter(s => s.track_id === activeTrackId)
-      .sort((a, b) => a.sort_order - b.sort_order),
+    () => skills.filter(s => s.track_id === activeTrackId).sort((a, b) => a.sort_order - b.sort_order),
     [skills, activeTrackId],
   )
 
   const isUnlocked = (skill: Skill) =>
     !skill.required_nodes?.length ||
     skill.required_nodes.every(r => (progressMap[r] ?? 0) >= 100)
-
   const isComplete = (id: string) => (progressMap[id] ?? 0) >= 100
 
   const activeTrack = tracks.find(tr => tr.id === activeTrackId) ?? null
   const currentSkill = orderedSkills.find(s => s.id === currentSkillId) ?? null
   const allDone = orderedSkills.length > 0 && orderedSkills.every(s => isComplete(s.id))
 
-  // Close picker on outside click
   useEffect(() => {
     if (!showPicker) return
     const handler = (e: MouseEvent) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
-        setShowPicker(false)
-      }
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setShowPicker(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -142,14 +298,8 @@ export default function SkillsClient({
 
   const handleTrackSelect = async (trackId: string) => {
     if (trackId === activeTrackId) { setShowPicker(false); return }
-    setShowPicker(false)
-    setSwitching(true)
-    setActiveTrackId(trackId)
-
-    // Persist selection (fire and forget, UI doesn't wait on this)
+    setShowPicker(false); setSwitching(true); setActiveTrackId(trackId)
     setCurrentTrack(trackId).catch(() => {})
-
-    // Resolve the current skill + lesson for the new track
     try {
       const res = await fetch('/api/skills/resolve-track', {
         method: 'POST',
@@ -160,10 +310,7 @@ export default function SkillsClient({
       setCurrentSkillId(data.skillId ?? null)
       setFirstIncompleteLessonId(data.lessonId ?? null)
     } catch {
-      // fall back to client-side guess if the request fails
-      const trackSkills = skills
-        .filter(s => s.track_id === trackId)
-        .sort((a, b) => a.sort_order - b.sort_order)
+      const trackSkills = skills.filter(s => s.track_id === trackId).sort((a, b) => a.sort_order - b.sort_order)
       const fallback = trackSkills.find(s => isUnlocked(s) && !isComplete(s.id)) ?? trackSkills[0] ?? null
       setCurrentSkillId(fallback?.id ?? null)
       setFirstIncompleteLessonId(null)
@@ -174,20 +321,14 @@ export default function SkillsClient({
 
   const goToCurrentLesson = () => {
     if (!currentSkill) return
-    if (firstIncompleteLessonId) {
-      router.push(`/dashboard/skills/${currentSkill.id}/lesson/${firstIncompleteLessonId}`)
-    } else {
-      router.push(`/dashboard/skills/${currentSkill.id}`)
-    }
+    if (firstIncompleteLessonId) router.push(`/dashboard/skills/${currentSkill.id}/lesson/${firstIncompleteLessonId}`)
+    else router.push(`/dashboard/skills/${currentSkill.id}`)
   }
 
   const handleNodeTap = (skill: Skill, unlocked: boolean) => {
     if (!unlocked) return
-    if (skill.id === currentSkillId) {
-      goToCurrentLesson()
-    } else {
-      router.push(`/dashboard/skills/${skill.id}`)
-    }
+    if (skill.id === currentSkillId) goToCurrentLesson()
+    else router.push(`/dashboard/skills/${skill.id}`)
   }
 
   const currentLessonCount = currentSkill ? (lessonCountMap[currentSkill.id] ?? 0) : 0
@@ -197,60 +338,37 @@ export default function SkillsClient({
     : 1
 
   return (
-    <div
-      className="min-h-screen w-full overflow-x-hidden bg-transparent flex flex-col max-w-[680px] lg:max-w-[820px] mx-auto relative"
-      dir={dir}
-      style={{ fontFamily: "'Nunito', sans-serif" }}
-    >
+    <div dir={dir} className="min-h-screen bg-[#0B0F14] text-[#F5F5F5] font-[Nunito,sans-serif] flex flex-col">
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');`}</style>
 
       {/* ── TOP BAR ── */}
-      <div
-        className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-3.5 bg-transparent backdrop-blur-sm border-b border-[#6F6F6F]/15 sm:px-6 sm:py-4 md:px-8 lg:px-10"
-        style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}
-      >
-        {/* Stats — bare icon + number, no card/pill, matches a plain top bar */}
-        <div className="flex items-center gap-5 sm:gap-6 lg:gap-7 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <img
-              src={ICONS.streak}
-              alt="Streak"
-              width={20}
-              height={20}
-              className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] lg:w-[22px] lg:h-[22px] object-contain"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
-            />
-            <span className="text-[14px] sm:text-[15px] lg:text-[16px] font-extrabold text-[#FAA918]">{streak}</span>
+      <div className="flex items-center justify-between px-4 py-3 gap-3">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-[#F5F5F5]/90 font-extrabold">
+            <img src={ICONS.streak} alt="" className="w-5 h-5"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}/>
+            {streak}
           </div>
-          <div className="flex items-center gap-1.5">
-            <img
-              src={ICONS.gems}
-              alt="Gems"
-              width={20}
-              height={20}
-              className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] lg:w-[22px] lg:h-[22px] object-contain"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
-            />
-            <span className="text-[14px] sm:text-[15px] lg:text-[16px] font-extrabold text-[#1CB0F6]">{gems}</span>
+          <div className="flex items-center gap-1.5 text-[#F5F5F5]/90 font-extrabold">
+            <img src={ICONS.gems} alt="" className="w-5 h-5"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}/>
+            {gems}
           </div>
         </div>
 
-        {/* Track dropdown trigger */}
         {activeTrack && (
-          <div className="relative shrink-0" ref={pickerRef}>
+          <div className="relative" ref={pickerRef}>
             <button
               onClick={() => setShowPicker(v => !v)}
-              className="flex items-center gap-1.5 text-[#F5F5F5]/90 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors max-w-[40vw] sm:max-w-none"
+              className="flex items-center gap-1.5 text-[#F5F5F5]/90 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors max-w-[40vw] sm:max-w-none font-extrabold"
             >
-              <span className="text-[15px] sm:text-[16px] shrink-0">{activeTrack.emoji}</span>
-              <span className="text-[13px] sm:text-[14px] lg:text-[15px] font-extrabold truncate">{activeTrack.name}</span>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={cn('transition-transform shrink-0', showPicker && 'rotate-180')}>
-                <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <span>{activeTrack.emoji}</span>
+              <span className="truncate">{activeTrack.name}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
             </button>
 
             {showPicker && (
-              <div className="absolute right-0 top-[calc(100%+8px)] bg-[#1F2C31] rounded-2xl shadow-xl overflow-hidden z-30 w-[min(220px,calc(100vw-32px))] max-h-[60vh] overflow-y-auto">
+              <div className="absolute right-0 mt-2 w-64 bg-[#141A21] border border-white/10 rounded-xl overflow-hidden shadow-xl z-30">
                 {tracks.map(tr => (
                   <button
                     key={tr.id}
@@ -260,10 +378,10 @@ export default function SkillsClient({
                       tr.id === activeTrackId ? 'bg-[#1CB0F6]/12' : 'hover:bg-white/5',
                     )}
                   >
-                    <span className="text-[20px] shrink-0">{tr.emoji}</span>
-                    <span className="text-[14px] font-extrabold text-[#F5F5F5] flex-1 truncate">{tr.name}</span>
+                    <span>{tr.emoji}</span>
+                    <span className="flex-1 font-bold">{tr.name}</span>
                     {tr.id === activeTrackId && (
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0"><path d="M3 8l4 4 6-7" stroke="#1CB0F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <span className="w-2 h-2 rounded-full bg-[#1CB0F6]"/>
                     )}
                   </button>
                 ))}
@@ -274,94 +392,75 @@ export default function SkillsClient({
       </div>
 
       {/* ── PATH ── */}
-      <div className="flex-1 overflow-y-auto pt-7 pb-32 sm:pt-9 sm:pb-40">
+      <div className="flex-1 relative px-4 pb-32 pt-4">
+        {/* Mascot */}
+        <div
+          aria-hidden
+          className={cn(
+            'absolute top-1/2 -translate-y-1/2 z-0 hidden xs:block sm:block',
+            dir === 'rtl' ? 'left-2 sm:left-6' : 'right-2 sm:right-6',
+          )}
+        >
+          <MascotPlaceholder />
+        </div>
+
         {switching ? (
-          <div className="flex items-center justify-center py-24">
-            <p className="text-[14px] font-bold text-[#6F6F6F]">{t.switching}</p>
+          <div className="flex items-center justify-center py-20">
+            <p className="text-[#F5F5F5]/70 font-bold">{t.switching}</p>
           </div>
         ) : allDone ? (
-          <div className="flex flex-col items-center text-center px-6 sm:px-8 py-16">
-            <div className="text-[48px] sm:text-[56px] mb-4">🏆</div>
-            <p className="text-[17px] sm:text-[18px] font-extrabold text-[#F5F5F5] mb-2">{t.allDone}</p>
-            <p className="text-[13px] sm:text-[14px] text-[#6F6F6F]">{t.allDoneSub}</p>
+          <div className="text-center py-20">
+            <p className="text-6xl mb-3">🏆</p>
+            <p className="text-xl font-black">{t.allDone}</p>
+            <p className="text-[#F5F5F5]/60 mt-2">{t.allDoneSub}</p>
           </div>
         ) : currentSkill ? (
           <>
-            {/* Unit / lesson banner */}
-            <div className="flex items-center justify-between bg-gradient-to-br from-[#1CB0F6] to-[#14D4F4] rounded-[18px] mx-auto mb-16 sm:mb-20 px-4 py-3 text-[#F5F5F5] max-w-[420px] w-[calc(100%-32px)] sm:px-5 sm:py-3.5 sm:w-[calc(100%-40px)] sm:max-w-[480px] lg:max-w-[560px]">
-              <div className="min-w-0">
+            {/* Unit banner */}
+            <div className="bg-[#1CB0F6] rounded-2xl px-4 py-3 mb-8 flex items-start justify-between gap-3 shadow-[0_4px_0_rgba(0,0,0,0.25)]">
+              <div className="flex-1 min-w-0">
                 <button
                   onClick={() => router.back()}
                   aria-label={t.back}
-                  className="flex items-center gap-1.5 opacity-85 hover:opacity-100 transition-opacity -ml-1 mb-0.5"
+                  className="flex items-center gap-1.5 opacity-90 hover:opacity-100 transition-opacity -ml-1 mb-0.5"
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0"><path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
+                  <span className="text-xs font-black tracking-wider uppercase text-white/90">
                     {t.lessonOf} {currentLessonIdx} {t.of} {currentLessonCount || 1}
                   </span>
                 </button>
-                <p className="text-[15px] sm:text-[16px] lg:text-[18px] font-extrabold truncate">{currentSkill.title}</p>
+                <h2 className="text-white font-black text-lg leading-tight truncate">{currentSkill.title}</h2>
               </div>
-              <span className="text-[22px] sm:text-[24px] shrink-0 ml-2">{currentSkill.emoji}</span>
+              <div className="text-2xl shrink-0">{currentSkill.emoji}</div>
             </div>
 
-            <div className="flex flex-col items-center w-full max-w-[340px] lg:max-w-[400px] mx-auto px-3">
+            <div className="relative z-10 flex flex-col items-center">
               {orderedSkills.map((skill, idx) => {
                 const unlocked  = isUnlocked(skill)
                 const complete  = isComplete(skill.id)
                 const isCurrent = skill.id === currentSkillId
                 const offset    = OFFSET_PATTERN[idx % OFFSET_PATTERN.length]
-
-                const state = complete ? 'done' : isCurrent ? 'current' : unlocked ? 'done' : 'locked'
-                const icon  = complete ? 'check' : isCurrent ? 'target' : unlocked ? 'check' : 'lock'
-
+                const state: 'done' | 'current' | 'locked' =
+                  complete ? 'done' : isCurrent ? 'current' : unlocked ? 'done' : 'locked'
                 const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.current : skill.title
 
                 return (
                   <div
                     key={skill.id}
-                    className={cn('relative flex flex-col items-center w-full', isCurrent && 'pt-12 sm:pt-14')}
+                    ref={isCurrent ? currentNodeRef : null}
+                    className="relative flex justify-center"
                   >
-                    <button
-                      ref={isCurrent ? currentNodeRef : undefined}
+                    {isCurrent && <JumpBubble text={t.jumpHere} />}
+                    <PathNode
+                      state={state}
+                      icon={iconForIndex(idx)}
+                      complete={complete}
                       onClick={() => handleNodeTap(skill, unlocked)}
-                      aria-label={label}
                       disabled={!unlocked}
-                      style={{
-                        transform: offsetTransform(offset),
-                        width: 'clamp(58px, 19vw, 84px)',
-                        height: 'clamp(58px, 19vw, 84px)',
-                        marginBottom: 'clamp(28px, 8vw, 44px)',
-                      }}
-                      className={cn(
-                        'rounded-full flex items-center justify-center relative flex-shrink-0 transition-transform active:translate-y-[2px]',
-                        state === 'done'    && 'bg-[#FAA918] shadow-[0_4px_10px_rgba(0,0,0,0.35)]',
-                        state === 'current' && 'bg-[#1CB0F6] shadow-[0_3px_8px_rgba(0,0,0,0.4)]',
-                        state === 'locked'  && 'bg-[#2A323A] shadow-[0_4px_10px_rgba(0,0,0,0.25)] opacity-70 cursor-default',
-                      )}
-                    >
-                      {isCurrent && (
-                        <span className="absolute -inset-2 rounded-full border-[3px] border-[#1CB0F6]/30 animate-[ringPulse_1.8s_ease-out_infinite]" />
-                      )}
-                      {isCurrent && (
-                        <span className="absolute -top-[44px] bg-[#131F24] border-2 border-[#1CB0F6] text-[#1CB0F6] text-[11px] sm:text-[12px] font-extrabold px-3.5 sm:px-4 py-[7px] sm:py-[8px] rounded-[12px] whitespace-nowrap uppercase tracking-wider z-0">
-                          {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
-                          {/* speech-bubble tail: a rotated square tucked half-behind the bubble (z-10 negative) so it reads as one seamless shape */}
-                          <span className="absolute left-1/2 -bottom-2 -translate-x-1/2 w-4 h-4 bg-[#131F24] border-r-2 border-b-2 border-[#1CB0F6] rotate-45 -z-10" />
-                        </span>
-                      )}
-                      <span className="relative z-10">
-                        {icon === 'check' && (
-                          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="w-[60%] h-[60%]"><path d="M6 14l5 5 11-12" stroke="#F5F5F5" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        )}
-                        {icon === 'target' && (
-                          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="w-[60%] h-[60%]"><circle cx="14" cy="14" r="10" stroke="#F5F5F5" strokeWidth="2.5"/><circle cx="14" cy="14" r="5" stroke="#F5F5F5" strokeWidth="2.5"/><circle cx="14" cy="14" r="1.5" fill="#F5F5F5"/></svg>
-                        )}
-                        {icon === 'lock' && (
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-[55%] h-[55%]"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#6F6F6F" strokeWidth="2"/><path d="M8 11V7a4 4 0 018 0v4" stroke="#6F6F6F" strokeWidth="2"/></svg>
-                        )}
-                      </span>
-                    </button>
+                      label={label}
+                      offset={offset}
+                      isCurrent={isCurrent}
+                    />
                   </div>
                 )
               })}
@@ -372,28 +471,31 @@ export default function SkillsClient({
 
       {/* ── BOTTOM BAR ── */}
       {!switching && !allDone && currentSkill && (
-        <div
-          className="fixed bottom-0 left-0 right-0 z-30 bg-transparent backdrop-blur-sm border-t border-[#6F6F6F]/15"
-          style={{ paddingTop: 16, paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
-        >
-          <div className="max-w-[680px] mx-auto px-4 sm:px-6 md:px-8 flex flex-col items-center">
-            <div className="max-w-[420px] sm:max-w-[480px] w-full">
-              <button
-                onClick={goToCurrentLesson}
-                className="w-full bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-[#F5F5F5] rounded-2xl py-[16px] sm:py-[17px] md:py-[18px] text-[15px] sm:text-[16px] md:text-[17px] font-extrabold uppercase tracking-wider shadow-[0_4px_0_#2B70C9] transition-transform active:translate-y-1 active:shadow-none"
-                style={{ touchAction: 'manipulation' }}
-              >
-                {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
-              </button>
-              <p className="text-center text-[11px] sm:text-[12px] font-extrabold text-[#6F6F6F] mt-2.5 truncate">
-                {t.lessonOf} {currentLessonIdx} — {currentSkill.title}
-              </p>
-            </div>
-          </div>
+        <div className="fixed bottom-0 left-0 right-0 bg-[#0B0F14]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-20">
+          <button
+            onClick={goToCurrentLesson}
+            className="w-full bg-[#1CB0F6] rounded-2xl px-5 py-3 flex flex-col items-start shadow-[0_4px_0_#1280B8] active:translate-y-[2px] active:shadow-[0_2px_0_#1280B8] transition-all"
+          >
+            <span className="text-white font-black tracking-wide">
+              {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
+            </span>
+            <span className="text-white/85 text-xs font-bold truncate max-w-full">
+              {t.lessonOf} {currentLessonIdx} — {currentSkill.title}
+            </span>
+          </button>
         </div>
       )}
 
-      <style>{`@keyframes ringPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }`}</style>
+      <style>{`
+        @keyframes jumpBob {
+          0%, 100% { transform: translate(-50%, 0); }
+          50%      { transform: translate(-50%, -4px); }
+        }
+        @keyframes ringPulse {
+          0%   { transform: scale(1); opacity: 1; }
+          100% { transform: scale(1.4); opacity: 0; }
+        }
+      `}</style>
     </div>
   )
 }
