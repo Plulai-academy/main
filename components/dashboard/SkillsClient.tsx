@@ -47,10 +47,10 @@ type MascotState = 'celebrating' | 'tired' | 'noStreak' | 'idle'
 // Drop these files in public/icons to replace each state's placeholder automatically:
 // mascot-idle.svg, mascot-celebrating.svg, mascot-tired.svg, mascot-nostreak.svg
 const MASCOT_SRC: Record<MascotState, string | null> = {
-  idle: null,
-  celebrating: null,
-  tired: null,
-  noStreak: null,
+  idle: '/icons/mascot-idle.svg',
+  celebrating: '/icons/mascot-celebrating.svg',
+  tired: '/icons/mascot-tired.svg',
+  noStreak: '/icons/mascot-nostreak.svg',
 }
 
 // Minutes of activity (assumed DAILY, not lifetime) at which the mascot goes "tired"

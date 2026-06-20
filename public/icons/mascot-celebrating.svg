@@ -1,0 +1,76 @@
+<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .body-group { transform-origin: 100px 200px; animation: bounce 0.7s ease-in-out infinite; }
+    .antenna-ball { transform-origin: 100px 18px; animation: antennaSpin 0.7s ease-in-out infinite; fill: #FFD23F; }
+    .arm-l { transform-origin: 31px 194px; animation: armWaveL 0.7s ease-in-out infinite; }
+    .arm-r { transform-origin: 169px 194px; animation: armWaveR 0.7s ease-in-out infinite; }
+    .sparkle { animation: sparkle 1.4s ease-in-out infinite; }
+    .sparkle-2 { animation-delay: 0.3s; }
+    .sparkle-3 { animation-delay: 0.6s; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+    @keyframes antennaSpin {
+      0%, 100% { transform: rotate(-10deg); }
+      50%      { transform: rotate(10deg); }
+    }
+    @keyframes armWaveL {
+      0%, 100% { transform: rotate(0deg); }
+      50%      { transform: rotate(-30deg); }
+    }
+    @keyframes armWaveR {
+      0%, 100% { transform: rotate(0deg); }
+      50%      { transform: rotate(30deg); }
+    }
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0.6); }
+      50%      { opacity: 1; transform: scale(1.1); }
+    }
+  </style>
+
+  <g class="body-group">
+    <!-- Sparkles -->
+    <g class="sparkle" fill="#FAA918">
+      <path d="M28 50 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 Z"/>
+    </g>
+    <g class="sparkle sparkle-2" fill="#1CB0F6">
+      <path d="M172 70 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5 -6 -6 -2.5 6 -2.5 Z"/>
+    </g>
+    <g class="sparkle sparkle-3" fill="#3CB371">
+      <path d="M160 36 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2 Z"/>
+    </g>
+
+    <!-- Antenna -->
+    <line x1="100" y1="40" x2="100" y2="20" stroke="#C9D3DC" stroke-width="4" stroke-linecap="round"/>
+    <circle class="antenna-ball" cx="100" cy="16" r="7"/>
+
+    <!-- Head -->
+    <rect x="48" y="38" width="104" height="86" rx="40" fill="#F4F6F8"/>
+    <rect x="48" y="38" width="104" height="86" rx="40" fill="none" stroke="#D7DEE5" stroke-width="2"/>
+
+    <!-- Visor / face screen -->
+    <rect x="64" y="58" width="72" height="42" rx="21" fill="#16202B"/>
+    <!-- Happy upturned eyes -->
+    <path d="M79 82 Q86 70 93 82" stroke="#34E0FF" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M107 82 Q114 70 121 82" stroke="#34E0FF" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+    <!-- Ear nubs -->
+    <circle cx="46" cy="82" r="7" fill="#D7DEE5"/>
+    <circle cx="154" cy="82" r="7" fill="#D7DEE5"/>
+
+    <!-- Body -->
+    <rect x="40" y="128" width="120" height="92" rx="46" fill="#FFFFFF"/>
+    <rect x="40" y="128" width="120" height="92" rx="46" fill="none" stroke="#D7DEE5" stroke-width="2"/>
+
+    <!-- Chest badge -->
+    <circle cx="100" cy="162" r="20" fill="#F5A623"/>
+    <circle cx="100" cy="162" r="20" fill="none" stroke="#1CB0F6" stroke-width="4"/>
+    <text x="100" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="20" fill="#FFFFFF">P</text>
+
+    <!-- Arms raised -->
+    <rect class="arm-l" x="18" y="148" width="26" height="46" rx="13" fill="#FFFFFF" stroke="#D7DEE5" stroke-width="2"/>
+    <rect class="arm-r" x="156" y="148" width="26" height="46" rx="13" fill="#FFFFFF" stroke="#D7DEE5" stroke-width="2"/>
+  </g>
+</svg>

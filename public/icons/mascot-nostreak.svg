@@ -1,0 +1,48 @@
+<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .body-group { transform-origin: 100px 220px; animation: gentleSigh 4s ease-in-out infinite; }
+
+    @keyframes gentleSigh {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(2px); }
+    }
+  </style>
+
+  <g class="body-group">
+    <!-- Antenna, unlit -->
+    <line x1="100" y1="40" x2="100" y2="20" stroke="#7C8894" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="100" cy="16" r="7" fill="#5B6772"/>
+
+    <!-- Head -->
+    <rect x="48" y="38" width="104" height="86" rx="40" fill="#E9EBEE"/>
+    <rect x="48" y="38" width="104" height="86" rx="40" fill="none" stroke="#CDD4DA" stroke-width="2"/>
+
+    <!-- Visor / face screen -->
+    <rect x="64" y="58" width="72" height="42" rx="21" fill="#1B2630"/>
+
+    <!-- Sad downturned eyes -->
+    <path d="M79 83 Q86 91 93 83" stroke="#5B7C87" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M107 83 Q114 91 121 83" stroke="#5B7C87" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+    <!-- Ear nubs -->
+    <circle cx="46" cy="82" r="7" fill="#CDD4DA"/>
+    <circle cx="154" cy="82" r="7" fill="#CDD4DA"/>
+
+    <!-- Body -->
+    <rect x="40" y="128" width="120" height="92" rx="46" fill="#F1F2F4"/>
+    <rect x="40" y="128" width="120" height="92" rx="46" fill="none" stroke="#CDD4DA" stroke-width="2"/>
+
+    <!-- Chest badge, grayed out -->
+    <circle cx="100" cy="162" r="20" fill="#9AA5AF"/>
+    <circle cx="100" cy="162" r="20" fill="none" stroke="#7C8894" stroke-width="4"/>
+    <text x="100" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="20" fill="#F1F2F4">P</text>
+
+    <!-- Arms, low -->
+    <rect x="18" y="150" width="26" height="46" rx="13" fill="#F1F2F4" stroke="#CDD4DA" stroke-width="2"/>
+    <rect x="156" y="150" width="26" height="46" rx="13" fill="#F1F2F4" stroke="#CDD4DA" stroke-width="2"/>
+
+    <!-- Laptop -->
+    <rect x="58" y="196" width="84" height="14" rx="4" fill="#9AA5AF"/>
+    <rect x="64" y="180" width="72" height="20" rx="3" fill="#5B6772"/>
+  </g>
+</svg>

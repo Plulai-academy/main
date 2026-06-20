@@ -1,0 +1,58 @@
+<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .body-group { transform-origin: 100px 220px; animation: slump 3.5s ease-in-out infinite; }
+    .antenna-ball { fill: #5B6772; }
+    .lid { animation: heavylid 3.5s ease-in-out infinite; transform-origin: center; }
+
+    @keyframes slump {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50%      { transform: translateY(3px) rotate(-1deg); }
+    }
+    @keyframes heavylid {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+  </style>
+
+  <g class="body-group">
+    <!-- Antenna, drooping -->
+    <line x1="100" y1="40" x2="96" y2="22" stroke="#9AA5AF" stroke-width="4" stroke-linecap="round"/>
+    <circle class="antenna-ball" cx="95" cy="19" r="7"/>
+
+    <!-- Head, slightly tilted -->
+    <g transform="rotate(-3 100 80)">
+      <rect x="48" y="40" width="104" height="86" rx="40" fill="#EDEFF1"/>
+      <rect x="48" y="40" width="104" height="86" rx="40" fill="none" stroke="#D7DEE5" stroke-width="2"/>
+
+      <!-- Visor / face screen -->
+      <rect x="64" y="60" width="72" height="42" rx="21" fill="#16202B"/>
+
+      <!-- Droopy half-closed eyes -->
+      <path d="M79 84 Q86 88 93 84" stroke="#5B7C87" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M107 84 Q114 88 121 84" stroke="#5B7C87" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <rect class="lid" x="78" y="74" width="16" height="4" rx="2" fill="#16202B"/>
+      <rect class="lid" x="106" y="74" width="16" height="4" rx="2" fill="#16202B"/>
+
+      <!-- Ear nubs -->
+      <circle cx="46" cy="84" r="7" fill="#D7DEE5"/>
+      <circle cx="154" cy="84" r="7" fill="#D7DEE5"/>
+    </g>
+
+    <!-- Body, slumped -->
+    <rect x="40" y="132" width="120" height="92" rx="46" fill="#F8F9FA"/>
+    <rect x="40" y="132" width="120" height="92" rx="46" fill="none" stroke="#D7DEE5" stroke-width="2"/>
+
+    <!-- Chest badge, dimmed -->
+    <circle cx="100" cy="166" r="20" fill="#C9A35C"/>
+    <circle cx="100" cy="166" r="20" fill="none" stroke="#7C8894" stroke-width="4"/>
+    <text x="100" y="174" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="20" fill="#FFFFFF">P</text>
+
+    <!-- Arms drooping down -->
+    <rect x="20" y="160" width="26" height="46" rx="13" fill="#F8F9FA" stroke="#D7DEE5" stroke-width="2" transform="rotate(8 33 183)"/>
+    <rect x="154" y="160" width="26" height="46" rx="13" fill="#F8F9FA" stroke="#D7DEE5" stroke-width="2" transform="rotate(-8 167 183)"/>
+
+    <!-- Laptop, closed-looking -->
+    <rect x="58" y="200" width="84" height="14" rx="4" fill="#9AA5AF"/>
+    <rect x="64" y="190" width="72" height="12" rx="3" fill="#5B6772"/>
+  </g>
+</svg>
