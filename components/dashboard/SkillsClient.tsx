@@ -1,8 +1,9 @@
 'use client'
 // components/dashboard/SkillsClient.tsx
-import { useMemo, useRef, useEffect } from 'react'
+import { useMemo, useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { setCurrentTrack } from '@/app/dashboard/skills/actions'
 
 const UI: Record<string, Record<string, string>> = {
   en: {
@@ -15,6 +16,7 @@ const UI: Record<string, Record<string, string>> = {
     current:     'Current lesson, tap to start',
     allDone:     'Track complete',
     allDoneSub:  "You've mastered every skill here.",
+    switching:   'Loading…',
   },
   ar: {
     continueBtn: 'واصل',
@@ -26,6 +28,7 @@ const UI: Record<string, Record<string, string>> = {
     current:     'الدرس الحالي، اضغط للبدء',
     allDone:     'المسار مكتمل',
     allDoneSub:  'أتقنت كل المهارات هنا.',
+    switching:   'جارٍ التحميل…',
   },
   fr: {
     continueBtn: 'Continuer',
@@ -37,6 +40,7 @@ const UI: Record<string, Record<string, string>> = {
     current:     'Leçon actuelle, appuie pour commencer',
     allDone:     'Piste terminée',
     allDoneSub:  'Tu as maîtrisé toutes les compétences ici.',
+    switching:   'Chargement…',
   },
 }
 
@@ -45,31 +49,38 @@ interface Skill      { id: string; track_id: string; title: string; emoji: strin
 interface SkillProg { skill_node_id: string; progress_pct: number; completed_at: string | null }
 
 interface Props {
-  userId:                  string
-  track:                   Track | null
-  skills:                  Skill[]
-  skillProgress:           SkillProg[]
-  lessonCountMap:          Record<string, number>
-  language:                string
-  streak:                  number
-  gems:                    number
-  currentSkillId:          string | null
-  firstIncompleteLessonId: string | null
+  userId:                          string
+  tracks:                          Track[]
+  initialTrackId:                  string | null
+  skills:                          Skill[]
+  skillProgress:                   SkillProg[]
+  lessonCountMap:                  Record<string, number>
+  language:                        string
+  streak:                          number
+  gems:                            number
+  initialCurrentSkillId:           string | null
+  initialFirstIncompleteLessonId:  string | null
 }
 
-// horizontal zig-zag offset pattern, repeats every 4 nodes
 const OFFSET_PATTERN = [0, -1, 1, 0]
 
 export default function SkillsClient({
-  userId, track, skills, skillProgress, lessonCountMap,
-  language, streak, gems, currentSkillId, firstIncompleteLessonId,
+  userId, tracks, initialTrackId, skills, skillProgress, lessonCountMap,
+  language, streak, gems, initialCurrentSkillId, initialFirstIncompleteLessonId,
 }: Props) {
   const router = useRouter()
   const lang = (language || 'en') as 'en' | 'ar' | 'fr'
   const t    = UI[lang] ?? UI.en
   const dir  = lang === 'ar' ? 'rtl' : 'ltr'
 
+  const [activeTrackId, setActiveTrackId] = useState(initialTrackId)
+  const [currentSkillId, setCurrentSkillId] = useState(initialCurrentSkillId)
+  const [firstIncompleteLessonId, setFirstIncompleteLessonId] = useState(initialFirstIncompleteLessonId)
+  const [showPicker, setShowPicker] = useState(false)
+  const [switching, setSwitching] = useState(false)
+
   const currentNodeRef = useRef<HTMLButtonElement>(null)
+  const pickerRef = useRef<HTMLDivElement>(null)
 
   const progressMap = useMemo(
     () => Object.fromEntries(skillProgress.map(p => [p.skill_node_id, p.progress_pct])),
@@ -77,8 +88,10 @@ export default function SkillsClient({
   )
 
   const orderedSkills = useMemo(
-    () => [...skills].sort((a, b) => a.sort_order - b.sort_order),
-    [skills],
+    () => skills
+      .filter(s => s.track_id === activeTrackId)
+      .sort((a, b) => a.sort_order - b.sort_order),
+    [skills, activeTrackId],
   )
 
   const isUnlocked = (skill: Skill) =>
@@ -87,8 +100,57 @@ export default function SkillsClient({
 
   const isComplete = (id: string) => (progressMap[id] ?? 0) >= 100
 
+  const activeTrack = tracks.find(tr => tr.id === activeTrackId) ?? null
   const currentSkill = orderedSkills.find(s => s.id === currentSkillId) ?? null
   const allDone = orderedSkills.length > 0 && orderedSkills.every(s => isComplete(s.id))
+
+  // Close picker on outside click
+  useEffect(() => {
+    if (!showPicker) return
+    const handler = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowPicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showPicker])
+
+  useEffect(() => {
+    currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [activeTrackId])
+
+  const handleTrackSelect = async (trackId: string) => {
+    if (trackId === activeTrackId) { setShowPicker(false); return }
+    setShowPicker(false)
+    setSwitching(true)
+    setActiveTrackId(trackId)
+
+    // Persist selection (fire and forget, UI doesn't wait on this)
+    setCurrentTrack(trackId).catch(() => {})
+
+    // Resolve the current skill + lesson for the new track
+    try {
+      const res = await fetch('/api/skills/resolve-track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trackId }),
+      })
+      const data = await res.json()
+      setCurrentSkillId(data.skillId ?? null)
+      setFirstIncompleteLessonId(data.lessonId ?? null)
+    } catch {
+      // fall back to client-side guess if the request fails
+      const trackSkills = skills
+        .filter(s => s.track_id === trackId)
+        .sort((a, b) => a.sort_order - b.sort_order)
+      const fallback = trackSkills.find(s => isUnlocked(s) && !isComplete(s.id)) ?? trackSkills[0] ?? null
+      setCurrentSkillId(fallback?.id ?? null)
+      setFirstIncompleteLessonId(null)
+    } finally {
+      setSwitching(false)
+    }
+  }
 
   const goToCurrentLesson = () => {
     if (!currentSkill) return
@@ -108,10 +170,6 @@ export default function SkillsClient({
     }
   }
 
-  useEffect(() => {
-    currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [])
-
   const currentLessonCount = currentSkill ? (lessonCountMap[currentSkill.id] ?? 0) : 0
   const currentProgressPct = currentSkill ? (progressMap[currentSkill.id] ?? 0) : 0
   const currentLessonIdx = currentLessonCount > 0
@@ -127,7 +185,7 @@ export default function SkillsClient({
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');`}</style>
 
       {/* ── TOP BAR ── */}
-      <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 bg-[#131F24] border-b border-[#1F2C31] sm:px-8">
+      <div className="sticky top-0 z-20 flex items-center justify-between px-5 py-4 bg-[#131F24] border-b border-[#1F2C31] sm:px-8">
         <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-1.5 bg-[#1F2C31] rounded-full px-3.5 py-1.5">
             <span className="text-[15px]">🔥</span>
@@ -138,17 +196,52 @@ export default function SkillsClient({
             <span className="text-[14px] font-extrabold text-[#1CB0F6]">{gems}</span>
           </div>
         </div>
-        {track && (
-          <div className="flex items-center gap-1.5 text-white/90">
-            <span className="text-[16px]">{track.emoji}</span>
-            <span className="text-[14px] font-extrabold">{track.name}</span>
+
+        {/* Track dropdown trigger */}
+        {activeTrack && (
+          <div className="relative" ref={pickerRef}>
+            <button
+              onClick={() => setShowPicker(v => !v)}
+              className="flex items-center gap-1.5 text-white/90 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
+            >
+              <span className="text-[16px]">{activeTrack.emoji}</span>
+              <span className="text-[14px] font-extrabold">{activeTrack.name}</span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={cn('transition-transform', showPicker && 'rotate-180')}>
+                <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+
+            {showPicker && (
+              <div className="absolute right-0 top-[calc(100%+8px)] bg-[#1F2C31] rounded-2xl shadow-xl overflow-hidden min-w-[220px] z-30">
+                {tracks.map(tr => (
+                  <button
+                    key={tr.id}
+                    onClick={() => handleTrackSelect(tr.id)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
+                      tr.id === activeTrackId ? 'bg-[#2A3A40]' : 'hover:bg-white/5',
+                    )}
+                  >
+                    <span className="text-[20px]">{tr.emoji}</span>
+                    <span className="text-[14px] font-extrabold text-white flex-1">{tr.name}</span>
+                    {tr.id === activeTrackId && (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="#58CC02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* ── PATH ── */}
       <div className="flex-1 overflow-y-auto pt-7 pb-36 sm:pt-9 sm:pb-40">
-        {allDone ? (
+        {switching ? (
+          <div className="flex items-center justify-center py-24">
+            <p className="text-[14px] font-bold text-[#5C6B70]">{t.switching}</p>
+          </div>
+        ) : allDone ? (
           <div className="flex flex-col items-center text-center px-8 py-16">
             <div className="text-[56px] mb-4">🏆</div>
             <p className="text-[18px] font-extrabold text-white mb-2">{t.allDone}</p>
@@ -156,7 +249,6 @@ export default function SkillsClient({
           </div>
         ) : currentSkill ? (
           <>
-            {/* Unit pill — shows the current skill being worked on */}
             <div className="flex items-center justify-between bg-[#1CB0F6] rounded-[18px] mx-auto mb-8 px-5 py-3.5 text-white max-w-[420px] w-[calc(100%-40px)] sm:max-w-[480px]">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-wider opacity-85">
@@ -167,7 +259,6 @@ export default function SkillsClient({
               <span className="text-[24px]">{currentSkill.emoji}</span>
             </div>
 
-            {/* Node track */}
             <div className="flex flex-col items-center max-w-[280px] sm:max-w-[320px] mx-auto">
               {orderedSkills.map((skill, idx) => {
                 const unlocked  = isUnlocked(skill)
@@ -205,7 +296,7 @@ export default function SkillsClient({
                           <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white" />
                         </span>
                       )}
-                      <span className="relative z-10 text-[28px] sm:text-[32px]">
+                      <span className="relative z-10">
                         {icon === 'check' && (
                           <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M6 14l5 5 11-12" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         )}
@@ -226,7 +317,7 @@ export default function SkillsClient({
       </div>
 
       {/* ── BOTTOM BAR ── */}
-      {!allDone && currentSkill && (
+      {!switching && !allDone && currentSkill && (
         <div
           className="sticky bottom-0 left-0 right-0 bg-[#131F24] border-t-2 border-[#1F2C31] px-5 sm:px-8 flex flex-col items-center"
           style={{ paddingTop: 16, paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
