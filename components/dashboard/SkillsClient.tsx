@@ -1,115 +1,84 @@
 'use client'
 // components/dashboard/SkillsClient.tsx
-import { useState, useMemo } from 'react'
-import Link from 'next/link'
+import { useMemo, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import type { Language } from '@/lib/openrouter'
 
 const UI: Record<string, Record<string, string>> = {
   en: {
-    goodMorning: 'Good morning',
-    goodAfternoon: 'Good afternoon',
-    goodEvening: 'Good evening',
-    streak: 'day streak',
-    keepGoing: 'keep it going',
-    upNext: 'Up next',
-    start: 'Start lesson',
-    continue: 'Continue',
-    done: 'done',
-    of: 'of',
-    inThisTrack: 'In this track',
-    min: 'min',
-    locked: 'Complete previous skills to unlock',
-    mastered: 'Mastered',
-    switchTrack: 'Switch track',
-    allDone: "You've completed this track!",
-    allDoneDesc: 'Explore another track to keep learning.',
-    explore: 'Explore tracks',
+    continueBtn: 'Continue',
+    startBtn:    'Start',
+    lessonOf:    'Lesson',
+    of:          'of',
+    locked:      'Locked lesson',
+    completed:   'Completed lesson',
+    current:     'Current lesson, tap to start',
+    allDone:     'Track complete',
+    allDoneSub:  "You've mastered every skill here.",
   },
   ar: {
-    goodMorning: 'صباح الخير',
-    goodAfternoon: 'مساء الخير',
-    goodEvening: 'مساء الخير',
-    streak: 'أيام متتالية',
-    keepGoing: 'واصل!',
-    upNext: 'التالي',
-    start: 'ابدأ الدرس',
-    continue: 'واصل',
-    done: 'مكتملة',
-    of: 'من',
-    inThisTrack: 'في هذا المسار',
-    min: 'دقيقة',
-    locked: 'أكمل المهارات السابقة للفتح',
-    mastered: 'أتقنت',
-    switchTrack: 'تغيير المسار',
-    allDone: 'أكملت هذا المسار!',
-    allDoneDesc: 'استكشف مساراً آخر لمواصلة التعلم.',
-    explore: 'استكشف المسارات',
+    continueBtn: 'واصل',
+    startBtn:    'ابدأ',
+    lessonOf:    'الدرس',
+    of:          'من',
+    locked:      'درس مقفل',
+    completed:   'درس مكتمل',
+    current:     'الدرس الحالي، اضغط للبدء',
+    allDone:     'المسار مكتمل',
+    allDoneSub:  'أتقنت كل المهارات هنا.',
   },
   fr: {
-    goodMorning: 'Bonjour',
-    goodAfternoon: 'Bon après-midi',
-    goodEvening: 'Bonsoir',
-    streak: 'jours de suite',
-    keepGoing: 'continue !',
-    upNext: 'Ensuite',
-    start: 'Commencer',
-    continue: 'Continuer',
-    done: 'terminées',
-    of: 'sur',
-    inThisTrack: 'Dans cette piste',
-    min: 'min',
-    locked: 'Termine les étapes précédentes pour débloquer',
-    mastered: 'Maîtrisé',
-    switchTrack: 'Changer de piste',
-    allDone: 'Tu as terminé cette piste !',
-    allDoneDesc: "Explore une autre piste pour continuer.",
-    explore: 'Explorer les pistes',
+    continueBtn: 'Continuer',
+    startBtn:    'Commencer',
+    lessonOf:    'Leçon',
+    of:          'sur',
+    locked:      'Leçon verrouillée',
+    completed:   'Leçon terminée',
+    current:     'Leçon actuelle, appuie pour commencer',
+    allDone:     'Piste terminée',
+    allDoneSub:  'Tu as maîtrisé toutes les compétences ici.',
   },
 }
 
 interface Track     { id: string; name: string; emoji: string; color: string }
-interface Skill     { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
+interface Skill      { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
 interface SkillProg { skill_node_id: string; progress_pct: number; completed_at: string | null }
 
 interface Props {
   userId:                  string
-  tracks:                  Track[]
+  track:                   Track | null
   skills:                  Skill[]
   skillProgress:           SkillProg[]
   lessonCountMap:          Record<string, number>
   language:                string
-  userName:                string
   streak:                  number
-  currentTrackId:          string | null
-  nextSkillId:             string | null
+  gems:                    number
+  currentSkillId:          string | null
   firstIncompleteLessonId: string | null
 }
 
-function getGreeting(lang: string): string {
-  const h = new Date().getHours()
-  const t = UI[lang] ?? UI.en
-  if (h < 12) return t.goodMorning
-  if (h < 18) return t.goodAfternoon
-  return t.goodEvening
-}
+// horizontal zig-zag offset pattern, repeats every 4 nodes
+const OFFSET_PATTERN = [0, -1, 1, 0]
 
 export default function SkillsClient({
-  userId, tracks, skills, skillProgress, lessonCountMap,
-  language, userName, streak, currentTrackId, nextSkillId, firstIncompleteLessonId,
+  userId, track, skills, skillProgress, lessonCountMap,
+  language, streak, gems, currentSkillId, firstIncompleteLessonId,
 }: Props) {
   const router = useRouter()
-  const lang = (language || 'en') as Language
+  const lang = (language || 'en') as 'en' | 'ar' | 'fr'
   const t    = UI[lang] ?? UI.en
   const dir  = lang === 'ar' ? 'rtl' : 'ltr'
 
-  const [activeTrackId, setActiveTrackId] = useState(currentTrackId ?? tracks[0]?.id ?? '')
-  const [showTrackPicker, setShowTrackPicker] = useState(false)
+  const currentNodeRef = useRef<HTMLButtonElement>(null)
 
   const progressMap = useMemo(
     () => Object.fromEntries(skillProgress.map(p => [p.skill_node_id, p.progress_pct])),
     [skillProgress],
+  )
+
+  const orderedSkills = useMemo(
+    () => [...skills].sort((a, b) => a.sort_order - b.sort_order),
+    [skills],
   )
 
   const isUnlocked = (skill: Skill) =>
@@ -118,225 +87,166 @@ export default function SkillsClient({
 
   const isComplete = (id: string) => (progressMap[id] ?? 0) >= 100
 
-  const trackSkills = useMemo(
-    () => skills.filter(s => s.track_id === activeTrackId).sort((a, b) => a.sort_order - b.sort_order),
-    [skills, activeTrackId],
-  )
+  const currentSkill = orderedSkills.find(s => s.id === currentSkillId) ?? null
+  const allDone = orderedSkills.length > 0 && orderedSkills.every(s => isComplete(s.id))
 
-  const activeTrack = tracks.find(t => t.id === activeTrackId)
-
-  // Hero skill: first unlocked + incomplete, or the nextSkillId from server
-  const heroSkill = useMemo(() => {
-    if (activeTrackId === currentTrackId && nextSkillId) {
-      return trackSkills.find(s => s.id === nextSkillId) ?? null
+  const goToCurrentLesson = () => {
+    if (!currentSkill) return
+    if (firstIncompleteLessonId) {
+      router.push(`/dashboard/skills/${currentSkill.id}/lesson/${firstIncompleteLessonId}`)
+    } else {
+      router.push(`/dashboard/skills/${currentSkill.id}`)
     }
-    return trackSkills.find(s => isUnlocked(s) && !isComplete(s.id)) ?? null
-  }, [trackSkills, nextSkillId, activeTrackId, currentTrackId])
+  }
 
-  const heroLessonId = activeTrackId === currentTrackId ? firstIncompleteLessonId : null
+  const handleNodeTap = (skill: Skill, unlocked: boolean) => {
+    if (!unlocked) return
+    if (skill.id === currentSkillId) {
+      goToCurrentLesson()
+    } else {
+      router.push(`/dashboard/skills/${skill.id}`)
+    }
+  }
 
-  const heroProgress = heroSkill ? (progressMap[heroSkill.id] ?? 0) : 0
-  const heroLessonCount = heroSkill ? (lessonCountMap[heroSkill.id] ?? 0) : 0
-  const doneLessons = heroLessonCount > 0 ? Math.round((heroProgress / 100) * heroLessonCount) : 0
-  const allTrackDone = trackSkills.length > 0 && trackSkills.every(s => isComplete(s.id))
+  useEffect(() => {
+    currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [])
 
-  const heroHref = heroSkill && heroLessonId
-    ? `/dashboard/skills/${heroSkill.id}/lesson/${heroLessonId}`
-    : heroSkill
-    ? `/dashboard/skills/${heroSkill.id}`
-    : '/dashboard/skills'
+  const currentLessonCount = currentSkill ? (lessonCountMap[currentSkill.id] ?? 0) : 0
+  const currentProgressPct = currentSkill ? (progressMap[currentSkill.id] ?? 0) : 0
+  const currentLessonIdx = currentLessonCount > 0
+    ? Math.min(Math.round((currentProgressPct / 100) * currentLessonCount) + 1, currentLessonCount)
+    : 1
 
   return (
     <div
-      className="min-h-screen bg-[#09090f] pb-28 select-none"
+      className="min-h-screen bg-[#131F24] flex flex-col max-w-[680px] mx-auto relative"
       dir={dir}
       style={{ fontFamily: "'Nunito', sans-serif" }}
     >
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;700;800;900&display=swap');`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');`}</style>
 
-      {/* ── HEADER ── */}
-      <div className="px-6 pt-8 pb-2">
-        <p className="text-[13px] text-white/40 mb-1">{getGreeting(lang)}</p>
-        {userName ? (
-          <h1 className="text-[26px] font-bold text-white leading-tight mb-6">{userName}</h1>
-        ) : null}
-
-        {/* Streak */}
-        {streak > 0 && (
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-[18px]">🔥</span>
-            <span className="text-[14px] font-bold text-white">{streak}</span>
-            <span className="text-[14px] text-white/50">{t.streak} — {t.keepGoing}</span>
+      {/* ── TOP BAR ── */}
+      <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 bg-[#131F24] border-b border-[#1F2C31] sm:px-8">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 bg-[#1F2C31] rounded-full px-3.5 py-1.5">
+            <span className="text-[15px]">🔥</span>
+            <span className="text-[14px] font-extrabold text-[#FF9600]">{streak}</span>
           </div>
-        )}
-
-        {/* Track row */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            {activeTrack && (
-              <>
-                <span className="text-[18px]">{activeTrack.emoji}</span>
-                <span className="text-[15px] font-bold text-white">{activeTrack.name}</span>
-              </>
-            )}
+          <div className="flex items-center gap-1.5 bg-[#1F2C31] rounded-full px-3.5 py-1.5">
+            <span className="text-[15px]">💎</span>
+            <span className="text-[14px] font-extrabold text-[#1CB0F6]">{gems}</span>
           </div>
-          {tracks.length > 1 && (
-            <button
-              onClick={() => setShowTrackPicker(v => !v)}
-              className="text-[12px] text-white/40 hover:text-white/70 transition-colors flex items-center gap-1"
-            >
-              {t.switchTrack}
-              <span className="text-[10px]">{showTrackPicker ? '▲' : '▼'}</span>
-            </button>
-          )}
         </div>
-
-        {/* Track picker */}
-        {showTrackPicker && (
-          <div className="flex flex-wrap gap-2 mb-5">
-            {tracks.map(tr => (
-              <button
-                key={tr.id}
-                onClick={() => { setActiveTrackId(tr.id); setShowTrackPicker(false) }}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-full text-[13px] border transition-all',
-                  tr.id === activeTrackId
-                    ? 'bg-[#1e1b3a] border-[#534AB7] text-[#AFA9EC]'
-                    : 'bg-[#141420] border-white/8 text-white/50 hover:border-white/20',
-                )}
-              >
-                <span>{tr.emoji}</span>
-                <span>{tr.name}</span>
-              </button>
-            ))}
+        {track && (
+          <div className="flex items-center gap-1.5 text-white/90">
+            <span className="text-[16px]">{track.emoji}</span>
+            <span className="text-[14px] font-extrabold">{track.name}</span>
           </div>
         )}
       </div>
 
-      {/* ── HERO CARD ── */}
-      <div className="px-6 mb-6">
-        {allTrackDone ? (
-          <div className="bg-[#141420] border border-white/8 rounded-[24px] p-7 text-center">
-            <div className="text-[44px] mb-3">🏆</div>
-            <p className="text-[18px] font-bold text-white mb-2">{t.allDone}</p>
-            <p className="text-[14px] text-white/50 mb-5">{t.allDoneDesc}</p>
-            <button
-              onClick={() => setShowTrackPicker(true)}
-              className="px-6 py-3 rounded-[14px] bg-[#7F77DD] text-white text-[15px] font-bold"
-            >
-              {t.explore}
-            </button>
+      {/* ── PATH ── */}
+      <div className="flex-1 overflow-y-auto pt-7 pb-36 sm:pt-9 sm:pb-40">
+        {allDone ? (
+          <div className="flex flex-col items-center text-center px-8 py-16">
+            <div className="text-[56px] mb-4">🏆</div>
+            <p className="text-[18px] font-extrabold text-white mb-2">{t.allDone}</p>
+            <p className="text-[14px] text-[#5C6B70]">{t.allDoneSub}</p>
           </div>
-        ) : heroSkill ? (
-          <div className="bg-[#141420] border border-white/8 rounded-[24px] overflow-hidden relative">
-            {/* top accent */}
-            <div className="h-[3px] bg-[#7F77DD]" />
-            <div className="p-7">
-              <p className="text-[11px] font-bold tracking-[0.1em] text-white/30 uppercase mb-3">{t.upNext}</p>
-              <span className="text-[44px] block mb-4">{heroSkill.emoji}</span>
-              <h2 className="text-[20px] font-bold text-white leading-tight mb-2">{heroSkill.title}</h2>
-              <p className="text-[14px] text-white/50 leading-relaxed mb-5">{heroSkill.description}</p>
-
-              <div className="flex items-center gap-4 mb-6">
-                <span className="text-[13px] font-bold text-[#AFA9EC]">+{heroSkill.xp_reward} XP</span>
-                <span className="text-[13px] text-white/40">{heroLessonCount} lessons</span>
+        ) : currentSkill ? (
+          <>
+            {/* Unit pill — shows the current skill being worked on */}
+            <div className="flex items-center justify-between bg-[#1CB0F6] rounded-[18px] mx-auto mb-8 px-5 py-3.5 text-white max-w-[420px] w-[calc(100%-40px)] sm:max-w-[480px]">
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider opacity-85">
+                  {t.lessonOf} {currentLessonIdx} {t.of} {currentLessonCount || 1}
+                </p>
+                <p className="text-[16px] font-extrabold mt-0.5">{currentSkill.title}</p>
               </div>
-
-              <div className="flex items-center justify-between">
-                <Link
-                  href={heroHref}
-                  className="px-6 py-3 rounded-[14px] bg-[#7F77DD] text-white text-[15px] font-bold transition-all active:scale-95 active:bg-[#534AB7]"
-                >
-                  {heroProgress > 0 ? t.continue : t.start}
-                </Link>
-
-                {heroLessonCount > 0 && (
-                  <div className="text-right">
-                    <p className="text-[12px] text-white/30 mb-1">
-                      {doneLessons} {t.of} {heroLessonCount} {t.done}
-                    </p>
-                    <div className="w-[80px] h-[4px] bg-white/8 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[#7F77DD] rounded-full transition-all duration-700"
-                        style={{ width: `${heroProgress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              <span className="text-[24px]">{currentSkill.emoji}</span>
             </div>
-          </div>
+
+            {/* Node track */}
+            <div className="flex flex-col items-center max-w-[280px] sm:max-w-[320px] mx-auto">
+              {orderedSkills.map((skill, idx) => {
+                const unlocked  = isUnlocked(skill)
+                const complete  = isComplete(skill.id)
+                const isCurrent = skill.id === currentSkillId
+                const offset    = OFFSET_PATTERN[idx % OFFSET_PATTERN.length]
+                const offsetPx  = offset === -1 ? -54 : offset === 1 ? 54 : 0
+
+                const state = complete ? 'done' : isCurrent ? 'current' : unlocked ? 'done' : 'locked'
+                const icon  = complete ? 'check' : isCurrent ? 'target' : unlocked ? 'check' : 'lock'
+
+                const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.current : skill.title
+
+                return (
+                  <div key={skill.id} className="relative flex flex-col items-center w-full">
+                    <button
+                      ref={isCurrent ? currentNodeRef : undefined}
+                      onClick={() => handleNodeTap(skill, unlocked)}
+                      aria-label={label}
+                      disabled={!unlocked}
+                      style={{ transform: `translateX(${offsetPx}px)` }}
+                      className={cn(
+                        'w-[68px] h-[68px] sm:w-[76px] sm:h-[76px] rounded-full flex items-center justify-center relative mb-10 flex-shrink-0 transition-transform active:translate-y-[3px]',
+                        state === 'done'    && 'bg-[#FFC800] shadow-[0_6px_0_#B8860B]',
+                        state === 'current' && 'bg-[#58CC02] shadow-[0_6px_0_#4AA302]',
+                        state === 'locked'  && 'bg-[#1F2C31] shadow-none opacity-55 cursor-default',
+                      )}
+                    >
+                      {isCurrent && (
+                        <span className="absolute -inset-2 rounded-full border-[3px] border-[#58CC02]/30 animate-[ringPulse_1.8s_ease-out_infinite]" />
+                      )}
+                      {isCurrent && (
+                        <span className="absolute -top-[42px] bg-white text-[#58CC02] text-[12px] font-extrabold px-4 py-[7px] rounded-[11px] whitespace-nowrap uppercase tracking-wider shadow-md">
+                          {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
+                          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white" />
+                        </span>
+                      )}
+                      <span className="relative z-10 text-[28px] sm:text-[32px]">
+                        {icon === 'check' && (
+                          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M6 14l5 5 11-12" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        )}
+                        {icon === 'target' && (
+                          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="#fff" strokeWidth="2.5"/><circle cx="14" cy="14" r="5" stroke="#fff" strokeWidth="2.5"/><circle cx="14" cy="14" r="1.5" fill="#fff"/></svg>
+                        )}
+                        {icon === 'lock' && (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#4D5C61" strokeWidth="2"/><path d="M8 11V7a4 4 0 018 0v4" stroke="#4D5C61" strokeWidth="2"/></svg>
+                        )}
+                      </span>
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         ) : null}
       </div>
 
-      {/* ── LESSON LIST ── */}
-      <div className="px-6">
-        <p className="text-[11px] font-bold tracking-[0.1em] text-white/30 uppercase mb-3">{t.inThisTrack}</p>
-        <div className="flex flex-col gap-2">
-          {trackSkills.map(skill => {
-            const complete  = isComplete(skill.id)
-            const unlocked  = isUnlocked(skill)
-            const isCurrent = skill.id === heroSkill?.id
-            const prog      = progressMap[skill.id] ?? 0
-
-            return (
-              <Link
-                key={skill.id}
-                href={unlocked ? `/dashboard/skills/${skill.id}` : '#'}
-                className={cn(
-                  'flex items-center gap-4 px-4 py-3.5 rounded-[16px] border transition-all',
-                  complete
-                    ? 'bg-[#141420] border-white/5 opacity-50'
-                    : isCurrent
-                    ? 'bg-[#1e1b3a] border-[#534AB7]'
-                    : unlocked
-                    ? 'bg-[#141420] border-white/8 hover:border-white/15'
-                    : 'bg-[#141420] border-white/5 opacity-35 pointer-events-none',
-                )}
-              >
-                {/* Icon */}
-                <div className={cn(
-                  'w-[40px] h-[40px] rounded-[12px] flex items-center justify-center text-[20px] flex-shrink-0',
-                  complete ? 'bg-[#0d2318]' : isCurrent ? 'bg-[#1e1b3a]' : 'bg-[#1a1a2e]',
-                )}>
-                  {complete ? '⭐' : unlocked ? skill.emoji : '🔒'}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className={cn(
-                    'text-[14px] font-bold truncate',
-                    complete ? 'text-white/40' : 'text-white',
-                  )}>
-                    {skill.title}
-                  </p>
-                  <p className="text-[12px] text-white/30">
-                    {complete
-                      ? t.mastered
-                      : unlocked && prog > 0
-                      ? `${prog}% — ${lessonCountMap[skill.id] ?? 0} lessons`
-                      : `${lessonCountMap[skill.id] ?? 0} lessons · +${skill.xp_reward} XP`}
-                  </p>
-                </div>
-
-                {/* Right indicator */}
-                {complete && (
-                  <div className="w-[22px] h-[22px] rounded-full bg-[#1D9E75] flex items-center justify-center flex-shrink-0">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                )}
-                {!complete && unlocked && (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-                    <path d="M6 3l5 5-5 5" stroke={isCurrent ? '#7F77DD' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )}
-              </Link>
-            )
-          })}
+      {/* ── BOTTOM BAR ── */}
+      {!allDone && currentSkill && (
+        <div
+          className="sticky bottom-0 left-0 right-0 bg-[#131F24] border-t-2 border-[#1F2C31] px-5 sm:px-8 flex flex-col items-center"
+          style={{ paddingTop: 16, paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
+        >
+          <div className="max-w-[420px] sm:max-w-[480px] w-full">
+            <button
+              onClick={goToCurrentLesson}
+              className="w-full bg-[#58CC02] text-white rounded-2xl py-[17px] sm:py-[18px] text-[16px] sm:text-[17px] font-extrabold uppercase tracking-wider shadow-[0_4px_0_#4AA302] transition-transform active:translate-y-1 active:shadow-none"
+              style={{ touchAction: 'manipulation' }}
+            >
+              {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
+            </button>
+            <p className="text-center text-[12px] font-extrabold text-[#5C6B70] mt-2.5">
+              {t.lessonOf} {currentLessonIdx} — {currentSkill.title}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
+
+      <style>{`@keyframes ringPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }`}</style>
     </div>
   )
 }

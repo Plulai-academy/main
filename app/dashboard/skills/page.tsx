@@ -14,7 +14,7 @@ export default async function SkillsPage() {
     .eq('id', user.id)
     .single()
 
-  const [tracksRes, skillsRes, skillProgressRes, lessonCountsRes, progressRes] = await Promise.all([
+  const [tracksRes, skillsRes, skillProgressRes, lessonCountsRes, progressRes, walletRes] = await Promise.all([
     supabase.from('tracks').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('skill_nodes').select('*').eq('is_active', true)
       .contains('age_groups', [profile?.age_group ?? 'pro'])
@@ -30,6 +30,10 @@ export default async function SkillsPage() {
       .select('streak, current_track')
       .eq('user_id', user.id)
       .single(),
+    supabase.from('wallets')
+      .select('balance')
+      .eq('user_id', user.id)
+      .single(),
   ])
 
   const lessonCountMap: Record<string, number> = {}
@@ -43,29 +47,30 @@ export default async function SkillsPage() {
     skillProgress.map(p => [p.skill_node_id, p.progress_pct])
   )
 
-  // Find the first incomplete lesson across the active track
-  // Active track = current_track from user_progress, else first track
+  // Active track: current_track from user_progress, else first track
   const currentTrackId = progressRes.data?.current_track ?? tracksRes.data?.[0]?.id ?? null
+  const currentTrack = (tracksRes.data ?? []).find(t => t.id === currentTrackId) ?? null
 
   const trackSkills = skills
     .filter(s => s.track_id === currentTrackId)
     .sort((a, b) => a.sort_order - b.sort_order)
 
-  // First skill that is unlocked (all required_nodes complete) but not 100% done
   const isUnlocked = (skill: any) =>
     !skill.required_nodes?.length ||
     skill.required_nodes.every((r: string) => (progressMap[r] ?? 0) >= 100)
 
-  const nextSkill = trackSkills.find(s => isUnlocked(s) && (progressMap[s.id] ?? 0) < 100)
+  // First unlocked, incomplete skill — this is the "current" node
+  const currentSkill = trackSkills.find(s => isUnlocked(s) && (progressMap[s.id] ?? 0) < 100)
     ?? trackSkills[0]
+    ?? null
 
-  // Find first incomplete lesson in that skill
+  // First incomplete lesson inside the current skill, for the Continue button target
   let firstIncompleteLessonId: string | null = null
-  if (nextSkill) {
+  if (currentSkill) {
     const { data: lessonsInSkill } = await supabase
       .from('lessons')
       .select('id, sort_order')
-      .eq('skill_node_id', nextSkill.id)
+      .eq('skill_node_id', currentSkill.id)
       .eq('is_active', true)
       .contains('age_groups', [profile?.age_group ?? 'pro'])
       .order('sort_order')
@@ -83,15 +88,14 @@ export default async function SkillsPage() {
   return (
     <SkillsClient
       userId={user.id}
-      tracks={tracksRes.data ?? []}
-      skills={skills}
+      track={currentTrack}
+      skills={trackSkills}
       skillProgress={skillProgress}
       lessonCountMap={lessonCountMap}
       language={profile?.preferred_language ?? 'en'}
-      userName={profile?.display_name ?? ''}
       streak={progressRes.data?.streak ?? 0}
-      currentTrackId={currentTrackId}
-      nextSkillId={nextSkill?.id ?? null}
+      gems={walletRes.data?.balance ?? 0}
+      currentSkillId={currentSkill?.id ?? null}
       firstIncompleteLessonId={firstIncompleteLessonId}
     />
   )
