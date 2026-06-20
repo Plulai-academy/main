@@ -60,9 +60,13 @@ export default async function SkillsPage() {
       .not('rank_global', 'is', null)
       .order('rank_global', { ascending: true })
       .limit(LEADERBOARD_LIMIT),
-    // Current user's own row (in case they're outside the top N)
+    // Current user's own row (rank-pin fallback + mascot "tired" signal)
+    // NOTE: total_time_mins is assumed here to be a DAILY figure (resets each day).
+    // If it's actually a lifetime/cumulative total in your schema, this will make
+    // the mascot permanently "tired" for long-time users — tell me and I'll swap
+    // this for a proper daily-activity table instead.
     supabase.from('leaderboard')
-      .select('id, display_name, avatar, xp, rank_global')
+      .select('id, display_name, avatar, xp, rank_global, total_time_mins')
       .eq('id', userId)
       .maybeSingle(),
     // Today's completed lessons, for the Daily Quest progress bar
@@ -155,6 +159,8 @@ export default async function SkillsPage() {
     leaderboard = [...leaderboard, mapRow(currentUserRankRes.data)]
   }
 
+  const totalTimeMins = currentUserRankRes.data?.total_time_mins ?? 0
+
   const dailyQuest = {
     label: 'Earn 10 XP',
     current: Math.min(todayCompletionsRes.data?.length ?? 0, DAILY_QUEST_TARGET),
@@ -195,6 +201,7 @@ export default async function SkillsPage() {
       leaderboard={leaderboard}
       dailyQuest={dailyQuest}
       dailyChallenge={dailyChallenge}
+      totalTimeMins={totalTimeMins}
     />
   )
 }

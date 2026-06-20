@@ -38,9 +38,23 @@ const UI: Record<string, Record<string, string>> = {
 const ICONS = {
   streak: '/icons/streak.png',
   gems:   '/icons/gems.png',
+  // Path-node icons — drop icon1.png..icon4.png in public/icons. They cycle in order.
+  node:   ['/icons/icon1.png', '/icons/icon2.png', '/icons/icon3.png', '/icons/icon4.png'],
 }
-// Drop /icons/mascot.png in public to replace the SVG silhouette automatically.
-const MASCOT_SRC: string | null = null
+
+type MascotState = 'celebrating' | 'tired' | 'noStreak' | 'idle'
+
+// Drop these files in public/icons to replace each state's placeholder automatically:
+// mascot-idle.svg, mascot-celebrating.svg, mascot-tired.svg, mascot-nostreak.svg
+const MASCOT_SRC: Record<MascotState, string | null> = {
+  idle: null,
+  celebrating: null,
+  tired: null,
+  noStreak: null,
+}
+
+// Minutes of activity (assumed DAILY, not lifetime) at which the mascot goes "tired"
+const TIRED_THRESHOLD_MINS = 60
 
 interface Track    { id: string; name: string; emoji: string; color: string }
 interface Skill    { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
@@ -84,6 +98,7 @@ interface Props {
   leaderboard?: LeaderboardEntry[]
   dailyQuest?: DailyQuest
   dailyChallenge?: DailyChallenge | null
+  totalTimeMins?: number
 }
 
 const OFFSET_PATTERN = [0, -1, 1, 0]
@@ -93,7 +108,7 @@ function offsetTransform(offset: number) {
   return `translateX(calc(${offset} * min(14vw, 54px)))`
 }
 
-// ─── Inline SVG icon set ────────────────────────────────────────────
+// ─── Inline SVG icon set (fallback only — used if a custom PNG fails to load) ───
 type IconKind = 'book' | 'star' | 'chest' | 'trophy' | 'fastForward' | 'lock' | 'check' | 'bolt'
 
 function NodeIcon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
@@ -134,19 +149,16 @@ function NodeIcon({ kind, className, style }: { kind: IconKind; className?: stri
   }
 }
 
-function iconForIndex(idx: number): IconKind {
-  const set: IconKind[] = ['book', 'star', 'chest', 'trophy']
-  return set[idx % set.length]
+function iconForIndex(idx: number): number {
+  return idx % ICONS.node.length
 }
 
 // ─── Path node — flat disc style (matches reference screenshot) ───
-// Gently rounded oval base + lighter oval face on top, minimal shadow, centered icon.
-// Current = blue, Done = teal/green, Locked = muted gray-blue (as in reference).
 function PathNode({
-  state, icon, complete, onClick, disabled, label, offset, isCurrent,
+  state, iconIndex, complete, onClick, disabled, label, offset, isCurrent,
 }: {
   state: 'done' | 'current' | 'locked'
-  icon: IconKind
+  iconIndex: number
   complete: boolean
   onClick: () => void
   disabled: boolean
@@ -154,12 +166,16 @@ function PathNode({
   offset: number
   isCurrent: boolean
 }) {
+  const [imgError, setImgError] = useState(false)
+
   const palette =
     state === 'current'
       ? { face: '#1CB0F6', base: '#15527A', icon: '#FFFFFF' }
       : state === 'done'
       ? { face: '#27B883', base: '#1A4D3C', icon: '#FFFFFF' }
       : { face: '#3A4450', base: '#262E37', icon: '#8A96A3' }
+
+  const iconSrc = ICONS.node[iconIndex]
 
   return (
     <div
@@ -195,11 +211,21 @@ function PathNode({
           boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
         }}
       >
-        <NodeIcon
-          kind={isCurrent ? 'fastForward' : icon}
-          className="w-[40%] h-[40%]"
-          style={{ color: palette.icon } as React.CSSProperties}
-        />
+        {!imgError ? (
+          <img
+            src={iconSrc}
+            alt=""
+            className="w-[44%] h-[44%] object-contain"
+            style={state === 'locked' ? { opacity: 0.6 } : undefined}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <NodeIcon
+            kind={isCurrent ? 'fastForward' : 'book'}
+            className="w-[40%] h-[40%]"
+            style={{ color: palette.icon } as React.CSSProperties}
+          />
+        )}
 
         {/* Completion badge */}
         {complete && !isCurrent && (
@@ -243,31 +269,65 @@ function JumpBubble({ text }: { text: string }) {
   )
 }
 
-// ─── Mascot silhouette ─────────────────────────────────────────────
-function MascotPlaceholder() {
-  if (MASCOT_SRC) {
+// ─── Mascot — reacts to state: celebrating / tired / noStreak / idle ──────
+function MascotPlaceholder({ state }: { state: MascotState }) {
+  const src = MASCOT_SRC[state]
+
+  if (src) {
     return (
       <img
-        src={MASCOT_SRC}
+        src={src}
         alt=""
         aria-hidden
-        className="select-none pointer-events-none opacity-40"
+        className={cn(
+          'select-none pointer-events-none',
+          state === 'celebrating' && 'animate-[mascotBounce_0.6s_ease-in-out_infinite]',
+        )}
         style={{ width: 'clamp(110px, 28vw, 170px)' }}
       />
     )
   }
+
+  // Placeholder art per state, until real SVGs are dropped in
+  const palette =
+    state === 'celebrating' ? '#FAA918' :
+    state === 'tired'       ? '#5B6772' :
+    state === 'noStreak'    ? '#3A4450' :
+                               '#5B6772'
+
+  const eyeY = state === 'tired' ? 56 : 52 // droopier eyes when tired
+
   return (
     <svg
       viewBox="0 0 120 140"
       aria-hidden
-      className="select-none pointer-events-none opacity-25"
-      style={{ width: 'clamp(110px, 28vw, 170px)', color: '#5B6772' }}
+      className={cn(
+        'select-none pointer-events-none',
+        state === 'celebrating' ? 'opacity-90 animate-[mascotBounce_0.6s_ease-in-out_infinite]' : 'opacity-25',
+        state === 'tired' && 'animate-[mascotPulseSlow_3s_ease-in-out_infinite]',
+      )}
+      style={{ width: 'clamp(110px, 28vw, 170px)', color: palette }}
       fill="currentColor"
     >
       <ellipse cx="60" cy="55" rx="38" ry="42" />
       <rect x="28" y="80" width="64" height="50" rx="24" />
-      <circle cx="48" cy="52" r="5" fill="#0B0F14" />
-      <circle cx="72" cy="52" r="5" fill="#0B0F14" />
+      {state === 'tired' ? (
+        <>
+          <rect x="42" y="50" width="12" height="3" fill="#0B0F14" rx="1.5" />
+          <rect x="66" y="50" width="12" height="3" fill="#0B0F14" rx="1.5" />
+        </>
+      ) : (
+        <>
+          <circle cx="48" cy={eyeY} r="5" fill="#0B0F14" />
+          <circle cx="72" cy={eyeY} r="5" fill="#0B0F14" />
+        </>
+      )}
+      {state === 'celebrating' && (
+        <path d="M48 65 Q60 75 72 65" stroke="#0B0F14" strokeWidth="3" fill="none" strokeLinecap="round" />
+      )}
+      {state === 'noStreak' && (
+        <path d="M48 70 Q60 62 72 70" stroke="#0B0F14" strokeWidth="3" fill="none" strokeLinecap="round" />
+      )}
       <ellipse cx="60" cy="110" rx="18" ry="14" fill="#3a4550" />
     </svg>
   )
@@ -313,6 +373,7 @@ function RankBadge({ rank }: { rank: number }) {
     </div>
   )
 }
+
 // ─── Sidebar: avatar circle (image, falls back to initial) ─────────
 function LeaderboardAvatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   const [errored, setErrored] = useState(false)
@@ -375,6 +436,7 @@ function LeaderboardCard({
     </SideCard>
   )
 }
+
 // ─── Sidebar: daily quest progress bar ─────────────────────────────
 function DailyQuestCard({ quest, t }: { quest: DailyQuest; t: Record<string, string> }) {
   const pct = quest.target > 0 ? Math.min(100, Math.round((quest.current / quest.target) * 100)) : 0
@@ -446,7 +508,7 @@ function DailyChallengeCard({ challenge, t }: { challenge: DailyChallenge; t: Re
 export default function SkillsClient({
   userId, tracks, initialTrackId, skills, skillProgress, lessonCountMap,
   language, streak, gems, initialCurrentSkillId, initialFirstIncompleteLessonId,
-  leaderboard = [], dailyQuest, dailyChallenge,
+  leaderboard = [], dailyQuest, dailyChallenge, totalTimeMins = 0,
 }: Props) {
   const router = useRouter()
   const lang = (language || 'en') as 'en' | 'ar' | 'fr'
@@ -480,6 +542,15 @@ export default function SkillsClient({
   const activeTrack = tracks.find(tr => tr.id === activeTrackId) ?? null
   const currentSkill = orderedSkills.find(s => s.id === currentSkillId) ?? null
   const allDone = orderedSkills.length > 0 && orderedSkills.every(s => isComplete(s.id))
+
+  // ── Mascot state: celebrating beats tired beats no-streak beats idle ──
+  const mascotState: MascotState = allDone
+    ? 'celebrating'
+    : totalTimeMins >= TIRED_THRESHOLD_MINS
+    ? 'tired'
+    : streak === 0
+    ? 'noStreak'
+    : 'idle'
 
   useEffect(() => {
     if (!showPicker) return
@@ -601,7 +672,7 @@ export default function SkillsClient({
               dir === 'rtl' ? 'left-2 sm:left-6' : 'right-2 sm:right-6',
             )}
           >
-            <MascotPlaceholder />
+            <MascotPlaceholder state={mascotState} />
           </div>
 
           {switching ? (
@@ -653,7 +724,7 @@ export default function SkillsClient({
                       {isCurrent && <JumpBubble text={t.jumpHere} />}
                       <PathNode
                         state={state}
-                        icon={iconForIndex(idx)}
+                        iconIndex={iconForIndex(idx)}
                         complete={complete}
                         onClick={() => handleNodeTap(skill, unlocked)}
                         disabled={!unlocked}
@@ -689,6 +760,14 @@ export default function SkillsClient({
         @keyframes ringPulse {
           0%   { transform: scale(1); opacity: 1; }
           100% { transform: scale(1.4); opacity: 0; }
+        }
+        @keyframes mascotBounce {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-8px); }
+        }
+        @keyframes mascotPulseSlow {
+          0%, 100% { opacity: 0.25; }
+          50%      { opacity: 0.12; }
         }
       `}</style>
     </div>
