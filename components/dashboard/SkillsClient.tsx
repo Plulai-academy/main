@@ -52,8 +52,8 @@ const UI: Record<string, Record<string, string>> = {
 // update the paths below) and they'll show up automatically — no
 // other code changes needed.
 const ICONS = {
-  streak: '/icons/streak.svg',
-  gems:   '/icons/gem.svg',
+  streak: '/icons/streak.png',
+  gems:   '/icons/gem.png',
 }
 
 interface Track     { id: string; name: string; emoji: string; color: string }
@@ -341,9 +341,11 @@ export default function SkillsClient({
                         <span className="absolute -inset-2 rounded-full border-[3px] border-[#1CB0F6]/30 animate-[ringPulse_1.8s_ease-out_infinite]" />
                       )}
                       {isCurrent && (
-                        <span className="absolute -top-[42px] bg-[#F5F5F5] text-[#1CB0F6] text-[11px] sm:text-[12px] font-extrabold px-3.5 sm:px-4 py-[6px] sm:py-[7px] rounded-[11px] whitespace-nowrap uppercase tracking-wider shadow-md">
+                        <span className="absolute -top-[46px] bg-[#131F24] border-2 border-[#1CB0F6] text-[#1CB0F6] text-[11px] sm:text-[12px] font-extrabold px-3.5 sm:px-4 py-[7px] sm:py-[8px] rounded-[12px] whitespace-nowrap uppercase tracking-wider">
                           {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
-                          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#F5F5F5]" />
+                          {/* outlined speech-bubble tail: border triangle behind, fill triangle on top */}
+                          <span className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-[#1CB0F6]" />
+                          <span className="absolute -bottom-[6.5px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#131F24]" />
                         </span>
                       )}
                       <span className="relative z-10">
@@ -369,20 +371,22 @@ export default function SkillsClient({
       {/* ── BOTTOM BAR ── */}
       {!switching && !allDone && currentSkill && (
         <div
-          className="sticky bottom-0 left-0 right-0 bg-transparent backdrop-blur-sm border-t border-[#6F6F6F]/15 px-4 sm:px-6 md:px-8 flex flex-col items-center"
+          className="fixed bottom-0 left-0 right-0 z-30 bg-transparent backdrop-blur-sm border-t border-[#6F6F6F]/15"
           style={{ paddingTop: 16, paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
         >
-          <div className="max-w-[420px] sm:max-w-[480px] w-full">
-            <button
-              onClick={goToCurrentLesson}
-              className="w-full bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-[#F5F5F5] rounded-2xl py-[16px] sm:py-[17px] md:py-[18px] text-[15px] sm:text-[16px] md:text-[17px] font-extrabold uppercase tracking-wider shadow-[0_4px_0_#2B70C9] transition-transform active:translate-y-1 active:shadow-none"
-              style={{ touchAction: 'manipulation' }}
-            >
-              {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
-            </button>
-            <p className="text-center text-[11px] sm:text-[12px] font-extrabold text-[#6F6F6F] mt-2.5 truncate">
-              {t.lessonOf} {currentLessonIdx} — {currentSkill.title}
-            </p>
+          <div className="max-w-[680px] mx-auto px-4 sm:px-6 md:px-8 flex flex-col items-center">
+            <div className="max-w-[420px] sm:max-w-[480px] w-full">
+              <button
+                onClick={goToCurrentLesson}
+                className="w-full bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-[#F5F5F5] rounded-2xl py-[16px] sm:py-[17px] md:py-[18px] text-[15px] sm:text-[16px] md:text-[17px] font-extrabold uppercase tracking-wider shadow-[0_4px_0_#2B70C9] transition-transform active:translate-y-1 active:shadow-none"
+                style={{ touchAction: 'manipulation' }}
+              >
+                {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
+              </button>
+              <p className="text-center text-[11px] sm:text-[12px] font-extrabold text-[#6F6F6F] mt-2.5 truncate">
+                {t.lessonOf} {currentLessonIdx} — {currentSkill.title}
+              </p>
+            </div>
           </div>
         </div>
       )}
