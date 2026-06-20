@@ -212,13 +212,16 @@ function PathNode({
         }}
       >
         {!imgError ? (
-          <img
-            src={iconSrc}
-            alt=""
-            className="w-[44%] h-[44%] object-contain"
-            style={state === 'locked' ? { opacity: 0.6 } : undefined}
-            onError={() => setImgError(true)}
-          />
+        <img
+          src={iconSrc}
+          alt=""
+          className="w-[44%] h-[44%] object-contain"
+          style={{
+            filter: 'brightness(0) invert(1)',
+            opacity: state === 'locked' ? 0.6 : 1,
+          }}
+          onError={() => setImgError(true)}
+        />
         ) : (
           <NodeIcon
             kind={isCurrent ? 'fastForward' : 'book'}
