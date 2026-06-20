@@ -140,7 +140,7 @@ function iconForIndex(idx: number): IconKind {
 }
 
 // ─── Path node — flat disc style (matches reference screenshot) ───
-// Wide oval base + lighter oval face on top, soft drop shadow, centered icon.
+// Gently rounded oval base + lighter oval face on top, minimal shadow, centered icon.
 // Current = blue, Done = teal/green, Locked = muted gray-blue (as in reference).
 function PathNode({
   state, icon, complete, onClick, disabled, label, offset, isCurrent,
@@ -166,16 +166,16 @@ function PathNode({
       className="relative flex-shrink-0"
       style={{
         transform: offsetTransform(offset),
-        width: 'clamp(72px, 22vw, 92px)',
-        height: 'clamp(60px, 18vw, 76px)',
-        marginBottom: 'clamp(28px, 8vw, 44px)',
+        width: 'clamp(56px, 17vw, 68px)',
+        height: 'clamp(48px, 14.5vw, 58px)',
+        marginBottom: 'clamp(24px, 7vw, 36px)',
       }}
     >
       {/* Base oval — darker shade, peeks out beneath the face */}
       <div
         aria-hidden
-        className="absolute inset-0 rounded-[50%/55%]"
-        style={{ backgroundColor: palette.base, transform: 'translateY(6px)' }}
+        className="absolute inset-0 rounded-[50%/52%]"
+        style={{ backgroundColor: palette.base, transform: 'translateY(4px)' }}
       />
 
       <button
@@ -184,15 +184,15 @@ function PathNode({
         disabled={disabled}
         aria-label={label}
         className={cn(
-          'absolute left-0 right-0 top-0 rounded-[50%/58%] flex items-center justify-center',
+          'absolute left-0 right-0 top-0 rounded-[50%/54%] flex items-center justify-center',
           'transition-transform duration-100 ease-out',
-          !disabled && 'hover:-translate-y-0.5 active:translate-y-[3px]',
+          !disabled && 'hover:-translate-y-0.5 active:translate-y-[2px]',
           disabled && 'cursor-default',
         )}
         style={{
-          height: '85%',
+          height: '87%',
           backgroundColor: palette.face,
-          boxShadow: '0 4px 10px rgba(0,0,0,0.25)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
         }}
       >
         <NodeIcon
@@ -205,10 +205,10 @@ function PathNode({
         {complete && !isCurrent && (
           <span
             aria-hidden
-            className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: '#FAA918', boxShadow: '0 2px 0 rgba(0,0,0,0.2)' }}
+            className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: '#FAA918', boxShadow: '0 1px 0 rgba(0,0,0,0.2)' }}
           >
-            <NodeIcon kind="check" className="w-4 h-4 text-white" />
+            <NodeIcon kind="check" className="w-3 h-3 text-white" />
           </span>
         )}
       </button>
@@ -222,7 +222,7 @@ function JumpBubble({ text }: { text: string }) {
     <div
       className="absolute left-1/2 -translate-x-1/2 z-20 select-none pointer-events-none"
       style={{
-        top: 'clamp(-58px, -16vw, -52px)',
+        top: 'clamp(-46px, -13vw, -42px)',
         animation: 'jumpBob 1.6s ease-in-out infinite',
       }}
     >
