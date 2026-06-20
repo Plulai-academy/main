@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import SkillsClient from '@/components/dashboard/SkillsClient'
 
+const DAILY_QUEST_TARGET = 10 // lessons-completed-today target; adjust or make per-age-group later
+
 export default async function SkillsPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -16,10 +18,24 @@ export default async function SkillsPage() {
     .eq('id', userId)
     .single()
 
-  const [tracksRes, skillsRes, skillProgressRes, lessonCountsRes, progressRes, walletRes] = await Promise.all([
+  const ageGroup = profile?.age_group ?? 'pro'
+  const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+  const todayStart = `${today}T00:00:00.000Z`
+
+  const [
+    tracksRes,
+    skillsRes,
+    skillProgressRes,
+    lessonCountsRes,
+    progressRes,
+    walletRes,
+    leaderboardRes,
+    todayCompletionsRes,
+    dailyChallengeRes,
+  ] = await Promise.all([
     supabase.from('tracks').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('skill_nodes').select('*').eq('is_active', true)
-      .contains('age_groups', [profile?.age_group ?? 'pro'])
+      .contains('age_groups', [ageGroup])
       .order('sort_order'),
     supabase.from('user_skill_progress')
       .select('skill_node_id,progress_pct,completed_at')
@@ -27,7 +43,7 @@ export default async function SkillsPage() {
     supabase.from('lessons')
       .select('skill_node_id')
       .eq('is_active', true)
-      .contains('age_groups', [profile?.age_group ?? 'pro']),
+      .contains('age_groups', [ageGroup]),
     supabase.from('user_progress')
       .select('streak, current_track')
       .eq('user_id', userId)
@@ -36,6 +52,22 @@ export default async function SkillsPage() {
       .select('balance')
       .eq('user_id', userId)
       .single(),
+    // Global top 5 leaderboard
+    supabase.from('leaderboard')
+      .select('id, name, avatar_url, xp, rank_global')
+      .order('rank_global', { ascending: true })
+      .limit(5),
+    // Today's completed lessons, for the Daily Quest progress bar
+    supabase.from('user_lesson_completions')
+      .select('lesson_id, completed_at')
+      .eq('user_id', userId)
+      .gte('completed_at', todayStart),
+    // Today's single daily challenge for this user's age group
+    supabase.from('daily_challenges')
+      .select('id, title, emoji, xp_reward')
+      .eq('age_group', ageGroup)
+      .eq('active_date', today)
+      .maybeSingle(),
   ])
 
   const lessonCountMap: Record<string, number> = {}
@@ -77,7 +109,7 @@ export default async function SkillsPage() {
       .select('id, sort_order')
       .eq('skill_node_id', skill.id)
       .eq('is_active', true)
-      .contains('age_groups', [profile?.age_group ?? 'pro'])
+      .contains('age_groups', [ageGroup])
       .order('sort_order')
 
     const { data: completedLessons } = await supabase
@@ -95,6 +127,37 @@ export default async function SkillsPage() {
 
   const { skillId: currentSkillId, lessonId: firstIncompleteLessonId } = await resolveCurrentSkill(currentTrackId)
 
+  // ── Sidebar data shaping ──────────────────────────────────────────
+
+  const leaderboard = (leaderboardRes.data ?? []).map(row => ({
+    ...row,
+    is_current_user: row.id === userId,
+  }))
+
+  const dailyQuest = {
+    label: 'Earn 10 XP',
+    current: Math.min(todayCompletionsRes.data?.length ?? 0, DAILY_QUEST_TARGET),
+    target: DAILY_QUEST_TARGET,
+  }
+
+  let dailyChallenge = null
+  if (dailyChallengeRes.data) {
+    const { data: completion } = await supabase
+      .from('user_challenge_completions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('challenge_id', dailyChallengeRes.data.id)
+      .maybeSingle()
+
+    dailyChallenge = {
+      id: dailyChallengeRes.data.id,
+      title: dailyChallengeRes.data.title,
+      emoji: dailyChallengeRes.data.emoji,
+      xp_reward: dailyChallengeRes.data.xp_reward,
+      completed: !!completion,
+    }
+  }
+
   return (
     <SkillsClient
       userId={userId}
@@ -108,6 +171,9 @@ export default async function SkillsPage() {
       gems={walletRes.data?.balance ?? 0}
       initialCurrentSkillId={currentSkillId}
       initialFirstIncompleteLessonId={firstIncompleteLessonId}
+      leaderboard={leaderboard}
+      dailyQuest={dailyQuest}
+      dailyChallenge={dailyChallenge}
     />
   )
 }

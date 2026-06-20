@@ -14,7 +14,6 @@ const UI: Record<string, Record<string, string>> = {
     switching: 'Loading…', back: 'Back',
     leaderboard: 'Leaderboard', viewAll: 'View all', you: 'You',
     dailyQuests: 'Daily Quests', dailyChallenges: 'Daily Challenges',
-    dailyChallengesSub: 'New challenges every day',
   },
   ar: {
     continueBtn: 'واصل', startBtn: 'ابدأ', jumpHere: 'اقفز هنا؟',
@@ -24,7 +23,6 @@ const UI: Record<string, Record<string, string>> = {
     switching: 'جارٍ التحميل…', back: 'رجوع',
     leaderboard: 'لوحة الصدارة', viewAll: 'عرض الكل', you: 'أنت',
     dailyQuests: 'المهام اليومية', dailyChallenges: 'التحديات اليومية',
-    dailyChallengesSub: 'تحديات جديدة كل يوم',
   },
   fr: {
     continueBtn: 'Continuer', startBtn: 'Commencer', jumpHere: 'SAUTER ICI ?',
@@ -34,7 +32,6 @@ const UI: Record<string, Record<string, string>> = {
     switching: 'Chargement…', back: 'Retour',
     leaderboard: 'Classement', viewAll: 'Tout voir', you: 'Toi',
     dailyQuests: 'Quêtes du jour', dailyChallenges: 'Défis du jour',
-    dailyChallengesSub: 'De nouveaux défis chaque jour',
   },
 }
 
@@ -50,11 +47,11 @@ interface Skill    { id: string; track_id: string; title: string; emoji: string;
 interface SkillProg{ skill_node_id: string; progress_pct: number; completed_at: string | null }
 
 interface LeaderboardEntry {
-  user_id: string
-  rank: number
+  id: string
+  rank_global: number
   name: string
   avatar_url: string | null
-  points: number
+  xp: number
   is_current_user?: boolean
 }
 
@@ -62,7 +59,14 @@ interface DailyQuest {
   label: string
   current: number
   target: number
-  icon_url?: string | null
+}
+
+interface DailyChallenge {
+  id: string
+  title: string
+  emoji: string
+  xp_reward: number
+  completed: boolean
 }
 
 interface Props {
@@ -79,6 +83,7 @@ interface Props {
   initialFirstIncompleteLessonId: string | null
   leaderboard?: LeaderboardEntry[]
   dailyQuest?: DailyQuest
+  dailyChallenge?: DailyChallenge | null
 }
 
 const OFFSET_PATTERN = [0, -1, 1, 0]
@@ -89,7 +94,7 @@ function offsetTransform(offset: number) {
 }
 
 // ─── Inline SVG icon set ────────────────────────────────────────────
-type IconKind = 'book' | 'star' | 'chest' | 'trophy' | 'fastForward' | 'lock' | 'check'
+type IconKind = 'book' | 'star' | 'chest' | 'trophy' | 'fastForward' | 'lock' | 'check' | 'bolt'
 
 function NodeIcon({ kind, className }: { kind: IconKind; className?: string }) {
   const common = { className, fill: 'currentColor', viewBox: '0 0 24 24' as const }
@@ -122,6 +127,10 @@ function NodeIcon({ kind, className }: { kind: IconKind; className?: string }) {
       return (
         <svg {...common}><path d="M9.5 16.6 4.9 12l-1.4 1.4 6 6L21 7.9l-1.4-1.4z"/></svg>
       )
+    case 'bolt':
+      return (
+        <svg {...common}><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>
+      )
   }
 }
 
@@ -130,7 +139,9 @@ function iconForIndex(idx: number): IconKind {
   return set[idx % set.length]
 }
 
-// ─── 3D oval node ──────────────────────────────────────────────────
+// ─── Path node — Option B: refined 3D bubble ───────────────────────
+// Current = blue (brand), Done = teal/green, Locked = flat dark.
+// Slimmer base offset + softer inner highlight than the original.
 function PathNode({
   state, icon, complete, onClick, disabled, label, offset, isCurrent,
 }: {
@@ -145,30 +156,27 @@ function PathNode({
 }) {
   const palette =
     state === 'current'
-      ? { front: '#1CB0F6', base: '#1280B8', text: '#FFFFFF' }
+      ? { front: '#1CB0F6', base: '#1280B8' }
       : state === 'done'
-      ? { front: '#FAA918', base: '#B87A0E', text: '#FFFFFF' }
-      : { front: '#2A323A', base: '#1B2026', text: '#5B6772' }
+      ? { front: '#27B883', base: '#1C8C63' }
+      : { front: '#1B2026', base: null }
 
   return (
     <div
       className="relative flex-shrink-0"
       style={{
         transform: offsetTransform(offset),
-        width: 'clamp(72px, 22vw, 96px)',
-        height: 'clamp(72px, 22vw, 96px)',
+        width: 'clamp(72px, 22vw, 92px)',
+        height: 'clamp(72px, 22vw, 92px)',
         marginBottom: 'clamp(28px, 8vw, 44px)',
       }}
     >
-      {/* Base shadow oval */}
-      {state !== 'locked' && (
+      {/* Base shadow circle — slimmer offset than original (4px vs 6px) */}
+      {palette.base && (
         <div
           aria-hidden
-          className="absolute inset-0 rounded-[50%/60%]"
-          style={{
-            backgroundColor: palette.base,
-            transform: 'translateY(6px)',
-          }}
+          className="absolute inset-0 rounded-full"
+          style={{ backgroundColor: palette.base, transform: 'translateY(4px)' }}
         />
       )}
 
@@ -178,34 +186,31 @@ function PathNode({
         disabled={disabled}
         aria-label={label}
         className={cn(
-          'absolute inset-0 rounded-[50%/60%] flex items-center justify-center',
+          'absolute inset-0 rounded-full flex items-center justify-center',
           'transition-transform duration-100 ease-out',
-          !disabled && 'hover:-translate-y-0.5 active:translate-y-[4px]',
+          !disabled && 'hover:-translate-y-0.5 active:translate-y-[3px]',
           disabled && 'cursor-default',
         )}
         style={{
           backgroundColor: palette.front,
-          color: palette.text,
+          color: '#FFFFFF',
           boxShadow:
             state === 'locked'
-              ? 'inset 0 -3px 0 rgba(0,0,0,0.25)'
-              : 'inset 0 6px 0 rgba(255,255,255,0.22), inset 0 -4px 0 rgba(0,0,0,0.18)',
+              ? 'inset 0 -2px 0 rgba(0,0,0,0.3)'
+              : 'inset 0 3px 0 rgba(255,255,255,0.24), inset 0 -3px 0 rgba(0,0,0,0.16)',
         }}
       >
         <NodeIcon
           kind={isCurrent ? 'fastForward' : icon}
-          className="w-[46%] h-[46%] drop-shadow-[0_2px_0_rgba(0,0,0,0.15)]"
+          className={cn('w-[44%] h-[44%]', state === 'locked' && 'opacity-40')}
         />
 
-        {/* Completion badge */}
+        {/* Completion badge — amber, freed up since done-state no longer uses amber fill */}
         {complete && !isCurrent && (
           <span
             aria-hidden
             className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
-            style={{
-              backgroundColor: '#58CC02',
-              boxShadow: '0 2px 0 rgba(0,0,0,0.25)',
-            }}
+            style={{ backgroundColor: '#FAA918', boxShadow: '0 2px 0 rgba(0,0,0,0.2)' }}
           >
             <NodeIcon kind="check" className="w-4 h-4 text-white" />
           </span>
@@ -275,38 +280,45 @@ function MascotPlaceholder() {
 // ─── Sidebar: card shell ────────────────────────────────────────────
 function SideCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div
-      className={cn(
-        'bg-[#141A21] border border-white/10 rounded-2xl p-4',
-        className,
-      )}
-    >
+    <div className={cn('bg-[#10151B] border border-white/10 rounded-2xl p-5', className)}>
       {children}
     </div>
   )
 }
 
-// ─── Sidebar: rank pill (medal for top 3, number otherwise) ───────
-function RankBadge({ rank }: { rank: number }) {
-  const medal = rank === 1 ? '#FFD43B' : rank === 2 ? '#C9CFD6' : rank === 3 ? '#D98F4E' : null
-  if (medal) {
-    return (
-      <div
-        className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-[#0B0F14] shrink-0"
-        style={{ backgroundColor: medal }}
-      >
-        {rank}
-      </div>
-    )
-  }
+function SideCardHeader({ title, onViewAll, t }: { title: string; onViewAll?: () => void; t: Record<string, string> }) {
   return (
-    <div className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-[#F5F5F5]/50 shrink-0">
+    <div className="flex items-center justify-between mb-4">
+      <h3 className="font-black text-base">{title}</h3>
+      {onViewAll && (
+        <button
+          onClick={onViewAll}
+          className="text-xs font-extrabold tracking-wide uppercase text-[#1CB0F6] hover:text-[#14D4F4] transition-colors"
+        >
+          {t.viewAll}
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ─── Sidebar: rank circle (gold/silver/bronze for top 3) ───────────
+function RankBadge({ rank }: { rank: number }) {
+  const medal = rank === 1 ? '#FFC93C' : rank === 2 ? '#B9C2CC' : rank === 3 ? '#E8915A' : null
+  return (
+    <div
+      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0"
+      style={{
+        backgroundColor: medal ?? 'rgba(245,245,245,0.08)',
+        color: medal ? '#1A1A1A' : 'rgba(245,245,245,0.6)',
+      }}
+    >
       {rank}
     </div>
   )
 }
 
-// ─── Sidebar: live leaderboard ─────────────────────────────────────
+// ─── Sidebar: live leaderboard (global top 5) ──────────────────────
 function LeaderboardCard({
   entries, t, onViewAll,
 }: {
@@ -317,40 +329,21 @@ function LeaderboardCard({
   const top = entries.slice(0, 5)
   return (
     <SideCard>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <NodeIcon kind="trophy" className="w-5 h-5" />
-          <h3 className="font-black text-[15px]">{t.leaderboard}</h3>
-        </div>
-        <button
-          onClick={onViewAll}
-          className="text-xs font-extrabold text-[#1CB0F6] hover:text-[#14D4F4] transition-colors"
-        >
-          {t.viewAll}
-        </button>
-      </div>
-
-      <div className="flex flex-col gap-1">
+      <SideCardHeader title={t.leaderboard} onViewAll={onViewAll} t={t} />
+      <div className="flex flex-col gap-1.5">
         {top.map(entry => (
           <div
-            key={entry.user_id}
+            key={entry.id}
             className={cn(
-              'flex items-center gap-2.5 px-1.5 py-1.5 rounded-xl',
-              entry.is_current_user && 'bg-[#1CB0F6]/12',
+              'flex items-center gap-3 px-2.5 py-2 rounded-xl',
+              entry.is_current_user && 'bg-[#16324A] border border-[#1CB0F6]/40',
             )}
           >
-            <RankBadge rank={entry.rank} />
-            <div className="w-7 h-7 rounded-full overflow-hidden bg-[#2A323A] shrink-0 flex items-center justify-center text-[11px] font-black">
-              {entry.avatar_url ? (
-                <img src={entry.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                entry.name.charAt(0).toUpperCase()
-              )}
-            </div>
-            <span className="flex-1 min-w-0 truncate text-sm font-bold">
+            <RankBadge rank={entry.rank_global} />
+            <span className={cn('flex-1 min-w-0 truncate text-[15px]', entry.is_current_user ? 'font-black' : 'font-bold')}>
               {entry.is_current_user ? t.you : entry.name}
             </span>
-            <span className="text-sm font-black text-[#FAA918] shrink-0">{entry.points}</span>
+            <span className="text-sm font-bold text-[#F5F5F5]/60 shrink-0">{entry.xp} XP</span>
           </div>
         ))}
       </div>
@@ -358,56 +351,70 @@ function LeaderboardCard({
   )
 }
 
-// ─── Sidebar: daily quest progress ─────────────────────────────────
+// ─── Sidebar: daily quest progress bar ─────────────────────────────
 function DailyQuestCard({ quest, t }: { quest: DailyQuest; t: Record<string, string> }) {
   const pct = quest.target > 0 ? Math.min(100, Math.round((quest.current / quest.target) * 100)) : 0
   return (
     <SideCard>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <NodeIcon kind="star" className="w-5 h-5 text-[#FAA918]" />
-          <h3 className="font-black text-[15px]">{t.dailyQuests}</h3>
-        </div>
-      </div>
-
+      <SideCardHeader title={t.dailyQuests} t={t} />
       <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-[#FAA918]/15 flex items-center justify-center shrink-0">
-          <NodeIcon kind="star" className="w-5 h-5 text-[#FAA918]" />
-        </div>
+        <span className="shrink-0" style={{ color: '#FAA918' }}>
+          <NodeIcon kind="bolt" className="w-7 h-7" />
+        </span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold mb-1.5 truncate">{quest.label}</p>
-          <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-[#FAA918] transition-all duration-500"
-              style={{ width: `${pct}%` }}
-            />
+          <p className="text-[15px] font-bold mb-2">{quest.label}</p>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-2.5 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${pct}%`, backgroundColor: '#FAA918' }}
+              />
+            </div>
+            <span className="text-xs font-bold text-[#F5F5F5]/50 shrink-0">{quest.current} / {quest.target}</span>
           </div>
-          <p className="text-[11px] font-extrabold text-[#F5F5F5]/50 mt-1">
-            {quest.current} / {quest.target}
-          </p>
         </div>
       </div>
     </SideCard>
   )
 }
 
-// ─── Sidebar: daily challenges CTA ─────────────────────────────────
-function DailyChallengesCard({ t, onClick }: { t: Record<string, string>; onClick: () => void }) {
+// ─── Sidebar: daily challenge (single item per age_group/day) ─────
+function DailyChallengeCard({ challenge, t }: { challenge: DailyChallenge; t: Record<string, string> }) {
   return (
-    <button
-      onClick={onClick}
-      className="w-full text-left bg-[#1CB0F6] rounded-2xl p-4 shadow-[0_4px_0_#1280B8] active:translate-y-[2px] active:shadow-[0_2px_0_#1280B8] transition-all"
-    >
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-          <NodeIcon kind="fastForward" className="w-5 h-5 text-white" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-white font-black text-[15px] leading-tight">{t.dailyChallenges}</p>
-          <p className="text-white/80 text-xs font-bold truncate">{t.dailyChallengesSub}</p>
-        </div>
+    <SideCard>
+      <SideCardHeader title={t.dailyChallenges} t={t} />
+      <div
+        className={cn(
+          'flex items-center gap-3 px-3 py-2.5 rounded-xl border',
+          challenge.completed
+            ? 'border-white/5 bg-white/[0.02]'
+            : 'border-white/10 bg-white/[0.04]',
+        )}
+      >
+        <span
+          aria-hidden
+          className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+          style={{
+            backgroundColor: challenge.completed ? '#3CB371' : 'rgba(245,245,245,0.08)',
+          }}
+        >
+          {challenge.completed ? (
+            <NodeIcon kind="check" className="w-4 h-4 text-white" />
+          ) : (
+            <span className="text-sm">{challenge.emoji}</span>
+          )}
+        </span>
+        <span
+          className={cn(
+            'flex-1 min-w-0 truncate text-sm font-bold',
+            challenge.completed && 'line-through text-[#F5F5F5]/40',
+          )}
+        >
+          {challenge.title}
+        </span>
+        <span className="text-xs font-black text-[#1CB0F6] shrink-0">+{challenge.xp_reward} XP</span>
       </div>
-    </button>
+    </SideCard>
   )
 }
 
@@ -415,7 +422,7 @@ function DailyChallengesCard({ t, onClick }: { t: Record<string, string>; onClic
 export default function SkillsClient({
   userId, tracks, initialTrackId, skills, skillProgress, lessonCountMap,
   language, streak, gems, initialCurrentSkillId, initialFirstIncompleteLessonId,
-  leaderboard = [], dailyQuest,
+  leaderboard = [], dailyQuest, dailyChallenge,
 }: Props) {
   const router = useRouter()
   const lang = (language || 'en') as 'en' | 'ar' | 'fr'
@@ -646,10 +653,7 @@ export default function SkillsClient({
             onViewAll={() => router.push('/dashboard/leaderboard')}
           />
           {dailyQuest && <DailyQuestCard quest={dailyQuest} t={t} />}
-          <DailyChallengesCard
-            t={t}
-            onClick={() => router.push('/dashboard/challenges')}
-          />
+          {dailyChallenge && <DailyChallengeCard challenge={dailyChallenge} t={t} />}
         </aside>
       </div>
 
