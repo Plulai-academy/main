@@ -198,7 +198,7 @@ export default function SkillsClient({
 
   return (
     <div
-      className="min-h-screen w-full overflow-x-hidden bg-transparent flex flex-col max-w-[680px] mx-auto relative"
+      className="min-h-screen w-full overflow-x-hidden bg-transparent flex flex-col max-w-[680px] lg:max-w-[820px] mx-auto relative"
       dir={dir}
       style={{ fontFamily: "'Nunito', sans-serif" }}
     >
@@ -206,21 +206,21 @@ export default function SkillsClient({
 
       {/* ── TOP BAR ── */}
       <div
-        className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-3.5 bg-transparent backdrop-blur-sm border-b border-[#6F6F6F]/15 sm:px-6 sm:py-4 md:px-8"
+        className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-3.5 bg-transparent backdrop-blur-sm border-b border-[#6F6F6F]/15 sm:px-6 sm:py-4 md:px-8 lg:px-10"
         style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}
       >
         {/* Stats — bare icon + number, no card/pill, matches a plain top bar */}
-        <div className="flex items-center gap-5 sm:gap-6 min-w-0">
+        <div className="flex items-center gap-5 sm:gap-6 lg:gap-7 min-w-0">
           <div className="flex items-center gap-1.5">
             <img
               src={ICONS.streak}
               alt="Streak"
               width={20}
               height={20}
-              className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] object-contain"
+              className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] lg:w-[22px] lg:h-[22px] object-contain"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
-            <span className="text-[14px] sm:text-[15px] font-extrabold text-[#FAA918]">{streak}</span>
+            <span className="text-[14px] sm:text-[15px] lg:text-[16px] font-extrabold text-[#FAA918]">{streak}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <img
@@ -228,10 +228,10 @@ export default function SkillsClient({
               alt="Gems"
               width={20}
               height={20}
-              className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] object-contain"
+              className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] lg:w-[22px] lg:h-[22px] object-contain"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
-            <span className="text-[14px] sm:text-[15px] font-extrabold text-[#1CB0F6]">{gems}</span>
+            <span className="text-[14px] sm:text-[15px] lg:text-[16px] font-extrabold text-[#1CB0F6]">{gems}</span>
           </div>
         </div>
 
@@ -243,7 +243,7 @@ export default function SkillsClient({
               className="flex items-center gap-1.5 text-[#F5F5F5]/90 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors max-w-[40vw] sm:max-w-none"
             >
               <span className="text-[15px] sm:text-[16px] shrink-0">{activeTrack.emoji}</span>
-              <span className="text-[13px] sm:text-[14px] font-extrabold truncate">{activeTrack.name}</span>
+              <span className="text-[13px] sm:text-[14px] lg:text-[15px] font-extrabold truncate">{activeTrack.name}</span>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={cn('transition-transform shrink-0', showPicker && 'rotate-180')}>
                 <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -288,7 +288,7 @@ export default function SkillsClient({
         ) : currentSkill ? (
           <>
             {/* Unit / lesson banner */}
-            <div className="flex items-center justify-between bg-gradient-to-br from-[#1CB0F6] to-[#14D4F4] rounded-[18px] mx-auto mb-8 px-4 py-3 text-[#F5F5F5] max-w-[420px] w-[calc(100%-32px)] sm:px-5 sm:py-3.5 sm:w-[calc(100%-40px)] sm:max-w-[480px]">
+            <div className="flex items-center justify-between bg-gradient-to-br from-[#1CB0F6] to-[#14D4F4] rounded-[18px] mx-auto mb-16 sm:mb-20 px-4 py-3 text-[#F5F5F5] max-w-[420px] w-[calc(100%-32px)] sm:px-5 sm:py-3.5 sm:w-[calc(100%-40px)] sm:max-w-[480px] lg:max-w-[560px]">
               <div className="min-w-0">
                 <button
                   onClick={() => router.back()}
@@ -300,12 +300,12 @@ export default function SkillsClient({
                     {t.lessonOf} {currentLessonIdx} {t.of} {currentLessonCount || 1}
                   </span>
                 </button>
-                <p className="text-[15px] sm:text-[16px] font-extrabold truncate">{currentSkill.title}</p>
+                <p className="text-[15px] sm:text-[16px] lg:text-[18px] font-extrabold truncate">{currentSkill.title}</p>
               </div>
               <span className="text-[22px] sm:text-[24px] shrink-0 ml-2">{currentSkill.emoji}</span>
             </div>
 
-            <div className="flex flex-col items-center w-full max-w-[340px] mx-auto px-3">
+            <div className="flex flex-col items-center w-full max-w-[340px] lg:max-w-[400px] mx-auto px-3">
               {orderedSkills.map((skill, idx) => {
                 const unlocked  = isUnlocked(skill)
                 const complete  = isComplete(skill.id)
@@ -318,7 +318,10 @@ export default function SkillsClient({
                 const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.current : skill.title
 
                 return (
-                  <div key={skill.id} className="relative flex flex-col items-center w-full">
+                  <div
+                    key={skill.id}
+                    className={cn('relative flex flex-col items-center w-full', isCurrent && 'pt-12 sm:pt-14')}
+                  >
                     <button
                       ref={isCurrent ? currentNodeRef : undefined}
                       onClick={() => handleNodeTap(skill, unlocked)}
@@ -326,14 +329,14 @@ export default function SkillsClient({
                       disabled={!unlocked}
                       style={{
                         transform: offsetTransform(offset),
-                        width: 'clamp(58px, 19vw, 76px)',
-                        height: 'clamp(58px, 19vw, 76px)',
-                        marginBottom: 'clamp(28px, 8vw, 40px)',
+                        width: 'clamp(58px, 19vw, 84px)',
+                        height: 'clamp(58px, 19vw, 84px)',
+                        marginBottom: 'clamp(28px, 8vw, 44px)',
                       }}
                       className={cn(
                         'rounded-full flex items-center justify-center relative flex-shrink-0 transition-transform active:translate-y-[2px]',
                         state === 'done'    && 'bg-[#FAA918] shadow-[0_4px_10px_rgba(0,0,0,0.35)]',
-                        state === 'current' && 'bg-[#1CB0F6] shadow-[0_4px_14px_rgba(28,176,246,0.45)]',
+                        state === 'current' && 'bg-[#1CB0F6] shadow-[0_3px_8px_rgba(0,0,0,0.4)]',
                         state === 'locked'  && 'bg-[#2A323A] shadow-[0_4px_10px_rgba(0,0,0,0.25)] opacity-70 cursor-default',
                       )}
                     >
@@ -341,11 +344,10 @@ export default function SkillsClient({
                         <span className="absolute -inset-2 rounded-full border-[3px] border-[#1CB0F6]/30 animate-[ringPulse_1.8s_ease-out_infinite]" />
                       )}
                       {isCurrent && (
-                        <span className="absolute -top-[46px] bg-[#131F24] border-2 border-[#1CB0F6] text-[#1CB0F6] text-[11px] sm:text-[12px] font-extrabold px-3.5 sm:px-4 py-[7px] sm:py-[8px] rounded-[12px] whitespace-nowrap uppercase tracking-wider">
+                        <span className="absolute -top-[44px] bg-[#131F24] border-2 border-[#1CB0F6] text-[#1CB0F6] text-[11px] sm:text-[12px] font-extrabold px-3.5 sm:px-4 py-[7px] sm:py-[8px] rounded-[12px] whitespace-nowrap uppercase tracking-wider z-0">
                           {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
-                          {/* outlined speech-bubble tail: border triangle behind, fill triangle on top */}
-                          <span className="absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-[#1CB0F6]" />
-                          <span className="absolute -bottom-[6.5px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-[#131F24]" />
+                          {/* speech-bubble tail: a rotated square tucked half-behind the bubble (z-10 negative) so it reads as one seamless shape */}
+                          <span className="absolute left-1/2 -bottom-2 -translate-x-1/2 w-4 h-4 bg-[#131F24] border-r-2 border-b-2 border-[#1CB0F6] rotate-45 -z-10" />
                         </span>
                       )}
                       <span className="relative z-10">
