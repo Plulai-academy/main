@@ -96,8 +96,8 @@ function offsetTransform(offset: number) {
 // ─── Inline SVG icon set ────────────────────────────────────────────
 type IconKind = 'book' | 'star' | 'chest' | 'trophy' | 'fastForward' | 'lock' | 'check' | 'bolt'
 
-function NodeIcon({ kind, className }: { kind: IconKind; className?: string }) {
-  const common = { className, fill: 'currentColor', viewBox: '0 0 24 24' as const }
+function NodeIcon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
+  const common = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const }
   switch (kind) {
     case 'book':
       return (
@@ -139,9 +139,9 @@ function iconForIndex(idx: number): IconKind {
   return set[idx % set.length]
 }
 
-// ─── Path node — Option B: refined 3D bubble ───────────────────────
-// Current = blue (brand), Done = teal/green, Locked = flat dark.
-// Slimmer base offset + softer inner highlight than the original.
+// ─── Path node — flat disc style (matches reference screenshot) ───
+// Wide oval base + lighter oval face on top, soft drop shadow, centered icon.
+// Current = blue, Done = teal/green, Locked = muted gray-blue (as in reference).
 function PathNode({
   state, icon, complete, onClick, disabled, label, offset, isCurrent,
 }: {
@@ -156,10 +156,10 @@ function PathNode({
 }) {
   const palette =
     state === 'current'
-      ? { front: '#1CB0F6', base: '#1280B8' }
+      ? { face: '#1CB0F6', base: '#15527A', icon: '#FFFFFF' }
       : state === 'done'
-      ? { front: '#27B883', base: '#1C8C63' }
-      : { front: '#1B2026', base: null }
+      ? { face: '#27B883', base: '#1A4D3C', icon: '#FFFFFF' }
+      : { face: '#3A4450', base: '#262E37', icon: '#8A96A3' }
 
   return (
     <div
@@ -167,18 +167,16 @@ function PathNode({
       style={{
         transform: offsetTransform(offset),
         width: 'clamp(72px, 22vw, 92px)',
-        height: 'clamp(72px, 22vw, 92px)',
+        height: 'clamp(60px, 18vw, 76px)',
         marginBottom: 'clamp(28px, 8vw, 44px)',
       }}
     >
-      {/* Base shadow circle — slimmer offset than original (4px vs 6px) */}
-      {palette.base && (
-        <div
-          aria-hidden
-          className="absolute inset-0 rounded-full"
-          style={{ backgroundColor: palette.base, transform: 'translateY(4px)' }}
-        />
-      )}
+      {/* Base oval — darker shade, peeks out beneath the face */}
+      <div
+        aria-hidden
+        className="absolute inset-0 rounded-[50%/55%]"
+        style={{ backgroundColor: palette.base, transform: 'translateY(6px)' }}
+      />
 
       <button
         type="button"
@@ -186,30 +184,28 @@ function PathNode({
         disabled={disabled}
         aria-label={label}
         className={cn(
-          'absolute inset-0 rounded-full flex items-center justify-center',
+          'absolute left-0 right-0 top-0 rounded-[50%/58%] flex items-center justify-center',
           'transition-transform duration-100 ease-out',
           !disabled && 'hover:-translate-y-0.5 active:translate-y-[3px]',
           disabled && 'cursor-default',
         )}
         style={{
-          backgroundColor: palette.front,
-          color: '#FFFFFF',
-          boxShadow:
-            state === 'locked'
-              ? 'inset 0 -2px 0 rgba(0,0,0,0.3)'
-              : 'inset 0 3px 0 rgba(255,255,255,0.24), inset 0 -3px 0 rgba(0,0,0,0.16)',
+          height: '85%',
+          backgroundColor: palette.face,
+          boxShadow: '0 4px 10px rgba(0,0,0,0.25)',
         }}
       >
         <NodeIcon
           kind={isCurrent ? 'fastForward' : icon}
-          className={cn('w-[44%] h-[44%]', state === 'locked' && 'opacity-40')}
+          className="w-[40%] h-[40%]"
+          style={{ color: palette.icon } as React.CSSProperties}
         />
 
-        {/* Completion badge — amber, freed up since done-state no longer uses amber fill */}
+        {/* Completion badge */}
         {complete && !isCurrent && (
           <span
             aria-hidden
-            className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
+            className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center"
             style={{ backgroundColor: '#FAA918', boxShadow: '0 2px 0 rgba(0,0,0,0.2)' }}
           >
             <NodeIcon kind="check" className="w-4 h-4 text-white" />
@@ -566,7 +562,7 @@ export default function SkillsClient({
       </div>
 
       {/* ── BODY: path + sidebar ── */}
-      <div className="flex-1 flex justify-center gap-8 px-4 pb-32 pt-4 max-w-[1100px] mx-auto w-full">
+      <div className="flex-1 flex justify-center gap-8 px-4 pb-12 pt-4 max-w-[1100px] mx-auto w-full">
         {/* ── PATH (main column) ── */}
         <div className="relative flex-1 min-w-0 max-w-[640px]">
           {/* Mascot */}
@@ -656,30 +652,6 @@ export default function SkillsClient({
           {dailyChallenge && <DailyChallengeCard challenge={dailyChallenge} t={t} />}
         </aside>
       </div>
-
-      {/* ── BOTTOM BAR ── */}
-      {!switching && !allDone && currentSkill && (
-        <div className="fixed bottom-0 left-0 right-0 bg-[#0B0F14]/95 backdrop-blur border-t border-white/10 px-4 py-3 z-20">
-          {/* Mirrors the body's flex layout above so the button lines up with the path column, not the sidebar */}
-          <div className="flex justify-center gap-8 max-w-[1100px] mx-auto w-full">
-            <div className="flex-1 min-w-0 max-w-[640px]">
-              <button
-                onClick={goToCurrentLesson}
-                className="w-full bg-[#1CB0F6] rounded-2xl px-5 py-3 flex flex-col items-start shadow-[0_4px_0_#1280B8] active:translate-y-[2px] active:shadow-[0_2px_0_#1280B8] transition-all"
-              >
-                <span className="text-white font-black tracking-wide">
-                  {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
-                </span>
-                <span className="text-white/85 text-xs font-bold truncate max-w-full">
-                  {t.lessonOf} {currentLessonIdx} — {currentSkill.title}
-                </span>
-              </button>
-            </div>
-            {/* Ghost spacer matching sidebar width so the button column stays aligned with the path above */}
-            <div className="hidden lg:block w-[320px] shrink-0" aria-hidden />
-          </div>
-        </div>
-      )}
 
       <style>{`
         @keyframes jumpBob {
