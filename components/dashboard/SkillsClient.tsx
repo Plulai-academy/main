@@ -39,7 +39,7 @@ const ICONS = {
   streak: '/icons/streak.png',
   gems:   '/icons/gems.png',
   // Path-node icons — drop icon1.png..icon4.png in public/icons. They cycle in order.
-  node:   ['/icons/icon1.png', '/icons/icon2.png', '/icons/icon3.png', '/icons/icon4.png'],
+  node:   ['/icons/book.png', '/icons/star.png', '/icons/chest.png', '/icons/trophy.png'],
 }
 
 type MascotState = 'celebrating' | 'tired' | 'noStreak' | 'idle'
