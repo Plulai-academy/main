@@ -37,7 +37,7 @@ const UI: Record<string, Record<string, string>> = {
 
 const ICONS = {
   streak: '/icons/streak.png',
-  gems:   '/icons/gem.png',
+  gems:   '/icons/gems.png',
 }
 // Drop /icons/mascot.png in public to replace the SVG silhouette automatically.
 const MASCOT_SRC: string | null = null
