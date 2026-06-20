@@ -50,7 +50,7 @@ const UI: Record<string, Record<string, string>> = {
 // other code changes needed.
 const ICONS = {
   streak: '/icons/streak.png',
-  gems:   '/icons/gem.png',
+  gems:   '/icons/gems.png',
 }
 
 interface Track     { id: string; name: string; emoji: string; color: string }
