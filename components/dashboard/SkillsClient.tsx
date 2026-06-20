@@ -195,7 +195,7 @@ export default function SkillsClient({
 
   return (
     <div
-      className="min-h-screen w-full overflow-x-hidden bg-[#131F24] flex flex-col max-w-[680px] mx-auto relative"
+      className="min-h-screen w-full overflow-x-hidden  flex flex-col max-w-[680px] mx-auto relative"
       dir={dir}
       style={{ fontFamily: "'Nunito', sans-serif" }}
     >
