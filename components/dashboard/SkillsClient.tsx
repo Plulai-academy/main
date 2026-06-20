@@ -17,6 +17,7 @@ const UI: Record<string, Record<string, string>> = {
     allDone:     'Track complete',
     allDoneSub:  "You've mastered every skill here.",
     switching:   'Loading…',
+    back:        'Back',
   },
   ar: {
     continueBtn: 'واصل',
@@ -29,6 +30,7 @@ const UI: Record<string, Record<string, string>> = {
     allDone:     'المسار مكتمل',
     allDoneSub:  'أتقنت كل المهارات هنا.',
     switching:   'جارٍ التحميل…',
+    back:        'رجوع',
   },
   fr: {
     continueBtn: 'Continuer',
@@ -41,6 +43,7 @@ const UI: Record<string, Record<string, string>> = {
     allDone:     'Piste terminée',
     allDoneSub:  'Tu as maîtrisé toutes les compétences ici.',
     switching:   'Chargement…',
+    back:        'Retour',
   },
 }
 
@@ -49,8 +52,8 @@ const UI: Record<string, Record<string, string>> = {
 // update the paths below) and they'll show up automatically — no
 // other code changes needed.
 const ICONS = {
-  streak: '/icons/streak.png',
-  gems:   '/icons/gems.png',
+  streak: '/icons/streak.svg',
+  gems:   '/icons/gem.svg',
 }
 
 interface Track     { id: string; name: string; emoji: string; color: string }
@@ -195,7 +198,7 @@ export default function SkillsClient({
 
   return (
     <div
-      className="min-h-screen w-full overflow-x-hidden  flex flex-col max-w-[680px] mx-auto relative"
+      className="min-h-screen w-full overflow-x-hidden bg-transparent flex flex-col max-w-[680px] mx-auto relative"
       dir={dir}
       style={{ fontFamily: "'Nunito', sans-serif" }}
     >
@@ -203,33 +206,32 @@ export default function SkillsClient({
 
       {/* ── TOP BAR ── */}
       <div
-        className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-3.5 bg-[#131F24] border-b border-[#1F2C31] sm:px-6 sm:py-4 md:px-8"
+        className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-3.5 bg-transparent backdrop-blur-sm border-b border-[#6F6F6F]/15 sm:px-6 sm:py-4 md:px-8"
         style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}
       >
-        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-          {/* Streak badge */}
-          <div className="flex items-center gap-1.5 bg-gradient-to-br from-[#D33131]/15 to-[#FAA918]/15 ring-1 ring-[#FAA918]/25 rounded-full px-3 py-1.5 sm:px-3.5">
+        {/* Stats — bare icon + number, no card/pill, matches a plain top bar */}
+        <div className="flex items-center gap-5 sm:gap-6 min-w-0">
+          <div className="flex items-center gap-1.5">
             <img
               src={ICONS.streak}
               alt="Streak"
-              width={18}
-              height={18}
-              className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] object-contain"
+              width={20}
+              height={20}
+              className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] object-contain"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
-            <span className="text-[13px] sm:text-[14px] font-extrabold text-[#FAA918]">{streak}</span>
+            <span className="text-[14px] sm:text-[15px] font-extrabold text-[#FAA918]">{streak}</span>
           </div>
-          {/* Gems badge */}
-          <div className="flex items-center gap-1.5 bg-gradient-to-br from-[#1CB0F6]/15 to-[#14D4F4]/15 ring-1 ring-[#1CB0F6]/25 rounded-full px-3 py-1.5 sm:px-3.5">
+          <div className="flex items-center gap-1.5">
             <img
               src={ICONS.gems}
               alt="Gems"
-              width={18}
-              height={18}
-              className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] object-contain"
+              width={20}
+              height={20}
+              className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] object-contain"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
             />
-            <span className="text-[13px] sm:text-[14px] font-extrabold text-[#1CB0F6]">{gems}</span>
+            <span className="text-[14px] sm:text-[15px] font-extrabold text-[#1CB0F6]">{gems}</span>
           </div>
         </div>
 
@@ -285,12 +287,20 @@ export default function SkillsClient({
           </div>
         ) : currentSkill ? (
           <>
+            {/* Unit / lesson banner */}
             <div className="flex items-center justify-between bg-gradient-to-br from-[#1CB0F6] to-[#14D4F4] rounded-[18px] mx-auto mb-8 px-4 py-3 text-[#F5F5F5] max-w-[420px] w-[calc(100%-32px)] sm:px-5 sm:py-3.5 sm:w-[calc(100%-40px)] sm:max-w-[480px]">
               <div className="min-w-0">
-                <p className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider opacity-85">
-                  {t.lessonOf} {currentLessonIdx} {t.of} {currentLessonCount || 1}
-                </p>
-                <p className="text-[15px] sm:text-[16px] font-extrabold mt-0.5 truncate">{currentSkill.title}</p>
+                <button
+                  onClick={() => router.back()}
+                  aria-label={t.back}
+                  className="flex items-center gap-1.5 opacity-85 hover:opacity-100 transition-opacity -ml-1 mb-0.5"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0"><path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider">
+                    {t.lessonOf} {currentLessonIdx} {t.of} {currentLessonCount || 1}
+                  </span>
+                </button>
+                <p className="text-[15px] sm:text-[16px] font-extrabold truncate">{currentSkill.title}</p>
               </div>
               <span className="text-[22px] sm:text-[24px] shrink-0 ml-2">{currentSkill.emoji}</span>
             </div>
@@ -321,10 +331,10 @@ export default function SkillsClient({
                         marginBottom: 'clamp(28px, 8vw, 40px)',
                       }}
                       className={cn(
-                        'rounded-full flex items-center justify-center relative flex-shrink-0 transition-transform active:translate-y-[3px]',
-                        state === 'done'    && 'bg-[#FAA918] shadow-[0_6px_0_#C2820D]',
-                        state === 'current' && 'bg-[#1CB0F6] shadow-[0_6px_0_#2B70C9]',
-                        state === 'locked'  && 'bg-[#1F2C31] shadow-none opacity-55 cursor-default',
+                        'rounded-full flex items-center justify-center relative flex-shrink-0 transition-transform active:translate-y-[2px]',
+                        state === 'done'    && 'bg-[#FAA918] shadow-[0_4px_10px_rgba(0,0,0,0.35)]',
+                        state === 'current' && 'bg-[#1CB0F6] shadow-[0_4px_14px_rgba(28,176,246,0.45)]',
+                        state === 'locked'  && 'bg-[#2A323A] shadow-[0_4px_10px_rgba(0,0,0,0.25)] opacity-70 cursor-default',
                       )}
                     >
                       {isCurrent && (
@@ -359,7 +369,7 @@ export default function SkillsClient({
       {/* ── BOTTOM BAR ── */}
       {!switching && !allDone && currentSkill && (
         <div
-          className="sticky bottom-0 left-0 right-0 bg-[#131F24] border-t-2 border-[#1F2C31] px-4 sm:px-6 md:px-8 flex flex-col items-center"
+          className="sticky bottom-0 left-0 right-0 bg-transparent backdrop-blur-sm border-t border-[#6F6F6F]/15 px-4 sm:px-6 md:px-8 flex flex-col items-center"
           style={{ paddingTop: 16, paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
         >
           <div className="max-w-[420px] sm:max-w-[480px] w-full">
