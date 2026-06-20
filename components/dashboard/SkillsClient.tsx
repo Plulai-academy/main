@@ -49,8 +49,8 @@ const UI: Record<string, Record<string, string>> = {
 // update the paths below) and they'll show up automatically — no
 // other code changes needed.
 const ICONS = {
-  streak: '/icons/streak.svg',
-  gems:   '/icons/gem.svg',
+  streak: '/icons/streak.png',
+  gems:   '/icons/gem.png',
 }
 
 interface Track     { id: string; name: string; emoji: string; color: string }
