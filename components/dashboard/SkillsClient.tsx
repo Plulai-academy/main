@@ -44,6 +44,15 @@ const UI: Record<string, Record<string, string>> = {
   },
 }
 
+// ── Icon placeholders ───────────────────────────────────────────────
+// Drop your real files in public/icons using these exact names (or
+// update the paths below) and they'll show up automatically — no
+// other code changes needed.
+const ICONS = {
+  streak: '/icons/streak.svg',
+  gems:   '/icons/gem.svg',
+}
+
 interface Track     { id: string; name: string; emoji: string; color: string }
 interface Skill      { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
 interface SkillProg { skill_node_id: string; progress_pct: number; completed_at: string | null }
@@ -63,6 +72,14 @@ interface Props {
 }
 
 const OFFSET_PATTERN = [0, -1, 1, 0]
+
+// Caps the zig-zag offset to a viewport-relative value so it never pushes
+// the path wider than the screen on small phones, while still reaching the
+// full 54px swing on larger viewports.
+function offsetTransform(offset: number) {
+  if (offset === 0) return undefined
+  return `translateX(calc(${offset} * min(14vw, 54px)))`
+}
 
 export default function SkillsClient({
   userId, tracks, initialTrackId, skills, skillProgress, lessonCountMap,
@@ -178,54 +195,73 @@ export default function SkillsClient({
 
   return (
     <div
-      className="min-h-screen bg-[#131F24] flex flex-col max-w-[680px] mx-auto relative"
+      className="min-h-screen w-full overflow-x-hidden bg-[#131F24] flex flex-col max-w-[680px] mx-auto relative"
       dir={dir}
       style={{ fontFamily: "'Nunito', sans-serif" }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');`}</style>
 
       {/* ── TOP BAR ── */}
-      <div className="sticky top-0 z-20 flex items-center justify-between px-5 py-4 bg-[#131F24] border-b border-[#1F2C31] sm:px-8">
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 bg-[#1F2C31] rounded-full px-3.5 py-1.5">
-            <span className="text-[15px]">🔥</span>
-            <span className="text-[14px] font-extrabold text-[#FF9600]">{streak}</span>
+      <div
+        className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-3.5 bg-[#131F24] border-b border-[#1F2C31] sm:px-6 sm:py-4 md:px-8"
+        style={{ paddingTop: 'max(14px, env(safe-area-inset-top))' }}
+      >
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+          {/* Streak badge */}
+          <div className="flex items-center gap-1.5 bg-gradient-to-br from-[#D33131]/15 to-[#FAA918]/15 ring-1 ring-[#FAA918]/25 rounded-full px-3 py-1.5 sm:px-3.5">
+            <img
+              src={ICONS.streak}
+              alt="Streak"
+              width={18}
+              height={18}
+              className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] object-contain"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
+            />
+            <span className="text-[13px] sm:text-[14px] font-extrabold text-[#FAA918]">{streak}</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-[#1F2C31] rounded-full px-3.5 py-1.5">
-            <span className="text-[15px]">💎</span>
-            <span className="text-[14px] font-extrabold text-[#1CB0F6]">{gems}</span>
+          {/* Gems badge */}
+          <div className="flex items-center gap-1.5 bg-gradient-to-br from-[#1CB0F6]/15 to-[#14D4F4]/15 ring-1 ring-[#1CB0F6]/25 rounded-full px-3 py-1.5 sm:px-3.5">
+            <img
+              src={ICONS.gems}
+              alt="Gems"
+              width={18}
+              height={18}
+              className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] object-contain"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
+            />
+            <span className="text-[13px] sm:text-[14px] font-extrabold text-[#1CB0F6]">{gems}</span>
           </div>
         </div>
 
         {/* Track dropdown trigger */}
         {activeTrack && (
-          <div className="relative" ref={pickerRef}>
+          <div className="relative shrink-0" ref={pickerRef}>
             <button
               onClick={() => setShowPicker(v => !v)}
-              className="flex items-center gap-1.5 text-white/90 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
+              className="flex items-center gap-1.5 text-[#F5F5F5]/90 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors max-w-[40vw] sm:max-w-none"
             >
-              <span className="text-[16px]">{activeTrack.emoji}</span>
-              <span className="text-[14px] font-extrabold">{activeTrack.name}</span>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={cn('transition-transform', showPicker && 'rotate-180')}>
+              <span className="text-[15px] sm:text-[16px] shrink-0">{activeTrack.emoji}</span>
+              <span className="text-[13px] sm:text-[14px] font-extrabold truncate">{activeTrack.name}</span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={cn('transition-transform shrink-0', showPicker && 'rotate-180')}>
                 <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
 
             {showPicker && (
-              <div className="absolute right-0 top-[calc(100%+8px)] bg-[#1F2C31] rounded-2xl shadow-xl overflow-hidden min-w-[220px] z-30">
+              <div className="absolute right-0 top-[calc(100%+8px)] bg-[#1F2C31] rounded-2xl shadow-xl overflow-hidden z-30 w-[min(220px,calc(100vw-32px))] max-h-[60vh] overflow-y-auto">
                 {tracks.map(tr => (
                   <button
                     key={tr.id}
                     onClick={() => handleTrackSelect(tr.id)}
                     className={cn(
                       'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
-                      tr.id === activeTrackId ? 'bg-[#2A3A40]' : 'hover:bg-white/5',
+                      tr.id === activeTrackId ? 'bg-[#1CB0F6]/12' : 'hover:bg-white/5',
                     )}
                   >
-                    <span className="text-[20px]">{tr.emoji}</span>
-                    <span className="text-[14px] font-extrabold text-white flex-1">{tr.name}</span>
+                    <span className="text-[20px] shrink-0">{tr.emoji}</span>
+                    <span className="text-[14px] font-extrabold text-[#F5F5F5] flex-1 truncate">{tr.name}</span>
                     {tr.id === activeTrackId && (
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="#58CC02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0"><path d="M3 8l4 4 6-7" stroke="#1CB0F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     )}
                   </button>
                 ))}
@@ -236,36 +272,35 @@ export default function SkillsClient({
       </div>
 
       {/* ── PATH ── */}
-      <div className="flex-1 overflow-y-auto pt-7 pb-36 sm:pt-9 sm:pb-40">
+      <div className="flex-1 overflow-y-auto pt-7 pb-32 sm:pt-9 sm:pb-40">
         {switching ? (
           <div className="flex items-center justify-center py-24">
-            <p className="text-[14px] font-bold text-[#5C6B70]">{t.switching}</p>
+            <p className="text-[14px] font-bold text-[#6F6F6F]">{t.switching}</p>
           </div>
         ) : allDone ? (
-          <div className="flex flex-col items-center text-center px-8 py-16">
-            <div className="text-[56px] mb-4">🏆</div>
-            <p className="text-[18px] font-extrabold text-white mb-2">{t.allDone}</p>
-            <p className="text-[14px] text-[#5C6B70]">{t.allDoneSub}</p>
+          <div className="flex flex-col items-center text-center px-6 sm:px-8 py-16">
+            <div className="text-[48px] sm:text-[56px] mb-4">🏆</div>
+            <p className="text-[17px] sm:text-[18px] font-extrabold text-[#F5F5F5] mb-2">{t.allDone}</p>
+            <p className="text-[13px] sm:text-[14px] text-[#6F6F6F]">{t.allDoneSub}</p>
           </div>
         ) : currentSkill ? (
           <>
-            <div className="flex items-center justify-between bg-[#1CB0F6] rounded-[18px] mx-auto mb-8 px-5 py-3.5 text-white max-w-[420px] w-[calc(100%-40px)] sm:max-w-[480px]">
-              <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-wider opacity-85">
+            <div className="flex items-center justify-between bg-gradient-to-br from-[#1CB0F6] to-[#14D4F4] rounded-[18px] mx-auto mb-8 px-4 py-3 text-[#F5F5F5] max-w-[420px] w-[calc(100%-32px)] sm:px-5 sm:py-3.5 sm:w-[calc(100%-40px)] sm:max-w-[480px]">
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider opacity-85">
                   {t.lessonOf} {currentLessonIdx} {t.of} {currentLessonCount || 1}
                 </p>
-                <p className="text-[16px] font-extrabold mt-0.5">{currentSkill.title}</p>
+                <p className="text-[15px] sm:text-[16px] font-extrabold mt-0.5 truncate">{currentSkill.title}</p>
               </div>
-              <span className="text-[24px]">{currentSkill.emoji}</span>
+              <span className="text-[22px] sm:text-[24px] shrink-0 ml-2">{currentSkill.emoji}</span>
             </div>
 
-            <div className="flex flex-col items-center max-w-[280px] sm:max-w-[320px] mx-auto">
+            <div className="flex flex-col items-center w-full max-w-[340px] mx-auto px-3">
               {orderedSkills.map((skill, idx) => {
                 const unlocked  = isUnlocked(skill)
                 const complete  = isComplete(skill.id)
                 const isCurrent = skill.id === currentSkillId
                 const offset    = OFFSET_PATTERN[idx % OFFSET_PATTERN.length]
-                const offsetPx  = offset === -1 ? -54 : offset === 1 ? 54 : 0
 
                 const state = complete ? 'done' : isCurrent ? 'current' : unlocked ? 'done' : 'locked'
                 const icon  = complete ? 'check' : isCurrent ? 'target' : unlocked ? 'check' : 'lock'
@@ -279,32 +314,37 @@ export default function SkillsClient({
                       onClick={() => handleNodeTap(skill, unlocked)}
                       aria-label={label}
                       disabled={!unlocked}
-                      style={{ transform: `translateX(${offsetPx}px)` }}
+                      style={{
+                        transform: offsetTransform(offset),
+                        width: 'clamp(58px, 19vw, 76px)',
+                        height: 'clamp(58px, 19vw, 76px)',
+                        marginBottom: 'clamp(28px, 8vw, 40px)',
+                      }}
                       className={cn(
-                        'w-[68px] h-[68px] sm:w-[76px] sm:h-[76px] rounded-full flex items-center justify-center relative mb-10 flex-shrink-0 transition-transform active:translate-y-[3px]',
-                        state === 'done'    && 'bg-[#FFC800] shadow-[0_6px_0_#B8860B]',
-                        state === 'current' && 'bg-[#58CC02] shadow-[0_6px_0_#4AA302]',
+                        'rounded-full flex items-center justify-center relative flex-shrink-0 transition-transform active:translate-y-[3px]',
+                        state === 'done'    && 'bg-[#FAA918] shadow-[0_6px_0_#C2820D]',
+                        state === 'current' && 'bg-[#1CB0F6] shadow-[0_6px_0_#2B70C9]',
                         state === 'locked'  && 'bg-[#1F2C31] shadow-none opacity-55 cursor-default',
                       )}
                     >
                       {isCurrent && (
-                        <span className="absolute -inset-2 rounded-full border-[3px] border-[#58CC02]/30 animate-[ringPulse_1.8s_ease-out_infinite]" />
+                        <span className="absolute -inset-2 rounded-full border-[3px] border-[#1CB0F6]/30 animate-[ringPulse_1.8s_ease-out_infinite]" />
                       )}
                       {isCurrent && (
-                        <span className="absolute -top-[42px] bg-white text-[#58CC02] text-[12px] font-extrabold px-4 py-[7px] rounded-[11px] whitespace-nowrap uppercase tracking-wider shadow-md">
+                        <span className="absolute -top-[42px] bg-[#F5F5F5] text-[#1CB0F6] text-[11px] sm:text-[12px] font-extrabold px-3.5 sm:px-4 py-[6px] sm:py-[7px] rounded-[11px] whitespace-nowrap uppercase tracking-wider shadow-md">
                           {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
-                          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white" />
+                          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#F5F5F5]" />
                         </span>
                       )}
                       <span className="relative z-10">
                         {icon === 'check' && (
-                          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M6 14l5 5 11-12" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="w-[60%] h-[60%]"><path d="M6 14l5 5 11-12" stroke="#F5F5F5" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         )}
                         {icon === 'target' && (
-                          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="10" stroke="#fff" strokeWidth="2.5"/><circle cx="14" cy="14" r="5" stroke="#fff" strokeWidth="2.5"/><circle cx="14" cy="14" r="1.5" fill="#fff"/></svg>
+                          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" className="w-[60%] h-[60%]"><circle cx="14" cy="14" r="10" stroke="#F5F5F5" strokeWidth="2.5"/><circle cx="14" cy="14" r="5" stroke="#F5F5F5" strokeWidth="2.5"/><circle cx="14" cy="14" r="1.5" fill="#F5F5F5"/></svg>
                         )}
                         {icon === 'lock' && (
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#4D5C61" strokeWidth="2"/><path d="M8 11V7a4 4 0 018 0v4" stroke="#4D5C61" strokeWidth="2"/></svg>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="w-[55%] h-[55%]"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#6F6F6F" strokeWidth="2"/><path d="M8 11V7a4 4 0 018 0v4" stroke="#6F6F6F" strokeWidth="2"/></svg>
                         )}
                       </span>
                     </button>
@@ -319,18 +359,18 @@ export default function SkillsClient({
       {/* ── BOTTOM BAR ── */}
       {!switching && !allDone && currentSkill && (
         <div
-          className="sticky bottom-0 left-0 right-0 bg-[#131F24] border-t-2 border-[#1F2C31] px-5 sm:px-8 flex flex-col items-center"
+          className="sticky bottom-0 left-0 right-0 bg-[#131F24] border-t-2 border-[#1F2C31] px-4 sm:px-6 md:px-8 flex flex-col items-center"
           style={{ paddingTop: 16, paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}
         >
           <div className="max-w-[420px] sm:max-w-[480px] w-full">
             <button
               onClick={goToCurrentLesson}
-              className="w-full bg-[#58CC02] text-white rounded-2xl py-[17px] sm:py-[18px] text-[16px] sm:text-[17px] font-extrabold uppercase tracking-wider shadow-[0_4px_0_#4AA302] transition-transform active:translate-y-1 active:shadow-none"
+              className="w-full bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-[#F5F5F5] rounded-2xl py-[16px] sm:py-[17px] md:py-[18px] text-[15px] sm:text-[16px] md:text-[17px] font-extrabold uppercase tracking-wider shadow-[0_4px_0_#2B70C9] transition-transform active:translate-y-1 active:shadow-none"
               style={{ touchAction: 'manipulation' }}
             >
               {currentProgressPct > 0 ? t.continueBtn : t.startBtn}
             </button>
-            <p className="text-center text-[12px] font-extrabold text-[#5C6B70] mt-2.5">
+            <p className="text-center text-[11px] sm:text-[12px] font-extrabold text-[#6F6F6F] mt-2.5 truncate">
               {t.lessonOf} {currentLessonIdx} — {currentSkill.title}
             </p>
           </div>
