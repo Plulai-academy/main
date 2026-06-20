@@ -48,7 +48,7 @@ interface SkillProg{ skill_node_id: string; progress_pct: number; completed_at: 
 
 interface LeaderboardEntry {
   id: string
-  rank_global: number
+  rank_global: number | null
   name: string
   avatar_url: string | null
   xp: number
@@ -313,6 +313,30 @@ function RankBadge({ rank }: { rank: number }) {
     </div>
   )
 }
+// ─── Sidebar: avatar circle (image, falls back to initial) ─────────
+function LeaderboardAvatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
+  const [errored, setErrored] = useState(false)
+  const initial = name.trim().charAt(0).toUpperCase() || '?'
+
+  if (avatarUrl && !errored) {
+    return (
+      <img
+        src={avatarUrl}
+        alt=""
+        className="w-8 h-8 rounded-full object-cover shrink-0 bg-white/10"
+        onError={() => setErrored(true)}
+      />
+    )
+  }
+  return (
+    <div
+      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0"
+      style={{ backgroundColor: 'rgba(245,245,245,0.08)', color: 'rgba(245,245,245,0.6)' }}
+    >
+      {initial}
+    </div>
+  )
+}
 
 // ─── Sidebar: live leaderboard (global top 5) ──────────────────────
 function LeaderboardCard({
@@ -335,7 +359,12 @@ function LeaderboardCard({
               entry.is_current_user && 'bg-[#16324A] border border-[#1CB0F6]/40',
             )}
           >
-            <RankBadge rank={entry.rank_global} />
+            {entry.rank_global != null ? (
+              <RankBadge rank={entry.rank_global} />
+            ) : (
+              <div className="w-8 h-8 shrink-0" />
+            )}
+            <LeaderboardAvatar name={entry.name} avatarUrl={entry.avatar_url} />
             <span className={cn('flex-1 min-w-0 truncate text-[15px]', entry.is_current_user ? 'font-black' : 'font-bold')}>
               {entry.is_current_user ? t.you : entry.name}
             </span>
@@ -346,7 +375,6 @@ function LeaderboardCard({
     </SideCard>
   )
 }
-
 // ─── Sidebar: daily quest progress bar ─────────────────────────────
 function DailyQuestCard({ quest, t }: { quest: DailyQuest; t: Record<string, string> }) {
   const pct = quest.target > 0 ? Math.min(100, Math.round((quest.current / quest.target) * 100)) : 0

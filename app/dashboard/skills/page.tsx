@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import SkillsClient from '@/components/dashboard/SkillsClient'
 
 const DAILY_QUEST_TARGET = 10 // lessons-completed-today target; adjust or make per-age-group later
+const LEADERBOARD_LIMIT = 5
 
 export default async function SkillsPage() {
   const supabase = createClient()
@@ -30,6 +31,7 @@ export default async function SkillsPage() {
     progressRes,
     walletRes,
     leaderboardRes,
+    currentUserRankRes,
     todayCompletionsRes,
     dailyChallengeRes,
   ] = await Promise.all([
@@ -52,11 +54,17 @@ export default async function SkillsPage() {
       .select('balance')
       .eq('user_id', userId)
       .single(),
-    // Global top 5 leaderboard
+    // Global top N leaderboard
     supabase.from('leaderboard')
-      .select('id, name, avatar_url, xp, rank_global')
+      .select('id, display_name, avatar, xp, rank_global')
+      .not('rank_global', 'is', null)
       .order('rank_global', { ascending: true })
-      .limit(5),
+      .limit(LEADERBOARD_LIMIT),
+    // Current user's own row (in case they're outside the top N)
+    supabase.from('leaderboard')
+      .select('id, display_name, avatar, xp, rank_global')
+      .eq('id', userId)
+      .maybeSingle(),
     // Today's completed lessons, for the Daily Quest progress bar
     supabase.from('user_lesson_completions')
       .select('lesson_id, completed_at')
@@ -129,10 +137,23 @@ export default async function SkillsPage() {
 
   // ── Sidebar data shaping ──────────────────────────────────────────
 
-  const leaderboard = (leaderboardRes.data ?? []).map(row => ({
-    ...row,
+  // rank_global is bigint — supabase-js can hand it back as a string, so cast explicitly.
+  const mapRow = (row: any) => ({
+    id: row.id as string,
+    name: (row.display_name as string) ?? 'Anonymous',
+    avatar_url: (row.avatar as string | null) ?? null,
+    xp: row.xp as number,
+    rank_global: row.rank_global == null ? null : Number(row.rank_global),
     is_current_user: row.id === userId,
-  }))
+  })
+
+  let leaderboard = (leaderboardRes.data ?? []).map(mapRow)
+
+  // If the current user isn't already in the top N, pin their row at the end.
+  const userInTop = leaderboard.some(row => row.is_current_user)
+  if (!userInTop && currentUserRankRes.data) {
+    leaderboard = [...leaderboard, mapRow(currentUserRankRes.data)]
+  }
 
   const dailyQuest = {
     label: 'Earn 10 XP',
