@@ -14,6 +14,7 @@ const UI: Record<string, Record<string, string>> = {
     switching: 'Loading…', back: 'Back',
     leaderboard: 'Leaderboard', viewAll: 'View all', you: 'You',
     dailyQuests: 'Daily Quests', dailyChallenges: 'Daily Challenges',
+    challengeDone: 'Completed! 🎉', challengeCheck: "Check today's challenge",
   },
   ar: {
     continueBtn: 'واصل', startBtn: 'ابدأ', jumpHere: 'اقفز هنا؟',
@@ -23,6 +24,7 @@ const UI: Record<string, Record<string, string>> = {
     switching: 'جارٍ التحميل…', back: 'رجوع',
     leaderboard: 'لوحة الصدارة', viewAll: 'عرض الكل', you: 'أنت',
     dailyQuests: 'المهام اليومية', dailyChallenges: 'التحديات اليومية',
+    challengeDone: 'مكتمل! 🎉', challengeCheck: 'تحقق من تحدي اليوم',
   },
   fr: {
     continueBtn: 'Continuer', startBtn: 'Commencer', jumpHere: 'SAUTER ICI ?',
@@ -32,6 +34,7 @@ const UI: Record<string, Record<string, string>> = {
     switching: 'Chargement…', back: 'Retour',
     leaderboard: 'Classement', viewAll: 'Tout voir', you: 'Toi',
     dailyQuests: 'Quêtes du jour', dailyChallenges: 'Défis du jour',
+    challengeDone: 'Terminé ! 🎉', challengeCheck: 'Vérifie le défi du jour',
   },
 }
 
@@ -468,16 +471,25 @@ function DailyQuestCard({ quest, t }: { quest: DailyQuest; t: Record<string, str
 }
 
 // ─── Sidebar: daily challenge (single item per age_group/day) ─────
-function DailyChallengeCard({ challenge, t }: { challenge: DailyChallenge; t: Record<string, string> }) {
+function DailyChallengeCard({
+  challenge, t, onOpen,
+}: {
+  challenge: DailyChallenge
+  t: Record<string, string>
+  onOpen?: () => void
+}) {
   return (
     <SideCard>
       <SideCardHeader title={t.dailyChallenges} t={t} />
-      <div
+      <button
+        type="button"
+        onClick={onOpen}
+        disabled={challenge.completed}
         className={cn(
-          'flex items-center gap-3 px-3 py-2.5 rounded-xl border',
+          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-colors',
           challenge.completed
-            ? 'border-white/5 bg-white/[0.02]'
-            : 'border-white/10 bg-white/[0.04]',
+            ? 'border-white/5 bg-white/[0.02] cursor-default'
+            : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]',
         )}
       >
         <span
@@ -493,16 +505,26 @@ function DailyChallengeCard({ challenge, t }: { challenge: DailyChallenge; t: Re
             <span className="text-sm">{challenge.emoji}</span>
           )}
         </span>
-        <span
-          className={cn(
-            'flex-1 min-w-0 truncate text-sm font-bold',
-            challenge.completed && 'line-through text-[#F5F5F5]/40',
-          )}
-        >
-          {challenge.title}
-        </span>
+        <div className="flex-1 min-w-0">
+          <p
+            className={cn(
+              'truncate text-sm font-bold',
+              challenge.completed && 'line-through text-[#F5F5F5]/40',
+            )}
+          >
+            {challenge.title}
+          </p>
+          <p
+            className={cn(
+              'text-xs font-bold mt-0.5',
+              challenge.completed ? 'text-[#3CB371]' : 'text-[#1CB0F6]',
+            )}
+          >
+            {challenge.completed ? t.challengeDone : t.challengeCheck}
+          </p>
+        </div>
         <span className="text-xs font-black text-[#1CB0F6] shrink-0">+{challenge.xp_reward} XP</span>
-      </div>
+      </button>
     </SideCard>
   )
 }
@@ -744,14 +766,20 @@ export default function SkillsClient({
         </div>
 
         {/* ── SIDEBAR ── */}
-        <aside className="hidden lg:flex flex-col gap-4 w-[320px] shrink-0 pt-1">
+        <aside className="hidden lg:flex flex-col gap-4 w-[320px] shrink-0 self-start sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto pt-1">
           <LeaderboardCard
             entries={leaderboard}
             t={t}
             onViewAll={() => router.push('/dashboard/leaderboard')}
           />
           {dailyQuest && <DailyQuestCard quest={dailyQuest} t={t} />}
-          {dailyChallenge && <DailyChallengeCard challenge={dailyChallenge} t={t} />}
+          {dailyChallenge && (
+            <DailyChallengeCard
+              challenge={dailyChallenge}
+              t={t}
+              onOpen={() => router.push(`/dashboard/challenges/${dailyChallenge.id}`)}
+            />
+          )}
         </aside>
       </div>
 
