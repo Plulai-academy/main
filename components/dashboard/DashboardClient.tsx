@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { addXP, completeChallenge, checkAndAwardBadges, updateStreak } from '@/lib/supabase/queries'
 import ShareCardModal, { type ShareCardProps } from '@/components/share/ShareCardGenerator'
-import { cn, formatXP, getRarityColor, getRarityGlow } from '@/lib/utils'
+import { cn, formatXP } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 
 const XP_PER_LEVEL = 1000
@@ -21,7 +21,6 @@ const getLevelTitle = (level: number): string => {
 }
 
 // ─── Inline SVG icon set — replaces all literal emoji in the UI chrome ───
-// (matches the Icon pattern used in SkillsClient / LessonListClient)
 type IconKind =
   | 'fire' | 'book' | 'trophy' | 'coin' | 'rocket' | 'target' | 'lock' | 'check'
   | 'hourglass' | 'share' | 'robot' | 'sparkle' | 'bolt' | 'sunrise' | 'partyPop'
@@ -67,6 +66,30 @@ function Icon({ kind, className, style }: { kind: IconKind; className?: string; 
     case 'star':
       return <svg {...common}><path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.4 6.5L12 17.3l-6 3.1 1.4-6.5L2.5 9.3l6.6-.7L12 2.5Z"/></svg>
   }
+}
+
+// ─── Shared card chrome — every section uses the same shell so the page
+// reads as one designed system instead of independently-styled blocks. ───
+function SectionCard({
+  children, className, glow,
+}: { children: React.ReactNode; className?: string; glow?: string }) {
+  return (
+    <div className={cn(
+      'relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 shadow-xl shadow-black/20 animate-slide-up overflow-hidden',
+      className,
+    )}>
+      {glow && <div className={cn('absolute w-40 h-40 rounded-full blur-3xl pointer-events-none', glow)} />}
+      <div className="relative">{children}</div>
+    </div>
+  )
+}
+
+function IconChip({ kind, className, iconClassName }: { kind: IconKind; className?: string; iconClassName?: string }) {
+  return (
+    <div className={cn('w-11 h-11 rounded-2xl flex items-center justify-center shrink-0', className)}>
+      <Icon kind={kind} className={cn('w-5 h-5', iconClassName)} />
+    </div>
+  )
 }
 
 interface Props {
@@ -163,6 +186,11 @@ export default function DashboardClient({
     { icon:'trophy' as IconKind, val:`${earnedBadges.length}`,      label: lang === 'ar' ? 'شارة' : lang === 'fr' ? 'badges'  : 'badges',  sublabel: lang === 'ar' ? 'مكتسبة'  : lang === 'fr' ? 'gagnés'    : 'earned', color:'text-[#FAA918]', bg:'bg-[#FAA918]/10' },
   ]
 
+  // Ring meter for level progress, shown next to the level number.
+  const ringRadius = 22
+  const ringCirc   = 2 * Math.PI * ringRadius
+  const ringOffset = ringCirc - (xpPct / 100) * ringCirc
+
   return (
     <div className="p-4 md:p-6 lg:p-10 max-w-5xl text-[#F5F5F5]">
 
@@ -199,16 +227,12 @@ export default function DashboardClient({
           href="/dashboard/shop"
           className="flex items-center justify-between gap-4 px-5 py-4 mb-6 md:mb-8 rounded-3xl bg-card border border-white/10 hover:border-yellow-400/40 transition-all duration-200 animate-slide-up group"
         >
-          {/* Left: icon + amount */}
           <div className="flex items-center gap-4 min-w-0">
-            <div className={cn(
-              'w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 border',
-              balance > 0
-                ? 'bg-yellow-400/15 border-yellow-400/30'
-                : 'bg-white/5 border-white/10 opacity-50'
-            )}>
-              <Icon kind="coin" className="w-6 h-6 text-yellow-400" />
-            </div>
+            <IconChip
+              kind="coin"
+              className={cn('border', balance > 0 ? 'bg-yellow-400/15 border-yellow-400/30' : 'bg-white/5 border-white/10 opacity-50')}
+              iconClassName="text-yellow-400"
+            />
             <div className="min-w-0">
               <div className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">
                 {lang === 'ar' ? 'رصيدك' : lang === 'fr' ? 'Ton solde' : 'Your balance'}
@@ -229,8 +253,7 @@ export default function DashboardClient({
             </div>
           </div>
 
-          {/* Right: CTA pill */}
-          <div className="flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-sm font-bold group-hover:bg-yellow-400/20 transition-all duration-200">
+          <div className="flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-sm font-bold group-hover:bg-yellow-400/20 group-hover:gap-2.5 transition-all duration-200">
             {balance > 0
               ? (lang === 'ar' ? 'المتجر' : lang === 'fr' ? 'Boutique' : 'Shop')
               : (lang === 'ar' ? 'كيف أكسب؟' : lang === 'fr' ? 'Comment gagner ?' : 'How to earn?')}
@@ -241,23 +264,23 @@ export default function DashboardClient({
 
       {/* ── Greeting ── */}
       <div className="mb-6 md:mb-8 animate-slide-up">
-        <h1 className="font-fredoka text-2xl md:text-3xl lg:text-4xl mb-1 leading-tight text-[#F5F5F5]">
+        <h1 className="font-fredoka text-2xl md:text-3xl lg:text-4xl mb-1.5 leading-tight text-[#F5F5F5]">
           {greetings[profile.age_group] || greetings.pro}
         </h1>
-        <p className="text-[#6F6F6F] font-semibold text-sm md:text-base flex items-center gap-1.5">
-          <Icon kind={streak > 0 ? 'fire' : 'seedling'} className={cn('w-4 h-4 shrink-0', streak > 0 ? 'text-[#FAA918]' : 'text-[#3CB371]')} />
+        <p className={cn(
+          'inline-flex items-center gap-1.5 text-sm md:text-base font-bold px-3 py-1 rounded-full',
+          streak > 0 ? 'text-[#FAA918] bg-[#FAA918]/10' : 'text-[#3CB371] bg-[#3CB371]/10',
+        )}>
+          <Icon kind={streak > 0 ? 'fire' : 'seedling'} className="w-4 h-4 shrink-0" />
           {streakMsg}
         </p>
       </div>
 
       {/* ── Start Learning ── */}
-      <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 mb-5 md:mb-6 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#1CB0F6]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-center sm:text-left flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#1CB0F6]/15 flex items-center justify-center shrink-0 hidden sm:flex">
-              <Icon kind="rocket" className="w-5.5 h-5.5 text-[#1CB0F6]" />
-            </div>
+      <SectionCard className="mb-5 md:mb-6" glow="-top-10 -left-10 bg-[#1CB0F6]/10">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-center sm:text-left">
+            <IconChip kind="rocket" className="bg-[#1CB0F6]/15 hidden sm:flex" iconClassName="text-[#1CB0F6]" />
             <div>
               <h2 className="font-fredoka text-xl md:text-2xl mb-1 text-[#F5F5F5]">Continue Your Journey</h2>
               <p className="text-[#6F6F6F] text-sm font-semibold">Master new skills and earn more XP today!</p>
@@ -265,26 +288,40 @@ export default function DashboardClient({
           </div>
           <Link
             href="/dashboard/skills"
-            className="w-full sm:w-auto px-10 py-3.5 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-black text-center hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#1CB0F6]/25 transition-all duration-200"
+            className="w-full sm:w-auto px-10 py-3.5 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-black text-center shadow-[0_4px_0_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.2)] active:translate-y-0.5 active:shadow-none transition-all duration-150"
           >
             Start
           </Link>
         </div>
-      </div>
+      </SectionCard>
 
       {/* ── XP Card ── */}
-      <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 mb-5 md:mb-6 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#1CB0F6]/8 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="relative flex items-start justify-between mb-5 gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className="font-fredoka text-xl md:text-2xl text-[#1CB0F6]">Level {level}</span>
-              <span className="text-xs md:text-sm font-bold text-[#6F6F6F] bg-[#1CB0F6]/10 border border-[#1CB0F6]/15 px-2.5 py-0.5 rounded-full">
-                {getLevelTitle(level)}
-              </span>
+      <SectionCard className="mb-5 md:mb-6" glow="-top-10 -right-10 bg-[#1CB0F6]/8">
+        <div className="flex items-start justify-between mb-5 gap-3">
+          <div className="flex items-center gap-3.5 min-w-0">
+            {/* Level ring */}
+            <div className="relative w-14 h-14 shrink-0">
+              <svg viewBox="0 0 52 52" className="w-14 h-14 -rotate-90">
+                <circle cx="26" cy="26" r={ringRadius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
+                <circle
+                  cx="26" cy="26" r={ringRadius} fill="none" stroke="#1CB0F6" strokeWidth="4" strokeLinecap="round"
+                  strokeDasharray={ringCirc} strokeDashoffset={ringOffset}
+                  className="transition-all duration-700"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center font-fredoka text-sm text-[#1CB0F6]">
+                {level}
+              </div>
             </div>
-            <div className="text-[#6F6F6F] text-xs font-bold">{xpInLevel} / {XP_PER_LEVEL} XP to next level</div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                <span className="font-fredoka text-lg md:text-xl text-[#F5F5F5]">Level {level}</span>
+                <span className="text-xs font-bold text-[#6F6F6F] bg-[#1CB0F6]/10 border border-[#1CB0F6]/15 px-2.5 py-0.5 rounded-full">
+                  {getLevelTitle(level)}
+                </span>
+              </div>
+              <div className="text-[#6F6F6F] text-xs font-bold">{xpInLevel} / {XP_PER_LEVEL} XP to next level</div>
+            </div>
           </div>
           <div className="text-right shrink-0">
             <div className="font-fredoka text-2xl md:text-3xl text-[#F5F5F5]">{formatXP(xp)}</div>
@@ -303,7 +340,7 @@ export default function DashboardClient({
 
         <div className="grid grid-cols-3 gap-2 md:gap-3">
           {statItems.map(s => (
-            <div key={s.label} className={cn('rounded-2xl p-3 md:p-4 text-center border border-white/5', s.bg)}>
+            <div key={s.label} className={cn('rounded-2xl p-3 md:p-4 text-center border border-white/5 transition-transform hover:-translate-y-0.5', s.bg)}>
               <Icon kind={s.icon} className={cn('w-5 h-5 mx-auto mb-1.5', s.color)} />
               <div className={cn('font-fredoka text-xl md:text-2xl leading-none mb-0.5', s.color)}>{s.val}</div>
               <div className="text-[#F5F5F5] font-extrabold text-xs">{s.label}</div>
@@ -311,14 +348,13 @@ export default function DashboardClient({
             </div>
           ))}
         </div>
-      </div>
+      </SectionCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">
 
         {/* ── Daily Challenge ── */}
-        <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
-          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-[#2B70C9]/6 rounded-full blur-2xl pointer-events-none" />
-          <div className="relative flex items-center justify-between mb-4 gap-2">
+        <SectionCard glow="-bottom-8 -left-8 bg-[#2B70C9]/6">
+          <div className="flex items-center justify-between mb-4 gap-2">
             <h2 className="font-fredoka text-lg md:text-xl text-[#F5F5F5] flex items-center gap-2">
               <Icon kind="bolt" className="w-5 h-5 text-[#FAA918]" /> Today&apos;s Challenge
             </h2>
@@ -340,10 +376,10 @@ export default function DashboardClient({
                 onClick={doChallenge}
                 disabled={isChallengeComplete || isPending}
                 className={cn(
-                  'w-full py-3 md:py-3.5 rounded-2xl font-extrabold text-sm transition-all duration-200 flex items-center justify-center gap-2',
+                  'w-full py-3 md:py-3.5 rounded-2xl font-extrabold text-sm transition-all duration-150 flex items-center justify-center gap-2',
                   isChallengeComplete
                     ? 'bg-[#6F6F6F]/15 text-[#6F6F6F] border border-[#6F6F6F]/25 cursor-default'
-                    : 'bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-black hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#1CB0F6]/25 active:translate-y-0 disabled:opacity-50'
+                    : 'bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-black shadow-[0_4px_0_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.2)] active:translate-y-0.5 active:shadow-none disabled:opacity-50'
                 )}
               >
                 {isPending ? (
@@ -361,12 +397,11 @@ export default function DashboardClient({
               No challenge today — check back tomorrow!
             </div>
           )}
-        </div>
+        </SectionCard>
 
         {/* ── Badges ── */}
-        <div className="relative bg-card rounded-3xl p-5 md:p-6 border border-white/5 shadow-xl shadow-black/20 animate-slide-up overflow-hidden">
-          <div className="absolute -top-8 -right-8 w-32 h-32 bg-[#FAA918]/5 rounded-full blur-2xl pointer-events-none" />
-          <div className="relative flex items-center justify-between mb-4">
+        <SectionCard glow="-top-8 -right-8 bg-[#FAA918]/5">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="font-fredoka text-lg md:text-xl text-[#F5F5F5] flex items-center gap-2">
               <Icon kind="trophy" className="w-5 h-5 text-[#FAA918]" /> Badges
             </h2>
@@ -380,10 +415,7 @@ export default function DashboardClient({
               {earnedBadges.slice(0, 6).map((b: any) => (
                 <div
                   key={b.id}
-                  className={cn(
-                    'bg-card2 rounded-2xl p-2.5 md:p-3 text-center border hover:scale-105 hover:-translate-y-0.5 transition-all duration-200 cursor-default',
-                    'border-[#1CB0F6]/20 shadow-sm shadow-[#1CB0F6]/10'
-                  )}
+                  className="bg-card2 rounded-2xl p-2.5 md:p-3 text-center border border-[#1CB0F6]/20 shadow-sm shadow-[#1CB0F6]/10 hover:scale-105 hover:-translate-y-0.5 transition-all duration-200 cursor-default"
                 >
                   <div className="text-2xl md:text-3xl mb-1">{b.emoji}</div>
                   <div className="text-xs font-bold truncate text-[#F5F5F5]">{b.name}</div>
@@ -413,7 +445,7 @@ export default function DashboardClient({
               ))}
             </div>
           )}
-        </div>
+        </SectionCard>
 
         {/* ── Dream Project ── */}
         <div
@@ -436,7 +468,7 @@ export default function DashboardClient({
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="/dashboard/coach"
-                className="w-full sm:w-auto text-center px-5 md:px-6 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-[#1CB0F6] to-[#2B70C9] text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#2B70C9]/25 transition-all duration-200 flex items-center justify-center gap-2"
+                className="w-full sm:w-auto text-center px-5 md:px-6 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-[#1CB0F6] to-[#2B70C9] text-white shadow-[0_4px_0_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_6px_0_rgba(0,0,0,0.2)] active:translate-y-0.5 active:shadow-none transition-all duration-150 flex items-center justify-center gap-2"
               >
                 <Icon kind="robot" className="w-4 h-4" /> Talk to your AI Coach
                 <Icon kind="chevronRight" className="w-3.5 h-3.5" />
