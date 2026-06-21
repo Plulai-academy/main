@@ -146,6 +146,8 @@ const UI: Record<string, Record<string, string>> = {
     startTimer: 'Start Timer',
     submitChallenge: 'Submit',
     remixDesc: 'You nailed the basics. Now twist it.',
+    remixDone: 'I finished my remix',
+    remixComplete: 'Remix complete!',
     dragDrop: 'Drag & Drop',
     dragInstruction: 'Drag each word into the correct slot',
     wordBank: 'Word Bank',
@@ -200,6 +202,8 @@ const UI: Record<string, Record<string, string>> = {
     startTimer: 'ابدأ الموقت',
     submitChallenge: 'أرسل',
     remixDesc: 'أتقنت الأساسيات. الآن طوّرها.',
+    remixDone: 'أنهيت الريمكس',
+    remixComplete: 'اكتمل الريمكس!',
     dragDrop: 'اسحب وأفلت',
     dragInstruction: 'اسحب كل كلمة إلى المكان الصحيح',
     wordBank: 'بنك الكلمات',
@@ -254,6 +258,8 @@ const UI: Record<string, Record<string, string>> = {
     startTimer: 'Lancer le chrono',
     submitChallenge: 'Envoyer',
     remixDesc: 'Tu maîtrises les bases. Maintenant, adapte !',
+    remixDone: 'J\'ai terminé mon remix',
+    remixComplete: 'Remix terminé !',
     dragDrop: 'Glisser-Déposer',
     dragInstruction: 'Glisse chaque mot dans le bon emplacement',
     wordBank: 'Banque de mots',
@@ -343,7 +349,7 @@ interface Props {
 // ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY: Speed Quiz
 // ─────────────────────────────────────────────────────────────────────────────
-function SpeedQuizActivity({ s, t }: { s: Section; t: Record<string, string> }) {
+function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
   const questions = s.questions ?? []
   const timePerQ  = s.time_per_question ?? 10
   const [started, setStarted]     = useState(false)
@@ -368,9 +374,9 @@ function SpeedQuizActivity({ s, t }: { s: Section; t: Record<string, string> }) 
 
   const goNext = useCallback(() => {
     stopTimer()
-    if (qIdx + 1 >= questions.length) setDone(true)
+    if (qIdx + 1 >= questions.length) { setDone(true); onComplete?.() }
     else { setQIdx(q => q + 1); setTimeLeft(timePerQ); setSelected(null); setSubmitted(false) }
-  }, [qIdx, questions.length, timePerQ, stopTimer])
+  }, [qIdx, questions.length, timePerQ, stopTimer, onComplete])
 
   useEffect(() => {
     if (!started || submitted || done) return
@@ -497,7 +503,7 @@ function SpeedQuizActivity({ s, t }: { s: Section; t: Record<string, string> }) 
 // ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY: Fill in the Blank
 // ─────────────────────────────────────────────────────────────────────────────
-function FillBlankActivity({ s, t }: { s: Section; t: Record<string, string> }) {
+function FillBlankActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
   const code    = s.code ?? ''
   const blanks  = s.blanks ?? []
   const hints   = s.hints ?? []
@@ -518,6 +524,7 @@ function FillBlankActivity({ s, t }: { s: Section; t: Record<string, string> }) 
   }
 
   const allCorrect = checked && results.every(Boolean)
+  useEffect(() => { if (allCorrect) onComplete?.() }, [allCorrect, onComplete])
   let blankIdx = 0
 
   return (
@@ -595,7 +602,7 @@ function FillBlankActivity({ s, t }: { s: Section; t: Record<string, string> }) 
 // ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY: Unscramble
 // ─────────────────────────────────────────────────────────────────────────────
-function UnscrambleActivity({ s, t }: { s: Section; t: Record<string, string> }) {
+function UnscrambleActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
   const correctOrder = s.correct_order ?? (s.lines ?? []).map((_, i) => i)
   const [order, setOrder] = useState<number[]>(() => {
     const shuffled = [...correctOrder]
@@ -611,6 +618,7 @@ function UnscrambleActivity({ s, t }: { s: Section; t: Record<string, string> })
   const [correct, setCorrect]   = useState(false)
 
   const lines = s.lines ?? []
+  useEffect(() => { if (correct) onComplete?.() }, [correct, onComplete])
 
   const check = () => { const isCorrect = order.every((v, i) => v === correctOrder[i]); setCorrect(isCorrect); setChecked(true) }
   const handleDrop = (targetIdx: number) => {
@@ -683,13 +691,14 @@ function UnscrambleActivity({ s, t }: { s: Section; t: Record<string, string> })
 // ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY: Bug Hunt
 // ─────────────────────────────────────────────────────────────────────────────
-function DebugActivity({ s, t }: { s: Section; t: Record<string, string> }) {
+function DebugActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
   const bugs  = s.bugs ?? []
   const hints = s.hints ?? []
   const [found, setFound]   = useState<boolean[]>(Array(bugs.length).fill(false))
   const [showH, setShowH]   = useState<boolean[]>(Array(hints.length).fill(false))
   const [allFixed, setAllFixed] = useState(false)
   const [copiedBroken, setCopiedBroken] = useState(false)
+  useEffect(() => { if (allFixed) onComplete?.() }, [allFixed, onComplete])
 
   const toggleFound = (i: number) => {
     const next = [...found]; next[i] = !next[i]; setFound(next)
@@ -768,12 +777,13 @@ function DebugActivity({ s, t }: { s: Section; t: Record<string, string> }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY: Timed Challenge
 // ─────────────────────────────────────────────────────────────────────────────
-function TimedChallengeActivity({ s, t, lessonTitle }: { s: Section; t: Record<string, string>; lessonTitle: string }) {
+function TimedChallengeActivity({ s, t, lessonTitle, onComplete }: { s: Section; t: Record<string, string>; lessonTitle: string; onComplete?: () => void }) {
   const duration = s.duration_seconds ?? 300
   const [phase, setPhase]     = useState<'idle' | 'running' | 'done'>('idle')
   const [timeLeft, setTimeLeft] = useState(duration)
   const [bonusUnlocked, setBonusUnlocked] = useState(false)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  useEffect(() => { if (phase === 'done') onComplete?.() }, [phase, onComplete])
 
   const start = () => {
     setPhase('running'); setTimeLeft(duration)
@@ -868,8 +878,9 @@ function TimedChallengeActivity({ s, t, lessonTitle }: { s: Section; t: Record<s
 // ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY: Remix Challenge
 // ─────────────────────────────────────────────────────────────────────────────
-function RemixActivity({ s, t, lessonTitle }: { s: Section; t: Record<string, string>; lessonTitle: string }) {
+function RemixActivity({ s, t, lessonTitle, onComplete }: { s: Section; t: Record<string, string>; lessonTitle: string; onComplete?: () => void }) {
   const [unlocked, setUnlocked] = useState(false)
+  const [finished, setFinished] = useState(false)
 
   if (!unlocked) return (
     <div className="border-2 border-dashed border-accent2/30 rounded-3xl p-5 text-center bg-accent2/4">
@@ -900,10 +911,22 @@ function RemixActivity({ s, t, lessonTitle }: { s: Section; t: Record<string, st
           <p className="text-sm text-muted font-semibold mt-2 pl-4 border-l-2 border-accent5/30 leading-relaxed">{s.hint}</p>
         </details>
       )}
-      <Link href={`/dashboard/coach?topic=${encodeURIComponent(lessonTitle + ' remix')}`}
-        className="inline-flex items-center gap-1.5 text-xs font-bold text-accent5 hover:text-white transition-colors">
-        <Icon kind="robot" className="w-3.5 h-3.5" /> Show AI Coach my remix
-      </Link>
+      <div className="flex items-center gap-3 flex-wrap">
+        <Link href={`/dashboard/coach?topic=${encodeURIComponent(lessonTitle + ' remix')}`}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-accent5 hover:text-white transition-colors">
+          <Icon kind="robot" className="w-3.5 h-3.5" /> Show AI Coach my remix
+        </Link>
+        {!finished ? (
+          <button onClick={() => { setFinished(true); onComplete?.() }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-accent3/15 text-accent3 border border-accent3/25 hover:bg-accent3/25 transition-all">
+            <Icon kind="check" className="w-3.5 h-3.5" /> {t.remixDone}
+          </button>
+        ) : (
+          <p className="text-xs font-extrabold text-accent3 flex items-center gap-1.5">
+            <Icon kind="check" className="w-4 h-4" /> {t.remixComplete}
+          </p>
+        )}
+      </div>
     </div>
   )
 }
@@ -911,7 +934,7 @@ function RemixActivity({ s, t, lessonTitle }: { s: Section; t: Record<string, st
 // ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY: Drag & Drop
 // ─────────────────────────────────────────────────────────────────────────────
-function DragDropActivity({ s, t }: { s: Section; t: Record<string, string> }) {
+function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
   const targets  = s.targets ?? []
   const wordBank = s.word_bank ?? targets.map(tgt => tgt.correct)
 
@@ -958,6 +981,7 @@ function DragDropActivity({ s, t }: { s: Section; t: Record<string, string> }) {
 
   const allFilled  = targets.every(tgt => slots[tgt.id])
   const allCorrect = checked && targets.every(tgt => results[tgt.id])
+  useEffect(() => { if (allCorrect) onComplete?.() }, [allCorrect, onComplete])
 
   return (
     <div className="bg-[#0b0b16] border-2 border-violet-500/25 rounded-3xl overflow-hidden">
@@ -1039,13 +1063,14 @@ function DragDropActivity({ s, t }: { s: Section; t: Record<string, string> }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY: Submit Your Work
 // ─────────────────────────────────────────────────────────────────────────────
-function SubmitWorkActivity({ s, t, userId, lessonId }: { s: Section; t: Record<string, string>; userId: string; lessonId: string }) {
+function SubmitWorkActivity({ s, t, userId, lessonId, onComplete }: { s: Section; t: Record<string, string>; userId: string; lessonId: string; onComplete?: () => void }) {
   const subType = s.submission_type ?? 'both'
   const [urlVal, setUrlVal]     = useState('')
   const [videoVal, setVideoVal] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [error, setError]         = useState('')
   const [loading, setLoading]     = useState(false)
+  useEffect(() => { if (submitted) onComplete?.() }, [submitted, onComplete])
 
   const validate = (val: string) => { try { new URL(val); return true } catch { return false } }
 
@@ -1176,6 +1201,7 @@ export default function LessonViewClient({
   const [justCompleted, setJustCompleted] = useState(false)
   const [showFeedback, setShowFeedback]   = useState(false)
   const [penaltyTimer, setPenaltyTimer]   = useState<Record<number, number>>({})
+  const [activityDone, setActivityDone]   = useState<Record<number, boolean>>({})
 
   const lang  = language || 'en'
   const t     = UI[lang] ?? UI.en
@@ -1227,16 +1253,38 @@ export default function LessonViewClient({
     navigator.clipboard.writeText(code).then(() => { setCopied(idx); setTimeout(() => setCopied(null), 2000) })
   }
 
-  const quizSections      = sections.map((s, i) => ({ s, i })).filter(x => x.s.type === 'quiz')
-  const allQuizzesPassed  = quizSections.every(({ s, i }) => { const state = quizState[i]; return state?.submitted && state.selected === s.correct })
-  const checklistSections = sections.map((s, i) => ({ s, i })).filter(x => x.s.type === 'checklist')
-  const allChecklistsDone = checklistSections.every(({ s, i }) => { const arr = checkState[i] ?? []; return (s.checks ?? []).every((_, ci) => arr[ci] === true) })
-  const canComplete = allQuizzesPassed && allChecklistsDone
+  // Mark a non-quiz/checklist activity (speed_quiz, fill_blank, drag_drop,
+  // unscramble, debug, timed_challenge, remix, submit_work) as finished.
+  // Quiz/checklist completion is derived directly from quizState/checkState
+  // below, since that state already lives in this component.
+  const markActivityDone = (idx: number) =>
+    setActivityDone(prev => (prev[idx] ? prev : { ...prev, [idx]: true }))
+
+  // Every interactive section type, mapped to its display label, so the
+  // "Mark Complete" gate can tell the kid exactly what's left to finish.
+  const ACTIVITY_LABELS: Record<string, string> = {
+    quiz: t.quiz, checklist: t.checklist, speed_quiz: t.speedQuiz, fill_blank: t.fillBlank,
+    drag_drop: t.dragDrop, unscramble: t.unscramble, debug: t.debug,
+    timed_challenge: t.timedChallenge, remix: t.remix, submit_work: t.submitWork,
+  }
+
+  const isActivityDone = (s: Section, i: number): boolean => {
+    switch (s.type) {
+      case 'quiz': { const state = quizState[i]; return !!(state?.submitted && state.selected === s.correct) }
+      case 'checklist': { const arr = checkState[i] ?? []; return (s.checks ?? []).every((_, ci) => arr[ci] === true) }
+      default: return !!activityDone[i]
+    }
+  }
+
+  const interactiveSections = sections.map((s, i) => ({ s, i })).filter(({ s }) => s.type in ACTIVITY_LABELS)
+  const pendingActivities   = interactiveSections.filter(({ s, i }) => !isActivityDone(s, i))
+  const allActivitiesDone   = pendingActivities.length === 0
+  const canComplete         = allActivitiesDone
 
   const markComplete = () => {
     if (isDone) return
     startTransition(async () => {
-      const score = quizSections.length > 0 ? (allQuizzesPassed ? 100 : 70) : 100
+      const score = 100 // every interactive section must be solved correctly to reach this point
       await completeLesson(userId, lesson.id, score, lesson.duration_mins)
       await updateStreak(userId)
       const result = await addXP(userId, lesson.xp_reward, 'lesson_complete', lesson.id)
@@ -1691,26 +1739,21 @@ export default function LessonViewClient({
         )
       }
 
-      case 'speed_quiz':       return <div key={idx}><SpeedQuizActivity s={s} t={t} /></div>
-      case 'fill_blank':       return <div key={idx}><FillBlankActivity s={s} t={t} /></div>
-      case 'drag_drop':        return <div key={idx}><DragDropActivity s={s} t={t} /></div>
-      case 'unscramble':       return <div key={idx}><UnscrambleActivity s={s} t={t} /></div>
-      case 'debug':            return <div key={idx}><DebugActivity s={s} t={t} /></div>
-      case 'timed_challenge':  return <div key={idx}><TimedChallengeActivity s={s} t={t} lessonTitle={lesson.title} /></div>
-      case 'remix':            return <div key={idx}><RemixActivity s={s} t={t} lessonTitle={lesson.title} /></div>
-      case 'submit_work':      return <div key={idx}><SubmitWorkActivity s={s} t={t} userId={userId} lessonId={lesson.id} /></div>
+      case 'speed_quiz':       return <div key={idx}><SpeedQuizActivity s={s} t={t} onComplete={() => markActivityDone(idx)} /></div>
+      case 'fill_blank':       return <div key={idx}><FillBlankActivity s={s} t={t} onComplete={() => markActivityDone(idx)} /></div>
+      case 'drag_drop':        return <div key={idx}><DragDropActivity s={s} t={t} onComplete={() => markActivityDone(idx)} /></div>
+      case 'unscramble':       return <div key={idx}><UnscrambleActivity s={s} t={t} onComplete={() => markActivityDone(idx)} /></div>
+      case 'debug':            return <div key={idx}><DebugActivity s={s} t={t} onComplete={() => markActivityDone(idx)} /></div>
+      case 'timed_challenge':  return <div key={idx}><TimedChallengeActivity s={s} t={t} lessonTitle={lesson.title} onComplete={() => markActivityDone(idx)} /></div>
+      case 'remix':            return <div key={idx}><RemixActivity s={s} t={t} lessonTitle={lesson.title} onComplete={() => markActivityDone(idx)} /></div>
+      case 'submit_work':      return <div key={idx}><SubmitWorkActivity s={s} t={t} userId={userId} lessonId={lesson.id} onComplete={() => markActivityDone(idx)} /></div>
 
       default: return null
     }
   }
 
-  const coachUrl       = `/dashboard/coach?topic=${encodeURIComponent(skill?.title ?? '')}&lesson=${encodeURIComponent(lesson.title)}`
-  const needsQuiz      = quizSections.length > 0
-  const needsChecklist = checklistSections.length > 0
-  const blockingItems  = [
-    ...(needsQuiz && !allQuizzesPassed ? [lang === 'ar' ? 'أجب على جميع الأسئلة' : lang === 'fr' ? 'Réponds aux quiz' : 'Answer all quiz questions'] : []),
-    ...(needsChecklist && !allChecklistsDone ? [lang === 'ar' ? 'أكمل قائمة التحقق' : lang === 'fr' ? 'Complète la liste' : 'Complete the checklist'] : []),
-  ]
+  const coachUrl      = `/dashboard/coach?topic=${encodeURIComponent(skill?.title ?? '')}&lesson=${encodeURIComponent(lesson.title)}`
+  const blockingItems = pendingActivities.map(({ s }) => ACTIVITY_LABELS[s.type])
 
   const progressPct = Math.round((lessonIndex / totalLessons) * 100)
 
@@ -1810,13 +1853,18 @@ export default function LessonViewClient({
       {!isDone && (
         <div className="bg-card border-2 border-white/8 rounded-3xl p-5 sm:p-6 mb-5 sm:mb-6 text-center">
           {blockingItems.length > 0 && (
-            <ul className="mb-4 space-y-1">
-              {blockingItems.map((item, i) => (
-                <li key={i} className="text-xs text-muted font-semibold flex items-center justify-center gap-2">
-                  <Icon kind="chevronRight" className="w-3 h-3 text-accent5" /> {item}
-                </li>
-              ))}
-            </ul>
+            <>
+              <p className="text-xs font-bold text-muted/70 mb-2 uppercase tracking-wider">
+                {lang === 'ar' ? 'أكمل هذه الأنشطة أولاً' : lang === 'fr' ? "Termine d'abord ces activités" : 'Finish these activities first'}
+              </p>
+              <ul className="mb-4 space-y-1">
+                {blockingItems.map((item, i) => (
+                  <li key={i} className="text-xs text-muted font-semibold flex items-center justify-center gap-2">
+                    <Icon kind="chevronRight" className="w-3 h-3 text-accent5" /> {item}
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
           <button onClick={markComplete} disabled={isPending || !canComplete}
             className={cn('w-full sm:w-auto px-8 py-3.5 rounded-2xl font-extrabold text-sm transition-all flex items-center justify-center gap-2',
