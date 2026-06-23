@@ -15,6 +15,7 @@ const UI: Record<string, Record<string, string>> = {
     leaderboard: 'Leaderboard', viewAll: 'View all', you: 'You',
     dailyQuests: 'Daily Quests', dailyChallenges: 'Daily Challenges',
     challengeDone: 'Completed! 🎉', challengeCheck: "Check today's challenge",
+    unit: 'Unit',
   },
   ar: {
     continueBtn: 'واصل', startBtn: 'ابدأ', jumpHere: 'اقفز هنا؟',
@@ -25,6 +26,7 @@ const UI: Record<string, Record<string, string>> = {
     leaderboard: 'لوحة الصدارة', viewAll: 'عرض الكل', you: 'أنت',
     dailyQuests: 'المهام اليومية', dailyChallenges: 'التحديات اليومية',
     challengeDone: 'مكتمل! 🎉', challengeCheck: 'تحقق من تحدي اليوم',
+    unit: 'الوحدة',
   },
   fr: {
     continueBtn: 'Continuer', startBtn: 'Commencer', jumpHere: 'SAUTER ICI ?',
@@ -35,6 +37,7 @@ const UI: Record<string, Record<string, string>> = {
     leaderboard: 'Classement', viewAll: 'Tout voir', you: 'Toi',
     dailyQuests: 'Quêtes du jour', dailyChallenges: 'Défis du jour',
     challengeDone: 'Terminé ! 🎉', challengeCheck: 'Vérifie le défi du jour',
+    unit: 'Unité',
   },
 }
 
@@ -43,6 +46,12 @@ const ICONS = {
   gems:   '/icons/gems.png',
   node:   ['/icons/book.png', '/icons/star.png', '/icons/chest.png', '/icons/trophy.png'],
 }
+
+const SIDE_AVATARS = [
+  '/icons/avatar-1.svg',
+  '/icons/avatar-2.svg',
+  '/icons/avatar-3.svg',
+]
 
 type MascotState = 'celebrating' | 'tired' | 'noStreak' | 'idle'
 
@@ -54,6 +63,8 @@ const MASCOT_SRC: Record<MascotState, string | null> = {
 }
 
 const TIRED_THRESHOLD_MINS = 60
+const UNIT_SIZE = 4
+const AVATAR_EVERY = 3
 
 interface Track    { id: string; name: string; emoji: string; color: string }
 interface Skill    { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
@@ -105,6 +116,13 @@ const OFFSET_PATTERN = [0, -1, 1, 0]
 function offsetTransform(offset: number) {
   if (offset === 0) return undefined
   return `translateX(calc(${offset} * min(14vw, 54px)))`
+}
+
+function avatarForIndex(idx: number): { side: 'left' | 'right'; src: string } | null {
+  if (idx === 0 || idx % AVATAR_EVERY !== 0) return null
+  const side: 'left' | 'right' = (idx / AVATAR_EVERY) % 2 === 0 ? 'left' : 'right'
+  const src = SIDE_AVATARS[idx % SIDE_AVATARS.length]
+  return { side, src }
 }
 
 type IconKind = 'book' | 'star' | 'chest' | 'trophy' | 'fastForward' | 'lock' | 'check' | 'bolt'
@@ -261,6 +279,34 @@ function JumpBubble({ text }: { text: string }) {
           className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-3 h-3 bg-white rotate-45"
         />
       </div>
+    </div>
+  )
+}
+
+function SideAvatar({
+  side, src,
+}: {
+  side: 'left' | 'right'
+  src: string
+}) {
+  const [imgError, setImgError] = useState(false)
+  if (imgError) return null
+
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        'absolute top-1/2 -translate-y-1/2 pointer-events-none select-none z-10',
+        side === 'left' ? 'left-[-15vw] sm:left-[-90px]' : 'right-[-15vw] sm:right-[-90px]',
+      )}
+      style={{ width: 'clamp(40px, 12vw, 56px)' }}
+    >
+      <img
+        src={src}
+        alt=""
+        className="w-full h-full object-contain"
+        onError={() => setImgError(true)}
+      />
     </div>
   )
 }
@@ -511,6 +557,30 @@ function DailyChallengeCard({
   )
 }
 
+function UnitBanner({
+  unitNumber, title, t,
+}: {
+  unitNumber: number
+  title?: string
+  t: Record<string, string>
+}) {
+  return (
+    <div
+      className="relative z-10 w-full rounded-2xl px-4 py-3 my-6 shadow-[0_4px_0_rgba(0,0,0,0.25)]"
+      style={{ backgroundColor: '#1CB0F6' }}
+    >
+      <p className="text-xs font-black tracking-wider uppercase text-white/90">
+        {t.unit} {unitNumber}
+      </p>
+      {title && (
+        <h3 className="text-white font-black text-lg leading-tight truncate">
+          {title}
+        </h3>
+      )}
+    </div>
+  )
+}
+
 export default function SkillsClient({
   userId, tracks, initialTrackId, skills, skillProgress, lessonCountMap,
   language, streak, gems, initialCurrentSkillId, initialFirstIncompleteLessonId,
@@ -529,6 +599,17 @@ export default function SkillsClient({
 
   const currentNodeRef = useRef<HTMLDivElement | null>(null)
   const pickerRef = useRef<HTMLDivElement | null>(null)
+
+  // --- snake-line path measuring ---
+  const pathContainerRef = useRef<HTMLDivElement | null>(null)
+  const nodeRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const [snakePath, setSnakePath] = useState<string>('')
+  const [svgSize, setSvgSize] = useState({ width: 0, height: 0 })
+
+  const setNodeRef = (id: string) => (el: HTMLDivElement | null) => {
+    if (el) nodeRefs.current.set(id, el)
+    else nodeRefs.current.delete(id)
+  }
 
   const progressMap = useMemo(
     () => Object.fromEntries(skillProgress.map(p => [p.skill_node_id, p.progress_pct])),
@@ -569,6 +650,59 @@ export default function SkillsClient({
   useEffect(() => {
     currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [activeTrackId])
+
+  // recompute the snake path whenever the visible skill list or layout changes
+  useEffect(() => {
+    const container = pathContainerRef.current
+    if (!container || orderedSkills.length === 0) {
+      setSnakePath('')
+      return
+    }
+
+    const computePath = () => {
+      const containerRect = container.getBoundingClientRect()
+      const points: { x: number; y: number }[] = []
+
+      for (const skill of orderedSkills) {
+        const el = nodeRefs.current.get(skill.id)
+        if (!el) continue
+        const rect = el.getBoundingClientRect()
+        points.push({
+          x: rect.left + rect.width / 2 - containerRect.left,
+          y: rect.top + rect.height / 2 - containerRect.top,
+        })
+      }
+
+      if (points.length < 2) {
+        setSnakePath('')
+        return
+      }
+
+      let d = `M ${points[0].x} ${points[0].y}`
+      for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1]
+        const curr = points[i]
+        const midX = (prev.x + curr.x) / 2
+        const midY = (prev.y + curr.y) / 2
+        d += ` Q ${prev.x} ${midY}, ${midX} ${midY}`
+        d += ` Q ${curr.x} ${midY}, ${curr.x} ${curr.y}`
+      }
+
+      setSnakePath(d)
+      setSvgSize({ width: containerRect.width, height: containerRect.height })
+    }
+
+    computePath()
+
+    const ro = new ResizeObserver(computePath)
+    ro.observe(container)
+    window.addEventListener('resize', computePath)
+
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', computePath)
+    }
+  }, [orderedSkills, activeTrackId, switching])
 
   const handleTrackSelect = async (trackId: string) => {
     if (trackId === activeTrackId) { setShowPicker(false); return }
@@ -712,7 +846,25 @@ export default function SkillsClient({
                 <div className="text-2xl shrink-0">{currentSkill.emoji}</div>
               </div>
 
-              <div className="relative z-10 flex flex-col items-center">
+              <div ref={pathContainerRef} className="relative z-10 flex flex-col items-center w-full">
+                {svgSize.width > 0 && (
+                  <svg
+                    className="absolute top-0 left-0 pointer-events-none"
+                    width={svgSize.width}
+                    height={svgSize.height}
+                    style={{ zIndex: 0 }}
+                  >
+                    <path
+                      d={snakePath}
+                      fill="none"
+                      stroke="#2A3440"
+                      strokeWidth={6}
+                      strokeLinecap="round"
+                      strokeDasharray="2 14"
+                    />
+                  </svg>
+                )}
+
                 {orderedSkills.map((skill, idx) => {
                   const unlocked  = isUnlocked(skill)
                   const complete  = isComplete(skill.id)
@@ -722,23 +874,38 @@ export default function SkillsClient({
                     complete ? 'done' : isCurrent ? 'current' : unlocked ? 'done' : 'locked'
                   const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.current : skill.title
 
+                  const startsNewUnit = idx !== 0 && idx % UNIT_SIZE === 0
+                  const unitNumber = Math.floor(idx / UNIT_SIZE) + 1
+                  const unitTitle = startsNewUnit ? skill.title : undefined
+                  const avatar = !isCurrent ? avatarForIndex(idx) : null
+
                   return (
-                    <div
-                      key={skill.id}
-                      ref={isCurrent ? currentNodeRef : null}
-                      className="relative flex justify-center"
-                    >
-                      {isCurrent && <JumpBubble text={t.jumpHere} />}
-                      <PathNode
-                        state={state}
-                        iconIndex={iconForIndex(idx)}
-                        complete={complete}
-                        onClick={() => handleNodeTap(skill, unlocked)}
-                        disabled={!unlocked}
-                        label={label}
-                        offset={offset}
-                        isCurrent={isCurrent}
-                      />
+                    <div key={skill.id} className="w-full flex flex-col items-center">
+                      {startsNewUnit && (
+                        <UnitBanner unitNumber={unitNumber} title={unitTitle} t={t} />
+                      )}
+
+                      <div
+                        ref={(el) => {
+                          setNodeRef(skill.id)(el)
+                          if (isCurrent) currentNodeRef.current = el
+                        }}
+                        className="relative flex justify-center"
+                        style={{ zIndex: 1 }}
+                      >
+                        {isCurrent && <JumpBubble text={t.jumpHere} />}
+                        {avatar && <SideAvatar side={avatar.side} src={avatar.src} />}
+                        <PathNode
+                          state={state}
+                          iconIndex={iconForIndex(idx)}
+                          complete={complete}
+                          onClick={() => handleNodeTap(skill, unlocked)}
+                          disabled={!unlocked}
+                          label={label}
+                          offset={offset}
+                          isCurrent={isCurrent}
+                        />
+                      </div>
                     </div>
                   )
                 })}
