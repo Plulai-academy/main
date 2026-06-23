@@ -125,6 +125,36 @@ function avatarForIndex(idx: number): { side: 'left' | 'right'; src: string } | 
   return { side, src }
 }
 
+// Builds a smooth curve through every point using a Catmull-Rom -> cubic
+// Bezier conversion (uniform parameterization, 1/6 tension). This makes the
+// snake line glide through each bubble's real center instead of cutting
+// flat segments between them.
+function buildSmoothPath(points: { x: number; y: number }[]): string {
+  if (points.length < 2) return ''
+  if (points.length === 2) {
+    const [a, b] = points
+    return `M ${a.x} ${a.y} L ${b.x} ${b.y}`
+  }
+
+  let d = `M ${points[0].x} ${points[0].y}`
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] ?? points[i]
+    const p1 = points[i]
+    const p2 = points[i + 1]
+    const p3 = points[i + 2] ?? p2
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6
+    const cp1y = p1.y + (p2.y - p0.y) / 6
+    const cp2x = p2.x - (p3.x - p1.x) / 6
+    const cp2y = p2.y - (p3.y - p1.y) / 6
+
+    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`
+  }
+
+  return d
+}
+
 type IconKind = 'book' | 'star' | 'chest' | 'trophy' | 'fastForward' | 'lock' | 'check' | 'bolt'
 
 function NodeIcon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
@@ -170,7 +200,7 @@ function iconForIndex(idx: number): number {
 }
 
 function PathNode({
-  state, iconIndex, complete, onClick, disabled, label, offset, isCurrent,
+  state, iconIndex, complete, onClick, disabled, label, offset, isCurrent, nodeRef,
 }: {
   state: 'done' | 'current' | 'locked'
   iconIndex: number
@@ -180,6 +210,7 @@ function PathNode({
   label: string
   offset: number
   isCurrent: boolean
+  nodeRef?: (el: HTMLDivElement | null) => void
 }) {
   const [imgError, setImgError] = useState(false)
 
@@ -194,6 +225,7 @@ function PathNode({
 
   return (
     <div
+      ref={nodeRef}
       className="relative flex-shrink-0"
       style={{
         transform: offsetTransform(offset),
@@ -666,6 +698,9 @@ export default function SkillsClient({
       for (const skill of orderedSkills) {
         const el = nodeRefs.current.get(skill.id)
         if (!el) continue
+        // getBoundingClientRect() reflects this element's own CSS transform
+        // (the zigzag offset lives on this exact node), so these points are
+        // the true on-screen centers of each bubble.
         const rect = el.getBoundingClientRect()
         points.push({
           x: rect.left + rect.width / 2 - containerRect.left,
@@ -678,17 +713,7 @@ export default function SkillsClient({
         return
       }
 
-      let d = `M ${points[0].x} ${points[0].y}`
-      for (let i = 1; i < points.length; i++) {
-        const prev = points[i - 1]
-        const curr = points[i]
-        const midX = (prev.x + curr.x) / 2
-        const midY = (prev.y + curr.y) / 2
-        d += ` Q ${prev.x} ${midY}, ${midX} ${midY}`
-        d += ` Q ${curr.x} ${midY}, ${curr.x} ${curr.y}`
-      }
-
-      setSnakePath(d)
+      setSnakePath(buildSmoothPath(points))
       setSvgSize({ width: containerRect.width, height: containerRect.height })
     }
 
@@ -886,10 +911,6 @@ export default function SkillsClient({
                       )}
 
                       <div
-                        ref={(el) => {
-                          setNodeRef(skill.id)(el)
-                          if (isCurrent) currentNodeRef.current = el
-                        }}
                         className="relative flex justify-center"
                         style={{ zIndex: 1 }}
                       >
@@ -904,6 +925,10 @@ export default function SkillsClient({
                           label={label}
                           offset={offset}
                           isCurrent={isCurrent}
+                          nodeRef={(el) => {
+                            setNodeRef(skill.id)(el)
+                            if (isCurrent) currentNodeRef.current = el
+                          }}
                         />
                       </div>
                     </div>
