@@ -41,14 +41,11 @@ const UI: Record<string, Record<string, string>> = {
 const ICONS = {
   streak: '/icons/streak.png',
   gems:   '/icons/gems.png',
-  // Path-node icons — drop icon1.png..icon4.png in public/icons. They cycle in order.
   node:   ['/icons/book.png', '/icons/star.png', '/icons/chest.png', '/icons/trophy.png'],
 }
 
 type MascotState = 'celebrating' | 'tired' | 'noStreak' | 'idle'
 
-// Drop these files in public/icons to replace each state's placeholder automatically:
-// mascot-idle.svg, mascot-celebrating.svg, mascot-tired.svg, mascot-nostreak.svg
 const MASCOT_SRC: Record<MascotState, string | null> = {
   idle: '/icons/mascot-idle.svg',
   celebrating: '/icons/mascot-celebrating.svg',
@@ -56,7 +53,6 @@ const MASCOT_SRC: Record<MascotState, string | null> = {
   noStreak: '/icons/mascot-nostreak.svg',
 }
 
-// Minutes of activity (assumed DAILY, not lifetime) at which the mascot goes "tired"
 const TIRED_THRESHOLD_MINS = 60
 
 interface Track    { id: string; name: string; emoji: string; color: string }
@@ -111,7 +107,6 @@ function offsetTransform(offset: number) {
   return `translateX(calc(${offset} * min(14vw, 54px)))`
 }
 
-// ─── Inline SVG icon set (fallback only — used if a custom PNG fails to load) ───
 type IconKind = 'book' | 'star' | 'chest' | 'trophy' | 'fastForward' | 'lock' | 'check' | 'bolt'
 
 function NodeIcon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
@@ -156,7 +151,6 @@ function iconForIndex(idx: number): number {
   return idx % ICONS.node.length
 }
 
-// ─── Path node — flat disc style (matches reference screenshot) ───
 function PathNode({
   state, iconIndex, complete, onClick, disabled, label, offset, isCurrent,
 }: {
@@ -190,7 +184,6 @@ function PathNode({
         marginBottom: 'clamp(24px, 7vw, 36px)',
       }}
     >
-      {/* Base oval — darker shade, peeks out beneath the face */}
       <div
         aria-hidden
         className="absolute inset-0 rounded-[50%/52%]"
@@ -233,7 +226,6 @@ function PathNode({
           />
         )}
 
-        {/* Completion badge */}
         {complete && !isCurrent && (
           <span
             aria-hidden
@@ -248,7 +240,6 @@ function PathNode({
   )
 }
 
-// ─── JUMP HERE bubble ──────────────────────────────────────────────
 function JumpBubble({ text }: { text: string }) {
   return (
     <div
@@ -265,7 +256,6 @@ function JumpBubble({ text }: { text: string }) {
         <span className="font-extrabold tracking-wide text-sm whitespace-nowrap">
           {text}
         </span>
-        {/* Tail */}
         <span
           aria-hidden
           className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-3 h-3 bg-white rotate-45"
@@ -275,7 +265,6 @@ function JumpBubble({ text }: { text: string }) {
   )
 }
 
-// ─── Mascot — reacts to state: celebrating / tired / noStreak / idle ──────
 function MascotPlaceholder({ state }: { state: MascotState }) {
   const src = MASCOT_SRC[state]
 
@@ -294,14 +283,13 @@ function MascotPlaceholder({ state }: { state: MascotState }) {
     )
   }
 
-  // Placeholder art per state, until real SVGs are dropped in
   const palette =
     state === 'celebrating' ? '#FAA918' :
     state === 'tired'       ? '#5B6772' :
     state === 'noStreak'    ? '#3A4450' :
                                '#5B6772'
 
-  const eyeY = state === 'tired' ? 56 : 52 // droopier eyes when tired
+  const eyeY = state === 'tired' ? 56 : 52
 
   return (
     <svg
@@ -339,7 +327,6 @@ function MascotPlaceholder({ state }: { state: MascotState }) {
   )
 }
 
-// ─── Sidebar: card shell ────────────────────────────────────────────
 function SideCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <div className={cn('bg-[#10151B] border border-white/10 rounded-2xl p-5', className)}>
@@ -364,7 +351,6 @@ function SideCardHeader({ title, onViewAll, t }: { title: string; onViewAll?: ()
   )
 }
 
-// ─── Sidebar: rank circle (gold/silver/bronze for top 3) ───────────
 function RankBadge({ rank }: { rank: number }) {
   const medal = rank === 1 ? '#FFC93C' : rank === 2 ? '#B9C2CC' : rank === 3 ? '#E8915A' : null
   return (
@@ -380,7 +366,6 @@ function RankBadge({ rank }: { rank: number }) {
   )
 }
 
-// ─── Sidebar: avatar circle (image, falls back to initial) ─────────
 function LeaderboardAvatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
   const [errored, setErrored] = useState(false)
   const initial = name.trim().charAt(0).toUpperCase() || '?'
@@ -405,7 +390,6 @@ function LeaderboardAvatar({ name, avatarUrl }: { name: string; avatarUrl: strin
   )
 }
 
-// ─── Sidebar: live leaderboard (global top 5) ──────────────────────
 function LeaderboardCard({
   entries, t, onViewAll,
 }: {
@@ -443,7 +427,6 @@ function LeaderboardCard({
   )
 }
 
-// ─── Sidebar: daily quest progress bar ─────────────────────────────
 function DailyQuestCard({ quest, t }: { quest: DailyQuest; t: Record<string, string> }) {
   const pct = quest.target > 0 ? Math.min(100, Math.round((quest.current / quest.target) * 100)) : 0
   return (
@@ -470,7 +453,6 @@ function DailyQuestCard({ quest, t }: { quest: DailyQuest; t: Record<string, str
   )
 }
 
-// ─── Sidebar: daily challenge (single item per age_group/day) ─────
 function DailyChallengeCard({
   challenge, t, onOpen,
 }: {
@@ -529,7 +511,6 @@ function DailyChallengeCard({
   )
 }
 
-// ─── Main component ────────────────────────────────────────────────
 export default function SkillsClient({
   userId, tracks, initialTrackId, skills, skillProgress, lessonCountMap,
   language, streak, gems, initialCurrentSkillId, initialFirstIncompleteLessonId,
@@ -568,7 +549,6 @@ export default function SkillsClient({
   const currentSkill = orderedSkills.find(s => s.id === currentSkillId) ?? null
   const allDone = orderedSkills.length > 0 && orderedSkills.every(s => isComplete(s.id))
 
-  // ── Mascot state: celebrating beats tired beats no-streak beats idle ──
   const mascotState: MascotState = allDone
     ? 'celebrating'
     : totalTimeMins >= TIRED_THRESHOLD_MINS
@@ -593,7 +573,14 @@ export default function SkillsClient({
   const handleTrackSelect = async (trackId: string) => {
     if (trackId === activeTrackId) { setShowPicker(false); return }
     setShowPicker(false); setSwitching(true); setActiveTrackId(trackId)
-    setCurrentTrack(trackId).catch(() => {})
+
+    const saveResult = await setCurrentTrack(trackId)
+    if (saveResult?.error) {
+      console.error('Failed to save current track:', saveResult.error)
+      // Optionally surface a toast/banner here so the user knows
+      // their selection won't persist across a refresh.
+    }
+
     try {
       const res = await fetch('/api/skills/resolve-track', {
         method: 'POST',
@@ -635,7 +622,6 @@ export default function SkillsClient({
     <div dir={dir} className="min-h-screen bg-[#0B0F14] text-[#F5F5F5] font-[Nunito,sans-serif] flex flex-col">
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');`}</style>
 
-      {/* ── TOP BAR ── */}
       <div className="flex items-center justify-between px-4 py-3 gap-3">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5 text-[#F5F5F5]/90 font-extrabold">
@@ -685,11 +671,8 @@ export default function SkillsClient({
         )}
       </div>
 
-      {/* ── BODY: path + sidebar ── */}
       <div className="flex-1 flex justify-center gap-8 px-4 pb-12 pt-4 max-w-[1100px] mx-auto w-full">
-        {/* ── PATH (main column) ── */}
         <div className="relative flex-1 min-w-0 max-w-[640px]">
-          {/* Mascot */}
           <div
             aria-hidden
             className={cn(
@@ -712,7 +695,6 @@ export default function SkillsClient({
             </div>
           ) : currentSkill ? (
             <>
-              {/* Unit banner */}
               <div className="bg-[#1CB0F6] rounded-2xl px-4 py-3 mb-8 flex items-start justify-between gap-3 shadow-[0_4px_0_rgba(0,0,0,0.25)]">
                 <div className="flex-1 min-w-0">
                   <button
@@ -765,7 +747,6 @@ export default function SkillsClient({
           ) : null}
         </div>
 
-        {/* ── SIDEBAR ── */}
         <aside className="hidden lg:flex flex-col gap-4 w-[320px] shrink-0 self-start sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto pt-1">
           <LeaderboardCard
             entries={leaderboard}

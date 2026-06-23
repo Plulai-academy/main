@@ -1,4 +1,3 @@
-// app/dashboard/skills/actions.ts
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -9,12 +8,27 @@ export async function setCurrentTrack(trackId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('user_progress')
-    .update({ current_track: trackId })
-    .eq('user_id', user.id)
+    .upsert(
+      { user_id: user.id, current_track: trackId },
+      { onConflict: 'user_id' }
+    )
+    .select('current_track')
+    .single()
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('setCurrentTrack failed:', error.message)
+    return { error: error.message }
+  }
+
+  // Defensive check: confirm the write actually landed.
+  // If RLS quietly filtered the row instead of throwing, data.current_track
+  // would not match what we just tried to save.
+  if (data?.current_track !== trackId) {
+    console.error('setCurrentTrack: write did not persist as expected', { trackId, returned: data })
+    return { error: 'Track save did not persist' }
+  }
 
   revalidatePath('/dashboard/skills')
   return { success: true }
