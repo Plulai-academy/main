@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>No streak mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 224px;animation:sadDroop 3.6s ease-in-out infinite;}
+.antenna{transform-origin:100px 62px;animation:antennaDroop 0.6s ease-out forwards;}
+.cloudGroup{animation:cloudDrift 4s ease-in-out infinite;}
+@keyframes sadDroop{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(5px) rotate(2deg);}}
+@keyframes antennaDroop{from{transform:rotate(0deg);}to{transform:rotate(18deg);}}
+@keyframes cloudDrift{0%,100%{transform:translateX(0);}50%{transform:translateX(6px);}}
+</style>
+<ellipse cx="100" cy="226" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<g class="antenna">
+<path d="M100 62 C 94 48 94 38 100 30" stroke="#1F8A5C" stroke-width="5" fill="none" stroke-linecap="round"/>
+<circle cx="100" cy="30" r="7" fill="#FFC94D"/>
+</g>
+<path d="M48 142 C 30 137 18 147 14 162" stroke="#1F8A5C" stroke-width="10" fill="none" stroke-linecap="round"/>
+<path d="M152 142 C 170 137 182 147 186 162" stroke="#1F8A5C" stroke-width="10" fill="none" stroke-linecap="round"/>
+<path d="M100 67 C 145 67 165 112 160 157 C 158 197 130 222 100 222 C 70 222 42 197 40 157 C 35 112 55 67 100 67 Z" fill="#2DBE8E"/>
+<ellipse cx="100" cy="162" rx="34" ry="42" fill="#7FE0BA" opacity="0.55"/>
+<ellipse cx="78" cy="224" rx="14" ry="7" fill="#1F8A5C"/>
+<ellipse cx="122" cy="224" rx="14" ry="7" fill="#1F8A5C"/>
+<ellipse cx="80" cy="134" rx="10" ry="12" fill="#FFFFFF"/>
+<ellipse cx="120" cy="134" rx="10" ry="12" fill="#FFFFFF"/>
+<circle cx="80" cy="138" r="5" fill="#16202B"/>
+<circle cx="120" cy="138" r="5" fill="#16202B"/>
+<path d="M67 122 q11 -7 20 -2" stroke="#16202B" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M113 120 q9 -5 20 2" stroke="#16202B" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M84 168 q16 -11 32 0" stroke="#16202B" stroke-width="4" fill="none" stroke-linecap="round"/>
+</g>
+<g class="cloudGroup">
+<ellipse cx="144" cy="52" rx="20" ry="11" fill="#7C8896"/>
+<ellipse cx="130" cy="57" rx="13" ry="9" fill="#7C8896"/>
+<ellipse cx="158" cy="58" rx="13" ry="9" fill="#7C8896"/>
+</g>
+</svg>
