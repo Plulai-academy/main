@@ -339,7 +339,7 @@ function SideAvatar({
       className="absolute top-1/2 left-1/2 pointer-events-none select-none z-10"
       style={{
         width: 'clamp(88px, 24vw, 128px)',
-        transform: `translate(calc(-50% ${sign > 0 ? '+' : '-'} clamp(68px, 20vw, 108px)), calc(-50% + 20px))`,
+        transform: `translate(calc(-50% ${sign > 0 ? '+' : '-'} clamp(68px, 20vw, 108px)), calc(-50% + 50px))`,
       }}
     >
     
