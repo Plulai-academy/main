@@ -54,6 +54,12 @@ const SIDE_AVATARS = [
   '/icons/mascot-idle.svg',
   '/icons/mascot-idle2.svg',
   '/icons/mascot-idle3.svg',
+  '/icons/mascot-idle4.svg',
+  '/icons/mascot-idle5.svg',
+  '/icons/mascot-idle6.svg',
+  '/icons/mascot-idle7.svg',
+  '/icons/mascot-idle8.svg',
+  '/icons/mascot-idle9.svg',
 ]
 
 type MascotState = 'celebrating' | 'tired' | 'noStreak' | 'idle'
@@ -367,7 +373,7 @@ function MascotPlaceholder({ state }: { state: MascotState }) {
           'select-none pointer-events-none',
           state === 'celebrating' && 'animate-[mascotBounce_0.6s_ease-in-out_infinite]',
         )}
-        style={{ width: 'clamp(110px, 28vw, 170px)' }}
+        style={{ width: 'clamp(160px, 40vw, 280px)' }}
       />
     )
   }
@@ -389,7 +395,7 @@ function MascotPlaceholder({ state }: { state: MascotState }) {
         state === 'celebrating' ? 'opacity-90 animate-[mascotBounce_0.6s_ease-in-out_infinite]' : 'opacity-25',
         state === 'tired' && 'animate-[mascotPulseSlow_3s_ease-in-out_infinite]',
       )}
-      style={{ width: 'clamp(110px, 28vw, 170px)', color: palette }}
+      style={{ width: 'clamp(160px, 40vw, 280px)', color: palette }}
       fill="currentColor"
     >
       <ellipse cx="60" cy="55" rx="38" ry="42" />
