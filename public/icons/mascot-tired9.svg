@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>Tired berry mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 210px;animation:tiredSlump 3.6s ease-in-out infinite;}
+.mouthYawn{transform-origin:100px 164px;animation:yawn 2.6s ease-in-out infinite;}
+.z1{animation:floatUp 2.4s ease-in infinite;}
+.z2{animation:floatUp 2.4s ease-in infinite 0.6s;}
+.z3{animation:floatUp 2.4s ease-in infinite 1.2s;}
+@keyframes tiredSlump{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(4px) rotate(-1.5deg);}}
+@keyframes yawn{0%,78%,100%{transform:scaleY(1);}40%{transform:scaleY(1.6);}}
+@keyframes floatUp{0%{transform:translateY(0);opacity:0;}20%{opacity:1;}100%{transform:translateY(-26px);opacity:0;}}
+</style>
+<ellipse cx="100" cy="218" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<g>
+<path d="M100 86 C 98 74 102 64 108 56" stroke="#6FBF4A" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M108 56 C 118 50 130 52 134 62 C 124 64 112 64 108 56 Z" fill="#6FBF4A"/>
+</g>
+<path d="M44 144 C 28 140 18 148 14 162" stroke="#A8347A" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M156 144 C 172 140 182 148 186 162" stroke="#A8347A" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M138 180 C 154 176 162 186 156 196 C 150 190 142 190 138 192 Z" fill="#A8347A"/>
+<path d="M100 86 C 136 86 154 118 150 152 C 146 188 124 210 100 210 C 76 210 54 188 50 152 C 46 118 64 86 100 86 Z" fill="#E0529C"/>
+<ellipse cx="100" cy="150" rx="28" ry="34" fill="#F5A8CB" opacity="0.5"/>
+<ellipse cx="80" cy="210" rx="13" ry="7" fill="#A8347A"/>
+<ellipse cx="120" cy="210" rx="13" ry="7" fill="#A8347A"/>
+<path d="M69 138 q11 6 22 0" stroke="#4A1830" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M109 138 q11 6 22 0" stroke="#4A1830" stroke-width="4" fill="none" stroke-linecap="round"/>
+<ellipse class="mouthYawn" cx="100" cy="164" rx="7" ry="9" fill="#4A1830"/>
+</g>
+<g>
+<text class="z1" x="160" y="60" font-size="16" fill="#C77FA0">Z</text>
+<text class="z2" x="174" y="46" font-size="14" fill="#C77FA0">Z</text>
+<text class="z3" x="186" y="34" font-size="11" fill="#C77FA0">z</text>
+</g>
+</svg>

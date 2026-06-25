@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>No streak ember mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 212px;animation:sadDroop 3.6s ease-in-out infinite;}
+.earL,.earR{animation:dimFlame 0.6s ease-out forwards;}
+.tail{transform-origin:146px 196px;animation:tailDroop 0.6s ease-out forwards;}
+@keyframes sadDroop{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(5px) rotate(2deg);}}
+@keyframes dimFlame{from{fill:#FFD23F;opacity:1;}to{fill:#8A8F94;opacity:0.6;}}
+@keyframes tailDroop{from{transform:rotate(0deg);}to{transform:rotate(-25deg);}}
+</style>
+<ellipse cx="100" cy="222" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<path class="earL" d="M80 86 C 72 78 70 66 78 54 C 84 64 86 78 80 86 Z" fill="#FFD23F"/>
+<path class="earR" d="M120 86 C 128 78 130 66 122 54 C 116 64 114 78 120 86 Z" fill="#FFD23F"/>
+<path d="M44 150 C 28 146 18 154 14 168" stroke="#C75A35" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M156 150 C 172 146 182 154 186 168" stroke="#C75A35" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="tail" d="M146 192 C 162 188 172 198 166 210 C 160 204 152 202 146 206 Z" fill="#FFD23F"/>
+<path d="M100 84 C 139 84 156 119 154 154 C 152 192 129 212 100 212 C 71 212 48 192 46 154 C 44 119 61 84 100 84 Z" fill="#FF8C61"/>
+<ellipse cx="100" cy="158" rx="30" ry="38" fill="#FFB089" opacity="0.5"/>
+<ellipse cx="80" cy="212" rx="13" ry="7" fill="#C75A35"/>
+<ellipse cx="120" cy="212" rx="13" ry="7" fill="#C75A35"/>
+<ellipse cx="80" cy="146" rx="9" ry="11" fill="#FFFFFF"/>
+<ellipse cx="120" cy="146" rx="9" ry="11" fill="#FFFFFF"/>
+<circle cx="80" cy="150" r="4.5" fill="#3A2618"/>
+<circle cx="120" cy="150" r="4.5" fill="#3A2618"/>
+<path d="M67 134 q11 -6 20 -2" stroke="#3A2618" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M113 132 q11 -6 20 2" stroke="#3A2618" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M84 180 q16 -10 32 0" stroke="#3A2618" stroke-width="4" fill="none" stroke-linecap="round"/>
+</g>
+</svg>

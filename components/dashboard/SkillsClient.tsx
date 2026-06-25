@@ -47,10 +47,13 @@ const ICONS = {
   node:   ['/icons/book.png', '/icons/star.png', '/icons/chest.png', '/icons/trophy.png'],
 }
 
+// The three mascot character sets living in public/icons (idle pose used here
+// since these are just decorative figures standing along the path, not tied
+// to lesson state).
 const SIDE_AVATARS = [
-  '/icons/avatar-1.svg',
-  '/icons/avatar-2.svg',
-  '/icons/avatar-3.svg',
+  '/icons/mascot-idle.svg',
+  '/icons/mascot-idle2.svg',
+  '/icons/mascot-idle3.svg',
 ]
 
 type MascotState = 'celebrating' | 'tired' | 'noStreak' | 'idle'
@@ -64,7 +67,11 @@ const MASCOT_SRC: Record<MascotState, string | null> = {
 
 const TIRED_THRESHOLD_MINS = 60
 const UNIT_SIZE = 4
-const AVATAR_EVERY = 3
+const AVATAR_EVERY = 4
+
+// A deliberately non-alternating left/right sequence so avatars don't ping-pong
+// in a predictable left-right-left-right pattern down the path.
+const AVATAR_SIDE_PATTERN: ('left' | 'right')[] = ['left', 'right', 'right', 'left', 'left', 'right', 'left', 'right']
 
 interface Track    { id: string; name: string; emoji: string; color: string }
 interface Skill    { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
@@ -120,8 +127,12 @@ function offsetTransform(offset: number) {
 
 function avatarForIndex(idx: number): { side: 'left' | 'right'; src: string } | null {
   if (idx === 0 || idx % AVATAR_EVERY !== 0) return null
-  const side: 'left' | 'right' = (idx / AVATAR_EVERY) % 2 === 0 ? 'left' : 'right'
-  const src = SIDE_AVATARS[idx % SIDE_AVATARS.length]
+  // Which occurrence this is (1st avatar, 2nd avatar, 3rd avatar, ...) — used
+  // instead of idx directly so the side pattern and avatar choice stay
+  // readable and aren't coupled to AVATAR_EVERY's value.
+  const occurrence = idx / AVATAR_EVERY - 1
+  const side = AVATAR_SIDE_PATTERN[occurrence % AVATAR_SIDE_PATTERN.length]
+  const src = SIDE_AVATARS[occurrence % SIDE_AVATARS.length]
   return { side, src }
 }
 

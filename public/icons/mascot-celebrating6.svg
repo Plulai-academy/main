@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>Celebrating pebble mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 206px;animation:bounce 0.55s ease-in-out infinite;}
+.armLeft{transform-origin:44px 136px;animation:armSwingL 0.55s ease-in-out infinite;}
+.armRight{transform-origin:156px 136px;animation:armSwingR 0.55s ease-in-out infinite;}
+.tailNub{transform-origin:140px 178px;animation:tailWag 0.4s ease-in-out infinite;}
+.s1{animation:twinkle 1.2s ease-in-out infinite;}
+.s2{animation:twinkle 1.2s ease-in-out infinite 0.15s;}
+.s3{animation:twinkle 1.2s ease-in-out infinite 0.3s;}
+.s4{animation:twinkle 1.2s ease-in-out infinite 0.45s;}
+.s5{animation:twinkle 1.2s ease-in-out infinite 0.6s;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-16px);}}
+@keyframes armSwingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-30deg);}}
+@keyframes armSwingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(30deg);}}
+@keyframes tailWag{0%,100%{transform:rotate(-18deg);}50%{transform:rotate(18deg);}}
+@keyframes twinkle{0%,100%{transform:scale(0);opacity:0;}50%{transform:scale(1);opacity:1;}}
+</style>
+<ellipse cx="100" cy="214" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<g>
+<path d="M100 78 L 88 50 L 100 36 L 112 50 Z" fill="#5ECDD1"/>
+<path d="M100 36 L 100 78 L 112 50 Z" fill="#8FE8ED" opacity="0.5"/>
+</g>
+<path class="armLeft" d="M44 136 C 28 132 18 140 14 154" stroke="#6B5D52" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="armRight" d="M156 136 C 172 132 182 140 186 154" stroke="#6B5D52" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="tailNub" d="M140 178 C 152 174 160 182 156 192 C 148 188 140 188 136 190 Z" fill="#6B5D52"/>
+<path d="M100 78 C 136 78 156 108 154 142 C 152 178 128 206 100 206 C 72 206 48 178 46 142 C 44 108 64 78 100 78 Z" fill="#9C8C7E"/>
+<ellipse cx="100" cy="142" rx="30" ry="34" fill="#C7BDB2" opacity="0.5"/>
+<ellipse cx="80" cy="206" rx="13" ry="7" fill="#6B5D52"/>
+<ellipse cx="120" cy="206" rx="13" ry="7" fill="#6B5D52"/>
+<path d="M69 130 q11 -12 22 0" stroke="#3A2E26" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M109 130 q11 -12 22 0" stroke="#3A2E26" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M76 150 q24 24 48 0 q-24 16 -48 0 Z" fill="#3A2E26"/>
+<ellipse cx="62" cy="142" rx="7" ry="4" fill="#FF8FA8"/>
+<ellipse cx="138" cy="142" rx="7" ry="4" fill="#FF8FA8"/>
+</g>
+<g transform="translate(20,26)"><polygon class="s1" points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#5ECDD1"/></g>
+<g transform="translate(166,36)"><polygon class="s2" points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#5ECDD1"/></g>
+<g transform="translate(10,72)"><polygon class="s3" points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#5ECDD1"/></g>
+<g transform="translate(174,84)"><polygon class="s4" points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#5ECDD1"/></g>
+<g transform="translate(100,16)"><polygon class="s5" points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#5ECDD1"/></g>
+</svg>

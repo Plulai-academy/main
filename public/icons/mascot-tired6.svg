@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>Tired pebble mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 206px;animation:tiredSlump 3.6s ease-in-out infinite;}
+.mouthYawn{transform-origin:100px 156px;animation:yawn 2.6s ease-in-out infinite;}
+.z1{animation:floatUp 2.4s ease-in infinite;}
+.z2{animation:floatUp 2.4s ease-in infinite 0.6s;}
+.z3{animation:floatUp 2.4s ease-in infinite 1.2s;}
+@keyframes tiredSlump{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(4px) rotate(-1.5deg);}}
+@keyframes yawn{0%,78%,100%{transform:scaleY(1);}40%{transform:scaleY(1.6);}}
+@keyframes floatUp{0%{transform:translateY(0);opacity:0;}20%{opacity:1;}100%{transform:translateY(-26px);opacity:0;}}
+</style>
+<ellipse cx="100" cy="214" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<g>
+<path d="M100 78 L 88 50 L 100 36 L 112 50 Z" fill="#5ECDD1"/>
+<path d="M100 36 L 100 78 L 112 50 Z" fill="#8FE8ED" opacity="0.5"/>
+</g>
+<path d="M44 136 C 28 132 18 140 14 154" stroke="#6B5D52" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M156 136 C 172 132 182 140 186 154" stroke="#6B5D52" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M140 178 C 152 174 160 182 156 192 C 148 188 140 188 136 190 Z" fill="#6B5D52"/>
+<path d="M100 78 C 136 78 156 108 154 142 C 152 178 128 206 100 206 C 72 206 48 178 46 142 C 44 108 64 78 100 78 Z" fill="#9C8C7E"/>
+<ellipse cx="100" cy="142" rx="30" ry="34" fill="#C7BDB2" opacity="0.5"/>
+<ellipse cx="80" cy="206" rx="13" ry="7" fill="#6B5D52"/>
+<ellipse cx="120" cy="206" rx="13" ry="7" fill="#6B5D52"/>
+<path d="M69 130 q11 6 22 0" stroke="#3A2E26" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M109 130 q11 6 22 0" stroke="#3A2E26" stroke-width="4" fill="none" stroke-linecap="round"/>
+<ellipse class="mouthYawn" cx="100" cy="156" rx="7" ry="9" fill="#3A2E26"/>
+</g>
+<g>
+<text class="z1" x="160" y="54" font-size="16" fill="#A89A8C">Z</text>
+<text class="z2" x="174" y="40" font-size="14" fill="#A89A8C">Z</text>
+<text class="z3" x="186" y="28" font-size="11" fill="#A89A8C">z</text>
+</g>
+</svg>

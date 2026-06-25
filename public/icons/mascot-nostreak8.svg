@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>No streak sprout mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 208px;animation:sadDroop 3.6s ease-in-out infinite;}
+.leafL{transform-origin:68px 82px;animation:leafWiltL 0.6s ease-out forwards;}
+.leafR{transform-origin:132px 82px;animation:leafWiltR 0.6s ease-out forwards;}
+@keyframes sadDroop{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(5px) rotate(2deg);}}
+@keyframes leafWiltL{from{transform:rotate(0deg);fill:#7ED957;}to{transform:rotate(20deg);fill:#A88B4A;}}
+@keyframes leafWiltR{from{transform:rotate(0deg);fill:#7ED957;}to{transform:rotate(-20deg);fill:#A88B4A;}}
+</style>
+<ellipse cx="100" cy="216" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<path class="leafL" d="M68 84 C 56 76 50 60 56 44 C 70 50 78 64 76 80 Z" fill="#7ED957"/>
+<line x1="64" y1="78" x2="60" y2="50" stroke="#4A8B2C" stroke-width="1.5"/>
+<path class="leafR" d="M132 84 C 144 76 150 60 144 44 C 130 50 122 64 124 80 Z" fill="#7ED957"/>
+<line x1="136" y1="78" x2="140" y2="50" stroke="#4A8B2C" stroke-width="1.5"/>
+<path d="M44 140 C 28 136 18 144 14 158" stroke="#4A8B2C" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M156 140 C 172 136 182 144 186 158" stroke="#4A8B2C" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M138 178 C 156 174 162 188 150 196 C 144 190 140 192 136 188" stroke="#4A8B2C" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M100 84 C 138 84 158 116 154 150 C 150 186 126 208 100 208 C 74 208 50 186 46 150 C 42 116 62 84 100 84 Z" fill="#7ED957"/>
+<ellipse cx="100" cy="146" rx="30" ry="36" fill="#B8F0A0" opacity="0.5"/>
+<ellipse cx="80" cy="208" rx="13" ry="7" fill="#4A8B2C"/>
+<ellipse cx="120" cy="208" rx="13" ry="7" fill="#4A8B2C"/>
+<ellipse cx="80" cy="136" rx="9" ry="11" fill="#FFFFFF"/>
+<ellipse cx="120" cy="136" rx="9" ry="11" fill="#FFFFFF"/>
+<circle cx="80" cy="140" r="4.5" fill="#2E4A1E"/>
+<circle cx="120" cy="140" r="4.5" fill="#2E4A1E"/>
+<path d="M67 124 q11 -6 20 -2" stroke="#2E4A1E" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M113 122 q11 -6 20 2" stroke="#2E4A1E" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M84 170 q16 -10 32 0" stroke="#2E4A1E" stroke-width="4" fill="none" stroke-linecap="round"/>
+</g>
+</svg>

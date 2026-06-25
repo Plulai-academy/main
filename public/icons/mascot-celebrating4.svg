@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>Celebrating droplet mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 218px;animation:bounce 0.55s ease-in-out infinite;}
+.armLeft{transform-origin:46px 150px;animation:armSwingL 0.55s ease-in-out infinite;}
+.armRight{transform-origin:154px 150px;animation:armSwingR 0.55s ease-in-out infinite;}
+.waveTuft{transform-origin:98px 70px;animation:tuftWiggle 0.4s ease-in-out infinite;}
+.tailFin{transform-origin:146px 192px;animation:tailWag 0.4s ease-in-out infinite;}
+.b1{animation:bubbleRise 1.6s ease-in infinite;}
+.b2{animation:bubbleRise 1.6s ease-in infinite 0.3s;}
+.b3{animation:bubbleRise 1.6s ease-in infinite 0.6s;}
+.b4{animation:bubbleRise 1.6s ease-in infinite 0.9s;}
+.b5{animation:bubbleRise 1.6s ease-in infinite 1.2s;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-16px);}}
+@keyframes armSwingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-30deg);}}
+@keyframes armSwingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(30deg);}}
+@keyframes tuftWiggle{0%,100%{transform:rotate(-15deg);}50%{transform:rotate(15deg);}}
+@keyframes tailWag{0%,100%{transform:rotate(-18deg);}50%{transform:rotate(18deg);}}
+@keyframes bubbleRise{0%{transform:translateY(0);opacity:0;}20%{opacity:0.9;}100%{transform:translateY(-30px);opacity:0;}}
+</style>
+<ellipse cx="100" cy="226" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<path class="waveTuft" d="M98 70 C 92 56 94 42 106 36 C 102 48 106 58 98 70 Z" fill="#8FD9F2"/>
+<path class="armLeft" d="M46 150 C 30 146 20 154 16 168" stroke="#1C5F8E" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="armRight" d="M154 150 C 170 146 180 154 184 168" stroke="#1C5F8E" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="tailFin" d="M146 188 C 162 182 174 192 168 206 C 158 200 148 200 144 204 Z" fill="#1C5F8E"/>
+<path d="M100 70 C 130 110 158 150 152 184 C 148 206 126 222 100 222 C 74 222 52 206 48 184 C 42 150 70 110 100 70 Z" fill="#36A9E1"/>
+<ellipse cx="100" cy="165" rx="28" ry="36" fill="#8FD9F2" opacity="0.5"/>
+<ellipse cx="80" cy="218" rx="12" ry="6" fill="#1C5F8E"/>
+<ellipse cx="120" cy="218" rx="12" ry="6" fill="#1C5F8E"/>
+<path d="M69 152 q11 -12 22 0" stroke="#0F3550" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M109 152 q11 -12 22 0" stroke="#0F3550" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M76 172 q24 24 48 0 q-24 16 -48 0 Z" fill="#0F3550"/>
+<ellipse cx="62" cy="164" rx="7" ry="4" fill="#FF8FA8"/>
+<ellipse cx="138" cy="164" rx="7" ry="4" fill="#FF8FA8"/>
+</g>
+<circle class="b1" cx="34" cy="80" r="6" fill="#BEEFFB" fill-opacity="0.55" stroke="#FFFFFF" stroke-width="1.5"/>
+<circle class="b2" cx="166" cy="90" r="5" fill="#BEEFFB" fill-opacity="0.55" stroke="#FFFFFF" stroke-width="1.5"/>
+<circle class="b3" cx="24" cy="124" r="4" fill="#BEEFFB" fill-opacity="0.55" stroke="#FFFFFF" stroke-width="1.5"/>
+<circle class="b4" cx="174" cy="136" r="6" fill="#BEEFFB" fill-opacity="0.55" stroke="#FFFFFF" stroke-width="1.5"/>
+<circle class="b5" cx="100" cy="52" r="5" fill="#BEEFFB" fill-opacity="0.55" stroke="#FFFFFF" stroke-width="1.5"/>
+</svg>

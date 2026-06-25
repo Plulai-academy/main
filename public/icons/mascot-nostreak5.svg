@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>No streak breeze mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 212px;animation:sadDroop 3.6s ease-in-out infinite;}
+.puffCrown{transform-origin:100px 62px;animation:puffDeflate 0.6s ease-out forwards;}
+@keyframes sadDroop{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(5px) rotate(2deg);}}
+@keyframes puffDeflate{from{transform:scaleY(1);}to{transform:scaleY(0.7);}}
+</style>
+<ellipse cx="100" cy="220" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<g class="puffCrown"><circle cx="78" cy="70" r="16" fill="#C9C2FF"/><circle cx="100" cy="58" r="19" fill="#C9C2FF"/><circle cx="122" cy="70" r="16" fill="#C9C2FF"/></g>
+<path d="M44 142 C 28 138 18 146 14 160" stroke="#5A4FB5" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M156 142 C 172 138 182 146 186 160" stroke="#5A4FB5" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M138 170 C 154 164 166 172 162 184 C 154 178 144 178 138 182 Z" fill="#5A4FB5"/>
+<path d="M100 82 C 138 82 156 116 152 152 C 150 190 126 212 100 212 C 74 212 50 190 48 152 C 44 116 62 82 100 82 Z" fill="#8B7FE8"/>
+<ellipse cx="100" cy="148" rx="30" ry="38" fill="#C9C2FF" opacity="0.5"/>
+<ellipse cx="80" cy="212" rx="13" ry="7" fill="#5A4FB5"/>
+<ellipse cx="120" cy="212" rx="13" ry="7" fill="#5A4FB5"/>
+<ellipse cx="80" cy="134" rx="9" ry="11" fill="#FFFFFF"/>
+<ellipse cx="120" cy="134" rx="9" ry="11" fill="#FFFFFF"/>
+<circle cx="80" cy="138" r="4.5" fill="#2E2360"/>
+<circle cx="120" cy="138" r="4.5" fill="#2E2360"/>
+<path d="M67 122 q11 -6 20 -2" stroke="#2E2360" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M113 120 q11 -6 20 2" stroke="#2E2360" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M84 168 q16 -10 32 0" stroke="#2E2360" stroke-width="4" fill="none" stroke-linecap="round"/>
+</g>
+<line x1="18" y1="40" x2="34" y2="40" stroke="#B9B4DC" stroke-width="2" stroke-linecap="round"/>
+<line x1="166" y1="50" x2="182" y2="50" stroke="#B9B4DC" stroke-width="2" stroke-linecap="round"/>
+<line x1="14" y1="78" x2="30" y2="78" stroke="#B9B4DC" stroke-width="2" stroke-linecap="round"/>
+</svg>

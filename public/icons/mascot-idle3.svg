@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>Idle ember mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 212px;animation:idleSway 3.2s ease-in-out infinite;}
+.eyeL{transform-origin:80px 144px;animation:blink 4.5s ease-in-out infinite;}
+.eyeR{transform-origin:120px 144px;animation:blink 4.5s ease-in-out infinite;}
+.earL,.earR{animation:flicker 2.2s ease-in-out infinite;}
+.tail{transform-origin:146px 196px;animation:tailSway 2.8s ease-in-out infinite;}
+@keyframes idleSway{0%,100%{transform:rotate(-2deg);}50%{transform:rotate(2deg);}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1);}96%{transform:scaleY(0.12);}}
+@keyframes flicker{0%,100%{opacity:1;}50%{opacity:0.7;}}
+@keyframes tailSway{0%,100%{transform:rotate(-6deg);}50%{transform:rotate(6deg);}}
+</style>
+<ellipse cx="100" cy="222" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<path class="earL" d="M80 86 C 72 78 70 66 78 54 C 84 64 86 78 80 86 Z" fill="#FFD23F"/>
+<path class="earR" d="M120 86 C 128 78 130 66 122 54 C 116 64 114 78 120 86 Z" fill="#FFD23F"/>
+<path d="M44 150 C 28 146 18 154 14 168" stroke="#C75A35" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M156 150 C 172 146 182 154 186 168" stroke="#C75A35" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="tail" d="M146 192 C 162 188 172 198 166 210 C 160 204 152 202 146 206 Z" fill="#FFD23F"/>
+<path d="M100 84 C 139 84 156 119 154 154 C 152 192 129 212 100 212 C 71 212 48 192 46 154 C 44 119 61 84 100 84 Z" fill="#FF8C61"/>
+<ellipse cx="100" cy="158" rx="30" ry="38" fill="#FFB089" opacity="0.5"/>
+<ellipse cx="80" cy="212" rx="13" ry="7" fill="#C75A35"/>
+<ellipse cx="120" cy="212" rx="13" ry="7" fill="#C75A35"/>
+<g class="eyeL"><ellipse cx="80" cy="144" rx="11" ry="14" fill="#FFFFFF"/><circle cx="83" cy="147" r="5" fill="#3A2618"/></g>
+<g class="eyeR"><ellipse cx="120" cy="144" rx="11" ry="14" fill="#FFFFFF"/><circle cx="123" cy="147" r="5" fill="#3A2618"/></g>
+<path d="M84 170 q16 12 32 0" stroke="#3A2618" stroke-width="4" fill="none" stroke-linecap="round"/>
+</g>
+</svg>

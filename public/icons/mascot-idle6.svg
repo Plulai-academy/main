@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>Idle pebble mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 206px;animation:idleSway 3.2s ease-in-out infinite;}
+.eyeL{transform-origin:80px 128px;animation:blink 4.5s ease-in-out infinite;}
+.eyeR{transform-origin:120px 128px;animation:blink 4.5s ease-in-out infinite;}
+.crystalTuft{transform-origin:100px 57px;animation:gemGlow 2.4s ease-in-out infinite;}
+.tailNub{transform-origin:140px 178px;animation:tailSway 2.8s ease-in-out infinite;}
+@keyframes idleSway{0%,100%{transform:rotate(-2deg);}50%{transform:rotate(2deg);}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1);}96%{transform:scaleY(0.12);}}
+@keyframes gemGlow{0%,100%{opacity:1;}50%{opacity:0.6;}}
+@keyframes tailSway{0%,100%{transform:rotate(-6deg);}50%{transform:rotate(6deg);}}
+</style>
+<ellipse cx="100" cy="214" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<g class="crystalTuft">
+<path d="M100 78 L 88 50 L 100 36 L 112 50 Z" fill="#5ECDD1"/>
+<path d="M100 36 L 100 78 L 112 50 Z" fill="#8FE8ED" opacity="0.5"/>
+</g>
+<path d="M44 136 C 28 132 18 140 14 154" stroke="#6B5D52" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M156 136 C 172 132 182 140 186 154" stroke="#6B5D52" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="tailNub" d="M140 178 C 152 174 160 182 156 192 C 148 188 140 188 136 190 Z" fill="#6B5D52"/>
+<path d="M100 78 C 136 78 156 108 154 142 C 152 178 128 206 100 206 C 72 206 48 178 46 142 C 44 108 64 78 100 78 Z" fill="#9C8C7E"/>
+<ellipse cx="100" cy="142" rx="30" ry="34" fill="#C7BDB2" opacity="0.5"/>
+<ellipse cx="80" cy="206" rx="13" ry="7" fill="#6B5D52"/>
+<ellipse cx="120" cy="206" rx="13" ry="7" fill="#6B5D52"/>
+<g class="eyeL"><ellipse cx="80" cy="128" rx="11" ry="14" fill="#FFFFFF"/><circle cx="83" cy="131" r="5" fill="#3A2E26"/></g>
+<g class="eyeR"><ellipse cx="120" cy="128" rx="11" ry="14" fill="#FFFFFF"/><circle cx="123" cy="131" r="5" fill="#3A2E26"/></g>
+<path d="M84 154 q16 12 32 0" stroke="#3A2E26" stroke-width="4" fill="none" stroke-linecap="round"/>
+</g>
+</svg>

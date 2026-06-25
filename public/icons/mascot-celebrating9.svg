@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>Celebrating berry mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 210px;animation:bounce 0.55s ease-in-out infinite;}
+.armLeft{transform-origin:44px 144px;animation:armSwingL 0.55s ease-in-out infinite;}
+.armRight{transform-origin:156px 144px;animation:armSwingR 0.55s ease-in-out infinite;}
+.tailBerry{transform-origin:138px 180px;animation:tailWag 0.4s ease-in-out infinite;}
+.s1{animation:twinkle 1.2s ease-in-out infinite;}
+.s2{animation:twinkle 1.2s ease-in-out infinite 0.15s;}
+.s3{animation:twinkle 1.2s ease-in-out infinite 0.3s;}
+.s4{animation:twinkle 1.2s ease-in-out infinite 0.45s;}
+.s5{animation:twinkle 1.2s ease-in-out infinite 0.6s;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-16px);}}
+@keyframes armSwingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-30deg);}}
+@keyframes armSwingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(30deg);}}
+@keyframes tailWag{0%,100%{transform:rotate(-18deg);}50%{transform:rotate(18deg);}}
+@keyframes twinkle{0%,100%{transform:scale(0);opacity:0;}50%{transform:scale(1);opacity:1;}}
+</style>
+<ellipse cx="100" cy="218" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<g>
+<path d="M100 86 C 98 74 102 64 108 56" stroke="#6FBF4A" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M108 56 C 118 50 130 52 134 62 C 124 64 112 64 108 56 Z" fill="#6FBF4A"/>
+</g>
+<path class="armLeft" d="M44 144 C 28 140 18 148 14 162" stroke="#A8347A" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="armRight" d="M156 144 C 172 140 182 148 186 162" stroke="#A8347A" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="tailBerry" d="M138 180 C 154 176 162 186 156 196 C 150 190 142 190 138 192 Z" fill="#A8347A"/>
+<path d="M100 86 C 136 86 154 118 150 152 C 146 188 124 210 100 210 C 76 210 54 188 50 152 C 46 118 64 86 100 86 Z" fill="#E0529C"/>
+<ellipse cx="100" cy="150" rx="28" ry="34" fill="#F5A8CB" opacity="0.5"/>
+<ellipse cx="80" cy="210" rx="13" ry="7" fill="#A8347A"/>
+<ellipse cx="120" cy="210" rx="13" ry="7" fill="#A8347A"/>
+<path d="M69 138 q11 -12 22 0" stroke="#4A1830" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M109 138 q11 -12 22 0" stroke="#4A1830" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M76 158 q24 24 48 0 q-24 16 -48 0 Z" fill="#4A1830"/>
+<ellipse cx="62" cy="150" rx="7" ry="4" fill="#FF6B9C"/>
+<ellipse cx="138" cy="150" rx="7" ry="4" fill="#FF6B9C"/>
+</g>
+<g transform="translate(20,24)"><path class="s1" d="M0,5 C-6,-1 -6,-8 0,-4 C6,-8 6,-1 0,5 Z" fill="#FF6B9C"/></g>
+<g transform="translate(166,34)"><path class="s2" d="M0,5 C-6,-1 -6,-8 0,-4 C6,-8 6,-1 0,5 Z" fill="#FF6B9C"/></g>
+<g transform="translate(10,70)"><path class="s3" d="M0,5 C-6,-1 -6,-8 0,-4 C6,-8 6,-1 0,5 Z" fill="#FF6B9C"/></g>
+<g transform="translate(174,82)"><path class="s4" d="M0,5 C-6,-1 -6,-8 0,-4 C6,-8 6,-1 0,5 Z" fill="#FF6B9C"/></g>
+<g transform="translate(100,14)"><path class="s5" d="M0,5 C-6,-1 -6,-8 0,-4 C6,-8 6,-1 0,5 Z" fill="#FF6B9C"/></g>
+</svg>

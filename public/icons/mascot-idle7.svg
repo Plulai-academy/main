@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>Idle bulb mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 208px;animation:idleSway 3.2s ease-in-out infinite;}
+.eyeL{transform-origin:80px 130px;animation:blink 4.5s ease-in-out infinite;}
+.eyeR{transform-origin:120px 130px;animation:blink 4.5s ease-in-out infinite;}
+.filament{animation:glow 2.2s ease-in-out infinite;}
+.tailScroll{transform-origin:138px 176px;animation:tailSway 2.8s ease-in-out infinite;}
+@keyframes idleSway{0%,100%{transform:rotate(-2deg);}50%{transform:rotate(2deg);}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1);}96%{transform:scaleY(0.12);}}
+@keyframes glow{0%,100%{opacity:1;}50%{opacity:0.5;}}
+@keyframes tailSway{0%,100%{transform:rotate(-6deg);}50%{transform:rotate(6deg);}}
+</style>
+<ellipse cx="100" cy="216" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<g>
+<path d="M100 24 C 116 24 128 36 128 50 C 128 62 120 70 112 74 L 112 80 L 88 80 L 88 74 C 80 70 72 62 72 50 C 72 36 84 24 100 24 Z" fill="#FFF3CF"/>
+<rect x="88" y="80" width="24" height="8" fill="#9CA3AE" rx="2"/>
+<line x1="90" y1="84" x2="110" y2="84" stroke="#7A828C" stroke-width="1.5"/>
+<line x1="90" y1="88" x2="110" y2="88" stroke="#7A828C" stroke-width="1.5"/>
+<path class="filament" d="M92 56 L 96 44 L 100 56 L 104 44 L 108 56" stroke="#FF9F43" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</g>
+<path d="M44 138 C 28 134 18 142 14 156" stroke="#C9962B" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M156 138 C 172 134 182 142 186 156" stroke="#C9962B" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="tailScroll" d="M138 176 C 154 172 162 182 156 192 C 150 186 142 186 136 188 Z" fill="#FFF8E8" stroke="#C9962B" stroke-width="1.5"/>
+<path d="M100 80 C 134 80 152 112 150 146 C 148 182 124 208 100 208 C 76 208 52 182 50 146 C 48 112 66 80 100 80 Z" fill="#FFD976"/>
+<ellipse cx="100" cy="144" rx="28" ry="36" fill="#FFF3CF" opacity="0.5"/>
+<ellipse cx="80" cy="208" rx="13" ry="7" fill="#C9962B"/>
+<ellipse cx="120" cy="208" rx="13" ry="7" fill="#C9962B"/>
+<g class="eyeL"><ellipse cx="80" cy="130" rx="11" ry="14" fill="#FFFFFF"/><circle cx="83" cy="133" r="5" fill="#4A3418"/></g>
+<g class="eyeR"><ellipse cx="120" cy="130" rx="11" ry="14" fill="#FFFFFF"/><circle cx="123" cy="133" r="5" fill="#4A3418"/></g>
+<path d="M84 156 q16 12 32 0" stroke="#4A3418" stroke-width="4" fill="none" stroke-linecap="round"/>
+</g>
+</svg>

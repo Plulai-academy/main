@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>No streak pebble mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 206px;animation:sadDroop 3.6s ease-in-out infinite;}
+.crystalTuft path{animation:gemDim 0.6s ease-out forwards;}
+.crackLine{animation:crackIn 0.4s ease-out forwards;}
+@keyframes sadDroop{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(5px) rotate(2deg);}}
+@keyframes gemDim{from{fill:#5ECDD1;}to{fill:#8A8580;}}
+@keyframes crackIn{from{opacity:0;}to{opacity:1;}}
+</style>
+<ellipse cx="100" cy="214" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<g class="crystalTuft">
+<path d="M100 78 L 88 50 L 100 36 L 112 50 Z" fill="#5ECDD1"/>
+<path d="M100 36 L 100 78 L 112 50 Z" fill="#5ECDD1" opacity="0.5"/>
+</g>
+<path d="M44 136 C 28 132 18 140 14 154" stroke="#6B5D52" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M156 136 C 172 132 182 140 186 154" stroke="#6B5D52" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M140 178 C 152 174 160 182 156 192 C 148 188 140 188 136 190 Z" fill="#6B5D52"/>
+<path d="M100 78 C 136 78 156 108 154 142 C 152 178 128 206 100 206 C 72 206 48 178 46 142 C 44 108 64 78 100 78 Z" fill="#9C8C7E"/>
+<ellipse cx="100" cy="142" rx="30" ry="34" fill="#C7BDB2" opacity="0.5"/>
+<path class="crackLine" d="M88 110 l6 14 l-8 10 l10 16" stroke="#4A3F36" stroke-width="2" fill="none" stroke-linecap="round"/>
+<ellipse cx="80" cy="206" rx="13" ry="7" fill="#6B5D52"/>
+<ellipse cx="120" cy="206" rx="13" ry="7" fill="#6B5D52"/>
+<ellipse cx="80" cy="130" rx="9" ry="11" fill="#FFFFFF"/>
+<ellipse cx="120" cy="130" rx="9" ry="11" fill="#FFFFFF"/>
+<circle cx="80" cy="134" r="4.5" fill="#3A2E26"/>
+<circle cx="120" cy="134" r="4.5" fill="#3A2E26"/>
+<path d="M67 118 q11 -6 20 -2" stroke="#3A2E26" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M113 116 q11 -6 20 2" stroke="#3A2E26" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M84 164 q16 -10 32 0" stroke="#3A2E26" stroke-width="4" fill="none" stroke-linecap="round"/>
+</g>
+</svg>

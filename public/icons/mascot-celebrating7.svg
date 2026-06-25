@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 246" width="200" height="246">
+<title>Celebrating bulb mascot</title>
+<style>
+.bodyGroup{transform-origin:100px 208px;animation:bounce 0.55s ease-in-out infinite;}
+.armLeft{transform-origin:44px 138px;animation:armSwingL 0.55s ease-in-out infinite;}
+.armRight{transform-origin:156px 138px;animation:armSwingR 0.55s ease-in-out infinite;}
+.tailScroll{transform-origin:138px 176px;animation:tailWag 0.4s ease-in-out infinite;}
+.s1{animation:twinkle 1.2s ease-in-out infinite;}
+.s2{animation:twinkle 1.2s ease-in-out infinite 0.15s;}
+.s3{animation:twinkle 1.2s ease-in-out infinite 0.3s;}
+.s4{animation:twinkle 1.2s ease-in-out infinite 0.45s;}
+.s5{animation:twinkle 1.2s ease-in-out infinite 0.6s;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-16px);}}
+@keyframes armSwingL{0%,100%{transform:rotate(0deg);}50%{transform:rotate(-30deg);}}
+@keyframes armSwingR{0%,100%{transform:rotate(0deg);}50%{transform:rotate(30deg);}}
+@keyframes tailWag{0%,100%{transform:rotate(-18deg);}50%{transform:rotate(18deg);}}
+@keyframes twinkle{0%,100%{transform:scale(0);opacity:0;}50%{transform:scale(1);opacity:1;}}
+</style>
+<ellipse cx="100" cy="216" rx="50" ry="8" fill="rgba(130,130,130,0.22)"/>
+<g class="bodyGroup">
+<g>
+<path d="M100 24 C 116 24 128 36 128 50 C 128 62 120 70 112 74 L 112 80 L 88 80 L 88 74 C 80 70 72 62 72 50 C 72 36 84 24 100 24 Z" fill="#FFF3CF"/>
+<rect x="88" y="80" width="24" height="8" fill="#9CA3AE" rx="2"/>
+<line x1="90" y1="84" x2="110" y2="84" stroke="#7A828C" stroke-width="1.5"/>
+<line x1="90" y1="88" x2="110" y2="88" stroke="#7A828C" stroke-width="1.5"/>
+<path d="M92 56 L 96 44 L 100 56 L 104 44 L 108 56" stroke="#FF9F43" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</g>
+<path class="armLeft" d="M44 138 C 28 134 18 142 14 156" stroke="#C9962B" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="armRight" d="M156 138 C 172 134 182 142 186 156" stroke="#C9962B" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path class="tailScroll" d="M138 176 C 154 172 162 182 156 192 C 150 186 142 186 136 188 Z" fill="#FFF8E8" stroke="#C9962B" stroke-width="1.5"/>
+<path d="M100 80 C 134 80 152 112 150 146 C 148 182 124 208 100 208 C 76 208 52 182 50 146 C 48 112 66 80 100 80 Z" fill="#FFD976"/>
+<ellipse cx="100" cy="144" rx="28" ry="36" fill="#FFF3CF" opacity="0.5"/>
+<ellipse cx="80" cy="208" rx="13" ry="7" fill="#C9962B"/>
+<ellipse cx="120" cy="208" rx="13" ry="7" fill="#C9962B"/>
+<path d="M69 132 q11 -12 22 0" stroke="#4A3418" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M109 132 q11 -12 22 0" stroke="#4A3418" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M76 152 q24 24 48 0 q-24 16 -48 0 Z" fill="#4A3418"/>
+<ellipse cx="62" cy="144" rx="7" ry="4" fill="#FF8FA8"/>
+<ellipse cx="138" cy="144" rx="7" ry="4" fill="#FF8FA8"/>
+</g>
+<g transform="translate(20,18)"><polygon class="s1" points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#FFD976"/></g>
+<g transform="translate(166,28)"><polygon class="s2" points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#FFD976"/></g>
+<g transform="translate(10,62)"><polygon class="s3" points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#FFD976"/></g>
+<g transform="translate(174,76)"><polygon class="s4" points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#FFD976"/></g>
+<g transform="translate(100,10)"><polygon class="s5" points="0,-7 2,-2 7,0 2,2 0,7 -2,2 -7,0 -2,-2" fill="#FFD976"/></g>
+</svg>
