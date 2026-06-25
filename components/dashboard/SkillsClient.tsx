@@ -331,9 +331,6 @@ function SideAvatar({
   const [imgError, setImgError] = useState(false)
   if (imgError) return null
 
-  // Offset is a bounded clamp() rather than a vw-based negative margin, so the
-  // avatar always lands a fixed distance from the bubble's center and never
-  // escapes the viewport on narrow phones (where the path has no side gutter).
   const sign = side === 'left' ? -1 : 1
 
   return (
@@ -341,10 +338,11 @@ function SideAvatar({
       aria-hidden
       className="absolute top-1/2 left-1/2 pointer-events-none select-none z-10"
       style={{
-        width: 'clamp(64px, 18vw, 96px)',
-        transform: `translate(calc(-50% ${sign > 0 ? '+' : '-'} clamp(46px, 15vw, 78px)), -50%)`,
+        width: 'clamp(88px, 24vw, 128px)',
+        transform: `translate(calc(-50% ${sign > 0 ? '+' : '-'} clamp(68px, 20vw, 108px)), calc(-50% + 20px))`,
       }}
     >
+    
       <img
         src={src}
         alt=""
