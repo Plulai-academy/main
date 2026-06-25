@@ -62,16 +62,6 @@ const SIDE_AVATARS = [
   '/icons/mascot-idle9.svg',
 ]
 
-type MascotState = 'celebrating' | 'tired' | 'noStreak' | 'idle'
-
-const MASCOT_SRC: Record<MascotState, string | null> = {
-  idle: '/icons/mascot-idle.svg',
-  celebrating: '/icons/mascot-celebrating.svg',
-  tired: '/icons/mascot-tired.svg',
-  noStreak: '/icons/mascot-nostreak.svg',
-}
-
-const TIRED_THRESHOLD_MINS = 60
 const UNIT_SIZE = 4
 const AVATAR_EVERY = 4
 
@@ -341,14 +331,19 @@ function SideAvatar({
   const [imgError, setImgError] = useState(false)
   if (imgError) return null
 
+  // Offset is a bounded clamp() rather than a vw-based negative margin, so the
+  // avatar always lands a fixed distance from the bubble's center and never
+  // escapes the viewport on narrow phones (where the path has no side gutter).
+  const sign = side === 'left' ? -1 : 1
+
   return (
     <div
       aria-hidden
-      className={cn(
-        'absolute top-1/2 -translate-y-1/2 pointer-events-none select-none z-10',
-        side === 'left' ? 'left-[-15vw] sm:left-[-90px]' : 'right-[-15vw] sm:right-[-90px]',
-      )}
-      style={{ width: 'clamp(40px, 12vw, 56px)' }}
+      className="absolute top-1/2 left-1/2 pointer-events-none select-none z-10"
+      style={{
+        width: 'clamp(64px, 18vw, 96px)',
+        transform: `translate(calc(-50% ${sign > 0 ? '+' : '-'} clamp(46px, 15vw, 78px)), -50%)`,
+      }}
     >
       <img
         src={src}
@@ -357,68 +352,6 @@ function SideAvatar({
         onError={() => setImgError(true)}
       />
     </div>
-  )
-}
-
-function MascotPlaceholder({ state }: { state: MascotState }) {
-  const src = MASCOT_SRC[state]
-
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt=""
-        aria-hidden
-        className={cn(
-          'select-none pointer-events-none',
-          state === 'celebrating' && 'animate-[mascotBounce_0.6s_ease-in-out_infinite]',
-        )}
-        style={{ width: 'clamp(160px, 40vw, 280px)' }}
-      />
-    )
-  }
-
-  const palette =
-    state === 'celebrating' ? '#FAA918' :
-    state === 'tired'       ? '#5B6772' :
-    state === 'noStreak'    ? '#3A4450' :
-                               '#5B6772'
-
-  const eyeY = state === 'tired' ? 56 : 52
-
-  return (
-    <svg
-      viewBox="0 0 120 140"
-      aria-hidden
-      className={cn(
-        'select-none pointer-events-none',
-        state === 'celebrating' ? 'opacity-90 animate-[mascotBounce_0.6s_ease-in-out_infinite]' : 'opacity-25',
-        state === 'tired' && 'animate-[mascotPulseSlow_3s_ease-in-out_infinite]',
-      )}
-      style={{ width: 'clamp(160px, 40vw, 280px)', color: palette }}
-      fill="currentColor"
-    >
-      <ellipse cx="60" cy="55" rx="38" ry="42" />
-      <rect x="28" y="80" width="64" height="50" rx="24" />
-      {state === 'tired' ? (
-        <>
-          <rect x="42" y="50" width="12" height="3" fill="#0B0F14" rx="1.5" />
-          <rect x="66" y="50" width="12" height="3" fill="#0B0F14" rx="1.5" />
-        </>
-      ) : (
-        <>
-          <circle cx="48" cy={eyeY} r="5" fill="#0B0F14" />
-          <circle cx="72" cy={eyeY} r="5" fill="#0B0F14" />
-        </>
-      )}
-      {state === 'celebrating' && (
-        <path d="M48 65 Q60 75 72 65" stroke="#0B0F14" strokeWidth="3" fill="none" strokeLinecap="round" />
-      )}
-      {state === 'noStreak' && (
-        <path d="M48 70 Q60 62 72 70" stroke="#0B0F14" strokeWidth="3" fill="none" strokeLinecap="round" />
-      )}
-      <ellipse cx="60" cy="110" rx="18" ry="14" fill="#3a4550" />
-    </svg>
   )
 }
 
@@ -679,14 +612,6 @@ export default function SkillsClient({
   const currentSkill = orderedSkills.find(s => s.id === currentSkillId) ?? null
   const allDone = orderedSkills.length > 0 && orderedSkills.every(s => isComplete(s.id))
 
-  const mascotState: MascotState = allDone
-    ? 'celebrating'
-    : totalTimeMins >= TIRED_THRESHOLD_MINS
-    ? 'tired'
-    : streak === 0
-    ? 'noStreak'
-    : 'idle'
-
   useEffect(() => {
     if (!showPicker) return
     const handler = (e: MouseEvent) => {
@@ -849,16 +774,6 @@ export default function SkillsClient({
 
       <div className="flex-1 flex justify-center gap-8 px-4 pb-12 pt-4 max-w-[1100px] mx-auto w-full">
         <div className="relative flex-1 min-w-0 max-w-[640px]">
-          <div
-            aria-hidden
-            className={cn(
-              'absolute top-1/2 -translate-y-1/2 z-0 hidden xs:block sm:block',
-              dir === 'rtl' ? 'left-2 sm:left-6' : 'right-2 sm:right-6',
-            )}
-          >
-            <MascotPlaceholder state={mascotState} />
-          </div>
-
           {switching ? (
             <div className="flex items-center justify-center py-20">
               <p className="text-[#F5F5F5]/70 font-bold">{t.switching}</p>
@@ -981,14 +896,6 @@ export default function SkillsClient({
         @keyframes ringPulse {
           0%   { transform: scale(1); opacity: 1; }
           100% { transform: scale(1.4); opacity: 0; }
-        }
-        @keyframes mascotBounce {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-8px); }
-        }
-        @keyframes mascotPulseSlow {
-          0%, 100% { opacity: 0.25; }
-          50%      { opacity: 0.12; }
         }
       `}</style>
     </div>
