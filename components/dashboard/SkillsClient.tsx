@@ -338,9 +338,9 @@ function SideAvatar({
       aria-hidden
       className="absolute left-1/2 bottom-0 pointer-events-none select-none z-10"
       style={{
-        width: 'clamp(60px, 16vw, 90px)',
-        height: 'clamp(74px, 19.7vw, 111px)',
-        transform: `translateX(calc(-50% ${sign > 0 ? '+' : '-'} clamp(76px, 20vw, 116px)))`,
+        width: 'clamp(90px, 26vw, 140px)',
+        height: 'clamp(111px, 32vw, 172px)',
+        transform: `translate(calc(-50% ${sign > 0 ? '+' : '-'} clamp(88px, 23vw, 130px)), clamp(28px, 8vw, 44px))`,
       }}
     >
       <img
