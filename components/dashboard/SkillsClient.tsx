@@ -336,11 +336,11 @@ function SideAvatar({
   return (
     <div
       aria-hidden
-      className="absolute left-1/2 bottom-0 pointer-events-none select-none z-10"
+      className="absolute left-1/2 top-1/2 pointer-events-none select-none z-10"
       style={{
         width: 'clamp(90px, 26vw, 140px)',
         height: 'clamp(111px, 32vw, 172px)',
-        transform: `translate(calc(-50% ${sign > 0 ? '+' : '-'} clamp(88px, 23vw, 130px)), clamp(28px, 8vw, 44px))`,
+        transform: `translate(calc(-50% ${sign > 0 ? '+' : '-'} clamp(110px, 28vw, 160px)), -50%)`,
       }}
     >
       <img
