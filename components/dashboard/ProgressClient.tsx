@@ -60,7 +60,7 @@ const RARITY_COLORS: Record<string, string> = {
   legendary: '#FAA918',
 }
 
-// ─── Hero ring — this week's progress, not a lifetime total ──────────────
+// ─── Hero ring — fluid sizing, this week's progress not a lifetime total ──
 function WeeklyRing({ done, goal }: { done: number; goal: number }) {
   const pct    = Math.min(100, Math.round((done / goal) * 100))
   const radius = 70
@@ -68,8 +68,8 @@ function WeeklyRing({ done, goal }: { done: number; goal: number }) {
   const offset = circ - (pct / 100) * circ
 
   return (
-    <div className="relative w-44 h-44 mx-auto">
-      <svg viewBox="0 0 160 160" className="w-44 h-44 -rotate-90">
+    <div className="relative mx-auto" style={{ width: 'clamp(140px, 38vw, 190px)', height: 'clamp(140px, 38vw, 190px)' }}>
+      <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
         <circle cx="80" cy="80" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="12" />
         <circle
           cx="80" cy="80" r={radius} fill="none" stroke="#1CB0F6" strokeWidth="12" strokeLinecap="round"
@@ -77,30 +77,90 @@ function WeeklyRing({ done, goal }: { done: number; goal: number }) {
           className="transition-all duration-1000 ease-out"
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-fredoka text-4xl text-[#F5F5F5]">{done}</span>
-        <span className="text-xs font-bold text-[#6F6F6F]">of {goal} this week</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-2">
+        <span className="font-fredoka leading-none text-[#F5F5F5]" style={{ fontSize: 'clamp(28px, 7vw, 38px)' }}>{done}</span>
+        <span className="text-xs font-bold text-[#6F6F6F] text-center mt-1">of {goal} this week</span>
       </div>
     </div>
   )
 }
 
-// ─── Badge shelf — one badge in focus at a time, swipe to browse ─────────
-function BadgeShelf({ badges, t }: { badges: Badge[]; t: Record<string, string> }) {
-  const scrollerRef = useRef<HTMLDivElement | null>(null)
-  const [flipped, setFlipped] = useState<Record<string, boolean>>({})
-
-  const scrollBy = (dir: 1 | -1) => {
-    scrollerRef.current?.scrollBy({ left: dir * 180, behavior: 'smooth' })
-  }
+// ─── Badge card — real 3D flip, generous padding, clear locked state ─────
+function BadgeCard({ badge, t }: { badge: Badge; t: Record<string, string> }) {
+  const [flipped, setFlipped] = useState(false)
+  const rarityColor = RARITY_COLORS[badge.rarity] ?? RARITY_COLORS.common
 
   return (
-    <div className="relative">
+    <button
+      onClick={() => setFlipped(v => !v)}
+      className="shrink-0 snap-start [perspective:1000px] outline-none"
+      style={{ width: 'clamp(132px, 30vw, 168px)' }}
+      aria-label={badge.name}
+    >
+      <div
+        className="relative w-full transition-transform duration-500 [transform-style:preserve-3d]"
+        style={{ aspectRatio: '3/4', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
+      >
+        {/* FRONT */}
+        <div
+          className="absolute inset-0 rounded-3xl flex flex-col items-center justify-center text-center p-4 [backface-visibility:hidden]"
+          style={{
+            background: badge.earned
+              ? `linear-gradient(160deg, ${rarityColor}26 0%, ${rarityColor}0a 100%)`
+              : 'rgba(255,255,255,0.035)',
+            border: `1.5px solid ${badge.earned ? rarityColor + '4d' : 'rgba(255,255,255,0.08)'}`,
+          }}
+        >
+          {!badge.earned && (
+            <span className="absolute top-3 right-3 w-6 h-6 rounded-full bg-black/30 flex items-center justify-center">
+              <Icon kind="lock" className="w-3 h-3 text-[#F5F5F5]/60" />
+            </span>
+          )}
+          <div
+            className={cn('mb-3 flex items-center justify-center rounded-2xl', !badge.earned && 'opacity-45 grayscale')}
+            style={{ width: 'clamp(52px, 14vw, 68px)', height: 'clamp(52px, 14vw, 68px)', fontSize: 'clamp(28px, 7vw, 36px)', backgroundColor: badge.earned ? `${rarityColor}1a` : 'rgba(255,255,255,0.04)' }}
+          >
+            {badge.emoji}
+          </div>
+          <p className={cn('text-sm font-bold leading-snug px-1', badge.earned ? 'text-[#F5F5F5]' : 'text-[#6F6F6F]')}>
+            {badge.name}
+          </p>
+          <span className="text-[10px] font-bold text-[#6F6F6F]/50 mt-3 uppercase tracking-wide">{t.tapToFlip}</span>
+        </div>
+
+        {/* BACK */}
+        <div
+          className="absolute inset-0 rounded-3xl flex flex-col items-center justify-center text-center p-4 [backface-visibility:hidden]"
+          style={{
+            background: badge.earned ? `${rarityColor}14` : 'rgba(255,255,255,0.035)',
+            border: `1.5px solid ${badge.earned ? rarityColor + '4d' : 'rgba(255,255,255,0.08)'}`,
+            transform: 'rotateY(180deg)',
+          }}
+        >
+          <Icon kind={badge.earned ? 'check' : 'lock'} className={cn('w-6 h-6 mb-2.5', badge.earned ? 'text-[#3CB371]' : 'text-[#6F6F6F]')} />
+          <p className="text-xs font-semibold leading-relaxed text-[#F5F5F5]/80 px-1">
+            {badge.earned
+              ? (badge.earnedAt ? `${t.earnedOn} ${new Date(badge.earnedAt).toLocaleDateString()}` : t.earned)
+              : badge.condition}
+          </p>
+        </div>
+      </div>
+    </button>
+  )
+}
+
+// ─── Badge shelf ────────────────────────────────────────────────────────
+function BadgeShelf({ badges, t }: { badges: Badge[]; t: Record<string, string> }) {
+  const scrollerRef = useRef<HTMLDivElement | null>(null)
+  const scrollBy = (dir: 1 | -1) => scrollerRef.current?.scrollBy({ left: dir * 200, behavior: 'smooth' })
+
+  return (
+    <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-fredoka text-lg md:text-xl text-[#F5F5F5] flex items-center gap-2">
           <Icon kind="trophy" className="w-5 h-5 text-[#FAA918]" /> {t.badges}
         </h2>
-        <div className="flex items-center gap-1.5">
+        <div className="hidden sm:flex items-center gap-1.5">
           <button onClick={() => scrollBy(-1)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
             <Icon kind="chevronLeft" className="w-4 h-4 text-[#F5F5F5]/70" />
           </button>
@@ -110,48 +170,17 @@ function BadgeShelf({ badges, t }: { badges: Badge[]; t: Record<string, string> 
         </div>
       </div>
 
-      <div ref={scrollerRef} className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-none">
-        {badges.map(b => {
-          const rarityColor = RARITY_COLORS[b.rarity] ?? RARITY_COLORS.common
-          const isFlipped = flipped[b.id]
-          return (
-            <button
-              key={b.id}
-              onClick={() => setFlipped(prev => ({ ...prev, [b.id]: !prev[b.id] }))}
-              className="shrink-0 w-40 h-48 snap-start rounded-3xl p-4 flex flex-col items-center justify-center text-center transition-all duration-300"
-              style={{
-                background: b.earned
-                  ? `linear-gradient(160deg, ${rarityColor}22 0%, ${rarityColor}08 100%)`
-                  : 'rgba(255,255,255,0.03)',
-                border: `1px solid ${b.earned ? rarityColor + '40' : 'rgba(255,255,255,0.06)'}`,
-              }}
-            >
-              {!isFlipped ? (
-                <>
-                  <div className={cn('text-5xl mb-3', !b.earned && 'grayscale opacity-40')}>{b.emoji}</div>
-                  <p className={cn('text-sm font-bold leading-snug', b.earned ? 'text-[#F5F5F5]' : 'text-[#6F6F6F]')}>{b.name}</p>
-                  {!b.earned && <Icon kind="lock" className="w-3.5 h-3.5 text-[#6F6F6F]/50 mt-2" />}
-                  <span className="text-[10px] font-bold text-[#6F6F6F]/60 mt-2">{t.tapToFlip}</span>
-                </>
-              ) : (
-                <>
-                  <Icon kind={b.earned ? 'check' : 'lock'} className={cn('w-6 h-6 mb-3', b.earned ? 'text-[#3CB371]' : 'text-[#6F6F6F]')} />
-                  <p className="text-xs font-semibold leading-relaxed text-[#F5F5F5]/80">
-                    {b.earned
-                      ? (b.earnedAt ? `${t.earnedOn} ${new Date(b.earnedAt).toLocaleDateString()}` : t.earned)
-                      : b.condition}
-                  </p>
-                </>
-              )}
-            </button>
-          )
-        })}
+      <div
+        ref={scrollerRef}
+        className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0"
+      >
+        {badges.map(b => <BadgeCard key={b.id} badge={b} t={t} />)}
       </div>
     </div>
   )
 }
 
-// ─── Lesson timeline — calendar-app style, grouped by day ─────────────────
+// ─── Lesson timeline ────────────────────────────────────────────────────
 function groupByDay(completions: Completion[], lang: string) {
   const today = new Date(); today.setHours(0,0,0,0)
   const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1)
@@ -177,11 +206,7 @@ function LessonTimeline({ completions, lang, t }: { completions: Completion[]; l
   const groups = groupByDay(completions, lang)
 
   if (completions.length === 0) {
-    return (
-      <div className="text-center py-10 text-[#6F6F6F] font-semibold text-sm">
-        {t.noLessonsYet}
-      </div>
-    )
+    return <div className="text-center py-10 text-[#6F6F6F] font-semibold text-sm">{t.noLessonsYet}</div>
   }
 
   return (
@@ -193,7 +218,7 @@ function LessonTimeline({ completions, lang, t }: { completions: Completion[]; l
             {g.items.map(item => (
               <div key={item.lessonId + item.completedAt} className="flex items-center gap-3 bg-card2/60 rounded-xl px-3.5 py-2.5">
                 <span className="text-lg shrink-0">{item.emoji}</span>
-                <span className="flex-1 text-sm font-bold text-[#F5F5F5] truncate">{item.title}</span>
+                <span className="flex-1 text-sm font-bold text-[#F5F5F5] truncate min-w-0">{item.title}</span>
                 <span className="text-xs font-semibold text-[#6F6F6F] shrink-0">
                   {new Date(item.completedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
                 </span>
@@ -237,27 +262,27 @@ export default function ProgressClient({
   const level = getLevel(xp)
   const tier  = getTier(level)
   const xpInLevel = xp % XP_PER_LEVEL
-  const lessonsToNextLevel = Math.max(0, Math.ceil((XP_PER_LEVEL - xpInLevel) / 100)) // rough estimate, tune to real xp-per-lesson
+  const lessonsToNextLevel = Math.max(0, Math.ceil((XP_PER_LEVEL - xpInLevel) / 100))
 
   return (
-    <div dir={dir} className="p-4 md:p-6 lg:p-10 max-w-2xl mx-auto text-[#F5F5F5]">
+    <div dir={dir} className="px-4 sm:px-6 lg:px-10 py-4 md:py-6 lg:py-10 w-full max-w-3xl mx-auto text-[#F5F5F5]">
 
       <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-[#6F6F6F] font-bold text-sm hover:text-white transition-colors mb-6 group">
         <Icon kind="chevronLeft" className="w-4 h-4 transition-transform group-hover:-translate-x-1" /> {t.back}
       </Link>
 
-      {/* ── Hero: this week's ring, not a lifetime stat ── */}
-      <div className="text-center mb-10">
+      {/* ── Hero: this week's ring ── */}
+      <div className="text-center mb-8 md:mb-10">
         <WeeklyRing done={lessonsThisWeek} goal={weeklyGoal} />
       </div>
 
-      {/* ── Level, told as a story not a number ── */}
-      <div className="bg-card border border-white/5 rounded-3xl p-5 md:p-6 mb-8 text-center">
+      {/* ── Level, told as a story ── */}
+      <div className="bg-card border border-white/5 rounded-3xl p-5 md:p-6 mb-8 md:mb-10 text-center">
         <div className="inline-flex items-center gap-2 mb-1.5">
           <Icon kind="star" className="w-5 h-5 text-[#FAA918]" />
           <span className="font-fredoka text-xl text-[#F5F5F5]">{tier.name}</span>
         </div>
-        <p className="text-sm font-semibold text-[#6F6F6F]">
+        <p className="text-sm font-semibold text-[#6F6F6F] px-2">
           {lessonsToNextLevel > 0
             ? `${t.nextTier}: ${lessonsToNextLevel} ${t.moreLessons} ${tier.levelInTier < 10 ? `${tier.name} ${tier.levelInTier + 1}` : TIERS[Math.min(Math.floor(level / 10), TIERS.length - 1)]}`
             : tier.name}
@@ -270,7 +295,7 @@ export default function ProgressClient({
       </div>
 
       {/* ── Badge shelf ── */}
-      <div className="mb-10">
+      <div className="mb-8 md:mb-10">
         <BadgeShelf badges={badges} t={t} />
       </div>
 
