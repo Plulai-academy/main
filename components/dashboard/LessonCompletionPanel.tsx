@@ -242,7 +242,7 @@ function SubmissionForm({
     <div className="bg-white/3 border border-white/8 rounded-2xl p-4 space-y-3">
       <div>
         <p className="flex items-center gap-2 text-sm font-extrabold mb-0.5">
-          <Icon src="/icons/upload.png" fallback="📤" className="w-4 h-4" />
+          <Icon src="/icons/upload.svg" fallback="📤" className="w-4 h-4" />
           {t.submitHeading}
         </p>
         <p className="text-xs text-muted font-semibold">{t.submitSubline}</p>
