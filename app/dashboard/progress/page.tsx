@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ProgressClient from '@/components/dashboard/ProgressClient'
 
-const WEEKLY_LESSON_GOAL = 5 // tune per age group later if you want
+const WEEKLY_LESSON_GOAL = 5
 
 export default async function ProgressPage() {
   const supabase = createClient()
@@ -13,73 +13,30 @@ export default async function ProgressPage() {
   const userId = user.id
   const now = new Date()
   const weekStart = new Date(now)
-  weekStart.setDate(now.getDate() - now.getDay()) // start of this week (Sunday)
+  weekStart.setDate(now.getDate() - now.getDay())
   weekStart.setHours(0, 0, 0, 0)
 
-  const [
-    profileRes,
-    progressRes,
-    userBadgesRes,
-    allBadgesRes,
-    completionsRes,
-  ] = await Promise.all([
-    supabase.from('profiles')
-      .select('display_name, preferred_language, age_group, avatar')
-      .eq('id', userId)
-      .single(),
-    supabase.from('user_progress')
-      .select('xp, streak')
-      .eq('user_id', userId)
-      .single(),
-    supabase.from('user_badges')
-      .select('badge_id, earned_at')
-      .eq('user_id', userId),
-    supabase.from('badges')
-      .select('id, name, emoji, condition, rarity'),
-    // Lesson completions joined with lesson title/emoji for the timeline.
-    // Adjust the join syntax to match your actual FK name if different.
-    supabase.from('user_lesson_completions')
-      .select('lesson_id, completed_at, lessons(title, emoji)')
-      .eq('user_id', userId)
-      .order('completed_at', { ascending: false })
-      .limit(50),
+  const [profileRes, progressRes, userBadgesRes, allBadgesRes, completionsRes] = await Promise.all([
+    supabase.from('profiles').select('preferred_language').eq('id', userId).single(),
+    supabase.from('user_progress').select('xp, streak').eq('user_id', userId).single(),
+    supabase.from('user_badges').select('badge_id').eq('user_id', userId),
+    supabase.from('badges').select('id'),
+    supabase.from('user_lesson_completions').select('completed_at').eq('user_id', userId),
   ])
 
-  const profile  = profileRes.data
-  const progress = progressRes.data
-  const allBadges = allBadgesRes.data ?? []
-  const userBadgeRows = userBadgesRes.data ?? []
-  const earnedMap = new Map(userBadgeRows.map(b => [b.badge_id, b.earned_at]))
-
-  const badges = allBadges.map(b => ({
-    id: b.id,
-    name: b.name,
-    emoji: b.emoji,
-    condition: b.condition,
-    rarity: b.rarity ?? 'common',
-    earned: earnedMap.has(b.id),
-    earnedAt: earnedMap.get(b.id) ?? null,
-  })).sort((a, b) => (a.earned === b.earned ? 0 : a.earned ? -1 : 1))
-
-  const completions = (completionsRes.data ?? []).map((c: any) => ({
-    lessonId: c.lesson_id,
-    completedAt: c.completed_at,
-    title: c.lessons?.title ?? 'Lesson',
-    emoji: c.lessons?.emoji ?? '📘',
-  }))
-
-  const lessonsThisWeek = completions.filter(c => new Date(c.completedAt) >= weekStart).length
+  const completions = completionsRes.data ?? []
+  const lessonsThisWeek = completions.filter(c => new Date(c.completed_at) >= weekStart).length
 
   return (
     <ProgressClient
-      displayName={profile?.display_name ?? ''}
-      language={profile?.preferred_language ?? 'en'}
-      xp={progress?.xp ?? 0}
-      streak={progress?.streak ?? 0}
+      language={profileRes.data?.preferred_language ?? 'en'}
+      xp={progressRes.data?.xp ?? 0}
+      streak={progressRes.data?.streak ?? 0}
       lessonsThisWeek={lessonsThisWeek}
       weeklyGoal={WEEKLY_LESSON_GOAL}
-      badges={badges}
-      completions={completions}
+      badgesEarned={(userBadgesRes.data ?? []).length}
+      badgesTotal={(allBadgesRes.data ?? []).length}
+      totalLessons={completions.length}
     />
   )
 }
