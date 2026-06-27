@@ -340,7 +340,7 @@ function SideAvatar({
       style={{
         width: 'clamp(90px, 26vw, 140px)',
         height: 'clamp(111px, 32vw, 172px)',
-        transform: `translate(calc(-50% ${sign > 0 ? '+' : '-'} clamp(110px, 28vw, 160px)), -50%)`,
+        transform: `translate(calc(-50% ${sign > 0 ? '+' : '-'} clamp(110px, 28vw, 160px)), calc(-50% + clamp(110px, 16vw, 190px)))`,
       }}
     >
       <img
