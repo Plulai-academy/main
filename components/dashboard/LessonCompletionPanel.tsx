@@ -497,7 +497,7 @@ export default function LessonCompletionPanel({
         <p className="font-fredoka text-xl text-accent3">{t.congrats}</p>
         <div className="flex items-center justify-center gap-3 mt-2">
           <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-accent2 bg-accent2/15 border border-accent2/25 px-3 py-1 rounded-full">
-            <Icon src="/icons/xp.png" fallback="⭐" className="w-3.5 h-3.5" />
+            <Icon src="/icons/star1.png" fallback="⭐" className="w-3.5 h-3.5" />
             +{xpEarned} {t.xpEarned}
           </span>
           {streak > 1 && (
