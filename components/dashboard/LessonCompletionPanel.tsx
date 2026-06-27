@@ -5,29 +5,61 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
+// ── Icon helper ──────────────────────────────────────────────
+// Renders a custom icon from /icons/*.png, falling back to the original
+// emoji if the file isn't there yet (so nothing looks broken before you
+// upload your own set — it just upgrades automatically once you do).
+function Icon({
+  src, fallback, className = 'w-5 h-5',
+}: {
+  src: string
+  fallback: string
+  className?: string
+}) {
+  const [error, setError] = useState(false)
+
+  if (error) {
+    return (
+      <span className={cn(className, 'inline-flex items-center justify-center leading-none')} aria-hidden>
+        {fallback}
+      </span>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt=""
+      aria-hidden
+      className={cn(className, 'object-contain inline-block')}
+      onError={() => setError(true)}
+    />
+  )
+}
+
 // ── i18n ─────────────────────────────────────────────────────
 const T = {
   en: {
     congrats:        'Lesson complete!',
     xpEarned:        'XP earned',
-    streakLine:      (n: number) => `🔥 ${n}-day streak — keep it going!`,
-    submitHeading:   '📤 Save your work (optional)',
+    streakLine:      (n: number) => `${n}-day streak — keep it going!`,
+    submitHeading:   'Save your work (optional)',
     submitSubline:   'Paste a link to your project, code, or demo. Saved to your portfolio.',
     submitUrl:       'Project link (GitHub, Replit, Glitch…)',
     submitVideo:     'Demo video (Loom, YouTube…)',
     submitPlaceholder: 'https://…',
     submitBtn:       'Save to portfolio',
     submitSaving:    'Saving…',
-    submitDone:      '✅ Saved to your portfolio!',
+    submitDone:      'Saved to your portfolio!',
     submitError:     'Could not save — check your connection.',
     invalidUrl:      'Paste a full URL starting with https://',
     nextLesson:      'Next lesson',
-    nextSkill:       'Next track',
+    nextSkill:       'Next skill',
     backToSkill:     'Back to lessons',
-    finishedSkill:   "You've finished this track! 🎉",
-    finishedAll:     "You've completed everything available! 🏆",
+    finishedSkill:   "You've finished this track!",
+    finishedAll:     "You've completed everything available!",
     suggestNext:     "What's next for you:",
-    askCoach:        '🤖 Ask Jimmy what to build next',
+    askCoach:        'Ask Jimmy what to build next',
     buildProject:    'Build your capstone project',
     shareProgress:   'Share your progress',
     viewPortfolio:   'View my portfolio',
@@ -37,24 +69,24 @@ const T = {
   ar: {
     congrats:        'اكتمل الدرس!',
     xpEarned:        'XP مكتسب',
-    streakLine:      (n: number) => `🔥 ${n} أيام متتالية — واصل!`,
-    submitHeading:   '📤 احفظ عملك (اختياري)',
+    streakLine:      (n: number) => `${n} أيام متتالية — واصل!`,
+    submitHeading:   'احفظ عملك (اختياري)',
     submitSubline:   'الصق رابط مشروعك أو الكود أو الفيديو. يُحفظ في محفظتك.',
     submitUrl:       'رابط المشروع (GitHub، Replit…)',
     submitVideo:     'فيديو تجريبي (Loom، YouTube…)',
     submitPlaceholder: 'https://…',
     submitBtn:       'حفظ في المحفظة',
     submitSaving:    'جاري الحفظ…',
-    submitDone:      '✅ تم الحفظ في محفظتك!',
+    submitDone:      'تم الحفظ في محفظتك!',
     submitError:     'تعذر الحفظ — تحقق من الاتصال.',
     invalidUrl:      'الصق رابطاً كاملاً يبدأ بـ https://',
     nextLesson:      'الدرس التالي',
-    nextSkill:       'المسار التالي',
+    nextSkill:       'المهارة التالية',
     backToSkill:     'العودة إلى الدروس',
-    finishedSkill:   'أكملت هذا المسار! 🎉',
-    finishedAll:     'أكملت كل المحتوى المتاح! 🏆',
+    finishedSkill:   'أكملت هذا المسار!',
+    finishedAll:     'أكملت كل المحتوى المتاح!',
     suggestNext:     'ماذا بعد:',
-    askCoach:        '🤖 اسأل جيمي ماذا تبني بعد',
+    askCoach:        'اسأل جيمي ماذا تبني بعد',
     buildProject:    'ابنِ مشروعك الختامي',
     shareProgress:   'شارك تقدمك',
     viewPortfolio:   'عرض محفظتي',
@@ -64,24 +96,24 @@ const T = {
   fr: {
     congrats:        'Leçon terminée !',
     xpEarned:        'XP gagnés',
-    streakLine:      (n: number) => `🔥 ${n} jours de suite — continue !`,
-    submitHeading:   '📤 Sauvegarde ton travail (optionnel)',
+    streakLine:      (n: number) => `${n} jours de suite — continue !`,
+    submitHeading:   'Sauvegarde ton travail (optionnel)',
     submitSubline:   'Colle un lien vers ton projet, code ou démo. Sauvegardé dans ton portfolio.',
     submitUrl:       'Lien projet (GitHub, Replit…)',
     submitVideo:     'Vidéo démo (Loom, YouTube…)',
     submitPlaceholder: 'https://…',
     submitBtn:       'Sauvegarder dans le portfolio',
     submitSaving:    'Enregistrement…',
-    submitDone:      '✅ Sauvegardé dans ton portfolio !',
+    submitDone:      'Sauvegardé dans ton portfolio !',
     submitError:     'Impossible de sauvegarder — vérifie ta connexion.',
     invalidUrl:      'Colle une URL complète commençant par https://',
     nextLesson:      'Leçon suivante',
-    nextSkill:       'Piste suivante',
+    nextSkill:       'Compétence suivante',
     backToSkill:     'Retour aux leçons',
-    finishedSkill:   'Tu as terminé cette piste ! 🎉',
-    finishedAll:     "Tu as tout complété ! 🏆",
+    finishedSkill:   'Tu as terminé cette piste !',
+    finishedAll:     "Tu as tout complété !",
     suggestNext:     'La suite pour toi :',
-    askCoach:        '🤖 Demander à Jimmy quoi construire',
+    askCoach:        'Demander à Jimmy quoi construire',
     buildProject:    'Construis ton projet final',
     shareProgress:   'Partage ta progression',
     viewPortfolio:   'Voir mon portfolio',
@@ -97,6 +129,17 @@ interface NextLesson {
   emoji: string
   xp_reward: number
   duration_mins: number
+}
+
+// The next skill in the track, when the skill the user just finished has no
+// further lessons of its own (skills are 1:1 with lessons in this app).
+// `lessonId` is usually the same id as the skill itself (e.g. "mp-m1-s4"),
+// but kept separate in case that ever changes.
+interface NextSkill {
+  id: string
+  lessonId: string
+  title: string
+  emoji: string
 }
 
 interface SuggestedTrack {
@@ -116,6 +159,7 @@ interface Props {
   skillId:            string
   skillTitle:         string
   nextLesson:         NextLesson | null
+  nextSkill?:         NextSkill | null
   suggestedTracks?:   SuggestedTrack[]
   lang:               'en' | 'ar' | 'fr'
   alreadySubmitted?:  boolean
@@ -169,20 +213,20 @@ function SubmissionForm({
 
   if (status === 'done') return (
     <div className="flex items-center gap-3 px-4 py-3 bg-accent3/10 border border-accent3/25 rounded-2xl">
-      <span className="text-xl">✅</span>
+      <Icon src="/icons/check.png" fallback="✅" className="w-6 h-6 flex-shrink-0" />
       <div>
         <p className="text-sm font-extrabold text-accent3">{t.submitDone}</p>
         <div className="flex gap-3 mt-1">
           {projectUrl && (
             <a href={projectUrl} target="_blank" rel="noopener noreferrer"
-              className="text-xs font-bold text-accent5 hover:text-white transition-colors">
-              🔗 Project ↗
+              className="inline-flex items-center gap-1 text-xs font-bold text-accent5 hover:text-white transition-colors">
+              <Icon src="/icons/link.png" fallback="🔗" className="w-3.5 h-3.5" /> Project ↗
             </a>
           )}
           {videoUrl && (
             <a href={videoUrl} target="_blank" rel="noopener noreferrer"
-              className="text-xs font-bold text-accent5 hover:text-white transition-colors">
-              🎥 Video ↗
+              className="inline-flex items-center gap-1 text-xs font-bold text-accent5 hover:text-white transition-colors">
+              <Icon src="/icons/video.png" fallback="🎥" className="w-3.5 h-3.5" /> Video ↗
             </a>
           )}
           <Link href="/dashboard/portfolio"
@@ -197,14 +241,18 @@ function SubmissionForm({
   return (
     <div className="bg-white/3 border border-white/8 rounded-2xl p-4 space-y-3">
       <div>
-        <p className="text-sm font-extrabold mb-0.5">{t.submitHeading}</p>
+        <p className="flex items-center gap-2 text-sm font-extrabold mb-0.5">
+          <Icon src="/icons/upload.png" fallback="📤" className="w-4 h-4" />
+          {t.submitHeading}
+        </p>
         <p className="text-xs text-muted font-semibold">{t.submitSubline}</p>
       </div>
 
       {/* Project URL */}
       <div>
-        <label className="block text-xs font-bold text-muted/70 mb-1.5 uppercase tracking-wider">
-          🔗 {t.submitUrl}
+        <label className="flex items-center gap-1.5 text-xs font-bold text-muted/70 mb-1.5 uppercase tracking-wider">
+          <Icon src="/icons/link.png" fallback="🔗" className="w-3.5 h-3.5" />
+          {t.submitUrl}
         </label>
         <input
           type="url"
@@ -218,8 +266,9 @@ function SubmissionForm({
 
       {/* Video URL */}
       <div>
-        <label className="block text-xs font-bold text-muted/70 mb-1.5 uppercase tracking-wider">
-          🎥 {t.submitVideo}
+        <label className="flex items-center gap-1.5 text-xs font-bold text-muted/70 mb-1.5 uppercase tracking-wider">
+          <Icon src="/icons/video.png" fallback="🎥" className="w-3.5 h-3.5" />
+          {t.submitVideo}
         </label>
         <input
           type="url"
@@ -263,10 +312,11 @@ function SubmissionForm({
 
 // ── What's Next suggestions ───────────────────────────────────
 function WhatsNext({
-  nextLesson, skillId, skillTitle, suggestedTracks,
+  nextLesson, nextSkill, skillId, skillTitle, suggestedTracks,
   finishedAllTracks, lang, coachUrl,
 }: {
   nextLesson:         NextLesson | null
+  nextSkill?:         NextSkill | null
   skillId:            string
   skillTitle:         string
   suggestedTracks?:   SuggestedTrack[]
@@ -299,14 +349,34 @@ function WhatsNext({
     </div>
   )
 
-  // ── Case 2: finished this skill, more tracks available ────
+  // ── Case 2: this skill is done, but the track continues with
+  //    another skill (e.g. mp-m1-s3 → mp-m1-s4) — go straight there
+  //    instead of showing "explore other tracks". ─────────────
+  if (nextSkill) return (
+    <div className="space-y-2" dir={dir}>
+      <p className="text-xs font-extrabold text-muted/60 uppercase tracking-wider">{t.nextSkill}</p>
+      <Link
+        href={`/dashboard/skills/${nextSkill.id}/lesson/${nextSkill.lessonId}`}
+        className="flex items-center gap-4 p-4 bg-gradient-to-r from-accent4/10 to-accent5/10 border-2 border-accent4/30 rounded-2xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent4/10 transition-all group"
+      >
+        <span className="text-3xl flex-shrink-0">{nextSkill.emoji}</span>
+        <div className="flex-1 min-w-0">
+          <p className="font-extrabold text-sm truncate">{nextSkill.title}</p>
+        </div>
+        <span className="text-muted group-hover:text-white transition-colors flex-shrink-0">→</span>
+      </Link>
+    </div>
+  )
+
+  // ── Case 3: finished this skill AND no next skill in the track,
+  //    but more tracks are available ────────────────────────
   if (!finishedAllTracks) {
     const tracks = suggestedTracks ?? []
 
     return (
       <div className="space-y-3" dir={dir}>
         <div className="text-center py-4">
-          <div className="text-4xl mb-2">🎉</div>
+          <Icon src="/icons/confetti.png" fallback="🎉" className="w-10 h-10 mx-auto mb-2" />
           <p className="font-extrabold text-base">{t.finishedSkill}</p>
           <p className="text-sm text-muted font-semibold mt-1">{t.suggestNext}</p>
         </div>
@@ -333,7 +403,7 @@ function WhatsNext({
               href="/dashboard/skills"
               className="flex items-center gap-3 p-3.5 bg-white/3 border border-white/8 rounded-2xl hover:border-accent5/30 hover:bg-accent5/5 transition-all group col-span-2"
             >
-              <span className="text-2xl flex-shrink-0">🚀</span>
+              <Icon src="/icons/rocket.png" fallback="🚀" className="w-6 h-6 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-sm font-extrabold">{t.exploreTracks}</p>
               </div>
@@ -347,6 +417,7 @@ function WhatsNext({
           href={coachUrl}
           className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-extrabold text-sm border-2 border-accent5/30 text-accent5 hover:bg-accent5/10 transition-all"
         >
+          <Icon src="/icons/coach.png" fallback="🤖" className="w-4 h-4" />
           {t.askCoach}
         </Link>
 
@@ -360,11 +431,11 @@ function WhatsNext({
     )
   }
 
-  // ── Case 3: truly finished EVERYTHING ─────────────────────
+  // ── Case 4: truly finished EVERYTHING ─────────────────────
   return (
     <div className="space-y-4" dir={dir}>
       <div className="text-center py-4">
-        <div className="text-5xl mb-3">🏆</div>
+        <Icon src="/icons/trophy.png" fallback="🏆" className="w-14 h-14 mx-auto mb-3" />
         <p className="font-extrabold text-lg">{t.finishedAll}</p>
         <p className="text-sm text-muted font-semibold mt-1">
           {lang === 'ar'
@@ -379,7 +450,7 @@ function WhatsNext({
         href={coachUrl}
         className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white hover:-translate-y-0.5 hover:shadow-xl transition-all"
       >
-        <span className="text-xl">🤖</span>
+        <Icon src="/icons/coach.png" fallback="🤖" className="w-5 h-5" />
         {t.askCoach}
       </Link>
 
@@ -404,7 +475,7 @@ function WhatsNext({
 export default function LessonCompletionPanel({
   userId, lessonId, lessonTitle, lessonEmoji,
   xpEarned, streak, skillId, skillTitle,
-  nextLesson, suggestedTracks, lang,
+  nextLesson, nextSkill, suggestedTracks, lang,
   alreadySubmitted, finishedAllTracks,
 }: Props) {
   const t   = T[lang]
@@ -425,11 +496,13 @@ export default function LessonCompletionPanel({
         <div className="text-4xl mb-2">{lessonEmoji}</div>
         <p className="font-fredoka text-xl text-accent3">{t.congrats}</p>
         <div className="flex items-center justify-center gap-3 mt-2">
-          <span className="text-xs font-extrabold text-accent2 bg-accent2/15 border border-accent2/25 px-3 py-1 rounded-full">
+          <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-accent2 bg-accent2/15 border border-accent2/25 px-3 py-1 rounded-full">
+            <Icon src="/icons/xp.png" fallback="⭐" className="w-3.5 h-3.5" />
             +{xpEarned} {t.xpEarned}
           </span>
           {streak > 1 && (
-            <span className="text-xs font-extrabold text-orange-400 bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-orange-400 bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full">
+              <Icon src="/icons/streak.png" fallback="🔥" className="w-3.5 h-3.5" />
               {t.streakLine(streak)}
             </span>
           )}
@@ -451,6 +524,7 @@ export default function LessonCompletionPanel({
         {/* ── What's next ─────────────────────────────────── */}
         <WhatsNext
           nextLesson={nextLesson}
+          nextSkill={nextSkill}
           skillId={skillId}
           skillTitle={skillTitle}
           suggestedTracks={suggestedTracks}
