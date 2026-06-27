@@ -16,11 +16,10 @@ export default async function ProgressPage() {
   weekStart.setDate(now.getDate() - now.getDay())
   weekStart.setHours(0, 0, 0, 0)
 
-  const [profileRes, progressRes, userBadgesRes, allBadgesRes, completionsRes] = await Promise.all([
+  const [profileRes, progressRes, userBadgesRes, completionsRes] = await Promise.all([
     supabase.from('profiles').select('preferred_language').eq('id', userId).single(),
     supabase.from('user_progress').select('xp, streak').eq('user_id', userId).single(),
     supabase.from('user_badges').select('badge_id').eq('user_id', userId),
-    supabase.from('badges').select('id'),
     supabase.from('user_lesson_completions').select('completed_at').eq('user_id', userId),
   ])
 
@@ -35,7 +34,6 @@ export default async function ProgressPage() {
       lessonsThisWeek={lessonsThisWeek}
       weeklyGoal={WEEKLY_LESSON_GOAL}
       badgesEarned={(userBadgesRes.data ?? []).length}
-      badgesTotal={(allBadgesRes.data ?? []).length}
       totalLessons={completions.length}
     />
   )
