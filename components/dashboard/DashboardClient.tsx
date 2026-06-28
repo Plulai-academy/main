@@ -1,72 +1,298 @@
 'use client'
 // components/dashboard/DashboardClient.tsx
+//
+// ONE SCREEN. ONE TAP. NO THINKING.
+//
+// Design principle: the home screen IS the action.
+// The kid sees their mission, their streak, their rank.
+// One button. One destination. Zero navigation required.
+
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { addXP, completeChallenge, checkAndAwardBadges, updateStreak } from '@/lib/supabase/queries'
 import ShareCardModal, { type ShareCardProps } from '@/components/share/ShareCardGenerator'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 const XP_PER_LEVEL = 1000
 const getLevel = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1
 
-// ─── Icon set (chrome only — same pattern as SkillsClient/LessonViewClient) ───
-type IconKind = 'fire' | 'seedling' | 'rocket' | 'chevronRight' | 'sparkle' | 'partyPop'
-
-function Icon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
-  const common = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const }
-  switch (kind) {
-    case 'fire':         return <svg {...common}><path d="M13 2c1 3-2 4-2 7a3 3 0 1 0 6 0c1 1 2 3 2 5a7 7 0 1 1-14 0c0-4 3-5 4-8 0 1 .5 2 1.5 2C11 6 12 4 13 2Z"/></svg>
-    case 'seedling':     return <svg {...common}><path d="M12 22a1 1 0 0 1-1-1v-6.1C8 14.4 5 12 5 8c4 0 6.4 2 7 4.5C12.6 10 15 8 19 8c0 4-3 6.4-6 6.9V21a1 1 0 0 1-1 1Z"/></svg>
-    case 'rocket':       return <svg {...common}><path d="M13.5 2.5c3 .3 5.3 2.6 5.6 5.6.2 2-.4 4-1.7 5.6l.1 3.4-3.4-.1c-1.6 1.3-3.6 1.9-5.6 1.7-3-.3-5.3-2.6-5.6-5.6-.2-2 .4-4 1.7-5.6L4.5 4.2l3.4.1c1.6-1.3 3.6-1.9 5.6-1.7Zm-2.8 8.8a2 2 0 1 0 2.8-2.8 2 2 0 0 0-2.8 2.8ZM3 21l3-1 -2-2-1 3Z"/></svg>
-    case 'chevronRight': return <svg {...common}><path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4L13.2 12z"/></svg>
-    case 'sparkle':       return <svg {...common}><path d="M12 2l1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2Z"/></svg>
-    case 'partyPop':      return <svg {...common}><path d="M3 21l4-13 13 4-13 4-4 5Zm9-17 1.5 2.6L17 8l-3.6.3L12 11l-1.4-2.7L7 8l3.5-2.4L12 3Z"/></svg>
-  }
+// ── i18n ─────────────────────────────────────────────────────
+const UI = {
+  en: {
+    streak:        (n: number) => n > 0 ? `${n}-day streak 🔥` : 'Start your streak today 🌱',
+    noStreak:      'Open the app daily to build your streak',
+    mission:       "Today's mission",
+    missionNew:    'Your first lesson',
+    tap:           'Start →',
+    tapContinue:   'Continue →',
+    tapDone:       'Keep going →',
+    xpToday:       'XP today',
+    rank:          'Rank',
+    done:          'lessons done',
+    challenge:     "Today's challenge",
+    challengeDone: '✅ Done for today',
+    weekGoal:      (done: number, goal: number) => `${done}/${goal} this week`,
+    level:         'Level',
+    noMission:     "You're all caught up! 🏆",
+    noMissionSub:  'New content drops soon. Check the skill tree.',
+    exploreCta:    'Explore tracks →',
+  },
+  ar: {
+    streak:        (n: number) => n > 0 ? `${n} أيام متتالية 🔥` : 'ابدأ سلسلتك اليوم 🌱',
+    noStreak:      'افتح التطبيق يومياً لبناء سلسلتك',
+    mission:       'مهمة اليوم',
+    missionNew:    'درسك الأول',
+    tap:           'ابدأ →',
+    tapContinue:   'استمر →',
+    tapDone:       'واصل →',
+    xpToday:       'XP اليوم',
+    rank:          'الترتيب',
+    done:          'درس مكتمل',
+    challenge:     'تحدي اليوم',
+    challengeDone: '✅ تم اليوم',
+    weekGoal:      (done: number, goal: number) => `${done}/${goal} هذا الأسبوع`,
+    level:         'المستوى',
+    noMission:     '🏆 أكملت كل شيء!',
+    noMissionSub:  'محتوى جديد قادم قريباً. تحقق من شجرة المهارات.',
+    exploreCta:    'استكشف المسارات →',
+  },
+  fr: {
+    streak:        (n: number) => n > 0 ? `${n} jours de suite 🔥` : 'Lance ta série aujourd\'hui 🌱',
+    noStreak:      'Ouvre l\'app chaque jour pour construire ta série',
+    mission:       'Ta mission du jour',
+    missionNew:    'Ta première leçon',
+    tap:           'Commencer →',
+    tapContinue:   'Continuer →',
+    tapDone:       'Avancer →',
+    xpToday:       'XP aujourd\'hui',
+    rank:          'Classement',
+    done:          'leçons faites',
+    challenge:     'Défi du jour',
+    challengeDone: '✅ Défi terminé',
+    weekGoal:      (done: number, goal: number) => `${done}/${goal} cette semaine`,
+    level:         'Niveau',
+    noMission:     '🏆 Tout terminé !',
+    noMissionSub:  'Nouveau contenu arrive bientôt.',
+    exploreCta:    'Explorer les pistes →',
+  },
 }
 
+// ── XP ring — weekly progress at a glance ────────────────────
+function WeekRing({
+  done, goal, xp, lang,
+}: { done: number; goal: number; xp: number; lang: string }) {
+  const t       = (UI as any)[lang] ?? UI.en
+  const pct     = Math.min(100, Math.round((done / Math.max(goal, 1)) * 100))
+  const radius  = 44
+  const circ    = 2 * Math.PI * radius
+  const offset  = circ - (pct / 100) * circ
+  const level   = getLevel(xp)
+  const xpInLvl = xp % XP_PER_LEVEL
+  const lvlPct  = Math.round((xpInLvl / XP_PER_LEVEL) * 100)
 
-// ─── Mascot — same state logic as SkillsClient (idle/celebrating/tired/noStreak) ───
-// Drop files in public/icons to replace these automatically:
-// mascot-idle.svg, mascot-celebrating.svg, mascot-tired.svg, mascot-nostreak.svg
-type MascotState = 'celebrating' | 'tired' | 'noStreak' | 'idle'
-const MASCOT_SRC: Record<MascotState, string | null> = {
-  idle: '/icons/mascot-idle.svg',
-  celebrating: '/icons/mascot-celebrating.svg',
-  tired: '/icons/mascot-tired.svg',
-  noStreak: '/icons/mascot-nostreak.svg',
-}
-const TIRED_THRESHOLD_MINS = 60
-
-function Mascot({ state }: { state: MascotState }) {
-  const [errored, setErrored] = useState(false)
-  const src = MASCOT_SRC[state]
-
-  if (src && !errored) {
-    return (
-      <img
-        src={src}
-        alt=""
-        aria-hidden
-        onError={() => setErrored(true)}
-        className={cn('select-none pointer-events-none', state === 'celebrating' && 'animate-bounce-slow')}
-        style={{ width: 'clamp(140px, 32vw, 220px)' }}
-      />
-    )
-  }
-  // Fallback chip if mascot art isn't present yet
-  const tint = state === 'celebrating' ? '#FAA918' : state === 'tired' ? '#5B6772' : state === 'noStreak' ? '#3A4450' : '#1CB0F6'
   return (
-    <div
-      aria-hidden
-      className={cn('rounded-3xl flex items-center justify-center', state === 'celebrating' && 'animate-bounce-slow')}
-      style={{ width: 'clamp(120px, 28vw, 170px)', height: 'clamp(120px, 28vw, 170px)', backgroundColor: `${tint}22` }}
-    >
-      <Icon kind={state === 'celebrating' ? 'partyPop' : 'rocket'} className="w-1/2 h-1/2" style={{ color: tint } as React.CSSProperties} />
+    <div className="flex items-center gap-4">
+      {/* Ring */}
+      <div className="relative w-[88px] h-[88px] flex-shrink-0">
+        <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+          {/* Level ring (outer) */}
+          <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7" />
+          <circle
+            cx="50" cy="50" r="44" fill="none"
+            stroke="#1CB0F6" strokeWidth="7" strokeLinecap="round"
+            strokeDasharray={circ} strokeDashoffset={circ - (lvlPct / 100) * circ}
+            className="transition-all duration-1000"
+          />
+          {/* Week ring (inner) */}
+          <circle cx="50" cy="50" r="34" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
+          <circle
+            cx="50" cy="50" r="34" fill="none"
+            stroke="#FAA918" strokeWidth="6" strokeLinecap="round"
+            strokeDasharray={2 * Math.PI * 34}
+            strokeDashoffset={2 * Math.PI * 34 - (pct / 100) * 2 * Math.PI * 34}
+            className="transition-all duration-1000"
+          />
+        </svg>
+        {/* Center label */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="font-fredoka text-base text-white leading-none">{level}</span>
+          <span className="text-[9px] font-bold text-white/40 uppercase tracking-wide">
+            {(UI as any)[lang]?.level ?? 'Level'}
+          </span>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#1CB0F6] flex-shrink-0" />
+          <span className="text-xs font-bold text-white/60">
+            {t.level} {level} · {xpInLvl}/{XP_PER_LEVEL} XP
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#FAA918] flex-shrink-0" />
+          <span className="text-xs font-bold text-white/60">
+            {t.weekGoal(done, goal)}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-white/10 flex-shrink-0" />
+          <span className="text-xs font-bold text-white/40">
+            {xp.toLocaleString()} XP total
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
 
+// ── Mascot ────────────────────────────────────────────────────
+type MascotState = 'celebrating' | 'idle' | 'noStreak'
+function Mascot({ state }: { state: MascotState }) {
+  const [errored, setErrored] = useState(false)
+  const src =
+    state === 'celebrating' ? '/icons/mascot-celebrating.svg' :
+    state === 'noStreak'    ? '/icons/mascot-nostreak.svg'    :
+                              '/icons/mascot-idle.svg'
+
+  if (!errored) return (
+    <Image
+      src={src} alt="" width={96} height={96}
+      className={cn(
+        'w-20 h-20 object-contain select-none pointer-events-none flex-shrink-0',
+        state === 'celebrating' && 'animate-bounce'
+      )}
+      onError={() => setErrored(true)}
+      priority
+    />
+  )
+
+  // Emoji fallback
+  const emoji = state === 'celebrating' ? '🎉' : state === 'noStreak' ? '😴' : '🤖'
+  return <span className="text-5xl select-none">{emoji}</span>
+}
+
+// ── Mission card — THE dominant element ──────────────────────
+// This is what the kid's eye lands on first. Big, clear, one tap.
+function MissionCard({
+  title, subtitle, emoji, href, ctaLabel, isNew, xpReward,
+}: {
+  title:     string
+  subtitle?: string
+  emoji:     string
+  href:      string
+  ctaLabel:  string
+  isNew:     boolean
+  xpReward?: number
+}) {
+  return (
+    <Link
+      href={href}
+      className="group block w-full rounded-3xl overflow-hidden border-2 border-[#1CB0F6]/30 bg-gradient-to-br from-[#1CB0F6]/12 to-[#2B70C9]/8 hover:border-[#1CB0F6]/60 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#1CB0F6]/15 transition-all active:translate-y-0"
+    >
+      <div className="flex items-center gap-4 p-5">
+        {/* Lesson emoji / icon */}
+        <div className="w-14 h-14 rounded-2xl bg-[#1CB0F6]/20 border border-[#1CB0F6]/20 flex items-center justify-center text-3xl flex-shrink-0">
+          {emoji}
+        </div>
+
+        {/* Text */}
+        <div className="flex-1 min-w-0">
+          <p className="font-extrabold text-base text-white leading-snug truncate">{title}</p>
+          {subtitle && (
+            <p className="text-xs font-semibold text-white/50 mt-0.5 truncate">{subtitle}</p>
+          )}
+          {xpReward && (
+            <p className="text-xs font-extrabold text-[#FAA918] mt-1">+{xpReward} XP</p>
+          )}
+        </div>
+
+        {/* CTA arrow */}
+        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[#1CB0F6] flex items-center justify-center shadow-[0_3px_0_rgba(0,0,0,0.25)] group-hover:-translate-y-0.5 group-hover:shadow-[0_5px_0_rgba(0,0,0,0.25)] transition-all">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+            <path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4L13.2 12z"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* Bottom bar — visual progress cue */}
+      {!isNew && (
+        <div className="h-1 w-full bg-[#1CB0F6]/10">
+          <div className="h-full bg-[#1CB0F6] w-[40%] rounded-full" />
+        </div>
+      )}
+    </Link>
+  )
+}
+
+// ── Daily challenge pill ──────────────────────────────────────
+function ChallengePill({
+  challenge, isDone, lang, onTap,
+}: {
+  challenge: any; isDone: boolean; lang: string; onTap: () => void
+}) {
+  const t = (UI as any)[lang] ?? UI.en
+  return (
+    <button
+      onClick={!isDone ? onTap : undefined}
+      disabled={isDone}
+      className={cn(
+        'w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all text-left',
+        isDone
+          ? 'border-white/6 bg-white/3 cursor-default'
+          : 'border-[#FAA918]/30 bg-[#FAA918]/8 hover:bg-[#FAA918]/14 hover:border-[#FAA918]/50 active:scale-[0.98]'
+      )}
+    >
+      <span className="text-xl flex-shrink-0">{challenge.emoji}</span>
+      <div className="flex-1 min-w-0">
+        <p className={cn('text-sm font-extrabold truncate', isDone ? 'line-through text-white/30' : 'text-white')}>
+          {challenge.title}
+        </p>
+        <p className={cn('text-xs font-bold mt-0.5', isDone ? 'text-[#3CB371]' : 'text-[#FAA918]')}>
+          {isDone ? t.challengeDone : `+${challenge.xp_reward} XP`}
+        </p>
+      </div>
+      {!isDone && (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="rgba(250,169,24,0.7)">
+          <path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4L13.2 12z"/>
+        </svg>
+      )}
+    </button>
+  )
+}
+
+// ── Stat row — 3 numbers in one line ─────────────────────────
+function StatRow({
+  streak, rank, lessonsTotal, lang,
+}: { streak: number; rank: number | null; lessonsTotal: number; lang: string }) {
+  const t = (UI as any)[lang] ?? UI.en
+
+  const stats = [
+    { value: streak,                         label: '🔥',   sub: lang === 'ar' ? 'متتالية' : lang === 'fr' ? 'série' : 'streak',  color: '#FAA918' },
+    { value: rank != null ? `#${rank}` : '—', label: '🏆',  sub: t.rank,   color: '#1CB0F6' },
+    { value: lessonsTotal,                   label: '📚',   sub: t.done,   color: '#3CB371' },
+  ]
+
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      {stats.map((s, i) => (
+        <div
+          key={i}
+          className="flex flex-col items-center gap-1 bg-white/3 border border-white/6 rounded-2xl py-3 px-2"
+        >
+          <span className="text-xl leading-none">{s.label}</span>
+          <span className="font-fredoka text-xl text-white leading-none">{s.value}</span>
+          <span className="text-[10px] font-bold text-white/40 uppercase tracking-wide">{s.sub}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Props ─────────────────────────────────────────────────────
 interface Props {
   userId:               string
   profile:              any
@@ -78,32 +304,37 @@ interface Props {
   todayChallenge:       any
   challengeCompletions: any[]
   balance?:             number | null
+  // New props — pass from the server page
+  nextLesson?:          { id: string; title: string; emoji: string; xp_reward: number; skill_id: string } | null
+  weeklyLessons?:       number
+  weeklyGoal?:          number
+  globalRank?:          number | null
 }
 
+// ─────────────────────────────────────────────────────────────
 export default function DashboardClient({
-  userId, profile, progress, skillProgress, lessonCompletions,
-  userBadges, allBadges, todayChallenge, challengeCompletions,
-  balance,
+  userId, profile, progress, lessonCompletions,
+  todayChallenge, challengeCompletions,
+  nextLesson, weeklyLessons = 0, weeklyGoal = 5, globalRank,
 }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [toast, setToast]           = useState<string | null>(null)
-  const [levelUpMsg, setLevelUpMsg] = useState<string | null>(null)
   const [shareCard, setShareCard]   = useState<ShareCardProps | null>(null)
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
-  const xp     = progress?.xp || 0
-  const streak = progress?.streak || 0
-  const lang   = profile?.preferred_language || 'en'
-  const isNewUser = lessonCompletions.length === 0
+  const lang   = (profile?.preferred_language || 'en') as 'en' | 'ar' | 'fr'
+  const dir    = lang === 'ar' ? 'rtl' : 'ltr'
+  const t      = UI[lang] ?? UI.en
+  const xp     = progress?.xp     ?? 0
+  const streak = progress?.streak  ?? 0
+  const isNew  = lessonCompletions.length === 0
 
-  // Kept as a background action only — Challenges now lives on its own page
-  // (sidebar), but if a notification or deep link ever lands here mid-challenge,
-  // this still works without needing the old card UI.
   const isChallengeComplete = todayChallenge
     ? challengeCompletions.some((c: any) => c.challenge_id === todayChallenge.id)
     : false
+
   const doChallenge = () => {
     if (!todayChallenge || isChallengeComplete) return
     startTransition(async () => {
@@ -112,107 +343,125 @@ export default function DashboardClient({
       await completeChallenge(userId, todayChallenge.id, 'daily')
       await checkAndAwardBadges(userId)
       showToast(`+${todayChallenge.xp_reward} XP!`)
-      if (result.data?.leveledUp) setLevelUpMsg(`Level Up! You're now Level ${result.data.newLevel}!`)
       router.refresh()
     })
   }
 
-  // ── Mascot state: celebrate > tired > no-streak > idle ──────────────────
-  // allDone / totalTimeMins aren't tracked on Home — plug in real signals
-  // here if you want Home's mascot to react to daily-time or full-track
-  // completion the same way the skill-path mascot does.
-  const allDone = false
-  const totalTimeMins = 0
-  const mascotState: MascotState = allDone
-    ? 'celebrating'
-    : totalTimeMins >= TIRED_THRESHOLD_MINS
-    ? 'tired'
-    : streak === 0
-    ? 'noStreak'
-    : 'idle'
+  const mascotState: MascotState =
+    streak === 0    ? 'noStreak'    :
+    weeklyLessons >= weeklyGoal ? 'celebrating' :
+    'idle'
 
-  // ── Copy — one line, no jargon, no paragraph ─────────────────────────────
-  const greetingsByLang: Record<string, Record<string, string>> = {
-    en: {
-      mini:   `Hi ${profile.display_name}!`,
-      junior: `Hey ${profile.display_name}!`,
-      pro:    `Welcome back, ${profile.display_name}`,
-      expert: `${profile.display_name}`,
-    },
-    ar: {
-      mini:   `أهلاً ${profile.display_name}!`,
-      junior: `مرحباً ${profile.display_name}!`,
-      pro:    `أهلاً بعودتك ${profile.display_name}`,
-      expert: `${profile.display_name}`,
-    },
-    fr: {
-      mini:   `Salut ${profile.display_name} !`,
-      junior: `Hé ${profile.display_name} !`,
-      pro:    `Bon retour, ${profile.display_name}`,
-      expert: `${profile.display_name}`,
-    },
-  }
-  const greetings = greetingsByLang[lang] ?? greetingsByLang.en
+  // Mission destination
+  const missionHref = nextLesson
+    ? `/dashboard/skills/${nextLesson.skill_id}/lesson/${nextLesson.id}`
+    : '/dashboard/skills'
 
-  const ctaLabel = isNewUser
-    ? (lang === 'ar' ? 'ابدأ أول درس' : lang === 'fr' ? 'Commencer' : "Let's Go")
-    : (lang === 'ar' ? 'استمر' : lang === 'fr' ? 'Continuer' : 'Continue')
+  const ctaLabel = isNew ? t.tap : t.tapContinue
 
   return (
-    <div className="min-h-[calc(100vh-2rem)] flex flex-col items-center justify-center text-center px-4 py-10 text-[#F5F5F5]">
+    <div
+      dir={dir}
+      className="min-h-screen flex flex-col items-center justify-start px-4 pt-6 pb-10 text-[#F5F5F5] max-w-md mx-auto w-full"
+    >
 
-      {/* ── Level-up modal — a celebratory interrupt tied to a real action, not standing clutter ── */}
-      {levelUpMsg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md px-4" onClick={() => setLevelUpMsg(null)}>
-          <div className="bg-card border border-[#1CB0F6]/40 rounded-3xl p-8 md:p-12 text-center shadow-2xl shadow-[#1CB0F6]/20 animate-star-pop w-full max-w-sm ring-1 ring-[#1CB0F6]/20">
-            <div className="w-20 h-20 rounded-full bg-[#1CB0F6]/15 flex items-center justify-center mx-auto mb-5 animate-bounce-slow">
-              <Icon kind="partyPop" className="w-10 h-10 text-[#1CB0F6]" />
-            </div>
-            <h2 className="font-fredoka text-2xl md:text-3xl text-[#1CB0F6] mb-2">{levelUpMsg}</h2>
-            <p className="text-[#6F6F6F] font-bold text-sm">Keep going!</p>
+      {/* ── Toast ──────────────────────────────────────────── */}
+      <div className={cn(
+        'fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:w-auto z-50 px-5 py-3 rounded-2xl',
+        'bg-card/95 backdrop-blur-sm border border-[#14D4F4]/40 text-[#14D4F4] font-bold text-sm shadow-xl',
+        'transition-all duration-300',
+        toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'
+      )}>
+        ⚡ {toast}
+      </div>
+
+      {/* ── TOP ROW: mascot + streak pill ─────────────────── */}
+      <div className="w-full flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <Mascot state={mascotState} />
+          <div>
+            <p className="font-fredoka text-lg text-white leading-tight">
+              {lang === 'ar'
+                ? `أهلاً ${profile.display_name}`
+                : lang === 'fr'
+                ? `Salut ${profile.display_name}`
+                : `Hey ${profile.display_name}`}
+            </p>
+            <p className="text-xs font-bold text-white/40 mt-0.5">
+              {streak > 0
+                ? t.streak(streak)
+                : (lang === 'ar' ? 'ابدأ سلسلتك اليوم' : lang === 'fr' ? "Lance ta série !" : 'Start your streak today')}
+            </p>
           </div>
+        </div>
+
+        {/* XP badge */}
+        <div className="flex flex-col items-end gap-0.5">
+          <span className="font-fredoka text-xl text-[#1CB0F6]">{xp.toLocaleString()}</span>
+          <span className="text-[10px] font-bold text-white/30 uppercase tracking-wider">XP</span>
+        </div>
+      </div>
+
+      {/* ── WEEK RING + STATS ─────────────────────────────── */}
+      <div className="w-full bg-white/3 border border-white/6 rounded-3xl p-4 mb-4">
+        <WeekRing done={weeklyLessons} goal={weeklyGoal} xp={xp} lang={lang} />
+      </div>
+
+      {/* ── MISSION CARD — the dominant CTA ──────────────── */}
+      <div className="w-full mb-3">
+        <p className="text-[10px] font-extrabold text-white/30 uppercase tracking-widest mb-2 px-1">
+          {isNew ? t.missionNew : t.mission}
+        </p>
+
+        {nextLesson ? (
+          <MissionCard
+            title={nextLesson.title}
+            subtitle={isNew ? undefined : t.tapContinue}
+            emoji={nextLesson.emoji}
+            href={missionHref}
+            ctaLabel={ctaLabel}
+            isNew={isNew}
+            xpReward={nextLesson.xp_reward}
+          />
+        ) : (
+          // No next lesson = finished everything
+          <div className="w-full rounded-3xl border border-white/8 bg-white/3 p-6 text-center">
+            <p className="font-fredoka text-xl mb-1">{t.noMission}</p>
+            <p className="text-sm text-white/40 font-semibold mb-4">{t.noMissionSub}</p>
+            <Link
+              href="/dashboard/skills"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm bg-white/8 border border-white/12 hover:bg-white/14 transition-all"
+            >
+              {t.exploreCta}
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* ── DAILY CHALLENGE ───────────────────────────────── */}
+      {todayChallenge && (
+        <div className="w-full mb-4">
+          <p className="text-[10px] font-extrabold text-white/30 uppercase tracking-widest mb-2 px-1">
+            {t.challenge}
+          </p>
+          <ChallengePill
+            challenge={todayChallenge}
+            isDone={isChallengeComplete}
+            lang={lang}
+            onTap={doChallenge}
+          />
         </div>
       )}
 
-      {/* ── Toast ── */}
-      <div className={cn(
-        'fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:w-auto z-50 px-5 py-3 rounded-2xl',
-        'bg-card/95 backdrop-blur-sm border border-[#14D4F4]/40 text-[#14D4F4] font-bold text-sm shadow-xl shadow-[#14D4F4]/10',
-        'transition-all duration-400 flex items-center gap-2',
-        toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'
-      )}>
-        <Icon kind="sparkle" className="w-4 h-4 shrink-0" />
-        {toast}
+      {/* ── STAT ROW ──────────────────────────────────────── */}
+      <div className="w-full mb-4">
+        <StatRow
+          streak={streak}
+          rank={globalRank ?? null}
+          lessonsTotal={lessonCompletions.length}
+          lang={lang}
+        />
       </div>
-
-      {/* ── Streak pill — the one stat worth keeping visible (it's the habit
-           hook). XP/level/badges now live on their own page, off the sidebar. ── */}
-      <div className={cn(
-        'inline-flex items-center gap-1.5 text-sm font-bold px-3 py-1.5 rounded-full mb-6',
-        streak > 0 ? 'text-[#FAA918] bg-[#FAA918]/10' : 'text-[#3CB371] bg-[#3CB371]/10',
-      )}>
-        <Icon kind={streak > 0 ? 'fire' : 'seedling'} className="w-4 h-4" />
-        {streak > 0
-          ? (lang === 'ar' ? `${streak} أيام متتالية` : lang === 'fr' ? `${streak} jours de suite` : `${streak}-day streak`)
-          : (lang === 'ar' ? 'ابدأ سلسلتك اليوم' : lang === 'fr' ? "Lance ta série aujourd'hui" : 'Start your streak today')}
-      </div>
-
-      {/* ── Mascot — the visual anchor of the page ── */}
-      <Mascot state={mascotState} />
-
-      {/* ── One line ── */}
-      <h1 className="font-fredoka text-2xl md:text-3xl mt-6 mb-8 leading-tight">
-        {greetings[profile.age_group] || greetings.pro}
-      </h1>
-
-      {/* ── One button — the only action on this screen ── */}
-      <Link
-        href="/dashboard/skills"
-        className="inline-flex items-center gap-2 px-12 py-4 rounded-2xl font-extrabold text-base bg-gradient-to-r from-[#1CB0F6] to-[#14D4F4] text-black shadow-[0_5px_0_rgba(0,0,0,0.2)] hover:-translate-y-0.5 hover:shadow-[0_7px_0_rgba(0,0,0,0.2)] active:translate-y-0.5 active:shadow-none transition-all"
-      >
-        {ctaLabel}
-        <Icon kind="chevronRight" className="w-5 h-5" />
-      </Link>
 
       {shareCard && <ShareCardModal props={shareCard} onClose={() => setShareCard(null)} />}
     </div>
