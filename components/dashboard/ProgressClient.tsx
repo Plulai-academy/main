@@ -68,7 +68,7 @@ function WeeklyRing({ done, goal, label }: { done: number; goal: number; label: 
 // ─── One tile shape, used four times — icon + big number + one-word label.
 // Tap any tile to see more: Badges/Lessons go to their own page; Level opens
 // a quick detail popup instead, since there's no dedicated page for it. ───
-function StatTile({ icon, color, value, label, onTap }: { icon: IconKind; color: string; value: string; label: string; onTap: () => void }) {
+function StatTile({ icon, color, value, label, sublabel, onTap }: { icon: IconKind; color: string; value: string; label: string; sublabel?: string; onTap: () => void }) {
   return (
     <button
       onClick={onTap}
@@ -77,7 +77,7 @@ function StatTile({ icon, color, value, label, onTap }: { icon: IconKind; color:
     >
       <Icon kind={icon} className="w-6 h-6" style={{ color }} />
       <span className="font-fredoka text-2xl text-[#F5F5F5] leading-none">{value}</span>
-      <span className="text-[11px] font-bold text-[#6F6F6F]">{label}</span>
+      <span className="text-[11px] font-bold text-[#6F6F6F]">{sublabel ?? label}</span>
     </button>
   )
 }
@@ -139,7 +139,7 @@ export default function ProgressClient({
            shape, same rule (tap to see more), nothing to calculate. ── */}
       <div className="grid grid-cols-2 gap-3">
         <StatTile icon="fire"   color="#FAA918" value={`${streak}`}       label={t.streak}  onTap={() => setShowLevel(false)} />
-        <StatTile icon="star"   color="#1CB0F6" value={`${level}`}        label={t.level}   onTap={() => setShowLevel(true)} />
+        <StatTile icon="star"   color="#1CB0F6" value={`${level}`}        label={t.level}   sublabel={`${xp.toLocaleString()} XP`} onTap={() => setShowLevel(true)} />
         <StatTile icon="trophy" color="#3CB371" value={`${badgesEarned}`} label={t.badges}  onTap={() => router.push('/dashboard/badges')} />
         <StatTile icon="book"   color="#A66BFF" value={`${totalLessons}`} label={t.lessons} onTap={() => router.push('/dashboard/skills')} />
       </div>

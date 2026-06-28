@@ -28,10 +28,11 @@ export default async function LessonPage({ params }: Props) {
 
   if (!lesson) notFound()
 
-  // Load skill node for context
+  // Load skill node for context (sort_order is needed below to find the
+  // next node in the same track once this node runs out of lessons)
   const { data: skill } = await supabase
     .from('skill_nodes')
-    .select('id, title, emoji, xp_reward, track_id')
+    .select('id, title, emoji, xp_reward, track_id, sort_order')
     .eq('id', params.skillId)
     .single()
 
@@ -105,6 +106,47 @@ const suggestedTracks = (allTracks ?? [])
   const totalLessons = siblings?.length ?? allLessons?.length ?? 1
   const lessonIndex  = currentIdx + 1 // 1-based
 
+  // ── Next skill node in this track ───────────────────────────
+  // This is the piece that was missing: when the lesson the user just
+  // finished is the LAST lesson in its skill node (nextLesson is null),
+  // look up the next node in the same track (by sort_order) and its
+  // first lesson, so the completion screen can link straight there
+  // instead of falling through to "explore other tracks".
+  let nextSkill: { id: string; lessonId: string; title: string; emoji: string } | null = null
+
+  if (!nextLesson && skill) {
+    const { data: nextNode } = await supabase
+      .from('skill_nodes')
+      .select('id, title, emoji, sort_order')
+      .eq('track_id', skill.track_id)
+      .eq('is_active', true)
+      .contains('age_groups', [profile?.age_group ?? 'pro'])
+      .gt('sort_order', skill.sort_order)
+      .order('sort_order', { ascending: true })
+      .limit(1)
+      .single()
+
+    if (nextNode) {
+      const { data: firstLessonOfNextNode } = await supabase
+        .from('lessons')
+        .select('id')
+        .eq('skill_node_id', nextNode.id)
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+        .limit(1)
+        .single()
+
+      if (firstLessonOfNextNode) {
+        nextSkill = {
+          id: nextNode.id,
+          lessonId: firstLessonOfNextNode.id,
+          title: nextNode.title,
+          emoji: nextNode.emoji,
+        }
+      }
+    }
+  }
+
   return (
     <LessonViewClient
       userId={user.id}
@@ -115,6 +157,7 @@ const suggestedTracks = (allTracks ?? [])
       lessonIndex={lessonIndex}
       prevLesson={prevLesson}
       nextLesson={nextLesson}
+      nextSkill={nextSkill}
       language={profile?.preferred_language ?? 'en'}
       userName={profile?.display_name ?? 'Learner'}
       userAvatar={profile?.avatar ?? '🧑‍🚀'}

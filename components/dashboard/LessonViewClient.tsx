@@ -329,6 +329,13 @@ interface Section {
   required?: boolean
 }
 
+interface NextSkill {
+  id: string
+  lessonId: string
+  title: string
+  emoji: string
+}
+
 interface Props {
   userId:       string
   lesson:       any
@@ -338,6 +345,7 @@ interface Props {
   lessonIndex:  number
   prevLesson:   any
   nextLesson:   any
+  nextSkill?:        NextSkill | null
   language:     string
   userName:     string
   userAvatar?:  string
@@ -1187,7 +1195,7 @@ function SubmitWorkActivity({ s, t, userId, lessonId, onComplete }: { s: Section
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LessonViewClient({
   userId, lesson, skill, completion, totalLessons, lessonIndex,
-  prevLesson, nextLesson, language, userName, userAvatar = '🧑‍🚀',
+  prevLesson, nextLesson, nextSkill, language, userName, userAvatar = '🧑‍🚀',
   streak, finishedAllTracks, suggestedTracks,
 }: Props) {
   const router = useRouter()
@@ -1887,8 +1895,10 @@ export default function LessonViewClient({
           skillId={skill.id}
           skillTitle={skill.title}
           nextLesson={nextLesson ?? null}
+          nextSkill={nextSkill ?? null}
           lang={lang as 'en' | 'ar' | 'fr'}
           finishedAllTracks={finishedAllTracks}
+          suggestedTracks={suggestedTracks}
         />
       )}
 
@@ -1908,6 +1918,11 @@ export default function LessonViewClient({
           <Link href={`/dashboard/skills/${skill?.id}/lesson/${nextLesson.id}`}
             className="flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent4 to-accent5 text-white shadow-[0_4px_0_rgba(0,0,0,0.2)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all truncate">
             <span className="truncate">{nextLesson.emoji} {nextLesson.title}</span> <Icon kind="chevronRight" className="w-4 h-4 flex-shrink-0" />
+          </Link>
+        ) : nextSkill ? (
+          <Link href={`/dashboard/skills/${nextSkill.id}/lesson/${nextSkill.lessonId}`}
+            className="flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent4 to-accent5 text-white shadow-[0_4px_0_rgba(0,0,0,0.2)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all truncate">
+            <span className="truncate">{nextSkill.emoji} {nextSkill.title}</span> <Icon kind="chevronRight" className="w-4 h-4 flex-shrink-0" />
           </Link>
         ) : (
           <Link href={`/dashboard/skills/${skill?.id}`}
