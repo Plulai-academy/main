@@ -362,7 +362,7 @@ export default function DashboardClient({
   return (
     <div
       dir={dir}
-      className="min-h-screen flex flex-col items-center justify-start px-4 pt-6 pb-10 text-[#F5F5F5] max-w-md mx-auto w-full"
+      className="min-h-screen flex flex-col items-center justify-start px-6 pt-6 pb-10 text-[#F5F5F5] w-full max-w-2xl mx-auto"
     >
 
       {/* ── Toast ──────────────────────────────────────────── */}
@@ -403,55 +403,66 @@ export default function DashboardClient({
       </div>
 
       {/* ── WEEK RING + STATS ─────────────────────────────── */}
-      <div className="w-full bg-white/3 border border-white/6 rounded-3xl p-4 mb-4">
-        <WeekRing done={weeklyLessons} goal={weeklyGoal} xp={xp} lang={lang} />
-      </div>
+<div className="w-full bg-white/3 border border-white/6 rounded-3xl p-4 mb-4">
+  <WeekRing done={weeklyLessons} goal={weeklyGoal} xp={xp} lang={lang} />
+</div>
 
-      {/* ── MISSION CARD — the dominant CTA ──────────────── */}
-      <div className="w-full mb-3">
-        <p className="text-[10px] font-extrabold text-white/30 uppercase tracking-widest mb-2 px-1">
-          {isNew ? t.missionNew : t.mission}
+{/* ── TWO COLUMN ON DESKTOP ─────────────────────────── */}
+<div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+
+  {/* Left: Mission */}
+  <div className="flex flex-col gap-3">
+    <p className="text-[10px] font-extrabold text-white/30 uppercase tracking-widest px-1">
+      {isNew ? t.missionNew : t.mission}
+    </p>
+    {nextLesson ? (
+      <MissionCard
+        title={nextLesson.title}
+        subtitle={isNew ? undefined : t.tapContinue}
+        emoji={nextLesson.emoji}
+        href={missionHref}
+        ctaLabel={ctaLabel}
+        isNew={isNew}
+        xpReward={nextLesson.xp_reward}
+      />
+    ) : (
+      <div className="w-full rounded-3xl border border-white/8 bg-white/3 p-6 text-center">
+        <p className="font-fredoka text-xl mb-1">{t.noMission}</p>
+        <p className="text-sm text-white/40 font-semibold mb-4">{t.noMissionSub}</p>
+        <Link
+          href="/dashboard/skills"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm bg-white/8 border border-white/12 hover:bg-white/14 transition-all"
+        >
+          {t.exploreCta}
+        </Link>
+      </div>
+    )}
+  </div>
+
+  {/* Right: Challenge + Stats */}
+  <div className="flex flex-col gap-3">
+    {todayChallenge && (
+      <>
+        <p className="text-[10px] font-extrabold text-white/30 uppercase tracking-widest px-1">
+          {t.challenge}
         </p>
+        <ChallengePill
+          challenge={todayChallenge}
+          isDone={isChallengeComplete}
+          lang={lang}
+          onTap={doChallenge}
+        />
+      </>
+    )}
+    <StatRow
+      streak={streak}
+      rank={globalRank ?? null}
+      lessonsTotal={lessonCompletions.length}
+      lang={lang}
+    />
+  </div>
 
-        {nextLesson ? (
-          <MissionCard
-            title={nextLesson.title}
-            subtitle={isNew ? undefined : t.tapContinue}
-            emoji={nextLesson.emoji}
-            href={missionHref}
-            ctaLabel={ctaLabel}
-            isNew={isNew}
-            xpReward={nextLesson.xp_reward}
-          />
-        ) : (
-          // No next lesson = finished everything
-          <div className="w-full rounded-3xl border border-white/8 bg-white/3 p-6 text-center">
-            <p className="font-fredoka text-xl mb-1">{t.noMission}</p>
-            <p className="text-sm text-white/40 font-semibold mb-4">{t.noMissionSub}</p>
-            <Link
-              href="/dashboard/skills"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm bg-white/8 border border-white/12 hover:bg-white/14 transition-all"
-            >
-              {t.exploreCta}
-            </Link>
-          </div>
-        )}
-      </div>
-
-      {/* ── DAILY CHALLENGE ───────────────────────────────── */}
-      {todayChallenge && (
-        <div className="w-full mb-4">
-          <p className="text-[10px] font-extrabold text-white/30 uppercase tracking-widest mb-2 px-1">
-            {t.challenge}
-          </p>
-          <ChallengePill
-            challenge={todayChallenge}
-            isDone={isChallengeComplete}
-            lang={lang}
-            onTap={doChallenge}
-          />
-        </div>
-      )}
+</div>
 
       {/* ── STAT ROW ──────────────────────────────────────── */}
       <div className="w-full mb-4">
