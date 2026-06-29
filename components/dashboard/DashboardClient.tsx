@@ -464,16 +464,6 @@ export default function DashboardClient({
 
 </div>
 
-      {/* ── STAT ROW ──────────────────────────────────────── */}
-      <div className="w-full mb-4">
-        <StatRow
-          streak={streak}
-          rank={globalRank ?? null}
-          lessonsTotal={lessonCompletions.length}
-          lang={lang}
-        />
-      </div>
-
       {shareCard && <ShareCardModal props={shareCard} onClose={() => setShareCard(null)} />}
     </div>
   )
