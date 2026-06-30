@@ -732,17 +732,30 @@ export const updateUserLanguage = async (userId: string, language: 'en' | 'ar' |
 
 // ── BONUS CHALLENGES ──────────────────────────────────────────
 
-export const getBonusChallenges = async (ageGroup: AgeGroup) => {
+export const getBonusChallenges = async (userId: string, ageGroup: AgeGroup) => {
   const supabase = createClient()
+
+  // Get completed skill nodes
+  const { data: progress } = await supabase
+    .from('user_skill_progress')
+    .select('skill_node_id')
+    .eq('user_id', userId)
+    .not('completed_at', 'is', null)
+
+  if (!progress?.length) return { data: [], error: null }
+
+  const completedNodeIds = progress.map((p) => p.skill_node_id)
+
   const { data, error } = await supabase
-    .from('bonus_challenges')
+    .from('bonus_challenges')          // ← correct table
     .select('*')
     .eq('is_active', true)
-    .contains('age_groups', [ageGroup])
+    .contains('age_groups', [ageGroup])  // ← array column
+    .in('skill_node_id', completedNodeIds)
     .order('sort_order')
-  return { data, error }
-}
 
+  return { data: data ?? [], error }
+}
 // ── LEADERBOARD (enriched) ────────────────────────────────────
 
 export const getLeaderboardByScope = async (
