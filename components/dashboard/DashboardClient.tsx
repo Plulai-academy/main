@@ -1,7 +1,9 @@
 'use client'
 // components/dashboard/DashboardClient.tsx
-// Duolingo-inspired: top stat bar + center mission + right sidebar.
-// Three zones. Crystal clear hierarchy. One tap to start.
+// Concept: JIMMY'S WORLD
+// Jimmy is large, centered, alive. He presents the one button.
+// Streak lives in his speech bubble. Amber is the hero color.
+// No card soup. No gradient hell. One screen, one action.
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
@@ -17,206 +19,44 @@ const XP_PER_LEVEL = 1000
 const getLevel = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1
 
 // ── i18n ─────────────────────────────────────────────────────
-const UI = {
+const COPY = {
   en: {
-    streak:       'Streak',
-    level:        'Level',
-    xp:           'XP',
-    mission:      "Today's mission",
-    newMission:   'First mission',
-    start:        'Start',
-    continue:     'Continue',
-    noMission:    "You're all caught up! 🏆",
-    noMissionSub: 'New content coming soon.',
-    explore:      'Explore tracks',
-    sideQuest:    "Today's challenge",
-    claimXP:      'Tap to claim',
-    claimed:      'Done ✓',
-    leaderboard:  'Leaderboard',
-    you:          'You',
-    weeklyGoal:   (done: number, goal: number) => `${done} of ${goal} lessons this week`,
-    rank:         (n: number) => `#${n}`,
+    streakMsg:   (n: number) => n > 0 ? `${n} day streak! 🔥` : `Start your streak today!`,
+    noStreak:    `Open the app daily to build a streak`,
+    cta:         `Start lesson`,
+    ctaContinue: `Continue`,
+    noMission:   `You're all caught up!`,
+    noMissionSub:`New lessons coming soon`,
+    explore:     `Explore tracks`,
+    level:       `Level`,
+    xpOf:        (cur: number, max: number) => `${cur} / ${max} XP`,
   },
   ar: {
-    streak:       'متتالية',
-    level:        'مستوى',
-    xp:           'نقاط',
-    mission:      'مهمة اليوم',
-    newMission:   'أول مهمة',
-    start:        'ابدأ',
-    continue:     'واصل',
-    noMission:    'أكملت كل شيء! 🏆',
-    noMissionSub: 'محتوى جديد قادم قريباً.',
-    explore:      'استكشف المسارات',
-    sideQuest:    'تحدي اليوم',
-    claimXP:      'اضغط للحصول على XP',
-    claimed:      'تم ✓',
-    leaderboard:  'المتصدرون',
-    you:          'أنت',
-    weeklyGoal:   (done: number, goal: number) => `${done} من ${goal} دروس هذا الأسبوع`,
-    rank:         (n: number) => `#${n}`,
+    streakMsg:   (n: number) => n > 0 ? `${n} أيام متتالية! 🔥` : `ابدأ سلسلتك اليوم!`,
+    noStreak:    `افتح التطبيق يومياً`,
+    cta:         `ابدأ الدرس`,
+    ctaContinue: `واصل`,
+    noMission:   `أكملت كل شيء!`,
+    noMissionSub:`دروس جديدة قريباً`,
+    explore:     `استكشف`,
+    level:       `مستوى`,
+    xpOf:        (cur: number, max: number) => `${cur} / ${max} XP`,
   },
   fr: {
-    streak:       'Série',
-    level:        'Niveau',
-    xp:           'XP',
-    mission:      'Mission du jour',
-    newMission:   'Première mission',
-    start:        'Commencer',
-    continue:     'Continuer',
-    noMission:    'Tout terminé ! 🏆',
-    noMissionSub: 'Nouveau contenu bientôt.',
-    explore:      'Explorer les pistes',
-    sideQuest:    "Défi du jour",
-    claimXP:      'Récupérer les XP',
-    claimed:      'Fait ✓',
-    leaderboard:  'Classement',
-    you:          'Toi',
-    weeklyGoal:   (done: number, goal: number) => `${done} sur ${goal} leçons cette semaine`,
-    rank:         (n: number) => `#${n}`,
+    streakMsg:   (n: number) => n > 0 ? `${n} jours de suite ! 🔥` : `Lance ta série aujourd'hui !`,
+    noStreak:    `Ouvre l'app chaque jour`,
+    cta:         `Commencer`,
+    ctaContinue: `Continuer`,
+    noMission:   `Tout terminé !`,
+    noMissionSub:`Nouvelles leçons bientôt`,
+    explore:     `Explorer`,
+    level:       `Niveau`,
+    xpOf:        (cur: number, max: number) => `${cur} / ${max} XP`,
   },
 }
 
-// ── Mascot ────────────────────────────────────────────────────
-function Mascot({ streak, size = 80 }: { streak: number; size?: number }) {
-  const [err, setErr] = useState(false)
-  const src = streak >= 3
-    ? '/icons/mascot-celebrating.svg'
-    : '/icons/mascot-idle.svg'
-  if (!err) return (
-    <Image src={src} alt="" width={size} height={size}
-      className="object-contain select-none pointer-events-none"
-      style={{ width: size, height: size }}
-      onError={() => setErr(true)} priority />
-  )
-  return <span style={{ fontSize: size * 0.6 }} className="select-none">🤖</span>
-}
-
-// ── Stat pill (top bar) ───────────────────────────────────────
-function StatPill({
-  icon, value, label, color,
-}: { icon: string; value: string | number; label: string; color: string }) {
-  return (
-    <div className="flex items-center gap-2 px-4 py-2 rounded-2xl border"
-      style={{ background: `${color}10`, borderColor: `${color}25` }}>
-      <span className="text-lg leading-none select-none">{icon}</span>
-      <div>
-        <p className="font-fredoka text-base leading-none" style={{ color }}>{value}</p>
-        <p className="text-[9px] font-black tracking-widest text-white/30 uppercase mt-0.5">{label}</p>
-      </div>
-    </div>
-  )
-}
-
-// ── Weekly progress bar ───────────────────────────────────────
-function WeekBar({ done, goal, label }: { done: number; goal: number; label: string }) {
-  const pct = Math.min(100, Math.round((done / Math.max(goal, 1)) * 100))
-  const segs = Array.from({ length: goal }, (_, i) => i < done)
-  return (
-    <div className="w-full">
-      <p className="text-[10px] font-black tracking-widest text-white/30 uppercase mb-2">{label}</p>
-      <div className="flex gap-1.5">
-        {segs.map((filled, i) => (
-          <div key={i} className="flex-1 h-2 rounded-full transition-all duration-500"
-            style={{ background: filled ? '#1CB0F6' : 'rgba(255,255,255,0.08)' }} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── Mission card — the dominant CTA ──────────────────────────
-function MissionCard({
-  lesson, isNew, href, streak, t,
-}: {
-  lesson: { id: string; title: string; emoji: string; xp_reward: number; skill_id: string }
-  isNew: boolean
-  href: string
-  streak: number
-  t: typeof UI.en
-}) {
-  return (
-    <Link href={href}
-      className="group relative block w-full rounded-3xl overflow-hidden transition-all duration-200 hover:-translate-y-1 active:translate-y-0"
-      style={{
-        background: 'linear-gradient(145deg, #0f2744 0%, #0a1a2e 100%)',
-        border: '2px solid rgba(28,176,246,0.35)',
-        boxShadow: '0 0 32px rgba(28,176,246,0.15), 0 8px 32px rgba(0,0,0,0.4)',
-      }}>
-
-      {/* Top accent line */}
-      <div className="h-1 w-full"
-        style={{ background: 'linear-gradient(90deg, #1CB0F6, #14D4F4, #2B70C9)' }} />
-
-      <div className="p-6">
-        {/* Eyebrow */}
-        <div className="flex items-center justify-between mb-5">
-          <span className="text-[10px] font-black tracking-[0.2em] text-[#1CB0F6] uppercase">
-            {isNew ? t.newMission : t.mission}
-          </span>
-          <span className="text-xs font-black text-[#FAA918] bg-[#FAA918]/10 border border-[#FAA918]/20 px-2.5 py-1 rounded-full">
-            +{lesson.xp_reward} XP
-          </span>
-        </div>
-
-        {/* Content row */}
-        <div className="flex items-center gap-5">
-          {/* Mascot + emoji stacked */}
-          <div className="relative flex-shrink-0">
-            <Mascot streak={streak} size={72} />
-            <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl flex items-center justify-center text-xl"
-              style={{ background: 'rgba(28,176,246,0.2)', border: '1px solid rgba(28,176,246,0.3)' }}>
-              {lesson.emoji}
-            </div>
-          </div>
-
-          {/* Lesson title */}
-          <div className="flex-1 min-w-0">
-            <h2 className="font-fredoka text-2xl text-white leading-tight">
-              {lesson.title}
-            </h2>
-            <p className="text-sm font-bold text-white/35 mt-1">
-              {isNew ? t.start : t.continue} →
-            </p>
-          </div>
-        </div>
-
-        {/* Big CTA button */}
-        <div className="mt-6 w-full py-4 rounded-2xl font-extrabold text-base text-center transition-all duration-150"
-          style={{
-            background: 'linear-gradient(135deg, #1CB0F6 0%, #14D4F4 100%)',
-            boxShadow: '0 4px 0 rgba(0,0,0,0.3), 0 0 20px rgba(28,176,246,0.3)',
-            color: '#000',
-          }}>
-          {isNew ? `${t.start} →` : `${t.continue} →`}
-        </div>
-      </div>
-    </Link>
-  )
-}
-
-// ── Leaderboard entry ─────────────────────────────────────────
-function LeaderRow({
-  rank, name, xp, isYou,
-}: { rank: number; name: string; xp: number; isYou?: boolean }) {
-  const medals: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
-  return (
-    <div className={cn(
-      'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all',
-      isYou ? 'border' : ''
-    )}
-      style={isYou ? { background: 'rgba(28,176,246,0.08)', borderColor: 'rgba(28,176,246,0.25)' } : {}}>
-      <span className="w-6 text-center text-sm font-black"
-        style={{ color: medals[rank] ? 'transparent' : 'rgba(255,255,255,0.25)' }}>
-        {medals[rank] ?? rank}
-      </span>
-      <span className={cn('flex-1 text-sm font-bold truncate', isYou ? 'text-white' : 'text-white/60')}>
-        {name}
-      </span>
-      <span className="text-xs font-black text-white/30">{xp.toLocaleString()}</span>
-    </div>
-  )
-}
+// ── Dot-grid background — hand-crafted feel, not AI void ─────
+const DOT_GRID_SVG = `url("data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='14' cy='14' r='1.5' fill='rgba(255,255,255,0.055)'/%3E%3C/svg%3E")`
 
 // ── Props ─────────────────────────────────────────────────────
 interface Props {
@@ -234,7 +74,6 @@ interface Props {
   weeklyLessons?:       number
   weeklyGoal?:          number
   globalRank?:          number | null
-  leaderboard?:         { id: string; name: string; xp: number; rank_global: number | null }[]
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -242,21 +81,22 @@ export default function DashboardClient({
   userId, profile, progress, lessonCompletions,
   todayChallenge, challengeCompletions,
   nextLesson, weeklyLessons = 0, weeklyGoal = 5,
-  globalRank, leaderboard = [],
 }: Props) {
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [toast,     setToast]     = useState<string | null>(null)
   const [shareCard, setShareCard] = useState<ShareCardProps | null>(null)
+  const [jimmyErr,  setJimmyErr]  = useState(false)
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
   const lang   = (profile?.preferred_language || 'en') as 'en' | 'ar' | 'fr'
   const dir    = lang === 'ar' ? 'rtl' : 'ltr'
-  const t      = UI[lang] ?? UI.en
+  const t      = COPY[lang] ?? COPY.en
   const xp     = progress?.xp    ?? 0
   const streak = progress?.streak ?? 0
   const level  = getLevel(xp)
+  const xpInLevel  = xp % XP_PER_LEVEL
   const isNew  = lessonCompletions.length === 0
 
   const isChallengeComplete = todayChallenge
@@ -279,173 +119,211 @@ export default function DashboardClient({
     ? `/dashboard/skills/${nextLesson.skill_id}/lesson/${nextLesson.id}`
     : '/dashboard/skills'
 
-  // Merge current user into leaderboard for context
-  const lbWithYou = leaderboard.slice(0, 5)
+  // Jimmy's mood
+  const jimmySrc = streak >= 3
+    ? '/icons/mascot-celebrating.svg'
+    : streak === 0
+    ? '/icons/mascot-idle.svg'
+    : '/icons/mascot-idle.svg'
 
   return (
-    <div dir={dir}
-      className="min-h-screen text-[#F5F5F5]"
-      style={{ background: '#0B0F14' }}>
+    <div
+      dir={dir}
+      className="min-h-screen flex flex-col items-center justify-center text-[#F5F5F5] relative overflow-hidden"
+      style={{
+        background: '#0D1117',
+        backgroundImage: DOT_GRID_SVG,
+      }}
+    >
 
       {/* ── Toast ──────────────────────────────────────────── */}
       <div className={cn(
-        'fixed top-5 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl font-black text-sm',
-        'transition-all duration-300 whitespace-nowrap pointer-events-none',
-        toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3'
-      )} style={{ background: '#1CB0F6', color: '#000', boxShadow: '0 8px 24px rgba(28,176,246,0.4)' }}>
+        'fixed top-5 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-full font-black text-sm',
+        'transition-all duration-300 whitespace-nowrap pointer-events-none select-none',
+        toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
+      )} style={{ background: '#FAA918', color: '#000', boxShadow: '0 8px 32px rgba(250,169,24,0.5)' }}>
         ⚡ {toast}
       </div>
 
-      {/* ── STAT BAR — always visible, like Duolingo's top bar ── */}
-      <div className="sticky top-0 z-20 px-6 py-3 flex items-center justify-between gap-4"
-        style={{ background: 'rgba(11,15,20,0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      {/* ── Ambient glow behind Jimmy ─────────────────────── */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 60% 55% at 50% 40%, rgba(28,176,246,0.07) 0%, transparent 70%)',
+        }} />
 
-        {/* Name */}
-        <p className="font-fredoka text-base text-white/80 truncate flex-shrink-0">
-          {profile.display_name}
-        </p>
+      {/* ── Main content — single column, centered ─────────── */}
+      <div className="relative z-10 flex flex-col items-center w-full px-6"
+        style={{ maxWidth: 440 }}>
 
-        {/* Stats row */}
-        <div className="flex items-center gap-3 flex-wrap justify-end">
-          <StatPill icon="🔥" value={streak} label={t.streak} color="#FAA918" />
-          <StatPill icon="⭐" value={level}  label={t.level}  color="#1CB0F6" />
-          <StatPill icon="⚡" value={xp >= 1000 ? `${(xp/1000).toFixed(1)}k` : xp} label={t.xp} color="#14D4F4" />
+        {/* ── LEVEL + XP bar — compact, top ─────────────────── */}
+        <div className="w-full mb-8 flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black tracking-widest text-white/30 uppercase">
+              {t.level} {level}
+            </span>
+            <span className="text-xs font-black text-white/25">
+              {t.xpOf(xpInLevel, XP_PER_LEVEL)}
+            </span>
+          </div>
+          {/* XP bar — thin, amber fill */}
+          <div className="h-1.5 w-full rounded-full overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.07)' }}>
+            <div className="h-full rounded-full transition-all duration-1000"
+              style={{
+                width: `${Math.min(100, Math.round((xpInLevel / XP_PER_LEVEL) * 100))}%`,
+                background: 'linear-gradient(90deg, #FAA918, #f7c948)',
+              }} />
+          </div>
         </div>
-      </div>
 
-      {/* ── MAIN LAYOUT ───────────────────────────────────── */}
-      <div className="flex gap-6 px-6 py-8 max-w-5xl mx-auto">
+        {/* ── SPEECH BUBBLE — streak lives here ─────────────── */}
+        <div className="relative mb-1 self-center">
+          <div
+            className="relative px-5 py-2.5 rounded-2xl font-black text-sm text-center select-none"
+            style={{
+              background: streak > 0 ? '#FAA918' : 'rgba(255,255,255,0.07)',
+              color:      streak > 0 ? '#000' : 'rgba(255,255,255,0.3)',
+              minWidth:   160,
+              // Triangle pointing down toward Jimmy
+              filter: streak > 0 ? 'drop-shadow(0 4px 16px rgba(250,169,24,0.4))' : undefined,
+            }}
+          >
+            {t.streakMsg(streak)}
+            {/* Triangle */}
+            <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-0 h-0"
+              style={{
+                borderLeft:  '8px solid transparent',
+                borderRight: '8px solid transparent',
+                borderTop:   `8px solid ${streak > 0 ? '#FAA918' : 'rgba(255,255,255,0.07)'}`,
+              }} />
+          </div>
+        </div>
 
-        {/* ── CENTER — mission + weekly bar + challenge ──── */}
-        <div className="flex-1 min-w-0 flex flex-col gap-5">
-
-          {/* Mission card */}
-          {nextLesson ? (
-            <MissionCard
-              lesson={nextLesson}
-              isNew={isNew}
-              href={missionHref}
-              streak={streak}
-              t={t}
+        {/* ── JIMMY — large, centered, the identity ──────────── */}
+        <div className="relative flex items-center justify-center mb-6"
+          style={{ height: 200 }}>
+          {!jimmyErr ? (
+            <Image
+              src={jimmySrc}
+              alt="Jimmy"
+              width={180}
+              height={180}
+              className="object-contain select-none pointer-events-none drop-shadow-2xl"
+              style={{
+                width: 180,
+                height: 180,
+                filter: 'drop-shadow(0 16px 40px rgba(28,176,246,0.25))',
+                // Slight lean — asymmetric, not AI-default
+                transform: 'rotate(-3deg)',
+              }}
+              onError={() => setJimmyErr(true)}
+              priority
             />
           ) : (
-            <div className="w-full rounded-3xl p-8 text-center border"
-              style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}>
-              <p className="text-5xl mb-3">🏆</p>
-              <p className="font-fredoka text-2xl text-white mb-1">{t.noMission}</p>
-              <p className="text-sm text-white/30 font-semibold mb-5">{t.noMissionSub}</p>
-              <Link href="/dashboard/skills"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm border transition-all hover:bg-white/5"
-                style={{ borderColor: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}>
-                {t.explore} →
-              </Link>
-            </div>
+            <span style={{ fontSize: 120 }} className="select-none">🤖</span>
           )}
 
-          {/* Weekly progress — segmented like Duolingo's XP bar */}
-          <div className="w-full px-5 py-4 rounded-2xl border"
-            style={{ background: 'rgba(255,255,255,0.025)', borderColor: 'rgba(255,255,255,0.06)' }}>
-            <WeekBar done={weeklyLessons} goal={weeklyGoal} label={t.weeklyGoal(weeklyLessons, weeklyGoal)} />
-          </div>
-
-          {/* Daily challenge */}
-          {todayChallenge && (
-            <button onClick={!isChallengeComplete ? doChallenge : undefined}
-              disabled={isChallengeComplete}
-              className={cn(
-                'w-full flex items-center gap-4 px-5 py-4 rounded-2xl border text-left transition-all',
-                !isChallengeComplete && 'hover:border-[#FAA918]/40 active:scale-[0.99]'
-              )}
+          {/* Lesson emoji badge — floats off Jimmy's shoulder */}
+          {nextLesson && (
+            <div
+              className="absolute top-2 right-0 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
               style={{
-                background:  isChallengeComplete ? 'rgba(255,255,255,0.02)' : 'rgba(250,169,24,0.07)',
-                borderColor: isChallengeComplete ? 'rgba(255,255,255,0.06)' : 'rgba(250,169,24,0.2)',
-              }}>
-              <span className="text-2xl flex-shrink-0 select-none">{todayChallenge.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-black tracking-widest text-[#FAA918]/50 uppercase mb-0.5">
-                  {t.sideQuest}
-                </p>
-                <p className={cn('text-sm font-bold truncate', isChallengeComplete ? 'line-through text-white/25' : 'text-white')}>
-                  {todayChallenge.title}
-                </p>
-              </div>
-              <span className="text-sm font-black flex-shrink-0"
-                style={{ color: isChallengeComplete ? '#3CB371' : '#FAA918' }}>
-                {isChallengeComplete ? t.claimed : `+${todayChallenge.xp_reward} XP`}
-              </span>
-            </button>
+                background: 'rgba(255,255,255,0.08)',
+                border:     '1px solid rgba(255,255,255,0.12)',
+                backdropFilter: 'blur(8px)',
+                transform: 'rotate(6deg)',
+              }}
+            >
+              {nextLesson.emoji}
+            </div>
           )}
         </div>
 
-        {/* ── RIGHT SIDEBAR — leaderboard (desktop only) ─── */}
-        <aside className="hidden lg:flex flex-col gap-4 w-72 flex-shrink-0">
+        {/* ── LESSON TITLE — bold, large, clear ─────────────── */}
+        {nextLesson && (
+          <p className="font-fredoka text-2xl text-center text-white/80 mb-6 leading-snug px-2">
+            {nextLesson.title}
+          </p>
+        )}
 
-          {/* Leaderboard */}
-          <div className="w-full rounded-2xl border overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.025)', borderColor: 'rgba(255,255,255,0.06)' }}>
-
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b"
-              style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-              <h3 className="text-xs font-black tracking-widest text-white/40 uppercase">
-                {t.leaderboard}
-              </h3>
-              <Link href="/dashboard/leaderboard"
-                className="text-xs font-black text-[#1CB0F6] hover:text-white transition-colors">
-                See all →
-              </Link>
-            </div>
-
-            {/* Entries */}
-            <div className="p-2 space-y-0.5">
-              {lbWithYou.length > 0
-                ? lbWithYou.map((entry) => (
-                    <LeaderRow
-                      key={entry.id}
-                      rank={entry.rank_global ?? 99}
-                      name={entry.id === userId ? (t.you) : entry.name}
-                      xp={entry.xp}
-                      isYou={entry.id === userId}
-                    />
-                  ))
-                : (
-                  <p className="text-xs text-white/20 font-semibold text-center py-4">
-                    {lang === 'ar' ? 'لا يوجد بيانات بعد' : lang === 'fr' ? 'Pas encore de données' : 'No data yet'}
-                  </p>
-                )}
-            </div>
-
-            {/* Your rank if not in top 5 */}
-            {globalRank != null && globalRank > 5 && (
-              <div className="border-t px-2 pb-2 pt-1"
-                style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                <LeaderRow
-                  rank={globalRank}
-                  name={t.you}
-                  xp={xp}
-                  isYou
-                />
-              </div>
-            )}
+        {/* ── THE ONE BUTTON ────────────────────────────────── */}
+        {nextLesson ? (
+          <Link
+            href={missionHref}
+            className="w-full flex items-center justify-center gap-3 rounded-2xl font-black text-lg transition-all duration-150 hover:-translate-y-1 active:translate-y-0.5 active:shadow-none select-none"
+            style={{
+              background:  '#FAA918',
+              color:       '#000',
+              padding:     '18px 32px',
+              boxShadow:   '0 6px 0 #c07a00, 0 12px 32px rgba(250,169,24,0.35)',
+              letterSpacing: '0.02em',
+            }}
+          >
+            <span>{isNew ? t.cta : t.ctaContinue}</span>
+            {/* XP badge inside button */}
+            <span
+              className="text-xs font-black px-2.5 py-1 rounded-full"
+              style={{ background: 'rgba(0,0,0,0.15)', color: '#000' }}
+            >
+              +{nextLesson.xp_reward} XP
+            </span>
+          </Link>
+        ) : (
+          <div className="w-full text-center">
+            <p className="font-fredoka text-2xl text-white mb-2">{t.noMission}</p>
+            <p className="text-sm text-white/30 font-semibold mb-5">{t.noMissionSub}</p>
+            <Link
+              href="/dashboard/skills"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-base transition-all hover:-translate-y-0.5"
+              style={{
+                background:  '#FAA918',
+                color:       '#000',
+                boxShadow:   '0 5px 0 #c07a00',
+              }}
+            >
+              {t.explore} →
+            </Link>
           </div>
+        )}
 
-          {/* Quick nav links — like Duolingo's sidebar icons */}
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { href: '/dashboard/skills',      emoji: '🗺️', label: lang === 'ar' ? 'المسارات' : lang === 'fr' ? 'Pistes' : 'Skill Tree' },
-              { href: '/dashboard/coach',        emoji: '🤖', label: lang === 'ar' ? 'المدرب'   : lang === 'fr' ? 'Coach'  : 'AI Coach'   },
-              { href: '/dashboard/challenges',   emoji: '⚡', label: lang === 'ar' ? 'تحديات'   : lang === 'fr' ? 'Défis'  : 'Challenges' },
-              { href: '/dashboard/leaderboard',  emoji: '🏆', label: lang === 'ar' ? 'المتصدرون': lang === 'fr' ? 'Classement' : 'Leaderboard' },
-            ].map(link => (
-              <Link key={link.href} href={link.href}
-                className="flex flex-col items-center gap-1.5 py-3 rounded-2xl border text-center transition-all hover:border-white/20 hover:bg-white/4 active:scale-95"
-                style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.07)' }}>
-                <span className="text-xl select-none">{link.emoji}</span>
-                <span className="text-[10px] font-black tracking-wide text-white/35 uppercase">{link.label}</span>
-              </Link>
-            ))}
-          </div>
-        </aside>
+        {/* ── Weekly dots — 5 small dots below the button ────── */}
+        <div className="flex items-center gap-2 mt-6">
+          {Array.from({ length: weeklyGoal }).map((_, i) => (
+            <div key={i}
+              className="w-2.5 h-2.5 rounded-full transition-all duration-500"
+              style={{
+                background: i < weeklyLessons ? '#FAA918' : 'rgba(255,255,255,0.1)',
+                transform:  i < weeklyLessons ? 'scale(1.2)' : 'scale(1)',
+                boxShadow:  i < weeklyLessons ? '0 0 8px rgba(250,169,24,0.5)' : 'none',
+              }} />
+          ))}
+        </div>
+        <p className="text-xs font-bold text-white/20 mt-2 tracking-wider">
+          {weeklyLessons}/{weeklyGoal} THIS WEEK
+        </p>
+
+        {/* ── Daily challenge — below the fold, quiet ─────────── */}
+        {todayChallenge && (
+          <button
+            onClick={!isChallengeComplete ? doChallenge : undefined}
+            disabled={isChallengeComplete}
+            className="mt-8 w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all active:scale-[0.98]"
+            style={{
+              background:  'rgba(255,255,255,0.04)',
+              border:      `1px solid ${isChallengeComplete ? 'rgba(255,255,255,0.05)' : 'rgba(250,169,24,0.2)'}`,
+            }}
+          >
+            <span className="text-xl select-none flex-shrink-0">{todayChallenge.emoji}</span>
+            <span className={cn('flex-1 text-sm font-bold truncate', isChallengeComplete ? 'line-through text-white/20' : 'text-white/70')}>
+              {todayChallenge.title}
+            </span>
+            <span className="text-xs font-black flex-shrink-0"
+              style={{ color: isChallengeComplete ? '#3CB371' : '#FAA918' }}>
+              {isChallengeComplete ? '✓ Done' : `+${todayChallenge.xp_reward} XP`}
+            </span>
+          </button>
+        )}
+
       </div>
 
       {shareCard && <ShareCardModal props={shareCard} onClose={() => setShareCard(null)} />}
