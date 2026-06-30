@@ -1221,6 +1221,7 @@ export default function LessonViewClient({
   const [showFeedback, setShowFeedback]   = useState(false)
   const [penaltyTimer, setPenaltyTimer]   = useState<Record<number, number>>({})
   const [activityDone, setActivityDone]   = useState<Record<number, boolean>>({})
+  const [currentStep, setCurrentStep]     = useState(0)
 
   const lang  = language || 'en'
   const t     = UI[lang] ?? UI.en
@@ -1833,7 +1834,26 @@ export default function LessonViewClient({
         <span className="text-xs font-bold text-muted flex-shrink-0">{progressPct}%</span>
       </div>
 
-      {/* AI Coach banner — same neutral card as everything else, not a separate gradient block */}
+      {/* Step progress dots — one dot per section, fills in as you advance.
+          This is the entire "progress bar" now; the old top-of-page percent
+          bar is removed since the dots do that job while also showing where
+          you are, not just how far along. */}
+      {sections.length > 0 && !isDone && (
+        <div className="flex items-center gap-1.5 mb-6 sm:mb-8">
+          {sections.map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                'h-2 flex-1 rounded-full transition-all duration-300',
+                i < currentStep ? 'bg-[#3CB371]' : i === currentStep ? 'bg-[#1CB0F6]' : 'bg-card2'
+              )}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* AI Coach banner — shown once, above the step card, so it's always
+          reachable without taking up room inside the one-section view */}
       <div className={cn(CARD, 'p-4 mb-6 sm:mb-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4')}>
         <div className="flex items-center gap-3">
           <span className="w-10 h-10 rounded-2xl bg-[#1CB0F6]/15 flex items-center justify-center flex-shrink-0">
@@ -1849,16 +1869,63 @@ export default function LessonViewClient({
         </Link>
       </div>
 
-      {/* Content sections */}
-      <div className="space-y-4 sm:space-y-5 mb-8 sm:mb-10">
-        {sections.length > 0
-          ? sections.map((s, i) => renderSection(s, i))
-          : <div className={cn(CARD, 'p-8 text-center')}><p className="text-muted font-semibold text-sm">Content loading...</p></div>
-        }
-      </div>
+      {/* ── ONE SECTION AT A TIME (in progress) — or full scroll for review
+          if the lesson is already marked done, since gating/advancing makes
+          no sense once someone is just re-reading something they finished. */}
+      {sections.length > 0 ? (
+        isDone ? (
+          <div className="space-y-4 sm:space-y-5 mb-8 sm:mb-10">
+            {sections.map((s, i) => renderSection(s, i))}
+          </div>
+        ) : (
+        <>
+          <div className="mb-6 sm:mb-8">
+            {renderSection(sections[currentStep], currentStep)}
+          </div>
 
-      {/* Complete button */}
-      {!isDone && (
+          {(() => {
+            const s = sections[currentStep]
+            const isInteractive = s.type in ACTIVITY_LABELS
+            const stepReady = !isInteractive || isActivityDone(s, currentStep)
+            const isLastStep = currentStep === sections.length - 1
+
+            if (isLastStep) {
+              // Final step's own continue is replaced by the Mark Complete
+              // card below, so nothing renders here — avoids a redundant
+              // "Continue" right above "Mark Complete".
+              return null
+            }
+
+            return (
+              <div className="flex items-center justify-between gap-3 mb-8 sm:mb-10">
+                <button
+                  onClick={() => setCurrentStep(i => Math.max(0, i - 1))}
+                  disabled={currentStep === 0}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-bold text-sm text-muted hover:text-white disabled:opacity-0 disabled:pointer-events-none transition-all"
+                >
+                  <Icon kind="chevronLeft" className="w-4 h-4" />
+                  {lang === 'ar' ? 'السابق' : lang === 'fr' ? 'Précédent' : 'Back'}
+                </button>
+                <button
+                  onClick={() => setCurrentStep(i => Math.min(sections.length - 1, i + 1))}
+                  disabled={!stepReady}
+                  className={cn(
+                    'flex items-center gap-2 px-8 py-3 rounded-2xl font-extrabold text-sm transition-all',
+                    stepReady ? PRIMARY_BTN : 'bg-card2 text-muted/40 cursor-not-allowed'
+                  )}
+                >
+                  {lang === 'ar' ? 'متابعة' : lang === 'fr' ? 'Continuer' : 'Continue'}
+                  <Icon kind="chevronRight" className="w-4 h-4" />
+                </button>
+              </div>
+            )
+          })()}
+        </>
+        )
+      ) : (
+        <div className={cn(CARD, 'p-8 text-center mb-8')}><p className="text-muted font-semibold text-sm">Content loading...</p></div>
+      )}
+      {!isDone && currentStep === Math.max(0, sections.length - 1) && (
         <div className={cn(CARD, 'p-5 sm:p-6 mb-5 sm:mb-6 text-center')}>
           {blockingItems.length > 0 && (
             <>

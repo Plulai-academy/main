@@ -544,6 +544,8 @@ export const getTodaysChallenge = async (ageGroup: AgeGroup) => {
     .select('*')
     .eq('age_group', ageGroup)
     .eq('active_date', today)
+    .is('skill_node_id', null)               // ← add this line
+
     .maybeSingle()
   return { data, error }
 }
