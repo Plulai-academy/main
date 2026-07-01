@@ -818,3 +818,28 @@ export const getLessonFeedback = async (userId: string, lessonId: string) => {
     .maybeSingle()
   return { data, error }
 }
+// ── LESSON SUBMISSIONS ────────────────────────────────────────
+
+export const submitLessonSubmission = async (
+  userId: string,
+  lessonId: string,
+  projectUrl?: string,
+  videoUrl?: string
+) => {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('lesson_submissions')
+    .upsert(
+      {
+        user_id:     userId,
+        lesson_id:   lessonId,
+        project_url: projectUrl ?? null,
+        video_url:   videoUrl   ?? null,
+        submitted_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,lesson_id' }
+    )
+    .select()
+    .single()
+  return { data, error }
+}
