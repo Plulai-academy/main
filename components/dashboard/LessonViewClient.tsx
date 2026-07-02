@@ -1229,8 +1229,11 @@ export default function LessonViewClient({
   const lang  = language || 'en'
 
   // ── Game layer ─────────────────────────────────────────────────────────
-  const MAX_HEARTS = 3
-  const [hearts, setHearts]         = useState(MAX_HEARTS)
+  // Note: hearts/lives were removed — they weren't persisted anywhere (no DB
+  // column, no API call), so they reset on every page load and never actually
+  // gated anything. Combo, praise messages, and the shake-on-wrong animation
+  // are pure client-side feedback too, but at least they're self-consistent
+  // within a single attempt; hearts implied a "lives" mechanic that didn't exist.
   const [combo, setCombo]           = useState(0)
   const [xpBurst, setXpBurst]       = useState<{ id: number; amount: number } | null>(null)
   const [shaking, setShaking]       = useState(false)
@@ -1261,8 +1264,7 @@ export default function LessonViewClient({
     setTimeout(() => setShaking(false), 500)
   }
 
-  const loseHeart = () => {
-    setHearts(h => Math.max(0, h - 1))
+  const onWrongAnswer = () => {
     setCombo(0)
     fireShake()
   }
@@ -1310,7 +1312,7 @@ export default function LessonViewClient({
       gainCombo()
       markActivityDone(secIdx)
     } else {
-      loseHeart()
+      onWrongAnswer()
       // Brief delay then reset so the user can retry
       setTimeout(() => {
         setQuiz(p => ({ ...p, [secIdx]: { selected: null, submitted: false } }))
@@ -1872,7 +1874,7 @@ export default function LessonViewClient({
         </div>
       )}
 
-      {/* ── GAME HUD: back | step dots | hearts | combo ── */}
+      {/* ── GAME HUD: back | step dots | combo ── */}
       <div className="flex items-center gap-2 sm:gap-3 mb-5 sm:mb-6">
         <Link href={`/dashboard/skills/${skill?.id}`}
           className="w-9 h-9 flex items-center justify-center rounded-xl bg-card border border-white/8 hover:border-white/20 transition-colors shrink-0">
@@ -1886,14 +1888,6 @@ export default function LessonViewClient({
                 'h-2 flex-1 rounded-full transition-all duration-400',
                 i < currentStep ? 'bg-[#3CB371]' : i === currentStep ? 'bg-[#1CB0F6]' : 'bg-white/10'
               )} />
-            ))}
-          </div>
-        )}
-
-        {!isDone && (
-          <div className="flex items-center gap-0.5 shrink-0">
-            {Array.from({ length: MAX_HEARTS }).map((_, i) => (
-              <span key={i} className={cn('text-base leading-none transition-all', i < hearts ? 'text-red-400' : 'text-white/15')}>❤</span>
             ))}
           </div>
         )}
