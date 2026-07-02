@@ -681,8 +681,8 @@ function UnscrambleActivity({ s, t, onComplete }: { s: Section; t: Record<string
               <Icon kind="dragHandle" className="w-3.5 h-3.5 text-white/20 flex-shrink-0" />
               <code className={cn('flex-1 text-sm font-mono whitespace-pre', lineCorrect ? 'text-[#3CB371]' : lineWrong ? 'text-red-400' : 'text-green-300')}>{lines[lineIdx]}</code>
               <div className="flex flex-col gap-0.5 flex-shrink-0">
-                <button onClick={() => moveUp(i)} disabled={i === 0} className="text-white/20 hover:text-white/60 disabled:opacity-10 transition-colors"><Icon kind="arrowUp" className="w-3 h-3" /></button>
-                <button onClick={() => moveDown(i)} disabled={i === order.length - 1} className="text-white/20 hover:text-white/60 disabled:opacity-10 transition-colors"><Icon kind="arrowDown" className="w-3 h-3" /></button>
+                <button onClick={() => moveUp(i)} disabled={i === 0} aria-label="Move line up" className="text-white/20 hover:text-white/60 disabled:opacity-10 transition-colors"><Icon kind="arrowUp" className="w-3 h-3" /></button>
+                <button onClick={() => moveDown(i)} disabled={i === order.length - 1} aria-label="Move line down" className="text-white/20 hover:text-white/60 disabled:opacity-10 transition-colors"><Icon kind="arrowDown" className="w-3 h-3" /></button>
               </div>
               {checked && <Icon kind={lineCorrect ? 'check' : 'x'} className={cn('w-4 h-4 flex-shrink-0', lineCorrect ? 'text-[#3CB371]' : 'text-red-400')} />}
             </div>
@@ -746,6 +746,7 @@ function DebugActivity({ s, t, onComplete }: { s: Section; t: Record<string, str
         <pre className="px-5 py-4 text-sm font-mono text-red-300/90 leading-7 overflow-x-auto whitespace-pre">{code}</pre>
         <button
           onClick={() => { navigator.clipboard.writeText(code); setCopiedBroken(true); setTimeout(() => setCopiedBroken(false), 2000) }}
+          aria-label={copiedBroken ? 'Code copied' : 'Copy code'}
           className="absolute top-3 right-3 text-xs font-bold text-muted/50 hover:text-white border border-white/10 rounded-lg px-2 py-1 transition-all flex items-center gap-1">
           <Icon kind={copiedBroken ? 'check' : 'copy'} className="w-3 h-3" /> {copiedBroken ? '' : 'Copy'}
         </button>
@@ -1222,6 +1223,11 @@ export default function LessonViewClient({
   const [activityDone, setActivityDone]   = useState<Record<number, boolean>>({})
   const [currentStep, setCurrentStep]     = useState(0)
 
+  // `lang` is declared early (right after props are destructured) because it's
+  // referenced below by `praiseBank` — `const` bindings aren't hoisted the way
+  // functions are, so this must come before any usage further down the file.
+  const lang  = language || 'en'
+
   // ── Game layer ─────────────────────────────────────────────────────────
   const MAX_HEARTS = 3
   const [hearts, setHearts]         = useState(MAX_HEARTS)
@@ -1279,7 +1285,6 @@ export default function LessonViewClient({
     setCurrentStep(i => Math.max(0, i - 1))
   }
 
-  const lang  = language || 'en'
   const t     = UI[lang] ?? UI.en
   const dir   = lang === 'ar' ? 'rtl' : 'ltr'
   const isDone = !!completion || justCompleted
@@ -1467,6 +1472,7 @@ export default function LessonViewClient({
                 <Icon kind="code" className="w-3.5 h-3.5" /> {t.codeViewer}
               </span>
               <button onClick={() => copyCode(s.starter ?? '', idx)}
+                aria-label={copiedIdx === idx ? t.copied : t.copyCode}
                 className={cn('flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex-shrink-0',
                   copiedIdx === idx ? 'bg-[#3CB371]/20 text-[#3CB371] border border-[#3CB371]/30' : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white border border-white/8')}>
                 <Icon kind={copiedIdx === idx ? 'check' : 'copy'} className="w-3 h-3" /> {copiedIdx === idx ? t.copied : t.copyCode}
