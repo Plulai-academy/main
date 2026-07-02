@@ -1219,9 +1219,65 @@ export default function LessonViewClient({
   const [copiedIdx, setCopied]    = useState<number | null>(null)
   const [justCompleted, setJustCompleted] = useState(false)
   const [showFeedback, setShowFeedback]   = useState(false)
-  const [penaltyTimer, setPenaltyTimer]   = useState<Record<number, number>>({})
   const [activityDone, setActivityDone]   = useState<Record<number, boolean>>({})
   const [currentStep, setCurrentStep]     = useState(0)
+
+  // ── Game layer ─────────────────────────────────────────────────────────
+  const MAX_HEARTS = 3
+  const [hearts, setHearts]         = useState(MAX_HEARTS)
+  const [combo, setCombo]           = useState(0)
+  const [xpBurst, setXpBurst]       = useState<{ id: number; amount: number } | null>(null)
+  const [shaking, setShaking]       = useState(false)
+  const [praiseMsg, setPraiseMsg]   = useState<string | null>(null)
+  const [slideDir, setSlideDir]     = useState<'right' | 'left'>('right')
+  const [animKey, setAnimKey]       = useState(0)   // changes to trigger re-mount of slide anim
+  const burstId = useRef(0)
+
+  const PRAISE_EN = ['Amazing!', 'You\'re on fire!', 'Perfect!', 'Nailed it!', 'Brilliant!', 'Keep going!', 'Superb!']
+  const PRAISE_AR = ['رائع!', 'أنت في القمة!', 'ممتاز!', 'أحسنت!', 'رائع جداً!', 'واصل!', 'متميز!']
+  const PRAISE_FR = ['Incroyable!', 'Tu es en feu!', 'Parfait!', 'Excellent!', 'Brillant!', 'Continue!', 'Superbe!']
+  const praiseBank = lang === 'ar' ? PRAISE_AR : lang === 'fr' ? PRAISE_FR : PRAISE_EN
+
+  const fireXpBurst = (amount: number) => {
+    burstId.current += 1
+    setXpBurst({ id: burstId.current, amount })
+    setTimeout(() => setXpBurst(null), 1200)
+  }
+
+  const firePraise = () => {
+    const msg = praiseBank[Math.floor(Math.random() * praiseBank.length)]
+    setPraiseMsg(msg)
+    setTimeout(() => setPraiseMsg(null), 1500)
+  }
+
+  const fireShake = () => {
+    setShaking(true)
+    setTimeout(() => setShaking(false), 500)
+  }
+
+  const loseHeart = () => {
+    setHearts(h => Math.max(0, h - 1))
+    setCombo(0)
+    fireShake()
+  }
+
+  const gainCombo = () => {
+    setCombo(c => c + 1)
+    firePraise()
+    fireXpBurst(10)
+  }
+
+  const advanceStep = () => {
+    setSlideDir('right')
+    setAnimKey(k => k + 1)
+    setCurrentStep(i => Math.min(sections.length - 1, i + 1))
+  }
+
+  const goBack = () => {
+    setSlideDir('left')
+    setAnimKey(k => k + 1)
+    setCurrentStep(i => Math.max(0, i - 1))
+  }
 
   const lang  = language || 'en'
   const t     = UI[lang] ?? UI.en
@@ -1238,26 +1294,22 @@ export default function LessonViewClient({
 
   const selectOption = (secIdx: number, optIdx: number) => {
     if (quizState[secIdx]?.submitted) return
-    if ((penaltyTimer[secIdx] ?? 0) > 0) return
     setQuiz(prev => ({ ...prev, [secIdx]: { selected: optIdx, submitted: false } }))
   }
 
   const submitQuiz = (secIdx: number, correct: number) => {
     const selected = quizState[secIdx]?.selected ?? null
+    const isRight  = selected === correct
     setQuiz(prev => ({ ...prev, [secIdx]: { ...prev[secIdx], submitted: true } }))
-    if (selected !== correct) {
-      setPenaltyTimer(prev => ({ ...prev, [secIdx]: 20 }))
-      const interval = setInterval(() => {
-        setPenaltyTimer(prev => {
-          const remaining = (prev[secIdx] ?? 1) - 1
-          if (remaining <= 0) {
-            clearInterval(interval)
-            setQuiz(p => ({ ...p, [secIdx]: { selected: null, submitted: false } }))
-            return { ...prev, [secIdx]: 0 }
-          }
-          return { ...prev, [secIdx]: remaining }
-        })
-      }, 1000)
+    if (isRight) {
+      gainCombo()
+      markActivityDone(secIdx)
+    } else {
+      loseHeart()
+      // Brief delay then reset so the user can retry
+      setTimeout(() => {
+        setQuiz(p => ({ ...p, [secIdx]: { selected: null, submitted: false } }))
+      }, 1200)
     }
   }
 
@@ -1273,8 +1325,11 @@ export default function LessonViewClient({
     navigator.clipboard.writeText(code).then(() => { setCopied(idx); setTimeout(() => setCopied(null), 2000) })
   }
 
-  const markActivityDone = (idx: number) =>
-    setActivityDone(prev => (prev[idx] ? prev : { ...prev, [idx]: true }))
+  const markActivityDone = (idx: number) => {
+    if (activityDone[idx]) return
+    setActivityDone(prev => ({ ...prev, [idx]: true }))
+    gainCombo()
+  }
 
   const ACTIVITY_LABELS: Record<string, string> = {
     quiz: t.quiz, checklist: t.checklist, speed_quiz: t.speedQuiz, fill_blank: t.fillBlank,
@@ -1448,10 +1503,8 @@ export default function LessonViewClient({
 
       case 'quiz': {
         const state     = quizState[idx] ?? { selected: null, submitted: false }
-        const penalty   = penaltyTimer[idx] ?? 0
         const isCorrect = state.submitted && state.selected === s.correct
         const isWrong   = state.submitted && state.selected !== s.correct
-        const isLocked  = penalty > 0
         return (
           <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
             <div className="flex items-center gap-2 mb-4">
@@ -1465,36 +1518,27 @@ export default function LessonViewClient({
               {(s.options ?? []).map((opt, oi) => {
                 let cls = 'border-white/8 bg-card2 text-muted hover:border-white/25 hover:text-white cursor-pointer'
                 if (state.submitted) {
-                  if (oi === s.correct && state.selected === oi) cls = 'border-[#3CB371]/60 bg-[#3CB371]/15 text-[#3CB371] cursor-default'
+                  if (oi === s.correct) cls = 'border-[#3CB371]/60 bg-[#3CB371]/15 text-[#3CB371] cursor-default'
                   else if (state.selected === oi) cls = 'border-red-500/40 bg-red-500/10 text-red-400 cursor-default'
                   else cls = 'border-white/5 bg-card2/50 text-muted/50 cursor-default'
                 } else if (state.selected === oi) cls = 'border-[#1CB0F6]/50 bg-[#1CB0F6]/15 text-white cursor-pointer'
-                if (isLocked) cls = 'border-white/5 bg-card2/30 text-muted/30 cursor-not-allowed'
                 return (
-                  <button key={oi} onClick={() => selectOption(idx, oi)} disabled={state.submitted || isLocked}
+                  <button key={oi} onClick={() => selectOption(idx, oi)} disabled={state.submitted}
                     className={cn('w-full text-start px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl text-sm font-bold border transition-all', cls)}>
                     <span className="font-extrabold mr-2 sm:mr-3 text-muted/60">{String.fromCharCode(65 + oi)}.</span>{opt}
                   </button>
                 )
               })}
             </div>
-            {!state.submitted && !isLocked ? (
+            {!state.submitted ? (
               <button onClick={() => submitQuiz(idx, s.correct!)} disabled={state.selected === null}
                 className={cn('w-full sm:w-auto px-6 py-2.5 rounded-2xl font-extrabold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all', PRIMARY_BTN)}>
                 {t.submit}
               </button>
-            ) : isWrong && isLocked ? (
+            ) : isWrong ? (
               <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/20">
-                <Icon kind="hourglass" className="w-5 h-5 text-red-400 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-xs font-extrabold text-red-400 mb-0.5">{t.wrong}</p>
-                  <p className="text-xs text-red-400/70 font-semibold">
-                    {lang === 'ar' ? `يمكنك المحاولة مجدداً خلال ${penalty} ثانية` : lang === 'fr' ? `Réessaye dans ${penalty}s` : `Try again in ${penalty}s`}
-                  </p>
-                </div>
-                <div className="w-10 h-10 rounded-full border-2 border-red-500/40 bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-extrabold text-red-400 tabular-nums">{penalty}</span>
-                </div>
+                <Icon kind="x" className="w-5 h-5 text-red-400 flex-shrink-0" />
+                <p className="text-xs font-extrabold text-red-400">{t.wrong}</p>
               </div>
             ) : isCorrect ? (
               <div className="space-y-2">
@@ -1768,18 +1812,48 @@ export default function LessonViewClient({
   const coachUrl      = `/dashboard/coach?topic=${encodeURIComponent(skill?.title ?? '')}&lesson=${encodeURIComponent(lesson.title)}`
   const blockingItems = pendingActivities.map(({ s }) => ACTIVITY_LABELS[s.type])
 
-  const progressPct = Math.round((lessonIndex / totalLessons) * 100)
-
   return (
     <div className="p-4 sm:p-6 lg:p-10 max-w-3xl w-full overflow-x-hidden" dir={dir}>
-      {/* Toast */}
-      <div className={cn('fixed top-4 left-4 right-4 sm:left-auto sm:top-6 sm:right-6 z-50 px-5 py-3 rounded-2xl bg-card border border-white/10 text-[#1CB0F6] font-bold text-sm shadow-xl transition-all duration-300 flex items-center gap-2',
-        toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none')}>
+      {/* ── Keyframe animations injected once ── */}
+      <style>{`
+        @keyframes slideInRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes slideInLeft  { from { opacity:0; transform:translateX(-40px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes xpFloat      { 0% { opacity:1; transform:translateY(0) scale(1); } 80% { opacity:1; } 100% { opacity:0; transform:translateY(-56px) scale(1.2); } }
+        @keyframes praiseIn     { 0% { opacity:0; transform:translate(-50%,-50%) scale(0.7); } 20% { opacity:1; transform:translate(-50%,-50%) scale(1.05); } 80% { opacity:1; transform:translate(-50%,-50%) scale(1); } 100% { opacity:0; transform:translate(-50%,-50%) scale(0.9); } }
+        @keyframes shake        { 0%,100%{transform:translateX(0)} 15%{transform:translateX(-8px)} 30%{transform:translateX(8px)} 45%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 75%{transform:translateX(-3px)} 90%{transform:translateX(3px)} }
+        @keyframes heartPop     { 0%{transform:scale(1)} 40%{transform:scale(1.4)} 100%{transform:scale(1)} }
+        @keyframes comboPop     { 0%{transform:scale(1)} 50%{transform:scale(1.25)} 100%{transform:scale(1)} }
+        @keyframes continuePulse{ 0%,100%{box-shadow:0 4px 0 rgba(0,0,0,0.2),0 0 0 0 rgba(28,176,246,0.5)} 50%{box-shadow:0 4px 0 rgba(0,0,0,0.2),0 0 0 10px rgba(28,176,246,0)} }
+        .slide-right { animation: slideInRight 0.28s cubic-bezier(0.22,1,0.36,1) both; }
+        .slide-left  { animation: slideInLeft  0.28s cubic-bezier(0.22,1,0.36,1) both; }
+        .card-shake  { animation: shake 0.5s ease-in-out; }
+      `}</style>
+
+      {/* ── Toast ── */}
+      <div className={cn(
+        'fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:w-auto z-50 px-5 py-3 rounded-2xl bg-card border border-white/10 text-[#1CB0F6] font-bold text-sm shadow-xl transition-all duration-300 flex items-center gap-2',
+        toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'
+      )}>
         <Icon kind="sparkle" className="w-4 h-4 shrink-0" />
         {toast}
       </div>
 
-      {/* Level-up overlay */}
+      {/* ── Praise overlay — appears center-screen on correct answer ── */}
+      {praiseMsg && (
+        <div
+          className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center"
+          aria-hidden
+        >
+          <div
+            className="font-fredoka text-3xl md:text-4xl text-[#3CB371] drop-shadow-lg px-6 py-3 rounded-3xl bg-[#3CB371]/10 border border-[#3CB371]/30 backdrop-blur-sm"
+            style={{ animation: 'praiseIn 1.5s ease forwards' }}
+          >
+            {praiseMsg}
+          </div>
+        </div>
+      )}
+
+      {/* ── Level-up overlay ── */}
       {levelUp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setLevelUp(null)}>
           <div className="bg-card border border-white/10 rounded-3xl p-8 sm:p-10 text-center shadow-2xl w-full max-w-sm">
@@ -1792,86 +1866,71 @@ export default function LessonViewClient({
         </div>
       )}
 
-      {/* Back */}
-      <Link href={`/dashboard/skills/${skill?.id}`} className="inline-flex items-center gap-1.5 text-muted font-bold text-sm hover:text-white transition-colors mb-5 sm:mb-6 group">
-        <Icon kind="chevronLeft" className="w-4 h-4 transition-transform group-hover:-translate-x-1" /> {t.back}
-      </Link>
+      {/* ── GAME HUD: back | step dots | hearts | combo ── */}
+      <div className="flex items-center gap-2 sm:gap-3 mb-5 sm:mb-6">
+        <Link href={`/dashboard/skills/${skill?.id}`}
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-card border border-white/8 hover:border-white/20 transition-colors shrink-0">
+          <Icon kind="chevronLeft" className="w-5 h-5 text-muted" />
+        </Link>
 
-      {/* Header */}
-      <div className="flex items-start gap-3 sm:gap-4 mb-3">
-        <div
-          aria-hidden
-          className="w-14 h-14 sm:w-16 sm:h-16 rounded-3xl flex items-center justify-center text-2xl sm:text-3xl shrink-0 shadow-[0_4px_0_rgba(0,0,0,0.25)]"
-          style={{ backgroundColor: '#1CB0F6' }}
-        >
+        {sections.length > 0 && !isDone && (
+          <div className="flex-1 flex items-center gap-1">
+            {sections.map((_, i) => (
+              <div key={i} className={cn(
+                'h-2 flex-1 rounded-full transition-all duration-400',
+                i < currentStep ? 'bg-[#3CB371]' : i === currentStep ? 'bg-[#1CB0F6]' : 'bg-white/10'
+              )} />
+            ))}
+          </div>
+        )}
+
+        {!isDone && (
+          <div className="flex items-center gap-0.5 shrink-0">
+            {Array.from({ length: MAX_HEARTS }).map((_, i) => (
+              <span key={i} className={cn('text-base leading-none transition-all', i < hearts ? 'text-red-400' : 'text-white/15')}>❤</span>
+            ))}
+          </div>
+        )}
+
+        {combo >= 2 && !isDone && (
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/25 shrink-0" style={{ animation: 'comboPop 0.3s ease' }}>
+            <Icon kind="fire" className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-xs font-extrabold text-amber-400">{combo}x</span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Lesson title — compact ── */}
+      <div className="flex items-center gap-3 mb-5 sm:mb-6">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-[0_3px_0_rgba(0,0,0,0.2)]" style={{ backgroundColor: '#1CB0F6' }}>
           {lesson.emoji}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="text-xs font-bold text-muted">{t.lesson} {lessonIndex}/{totalLessons}</span>
-            {isDone && (
-              <span className="text-xs font-black text-[#3CB371] bg-[#3CB371]/10 border border-[#3CB371]/25 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                <Icon kind="check" className="w-3 h-3" /> {t.completedBefore}
-              </span>
-            )}
-          </div>
-          <h1 className="font-fredoka text-xl sm:text-2xl lg:text-3xl leading-tight">{lesson.title}</h1>
-          <p className="text-muted font-semibold text-sm mt-1 leading-relaxed">{lesson.description}</p>
+          <h1 className="font-fredoka text-lg sm:text-xl leading-tight">{lesson.title}</h1>
+          <span className="text-xs font-bold text-muted">{t.lesson} {lessonIndex}/{totalLessons} · +{lesson.xp_reward} XP</span>
+        </div>
+        {/* Floating XP burst */}
+        <div className="relative shrink-0 w-10 h-10">
+          {xpBurst && (
+            <span key={xpBurst.id} className="absolute bottom-0 left-1/2 -translate-x-1/2 font-extrabold text-sm text-[#1CB0F6] pointer-events-none whitespace-nowrap" style={{ animation: 'xpFloat 1.2s ease-out forwards' }}>
+              +{xpBurst.amount} XP
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Meta badges — kept minimal: XP and time only, no extra colored chips */}
-      <div className="flex items-center gap-3 mb-4 text-xs font-bold text-muted">
-        <span className="flex items-center gap-1"><Icon kind="star" className="w-3.5 h-3.5 text-[#1CB0F6]" /> +{lesson.xp_reward} XP</span>
-        <span className="flex items-center gap-1"><Icon kind="hourglass" className="w-3.5 h-3.5" /> {lesson.duration_mins} min</span>
-      </div>
+      {/* ── AI Coach — slim strip ── */}
+      <Link href={coachUrl} className={cn(CARD, 'flex items-center gap-3 px-4 py-3 mb-5 sm:mb-6 hover:border-white/20 transition-colors group')}>
+        <span className="w-8 h-8 rounded-xl bg-[#1CB0F6]/15 flex items-center justify-center shrink-0">
+          <Icon kind="robot" className="w-4 h-4 text-[#1CB0F6]" />
+        </span>
+        <span className="flex-1 text-xs font-bold text-muted group-hover:text-white transition-colors">
+          {lang === 'ar' ? 'لديك سؤال؟ اسأل مدربك الذكي' : lang === 'fr' ? 'Une question ? Demande au Coach IA' : 'Confused? Ask your AI Coach'}
+        </span>
+        <Icon kind="chevronRight" className="w-3.5 h-3.5 text-muted/50 shrink-0" />
+      </Link>
 
-      {/* Progress bar */}
-      <div className="flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
-        <div className="flex-1 h-3 bg-card2 rounded-full overflow-hidden">
-          <div className="h-full bg-[#1CB0F6] rounded-full transition-all duration-700" style={{ width: `${progressPct}%` }} />
-        </div>
-        <span className="text-xs font-bold text-muted flex-shrink-0">{progressPct}%</span>
-      </div>
-
-      {/* Step progress dots — one dot per section, fills in as you advance.
-          This is the entire "progress bar" now; the old top-of-page percent
-          bar is removed since the dots do that job while also showing where
-          you are, not just how far along. */}
-      {sections.length > 0 && !isDone && (
-        <div className="flex items-center gap-1.5 mb-6 sm:mb-8">
-          {sections.map((_, i) => (
-            <div
-              key={i}
-              className={cn(
-                'h-2 flex-1 rounded-full transition-all duration-300',
-                i < currentStep ? 'bg-[#3CB371]' : i === currentStep ? 'bg-[#1CB0F6]' : 'bg-card2'
-              )}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* AI Coach banner — shown once, above the step card, so it's always
-          reachable without taking up room inside the one-section view */}
-      <div className={cn(CARD, 'p-4 mb-6 sm:mb-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4')}>
-        <div className="flex items-center gap-3">
-          <span className="w-10 h-10 rounded-2xl bg-[#1CB0F6]/15 flex items-center justify-center flex-shrink-0">
-            <Icon kind="robot" className="w-5 h-5 text-[#1CB0F6]" />
-          </span>
-          <div>
-            <p className="font-extrabold text-sm">{lang === 'ar' ? 'لديك سؤال؟ مدربك الذكي هنا!' : lang === 'fr' ? 'Une question ? Ton Coach IA est là !' : 'Confused? Your AI Coach is here!'}</p>
-            <p className="text-muted text-xs font-semibold">{lang === 'ar' ? 'اسأله أي شيء عن هذا الدرس' : lang === 'fr' ? "Demande n'importe quoi sur cette leçon" : 'Ask anything about this lesson'}</p>
-          </div>
-        </div>
-        <Link href={coachUrl} className={cn('flex-shrink-0 px-5 py-2.5 rounded-2xl font-extrabold text-sm text-center flex items-center justify-center gap-1.5 transition-all', PRIMARY_BTN)}>
-          {t.askCoach}
-        </Link>
-      </div>
-
-      {/* ── ONE SECTION AT A TIME (in progress) — or full scroll for review
-          if the lesson is already marked done, since gating/advancing makes
-          no sense once someone is just re-reading something they finished. */}
+      {/* ── ONE SECTION AT A TIME (in progress) — or full scroll for review ── */}
       {sections.length > 0 ? (
         isDone ? (
           <div className="space-y-4 sm:space-y-5 mb-8 sm:mb-10">
@@ -1879,11 +1938,12 @@ export default function LessonViewClient({
           </div>
         ) : (
         <>
-          <div className="mb-6 sm:mb-8">
+          <div className={cn('mb-6 sm:mb-8', shaking && 'card-shake')} key={animKey} style={{ animation: `${slideDir === 'right' ? 'slideInRight' : 'slideInLeft'} 0.28s cubic-bezier(0.22,1,0.36,1) both` }}>
             {renderSection(sections[currentStep], currentStep)}
           </div>
 
           {(() => {
+
             const s = sections[currentStep]
             const isInteractive = s.type in ACTIVITY_LABELS
             const stepReady = !isInteractive || isActivityDone(s, currentStep)
