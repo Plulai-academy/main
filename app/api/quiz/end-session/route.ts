@@ -25,12 +25,17 @@ export async function POST(req: NextRequest) {
   }
 
   // Award coins
-  if (data?.coins) {
-    await supabase.rpc('increment_user_coins', {
-      p_user_id: userId,
-      p_amount:  data.coins,
-    }).catch(console.error)
+// Award coins
+if (data?.coins) {
+  const { error: coinError } = await supabase.rpc('increment_user_coins', {
+    p_user_id: userId,
+    p_amount:  data.coins,
+  })
+
+  if (coinError) {
+    console.error('increment_user_coins:', coinError)
   }
+}
 
   return NextResponse.json({ chest: data })
 }
