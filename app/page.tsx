@@ -285,7 +285,8 @@ function Landing() {
       <div className={`mobile-menu ${mobileMenuOpen ? "open" : ""}`} role="dialog" aria-label="Navigation menu">
         <a href="#tracks"  className="mobile-nav-link" onClick={closeMobileMenu}>📚 Tracks</a>
         <a href="#how"     className="mobile-nav-link" onClick={closeMobileMenu}>🗺️ How it works</a>
-        <a href="#schools" className="mobile-nav-link" onClick={closeMobileMenu} style={{ color: "var(--brand-cyan)" }}>🏫 For Schools</a>
+        <a href="#schools" className="mobile-nav-link" onClick={closeMobileMenu} style={{ color: "var(--brand-cyan)" }}>
+          <img src="/icons/schools.png" alt="" className="h-4 w-4 inline-block" /> For Schools</a>
         <a href="#pricing" className="mobile-nav-link" onClick={closeMobileMenu}>💳 Pricing</a>
         <a href="/shop"    className="mobile-nav-link" onClick={closeMobileMenu} style={{ color: "var(--brand-gold)" }}>🛍️ Shop</a>
 
@@ -321,7 +322,9 @@ function Landing() {
                   !isSchools ? "shelf-blue" : "text-foreground/60 hover:text-foreground"
                 }`}
               >
-                👨‍👩‍👧 For Families
+                <span className="inline-flex items-center gap-2">
+                  <img src="/icons/families.png" alt="" className="h-4 w-4" /> For Families
+                </span>
               </button>
               <button
                 onClick={() => setAudience("schools")}
@@ -329,7 +332,9 @@ function Landing() {
                   isSchools ? "shelf-gold" : "text-foreground/60 hover:text-foreground"
                 }`}
               >
-                🏫 For Schools
+               <span className="inline-flex items-center gap-2">
+                <img src="/icons/schools.png" alt="" className="h-4 w-4" /> For Schools
+              </span>
               </button>
             </div>
           </div>
@@ -659,7 +664,7 @@ function Landing() {
             </div>
             <div className="order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--brand-cyan)]/15 ring-1 ring-[var(--brand-cyan)]/30 text-[var(--brand-cyan)] text-xs font-extrabold uppercase tracking-widest mb-6">
-                🏫 For Schools & Institutions
+                <img src="/icons/schools.png" alt="" className="h-4 w-4 inline-block" /> For Schools & Institutions
               </div>
               <h2 className="font-display text-4xl lg:text-5xl font-bold mb-6 leading-[1.1]">
                 Empower your whole classroom with AI.
