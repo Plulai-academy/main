@@ -423,7 +423,7 @@ function Landing() {
         </p>
         <div className="flex whitespace-nowrap animate-marquee items-center">
           {[...Array(2)].map((_, round) =>
-            ["p1","p2","p3","p4","p5","p6","p7","p8","p9"].map((p, i) => (
+            ["p1","p2","p3","p4","p5","p6","p7","p8","p9","p10","p11"].map((p, i) => (
               <div key={`${round}-${i}`} className="mx-10 flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity">
                 <img src={`/partners/${p}.png`} alt={`Partner ${i + 1}`} className="h-10 w-auto object-contain" />
               </div>
