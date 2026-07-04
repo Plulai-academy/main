@@ -793,7 +793,9 @@ function Landing() {
                 <li>✓ Curriculum alignment</li>
                 <li>✓ Dedicated success manager</li>
               </ul>
-              <button className="shelf-gold py-3 rounded-xl font-bold">Contact sales →</button>
+              <a href="mailto:hello@plulai.com">
+                <button className="shelf-gold py-3 rounded-xl font-bold">Contact sales →</button>
+              </a>
             </div>
           </div>
         </div>
