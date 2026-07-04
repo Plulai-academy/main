@@ -183,7 +183,7 @@ const inlineStyles = `
   }
 
   .animate-bob { animation: bob 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite; }
-  .animate-marquee { animation: marquee 30s linear infinite; }
+  .animate-marquee { animation: marquee 42s linear infinite; }
   .animate-glow { animation: glow-pulse 2s ease-in-out infinite; }
   .mobile-menu.open { animation: slideDown .2s ease forwards; }
 `;
@@ -256,7 +256,7 @@ function Landing() {
             <div className="hidden lg:flex items-center gap-6 text-sm font-bold text-foreground/70">
               <a href="#tracks" className="hover:text-foreground transition-colors">Tracks</a>
               <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
-              <a href="/schools" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-cyan)" }}>For Schools</a>
+              <a href="#schools" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-cyan)" }}>For Schools</a>
               <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
               <a href="/shop" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-gold)" }}>🛍️ Shop</a>
             </div>
@@ -417,19 +417,32 @@ function Landing() {
       </section>
 
       {/* TRUST MARQUEE */}
-      <section className="py-10 bg-surface/40 border-y border-border overflow-hidden">
-        <p className="text-center text-xs uppercase tracking-[0.25em] text-foreground/40 font-bold mb-6">
-          Trusted by leading institutions across the region
-        </p>
-        <div className="flex whitespace-nowrap animate-marquee items-center">
-          {[...Array(2)].map((_, round) =>
-            ["p1","p2","p3","p4","p5","p6","p7","p8","p9","p10","p11"].map((p, i) => (
-              <div key={`${round}-${i}`} className="mx-10 flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity">
-                <img src={`/partners/${p}.png`} alt={`Partner ${i + 1}`} className="h-10 w-auto object-contain" />
-              </div>
-            ))
-          )}
+      <section className="py-16 bg-surface/40 border-y border-border overflow-hidden">
+        <div className="max-w-3xl mx-auto text-center mb-10 px-6">
+          <p className="text-[var(--brand-cyan)] font-extrabold uppercase tracking-[0.2em] text-xs mb-2">Real partners, real settings</p>
+          <h3 className="font-display text-2xl lg:text-3xl font-bold">
+            From classrooms to community centers — Plulai shows up where kids already are
+          </h3>
         </div>
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 z-10" style={{ background: "linear-gradient(90deg, var(--background), transparent)" }} />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 z-10" style={{ background: "linear-gradient(270deg, var(--background), transparent)" }} />
+          <div className="flex whitespace-nowrap animate-marquee items-center [&:hover]:[animation-play-state:paused]">
+            {[...Array(2)].map((_, round) =>
+              ["p1","p2","p3","p4","p5","p6","p7","p8","p9","p10","p11"].map((p, i) => (
+                <div
+                  key={`${round}-${i}`}
+                  className="mx-4 flex-shrink-0 bg-white rounded-2xl px-8 py-5 shadow-lg ring-1 ring-black/5 hover:-translate-y-1 transition-transform"
+                >
+                  <img src={`/partners/${p}.png`} alt={`Partner ${i + 1}`} className="h-14 sm:h-16 w-auto object-contain" />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        <p className="text-center text-xs uppercase tracking-[0.2em] text-foreground/40 font-bold mt-10">
+          Schools · Scouts programs · Retail & malls · Training centers
+        </p>
       </section>
 
       {/* TRACKS */}
