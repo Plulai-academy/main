@@ -189,9 +189,9 @@ const inlineStyles = `
 `;
 
 const tracks = [
-  { icon: "💻", title: "Coding", desc: "From block coding to Python. Build real apps and games while learning logic.", accent: "var(--brand-blue)", pct: 33 },
-  { icon: "🧠", title: "AI & Future Tech", desc: "Understand how AI works. Prompt engineering and ML basics for curious minds.", accent: "var(--brand-cyan)", pct: 50 },
-  { icon: "💡", title: "Entrepreneurship", desc: "Launch your first digital business. Marketing, budget, and soft skills.", accent: "var(--brand-gold)", pct: 25 },
+  { icon: "💻", title: "Coding", desc: "From block coding to Python. Build real apps and games while learning logic.", accent: "var(--brand-blue)", ages: "Ages 6–17", lessons: 180 },
+  { icon: "🧠", title: "AI & Future Tech", desc: "Understand how AI works. Prompt engineering and ML basics for curious minds.", accent: "var(--brand-cyan)", ages: "Ages 10–18", lessons: 160 },
+  { icon: "💡", title: "Entrepreneurship", desc: "Launch your first digital business. Marketing, budget, and soft skills.", accent: "var(--brand-gold)", ages: "Ages 12–18", lessons: 140 },
 ];
 
 const faqs = [
@@ -460,27 +460,40 @@ function Landing() {
             {tracks.map((t) => (
               <div
                 key={t.title}
-                className="group p-8 rounded-3xl bg-surface ring-1 ring-border hover:-translate-y-1 transition-transform"
+                className="group p-8 rounded-3xl bg-surface ring-1 ring-border hover:-translate-y-1 transition-transform flex flex-col"
                 style={{ boxShadow: `0 10px 30px -15px ${t.accent}30` }}
               >
-                <div
-                  className="size-16 rounded-2xl grid place-items-center mb-6 text-3xl group-hover:scale-110 transition-transform"
-                  style={{ background: `${t.accent}25`, boxShadow: `inset 0 0 0 1px ${t.accent}40` }}
-                >
-                  {t.icon}
+                <div className="flex items-start justify-between mb-6">
+                  <div
+                    className="size-16 rounded-2xl grid place-items-center text-3xl group-hover:scale-110 transition-transform"
+                    style={{ background: `${t.accent}25`, boxShadow: `inset 0 0 0 1px ${t.accent}40` }}
+                  >
+                    {t.icon}
+                  </div>
+                  <span
+                    className="text-[11px] font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-full"
+                    style={{ background: `${t.accent}20`, color: t.accent }}
+                  >
+                    {t.ages}
+                  </span>
                 </div>
                 <h3 className="font-display text-2xl font-bold mb-3">{t.title}</h3>
-                <p className="text-foreground/60 mb-6 leading-relaxed">{t.desc}</p>
-                <div className="h-2 rounded-full bg-background overflow-hidden mb-2">
-                  <div className="h-full rounded-full" style={{ width: `${t.pct}%`, background: t.accent, boxShadow: `0 0 12px ${t.accent}` }} />
-                </div>
-                <div className="flex justify-between text-[11px] font-bold uppercase tracking-wider" style={{ color: t.accent }}>
-                  <span>Module 1 · {t.pct}%</span>
-                  <span>→ Explore</span>
-                </div>
+                <p className="text-foreground/60 mb-6 leading-relaxed flex-1">{t.desc}</p>
+                <a
+                  href="https://www.plulai.com/auth/signup"
+                  className="flex items-center justify-between pt-4 border-t border-border text-sm font-bold uppercase tracking-wider hover:opacity-80 transition-opacity"
+                  style={{ color: t.accent }}
+                >
+                  <span className="text-foreground/50 normal-case font-semibold tracking-normal">{t.lessons}+ lessons</span>
+                  <span>Try this track →</span>
+                </a>
               </div>
             ))}
           </div>
+
+          <p className="text-center text-foreground/40 text-sm mt-8">
+            Every learner starts on a free lesson before choosing where to go deeper.
+          </p>
         </div>
       </section>
 
