@@ -265,7 +265,7 @@ function Landing() {
           <div className="flex items-center gap-3">
             {/* Desktop auth */}
             <a href="/auth/login" className="hidden sm:block text-sm font-bold px-4 py-2 hover:text-[var(--brand-blue)] transition-colors">Log in</a>
-            <a href="https://www.plulai.com/auth/signup" className="shelf-blue text-sm font-bold py-2.5 px-5 rounded-xl">Start free →</a>
+            <a href="https://www.plulai.com/auth/signup" className="shelf-blue text-sm font-bold py-2.5 px-5 rounded-xl">Try a free lesson →</a>
             {/* Hamburger — mobile only */}
             <button
               className={`lg:hidden hamburger ${mobileMenuOpen ? "open" : ""}`}
@@ -298,7 +298,7 @@ function Landing() {
           onClick={closeMobileMenu}
           style={{ textDecoration: "none" }}
         >
-          Start free trial →
+          Try a free lesson →
         </a>
       </div>
 
@@ -338,7 +338,7 @@ function Landing() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--brand-cyan)]/10 ring-1 ring-[var(--brand-cyan)]/30 text-[var(--brand-cyan)] text-xs font-bold uppercase tracking-widest mb-6">
                 <span className="size-2 rounded-full bg-[var(--brand-cyan)] animate-glow" />
-                {isSchools ? "Trusted by GCC Schools" : "200+ Learners · GCC"}
+                {isSchools ? "Trusted by GCC Schools" : "150+ Learners · GCC"}
               </div>
 
               {isSchools ? (
@@ -356,7 +356,7 @@ function Landing() {
               <p className="text-lg text-foreground/70 mb-8 max-w-xl leading-relaxed">
                 {isSchools
                   ? "Deploy a complete coding, AI & entrepreneurship curriculum to 50–5,000 students. Teacher dashboard, Arabic + English, aligned with national standards."
-                  : "A personal AI coach that adapts to them. 500+ lessons in Arabic & English. Just 15 minutes a day."}
+                  : "15 minutes a day, in real Arabic or English — not a translated app. A personal AI coach kids actually want to open after school."}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -365,9 +365,14 @@ function Landing() {
                     Request school demo →
                   </a>
                 ) : (
-                  <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-9 rounded-2xl text-lg">
-                    Start free trial →
-                  </a>
+                  <>
+                    <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-9 rounded-2xl text-lg">
+                      Try a free lesson →
+                    </a>
+                    <a href="mailto:hello@plulai.com" className="shelf-dark font-bold py-4 px-9 rounded-2xl text-lg">
+                      Book a live intro call
+                    </a>
+                  </>
                 )}
               </div>
 
@@ -378,7 +383,7 @@ function Landing() {
                   <div className="size-8 rounded-full bg-[var(--brand-cyan)] ring-2 ring-background" />
                 </div>
                 <span>
-                  {isSchools ? "Already powering 9+ GCC schools" : "Trusted by 200+ families across the GCC"}
+                  {isSchools ? "Already powering 9+ GCC schools" : "Trusted by 150+ families across the GCC"}
                 </span>
               </div>
             </div>
@@ -668,7 +673,7 @@ function Landing() {
       <section className="py-20 px-6 border-y border-border" style={{ background: "var(--surface)" }}>
         <div className="max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {[
-            { n: "200+",   l: "Active learners",    c: "var(--brand-blue)" },
+            { n: "150+",   l: "Active learners",    c: "var(--brand-blue)" },
             { n: "500+",   l: "Bite-sized lessons",  c: "var(--brand-cyan)" },
             { n: "9+",     l: "Partner schools",     c: "var(--brand-gold)" },
             { n: "9.2/10", l: "User satisfaction",   c: "var(--brand-blue)" },
@@ -726,13 +731,13 @@ function Landing() {
             <div className="p-8 rounded-3xl bg-surface ring-1 ring-border flex flex-col">
               <div className="text-foreground/50 font-extrabold uppercase tracking-widest text-xs mb-2">Explorer</div>
               <div className="font-display text-4xl font-bold mb-1">Free</div>
-              <p className="text-sm text-foreground/60 mb-6">14-day trial, no credit card</p>
+              <p className="text-sm text-foreground/60 mb-6">No credit card. No time limit.</p>
               <ul className="space-y-3 text-sm text-foreground/70 mb-8 flex-1">
                 <li>✓ First 5 lessons</li>
                 <li>✓ Coding track basics</li>
-                <li>✓ English only</li>
+                <li>✓ Arabic + English, from lesson one</li>
               </ul>
-              <a href="https://www.plulai.com/auth/signup" className="shelf-dark py-3 rounded-xl font-bold text-center">Get started</a>
+              <a href="https://www.plulai.com/auth/signup" className="shelf-dark py-3 rounded-xl font-bold text-center">Try a free lesson</a>
             </div>
             <div className="p-8 rounded-3xl relative flex flex-col" style={{ background: "var(--brand-blue)", boxShadow: "0 6px 0 var(--brand-deep), 0 20px 60px -20px var(--brand-blue)" }}>
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--brand-gold)] text-[#1A1A2E] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Most popular</div>
@@ -741,15 +746,15 @@ function Landing() {
                 <span className="font-display text-4xl font-bold text-white">$70</span>
                 <span className="text-white/70 font-medium">/mo</span>
               </div>
-              <p className="text-sm text-white/80 mb-6">For families</p>
+              <p className="text-sm text-white/80 mb-6">14 days free, then $70/mo</p>
               <ul className="space-y-3 text-sm text-white mb-8 flex-1">
                 <li>✓ All 3 tracks (Code · AI · Biz)</li>
                 <li>✓ Personal AI coach</li>
                 <li>✓ Arabic + English</li>
                 <li>✓ Weekly parent summary</li>
-                <li>✓ 14-day free trial</li>
+                <li>✓ Cancel anytime during trial</li>
               </ul>
-              <a href="https://www.plulai.com/auth/signup" className="shelf-white py-3 rounded-xl font-bold text-center">Start free trial</a>
+              <a href="https://www.plulai.com/auth/signup" className="shelf-white py-3 rounded-xl font-bold text-center">Try Prodigy free for 14 days</a>
             </div>
             <div className="p-8 rounded-3xl bg-surface ring-1 ring-[var(--brand-cyan)]/30 flex flex-col">
               <div className="text-[var(--brand-cyan)] font-extrabold uppercase tracking-widest text-xs mb-2">Institution</div>
@@ -800,7 +805,8 @@ function Landing() {
             Join thousands of families and schools building the GCC&apos;s next generation of creators.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-10 rounded-2xl text-lg text-center">Start free trial →</a>
+            <a href="https://www.plulai.com/auth/signup" className="shelf-blue font-bold py-4 px-10 rounded-2xl text-lg text-center">Try a free lesson →</a>
+            <a href="mailto:hello@plulai.com" className="shelf-dark font-bold py-4 px-10 rounded-2xl text-lg text-center">Book a live intro call</a>
             <a href="#schools" className="shelf-gold font-bold py-4 px-10 rounded-2xl text-lg text-center">For schools</a>
           </div>
         </div>
