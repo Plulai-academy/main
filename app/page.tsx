@@ -256,7 +256,7 @@ function Landing() {
             <div className="hidden lg:flex items-center gap-6 text-sm font-bold text-foreground/70">
               <a href="#tracks" className="hover:text-foreground transition-colors">Tracks</a>
               <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
-              <a href="#schools" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-cyan)" }}>For Schools</a>
+              <a href="/schools" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-cyan)" }}>For Schools</a>
               <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
               <a href="/shop" className="hover:text-foreground transition-colors" style={{ color: "var(--brand-gold)" }}>🛍️ Shop</a>
             </div>
@@ -687,7 +687,7 @@ function Landing() {
                 ))}
               </ul>
               <div className="flex flex-col sm:flex-row gap-4">
-                <a href="mailto:hello@plulai.com" className="shelf-gold font-bold py-4 px-8 rounded-2xl text-lg text-center">Request school demo →</a>
+                <a href="/schools" className="shelf-gold font-bold py-4 px-8 rounded-2xl text-lg text-center">Explore more  →</a>
                 <a href="mailto:hello@plulai.com" className="shelf-dark font-bold py-4 px-8 rounded-2xl text-lg text-center">Download brochure</a>
               </div>
             </div>
