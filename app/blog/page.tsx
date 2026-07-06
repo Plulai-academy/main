@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { SiteStyleTag, SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { blogPosts, formatDate } from "@/lib/blog-posts";
 
-const categories = ["All", "Coding", "AI & Future Tech", "Entrepreneurship", "Parenting", "Schools"] as const;
+const categories = ["All", "Case Study", "Coding", "AI & Future Tech", "Entrepreneurship", "Parenting", "Schools"] as const;
 
 function PostCard({ post, featured = false }: { post: (typeof blogPosts)[number]; featured?: boolean }) {
   return (
