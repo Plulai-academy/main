@@ -1,65 +1,307 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* ============================================================
+   PLULAI — GLOBAL DESIGN SYSTEM (Gulf Circuit)
+   ============================================================
+   One brand, two temperatures:
+   - LUXURY  → marketing site, investor decks, school/teacher/admin dashboards
+   - ENERGETIC → the B2C kid-facing app (same hues, brighter + lighter)
 
-:root {
-  --bg:     #0d0d1a;
-  --card:   #16162a;
-  --card2:  #1e1e38;
+   Import fonts in your HTML <head> for best performance instead of @import:
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  /* ---------- RAW PALETTE (do not use directly in components — use semantic tokens below) ---------- */
+  --raw-depth:      #0D2B32;  /* deep sea navy — the brand's anchor dark */
+  --raw-ink-deep:   #081D22;  /* darkest variant — reserve for the single deepest moment on a page */
+  --raw-reef:       #1FB8A6;  /* luxury-mode teal */
+  --raw-reef-bright:#17D9C0;  /* energetic-mode teal */
+  --raw-gold:       #D4A24C;  /* luxury-mode gold — pearls, premium accents */
+  --raw-sungold:    #FFB930;  /* energetic-mode gold — streaks, XP, rewards */
+  --raw-coral:      #FF6B57;  /* primary CTA color in BOTH modes — never used for anything else */
+  --raw-pearlwhite: #F6F3EA;  /* luxury-mode light background */
+  --raw-lagoon:     #EAF7F4;  /* energetic-mode light background */
+  --raw-lagoonfill: #D9F1EC;  /* energetic-mode secondary surface / track fills */
+  --raw-ink:        #29394A;  /* body text on light surfaces */
+
+  /* ---------- SEMANTIC TOKENS — LUXURY MODE ---------- */
+  --luxury-bg:          var(--raw-depth);
+  --luxury-bg-deepest:  var(--raw-ink-deep);
+  --luxury-surface:     #123A42;   /* cards/panels sitting on luxury-bg */
+  --luxury-accent:      var(--raw-reef);
+  --luxury-gold:        var(--raw-gold);
+  --luxury-text:        var(--raw-pearlwhite);
+  --luxury-text-muted:  #8FA8A3;
+  --luxury-text-dim:    #6E9691;
+  --luxury-border:      rgba(255,255,255,0.08);
+
+  /* ---------- SEMANTIC TOKENS — ENERGETIC MODE (B2C app) ---------- */
+  --energetic-bg:         var(--raw-lagoon);
+  --energetic-surface:    #FFFFFF;
+  --energetic-surface-alt:var(--raw-lagoonfill);
+  --energetic-accent:     var(--raw-reef-bright);
+  --energetic-reward:     var(--raw-sungold);
+  --energetic-text:       var(--raw-depth);
+  --energetic-text-muted: #4E7169;
+  --energetic-text-dim:   #7A9691;
+
+  /* ---------- SHARED, MODE-INDEPENDENT ---------- */
+  --color-cta:      var(--raw-coral);   /* the ONE call-to-action color everywhere */
+  --color-error:    #E15B71;            /* form/validation errors only — do not reuse elsewhere */
+
+  /* ---------- TYPOGRAPHY ---------- */
+  --font-display: 'Manrope', sans-serif;      /* headings, wordmark, buttons */
+  --font-body:    'Inter', sans-serif;        /* paragraph text, UI labels */
+  --font-mono:    'JetBrains Mono', monospace;/* eyebrows, code, data figures, the "/" glyph mark */
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-bold:    700;
+  --fw-black:   800;
+
+  /* ---------- RADIUS SCALE ---------- */
+  --radius-sm:  8px;   /* icon tiles, small chips */
+  --radius-md:  12px;  /* buttons, badges */
+  --radius-lg:  16px;  /* cards */
+  --radius-xl:  20px;  /* large panels, phone screens */
+  --radius-pill:999px; /* pills, tags */
+
+  /* ---------- SPACING SCALE ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* ---------- SHADOWS (flat brand — use sparingly, never as a crutch for depth) ---------- */
+  --shadow-sm: 0 4px 20px rgba(13,43,50,0.05);
+  --shadow-md: 0 10px 30px rgba(13,43,50,0.15);
+  --shadow-lg: 0 24px 50px rgba(13,43,50,0.25);
 }
 
-html { scroll-behavior: smooth; }
+/* ============================================================
+   RESET
+   ============================================================ */
+*, *::before, *::after{ box-sizing: border-box; margin:0; padding:0; }
+html{ -webkit-text-size-adjust:100%; }
+body{
+  font-family: var(--font-body);
+  color: var(--raw-ink);
+  background: var(--energetic-bg);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+a{ color:inherit; text-decoration:none; }
+button{ font-family:inherit; cursor:pointer; }
+img, svg{ display:block; max-width:100%; }
 
-body {
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container{
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 var(--space-6);
+}
+@media (max-width:640px){
+  .container{ padding:0 var(--space-4); }
+}
+
+/* ============================================================
+   MODE WRAPPERS
+   Wrap any section in .mode-luxury or .mode-energetic to switch
+   its local token context. Component classes below read from
+   these local variables, so nesting "just works."
+   ============================================================ */
+.mode-luxury{
+  --bg: var(--luxury-bg);
+  --surface: var(--luxury-surface);
+  --accent: var(--luxury-accent);
+  --reward: var(--luxury-gold);
+  --text: var(--luxury-text);
+  --text-muted: var(--luxury-text-muted);
   background: var(--bg);
-  min-height: 100vh;
-  overflow-x: hidden;
+  color: var(--text);
+}
+.mode-luxury.deepest{ --bg: var(--luxury-bg-deepest); background: var(--bg); }
+
+.mode-energetic{
+  --bg: var(--energetic-bg);
+  --surface: var(--energetic-surface);
+  --accent: var(--energetic-accent);
+  --reward: var(--energetic-reward);
+  --text: var(--energetic-text);
+  --text-muted: var(--energetic-text-muted);
+  background: var(--bg);
+  color: var(--text);
 }
 
-/* Starfield background */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
-    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.35) 0%, transparent 100%),
-    radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.25) 0%, transparent 100%),
-    radial-gradient(1px 1px at 60% 10%, rgba(255,255,255,0.40) 0%, transparent 100%),
-    radial-gradient(1px 1px at 80% 40%, rgba(255,255,255,0.25) 0%, transparent 100%),
-    radial-gradient(1px 1px at 50% 80%, rgba(255,255,255,0.30) 0%, transparent 100%),
-    radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.20) 0%, transparent 100%),
-    radial-gradient(2px 2px at 20% 90%, rgba(255,255,255,0.20) 0%, transparent 100%),
-    radial-gradient(2px 2px at 70% 30%, rgba(255,255,255,0.15) 0%, transparent 100%),
-    radial-gradient(1px 1px at 45% 50%, rgba(255,255,255,0.20) 0%, transparent 100%),
-    radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.30) 0%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1, h2, h3, h4, .font-display{
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  color: var(--raw-depth);
+  line-height:1.15;
+}
+h1{ font-size:44px; }
+h2{ font-size:30px; }
+h3{ font-size:22px; }
+h4{ font-size:16px; }
+
+.eyebrow{
+  font-family: var(--font-mono);
+  font-size:11px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color: var(--luxury-gold);
 }
 
-.font-fredoka { font-family: 'Fredoka One', cursive; }
-.font-nunito  { font-family: 'Nunito', sans-serif;  }
+.font-mono{ font-family: var(--font-mono); }
 
-/* Scrollbar */
-::-webkit-scrollbar       { width: 6px; }
-::-webkit-scrollbar-track { background: var(--card); }
-::-webkit-scrollbar-thumb { background: #333366; border-radius: 99px; }
+.text-muted{ color: var(--energetic-text-dim); }
+.mode-luxury .text-muted{ color: var(--luxury-text-dim); }
 
-/* XP bar shimmer */
-.xp-bar-fill {
-  background: linear-gradient(90deg, #4d96ff, #c77dff, #4d96ff);
-  background-size: 200% 100%;
-  animation: shimmer 2s linear infinite;
+/* ============================================================
+   THE BRAND MARK
+   The "/" — always Manrope 800, gold-on-depth by default.
+   Use .brand-mark--reverse for depth-on-gold (icon contexts).
+   ============================================================ */
+.brand-mark{
+  width:30px; height:30px;
+  border-radius: var(--radius-sm);
+  background: var(--raw-depth);
+  display:flex; align-items:center; justify-content:center;
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  font-size:17px;
+  color: var(--raw-gold);
+}
+.brand-mark--sm{ width:20px; height:20px; font-size:12px; border-radius:6px; }
+.brand-mark--reverse{ background: var(--raw-gold); color: var(--raw-depth); }
+
+.wordmark{
+  display:flex; align-items:center; gap:2px;
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+}
+.wordmark .slash{ color: var(--raw-gold); }
+
+/* ============================================================
+   BUTTONS
+   Coral is the ONLY primary CTA color, in both modes.
+   ============================================================ */
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size:14px;
+  padding:14px 24px;
+  border-radius: var(--radius-md);
+  border:none;
+  transition: transform 0.15s ease;
+}
+.btn:active{ transform: scale(0.98); }
+.btn-cta{ background: var(--color-cta); color:#fff; }
+.btn-dark{ background: var(--raw-depth); color: var(--raw-pearlwhite); }
+.btn-outline{ background:transparent; border:1.5px solid rgba(13,43,50,0.3); color: var(--raw-depth); }
+.btn-outline--on-dark{ color:#fff; border-color:rgba(255,255,255,0.3); }
+.btn-block{ width:100%; justify-content:center; }
+
+/* ============================================================
+   CARDS & SURFACES
+   ============================================================ */
+.card{
+  background: var(--energetic-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+.mode-luxury .card{
+  background: var(--luxury-surface);
+  box-shadow:none;
+  border:1px solid var(--luxury-border);
+}
+.panel-elevated{ box-shadow: var(--shadow-lg); }
+
+/* ============================================================
+   PILLS, TAGS, CHIPS
+   ============================================================ */
+.pill{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:12px; font-weight:600;
+  padding:7px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--energetic-surface-alt);
+  color: var(--energetic-text);
+}
+.pill--active{ background: var(--raw-depth); color: var(--raw-pearlwhite); }
+
+.tag-mono{
+  font-family: var(--font-mono);
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  padding:4px 10px;
+  border-radius: var(--radius-pill);
+}
+.tag-mono--gold{ background:rgba(212,162,76,0.14); color: var(--raw-gold); }
+.tag-mono--reef{ background:rgba(31,184,166,0.14); color: var(--raw-reef); }
+.tag-mono--warn{ background:rgba(212,162,76,0.15); color: var(--raw-gold); }
+
+/* ============================================================
+   PEARLS — streaks, rewards, path nodes
+   Contents these represent must always be guaranteed, never
+   randomized. This is a design rule as much as a visual one —
+   see plulai_lesson_flow_chests.md.
+   ============================================================ */
+.pearl-dot{
+  border-radius:50%;
+  background: var(--raw-sungold);
+  display:inline-block;
+}
+.pearl-dot--xs{ width:8px; height:8px; }
+.pearl-dot--sm{ width:12px; height:12px; }
+.pearl-dot--md{ width:20px; height:20px; }
+.pearl-dot--lg{ width:44px; height:44px; }
+.pearl-dot--empty{
+  background: var(--raw-lagoonfill);
+  border:1.5px solid #C7E7E1;
 }
 
-/* Skill node connector line */
-.skill-connector {
-  width: 2px;
-  background: linear-gradient(to bottom, rgba(77,150,255,0.4), rgba(77,150,255,0.1));
+/* Path node states, used for the learning-path / pearl-string visual */
+.path-node{
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
 }
+.path-node--done{ background: var(--raw-reef-bright); }
+.path-node--current{ background: var(--raw-sungold); box-shadow:0 0 0 4px rgba(255,185,48,0.22); }
+.path-node--locked{ background: var(--raw-lagoonfill); }
+.mode-luxury .path-node--locked{ background:#1E4650; }
 
-@layer utilities {
-  .glass {
-    background: rgba(22, 22, 42, 0.8);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.07);
-  }
-}
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+.flex{ display:flex; }
+.flex-col{ display:flex; flex-direction:column; }
+.items-center{ align-items:center; }
+.justify-between{ justify-content:space-between; }
+.gap-1{ gap: var(--space-1); } .gap-2{ gap: var(--space-2); }
+.gap-3{ gap: var(--space-3); } .gap-4{ gap: var(--space-4); }
+.text-center{ text-align:center; }
+.rounded-full{ border-radius: var(--radius-pill); }
+
+/* ============================================================
+   DO NOT
+   - Do not introduce gradients — every fill in this system is flat.
+   - Do not use --color-cta (coral) for anything but a primary action.
+   - Do not use raw hex values in components — always go through a
+     semantic token so a future palette change only touches this file.
+   ============================================================ */
