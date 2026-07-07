@@ -1,10 +1,4 @@
-// File: page.tsx
-// Placement: app/dashboard/page.tsx
-//
-// No branding changes in this file — it's pure server-side data fetching
-// (Supabase queries + redirects), nothing here touches color, type, or
-// the mascot. Passed through unchanged from what you had.
-
+// app/dashboard/page.tsx — Server component, queries Supabase directly
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardClient from '@/components/dashboard/DashboardClient'
