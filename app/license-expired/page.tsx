@@ -14,7 +14,7 @@ export default function LicenseExpiredPage() {
       }}
     >
       <div style={{ maxWidth: 420 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 12, fontWeight: 600 }}>Your school's license has expired</h1>
+        <h1 style={{ fontSize: 24, marginBottom: 12, fontWeight: 600 }}>Your school&apos;s license has expired</h1>
         <p style={{ color: '#8FAEAC', lineHeight: 1.6 }}>
           Access to the school admin dashboard is paused until your license is renewed. Contact your Plulai account
           manager to reactivate it.

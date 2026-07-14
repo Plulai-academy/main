@@ -127,7 +127,7 @@ export default function SchoolAdminOverviewPage() {
     return (
       <>
         <PageHeader title="Overview" />
-        <Panel style={{ padding: 32 }}>Fetching your school's records…</Panel>
+        <Panel style={{ padding: 32 }}>Fetching your school&apos;s records…</Panel>
       </>
     );
   }
@@ -265,7 +265,7 @@ export default function SchoolAdminOverviewPage() {
           <div style={{ paddingTop: 12 }}>
             {atRisk && atRisk.length === 0 ? (
               <EmptyState>
-                <strong>Everyone's active</strong>
+                <strong>Everyone&apos;s active</strong>
                 No students inactive for 14+ days.
               </EmptyState>
             ) : (

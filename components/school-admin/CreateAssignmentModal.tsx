@@ -95,7 +95,7 @@ export function CreateAssignmentModal({ classId, trackId, assignedBy, onClose, o
         </FormField>
 
         {!trackId && sourceType !== 'custom' && (
-          <HintText>This class has no track set — assign a track to it first, or pick "Custom assignment."</HintText>
+          <HintText>This class has no track set — assign a track to it first, or pick &quot;Custom assignment.&quot;</HintText>
         )}
 
         {sourceType === 'lesson' && trackId && (
