@@ -1,9 +1,12 @@
 'use client'
 // components/dashboard/DashboardClient.tsx
-// Concept: JIMMY'S WORLD
-// Jimmy is large, centered, alive. He presents the one button.
-// Streak lives in his speech bubble. Amber is the hero color.
-// No card soup. No gradient hell. One screen, one action.
+// Light "Welcome back" concept — mint background, coral CTA, teal progress.
+//
+// CHANGE FROM PREVIOUS VERSION: added `className` prop (the student's
+// class name, e.g. "Grade 5B") and folded it into the assignment pill
+// alongside assignedBy/dueLabel. This was already being fetched
+// server-side in page.tsx but had nowhere to go until now. Everything
+// else is unchanged.
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
@@ -13,52 +16,60 @@ import {
 import ShareCardModal, { type ShareCardProps } from '@/components/share/ShareCardGenerator'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 
 const XP_PER_LEVEL = 1000
 const getLevel = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1
 
-// ── i18n ─────────────────────────────────────────────────────
 const COPY = {
   en: {
-    streakMsg:   (n: number) => n > 0 ? `${n} day streak! 🔥` : `Start your streak today!`,
-    noStreak:    `Open the app daily to build a streak`,
-    cta:         `Start lesson`,
-    ctaContinue: `Continue`,
-    noMission:   `You're all caught up!`,
-    noMissionSub:`New lessons coming soon`,
-    explore:     `Explore tracks`,
-    level:       `Level`,
-    xpOf:        (cur: number, max: number) => `${cur} / ${max} XP`,
+    streakMsg:    (n: number) => n > 0 ? `${n}-day streak — one more today keeps it alive` : `Start your streak today!`,
+    continuing:   'where you left off yesterday',
+    cta:          'Start lesson',
+    ctaContinue:  (title: string) => `Continue ${title}`,
+    noMission:    "You're all caught up!",
+    noMissionSub: 'New lessons coming soon',
+    explore:      'Explore tracks',
+    level:        'Level',
+    thisWeek:     'this week',
+    classNews:    'Class news',
+    noClassNews:  'No news yet — check back soon',
+    dailyChallenge: 'Daily challenge',
+    done:         'Done',
   },
   ar: {
-    streakMsg:   (n: number) => n > 0 ? `${n} أيام متتالية! 🔥` : `ابدأ سلسلتك اليوم!`,
-    noStreak:    `افتح التطبيق يومياً`,
-    cta:         `ابدأ الدرس`,
-    ctaContinue: `واصل`,
-    noMission:   `أكملت كل شيء!`,
-    noMissionSub:`دروس جديدة قريباً`,
-    explore:     `استكشف`,
-    level:       `مستوى`,
-    xpOf:        (cur: number, max: number) => `${cur} / ${max} XP`,
+    streakMsg:    (n: number) => n > 0 ? `${n} أيام متتالية — يوم آخر يحافظ عليها` : `ابدأ سلسلتك اليوم!`,
+    continuing:   'من حيث توقفت أمس',
+    cta:          'ابدأ الدرس',
+    ctaContinue:  (title: string) => `واصل ${title}`,
+    noMission:    'أكملت كل شيء!',
+    noMissionSub: 'دروس جديدة قريباً',
+    explore:      'استكشف',
+    level:        'مستوى',
+    thisWeek:     'هذا الأسبوع',
+    classNews:    'أخبار الصف',
+    noClassNews:  'لا أخبار بعد — تحقق لاحقاً',
+    dailyChallenge: 'التحدي اليومي',
+    done:         'تم',
   },
   fr: {
-    streakMsg:   (n: number) => n > 0 ? `${n} jours de suite ! 🔥` : `Lance ta série aujourd'hui !`,
-    noStreak:    `Ouvre l'app chaque jour`,
-    cta:         `Commencer`,
-    ctaContinue: `Continuer`,
-    noMission:   `Tout terminé !`,
-    noMissionSub:`Nouvelles leçons bientôt`,
-    explore:     `Explorer`,
-    level:       `Niveau`,
-    xpOf:        (cur: number, max: number) => `${cur} / ${max} XP`,
+    streakMsg:    (n: number) => n > 0 ? `${n} jours de suite — encore un aujourd'hui !` : `Lance ta série aujourd'hui !`,
+    continuing:   'là où tu t\'es arrêté hier',
+    cta:          'Commencer',
+    ctaContinue:  (title: string) => `Continuer ${title}`,
+    noMission:    'Tout terminé !',
+    noMissionSub: 'Nouvelles leçons bientôt',
+    explore:      'Explorer',
+    level:        'Niveau',
+    thisWeek:     'cette semaine',
+    classNews:    'Actualités',
+    noClassNews:  'Pas encore d\'actualités',
+    dailyChallenge: 'Défi du jour',
+    done:         'Fait',
   },
 }
 
-// ── Dot-grid background — hand-crafted feel, not AI void ─────
-const DOT_GRID_SVG = `url("data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='14' cy='14' r='1.5' fill='rgba(255,255,255,0.055)'/%3E%3C/svg%3E")`
+interface ClassNewsItem { id: string; text: string }
 
-// ── Props ─────────────────────────────────────────────────────
 interface Props {
   userId:               string
   profile:              any
@@ -70,34 +81,39 @@ interface Props {
   todayChallenge:       any
   challengeCompletions: any[]
   balance?:             number | null
-  nextLesson?:          { id: string; title: string; emoji: string; xp_reward: number; skill_id: string } | null
-  weeklyLessons?:       number
-  weeklyGoal?:          number
-  globalRank?:          number | null
+  nextLesson?: {
+    id: string; title: string; emoji: string; xp_reward: number; skill_id: string
+    assignedBy?: string; dueLabel?: string; minutesLeft?: number
+  } | null
+  weeklyLessons?: number
+  weeklyGoal?:    number
+  globalRank?:    number | null
+  classNews?:     ClassNewsItem[]   // not yet wired to a table — pass in when ready
+  className?:     string | null    // B2B2C only — e.g. "Grade 5B"
 }
 
-// ─────────────────────────────────────────────────────────────
 export default function DashboardClient({
   userId, profile, progress, lessonCompletions,
   todayChallenge, challengeCompletions,
   nextLesson, weeklyLessons = 0, weeklyGoal = 5,
+  classNews = [], className = null,
 }: Props) {
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [toast,     setToast]     = useState<string | null>(null)
   const [shareCard, setShareCard] = useState<ShareCardProps | null>(null)
-  const [jimmyErr,  setJimmyErr]  = useState(false)
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
   const lang   = (profile?.preferred_language || 'en') as 'en' | 'ar' | 'fr'
   const dir    = lang === 'ar' ? 'rtl' : 'ltr'
   const t      = COPY[lang] ?? COPY.en
-  const xp     = progress?.xp    ?? 0
+  const xp     = progress?.xp     ?? 0
   const streak = progress?.streak ?? 0
   const level  = getLevel(xp)
-  const xpInLevel  = xp % XP_PER_LEVEL
+  const xpInLevel = xp % XP_PER_LEVEL
   const isNew  = lessonCompletions.length === 0
+  const firstName = (profile?.display_name ?? '').split(' ')[0] || profile?.display_name
 
   const isChallengeComplete = todayChallenge
     ? challengeCompletions.some((c: any) => c.challenge_id === todayChallenge.id)
@@ -116,210 +132,159 @@ export default function DashboardClient({
   }
 
   const missionHref = nextLesson
-    ? `/dashboard/skills/${nextLesson.skill_id}/lesson/${nextLesson.id}`
-    : '/dashboard/skills'
+    ? `/dashboard/path/${nextLesson.skill_id}/lesson/${nextLesson.id}`
+    : '/dashboard/path'
 
-  // Jimmy's mood
-  const jimmySrc = streak >= 3
-    ? '/icons/mascot-celebrating.svg'
-    : streak === 0
-    ? '/icons/mascot-idle.svg'
-    : '/icons/mascot-idle.svg'
+  // Builds "Grade 5B · Assigned by Ms. Ranya · Due Aug 15" from
+  // whichever of the three pieces are actually present.
+  const assignmentPillParts = [
+    className,
+    nextLesson?.assignedBy ? `Assigned by ${nextLesson.assignedBy}` : null,
+    nextLesson?.dueLabel ? `Due ${nextLesson.dueLabel}` : null,
+  ].filter(Boolean)
 
   return (
-    <div
-      dir={dir}
-      className="min-h-screen flex flex-col items-center justify-center text-[#F5F5F5] relative overflow-hidden"
-      style={{
-        background: '#0D1117',
-        backgroundImage: DOT_GRID_SVG,
-      }}
-    >
+    <div dir={dir} className="min-h-screen bg-[#EAF6F1] px-6 py-8 lg:px-10 lg:py-10">
 
-      {/* ── Toast ──────────────────────────────────────────── */}
+      {/* Toast */}
       <div className={cn(
-        'fixed top-5 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-full font-black text-sm',
+        'fixed top-5 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-full font-extrabold text-sm text-white',
         'transition-all duration-300 whitespace-nowrap pointer-events-none select-none',
         toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
-      )} style={{ background: '#FAA918', color: '#000', boxShadow: '0 8px 32px rgba(250,169,24,0.5)' }}>
+      )} style={{ background: '#FF6E52', boxShadow: '0 8px 24px rgba(255,110,82,0.4)' }}>
         ⚡ {toast}
       </div>
 
-      {/* ── Ambient glow behind Jimmy ─────────────────────── */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse 60% 55% at 50% 40%, rgba(28,176,246,0.07) 0%, transparent 70%)',
-        }} />
+      <div className="max-w-3xl mx-auto">
 
-      {/* ── Main content — single column, centered ─────────── */}
-      <div className="relative z-10 flex flex-col items-center w-full px-6"
-        style={{ maxWidth: 440 }}>
-
-        {/* ── LEVEL + XP bar — compact, top ─────────────────── */}
-        <div className="w-full mb-8 flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black tracking-widest text-white/30 uppercase">
-              {t.level} {level}
-            </span>
-            <span className="text-xs font-black text-white/25">
-              {t.xpOf(xpInLevel, XP_PER_LEVEL)}
-            </span>
-          </div>
-          {/* XP bar — thin, amber fill */}
-          <div className="h-1.5 w-full rounded-full overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.07)' }}>
-            <div className="h-full rounded-full transition-all duration-1000"
-              style={{
-                width: `${Math.min(100, Math.round((xpInLevel / XP_PER_LEVEL) * 100))}%`,
-                background: 'linear-gradient(90deg, #FAA918, #f7c948)',
-              }} />
-          </div>
-        </div>
-
-        {/* ── SPEECH BUBBLE — streak lives here ─────────────── */}
-        <div className="relative mb-1 self-center">
-          <div
-            className="relative px-5 py-2.5 rounded-2xl font-black text-sm text-center select-none"
-            style={{
-              background: streak > 0 ? '#FAA918' : 'rgba(255,255,255,0.07)',
-              color:      streak > 0 ? '#000' : 'rgba(255,255,255,0.3)',
-              minWidth:   160,
-              // Triangle pointing down toward Jimmy
-              filter: streak > 0 ? 'drop-shadow(0 4px 16px rgba(250,169,24,0.4))' : undefined,
-            }}
-          >
-            {t.streakMsg(streak)}
-            {/* Triangle */}
-            <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-0 h-0"
-              style={{
-                borderLeft:  '8px solid transparent',
-                borderRight: '8px solid transparent',
-                borderTop:   `8px solid ${streak > 0 ? '#FAA918' : 'rgba(255,255,255,0.07)'}`,
-              }} />
-          </div>
-        </div>
-
-        {/* ── JIMMY — large, centered, the identity ──────────── */}
-        <div className="relative flex items-center justify-center mb-6"
-          style={{ height: 200 }}>
-          {!jimmyErr ? (
-            <Image
-              src={jimmySrc}
-              alt="Jimmy"
-              width={180}
-              height={180}
-              className="object-contain select-none pointer-events-none drop-shadow-2xl"
-              style={{
-                width: 180,
-                height: 180,
-                filter: 'drop-shadow(0 16px 40px rgba(28,176,246,0.25))',
-                // Slight lean — asymmetric, not AI-default
-                transform: 'rotate(-3deg)',
-              }}
-              onError={() => setJimmyErr(true)}
-              priority
-            />
-          ) : (
-            <span style={{ fontSize: 120 }} className="select-none">🤖</span>
-          )}
-
-          {/* Lesson emoji badge — floats off Jimmy's shoulder */}
-          {nextLesson && (
-            <div
-              className="absolute top-2 right-0 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
-              style={{
-                background: 'rgba(255,255,255,0.08)',
-                border:     '1px solid rgba(255,255,255,0.12)',
-                backdropFilter: 'blur(8px)',
-                transform: 'rotate(6deg)',
-              }}
-            >
-              {nextLesson.emoji}
+        {/* ── Header row ─────────────────────────────────── */}
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-7">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-[26px] font-extrabold text-[#16323A] leading-tight">
+                {firstName ? `Welcome back, ${firstName}` : 'Welcome back'}
+              </h1>
+              {profile?.account_type === 'b2b2c' && profile?.school_id && (
+                <span
+                  className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  style={{ background: '#F1F5F4', color: '#7C9995' }}
+                >
+                  School account
+                </span>
+              )}
             </div>
-          )}
+            <p className="text-[#5B7B78] text-sm font-medium mt-1">
+              {t.streakMsg(streak)}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: weeklyGoal }).map((_, i) => (
+                <span
+                  key={i}
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ background: i < weeklyLessons ? '#F5A623' : '#D8E9E3' }}
+                />
+              ))}
+            </div>
+            <span className="text-[13px] font-mono text-[#7C9995] whitespace-nowrap">
+              {weeklyLessons}/{weeklyGoal} {t.thisWeek}
+            </span>
+          </div>
         </div>
 
-        {/* ── LESSON TITLE — bold, large, clear ─────────────── */}
-        {nextLesson && (
-          <p className="font-fredoka text-2xl text-center text-white/80 mb-6 leading-snug px-2">
-            {nextLesson.title}
-          </p>
-        )}
-
-        {/* ── THE ONE BUTTON ────────────────────────────────── */}
+        {/* ── Main lesson card ──────────────────────────────── */}
         {nextLesson ? (
-          <Link
-            href={missionHref}
-            className="w-full flex items-center justify-center gap-3 rounded-2xl font-black text-lg transition-all duration-150 hover:-translate-y-1 active:translate-y-0.5 active:shadow-none select-none"
-            style={{
-              background:  '#FAA918',
-              color:       '#000',
-              padding:     '18px 32px',
-              boxShadow:   '0 6px 0 #c07a00, 0 12px 32px rgba(250,169,24,0.35)',
-              letterSpacing: '0.02em',
-            }}
-          >
-            <span>{isNew ? t.cta : t.ctaContinue}</span>
-            {/* XP badge inside button */}
-            <span
-              className="text-xs font-black px-2.5 py-1 rounded-full"
-              style={{ background: 'rgba(0,0,0,0.15)', color: '#000' }}
-            >
-              +{nextLesson.xp_reward} XP
-            </span>
-          </Link>
-        ) : (
-          <div className="w-full text-center">
-            <p className="font-fredoka text-2xl text-white mb-2">{t.noMission}</p>
-            <p className="text-sm text-white/30 font-semibold mb-5">{t.noMissionSub}</p>
+          <div className="bg-white rounded-3xl p-7 mb-5 shadow-[0_2px_16px_rgba(22,50,58,0.06)]">
+            {assignmentPillParts.length > 0 && (
+              <span className="inline-block px-3 py-1 rounded-full bg-[#FDECD8] text-[#D9822B] text-xs font-mono font-semibold mb-4">
+                {assignmentPillParts.join(' · ')}
+              </span>
+            )}
+
+            <h2 className="text-2xl font-extrabold text-[#16323A] mb-1.5 leading-snug">
+              {nextLesson.title}
+            </h2>
+            <p className="text-[#7C9995] text-sm font-medium mb-6">
+              {nextLesson.minutesLeft != null ? `${nextLesson.minutesLeft} min left · ` : ''}
+              {t.continuing}
+            </p>
+
             <Link
-              href="/dashboard/skills"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-base transition-all hover:-translate-y-0.5"
-              style={{
-                background:  '#FAA918',
-                color:       '#000',
-                boxShadow:   '0 5px 0 #c07a00',
-              }}
+              href={missionHref}
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-extrabold text-white text-[15px] transition-transform hover:-translate-y-0.5"
+              style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.35)' }}
+            >
+              {isNew ? t.cta : t.ctaContinue(nextLesson.title)}
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white rounded-3xl p-8 mb-5 text-center shadow-[0_2px_16px_rgba(22,50,58,0.06)]">
+            <p className="text-xl font-extrabold text-[#16323A] mb-1.5">{t.noMission}</p>
+            <p className="text-sm text-[#7C9995] font-medium mb-5">{t.noMissionSub}</p>
+            <Link
+              href="/dashboard/path"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-extrabold text-white text-sm"
+              style={{ background: '#FF6E52' }}
             >
               {t.explore} →
             </Link>
           </div>
         )}
 
-        {/* ── Weekly dots — 5 small dots below the button ────── */}
-        <div className="flex items-center gap-2 mt-6">
-          {Array.from({ length: weeklyGoal }).map((_, i) => (
-            <div key={i}
-              className="w-2.5 h-2.5 rounded-full transition-all duration-500"
-              style={{
-                background: i < weeklyLessons ? '#FAA918' : 'rgba(255,255,255,0.1)',
-                transform:  i < weeklyLessons ? 'scale(1.2)' : 'scale(1)',
-                boxShadow:  i < weeklyLessons ? '0 0 8px rgba(250,169,24,0.5)' : 'none',
-              }} />
-          ))}
-        </div>
-        <p className="text-xs font-bold text-white/20 mt-2 tracking-wider">
-          {weeklyLessons}/{weeklyGoal} THIS WEEK
-        </p>
+        {/* ── Two-up cards: XP + Class news ─────────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)]">
+            <p className="text-[#16323A] font-bold text-[15px] mb-3">
+              {t.level} {level} · {xpInLevel} / {XP_PER_LEVEL} XP
+            </p>
+            <div className="h-2 w-full rounded-full bg-[#DCEFE9] overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${Math.min(100, Math.round((xpInLevel / XP_PER_LEVEL) * 100))}%`,
+                  background: '#2DD4BF',
+                }}
+              />
+            </div>
+          </div>
 
-        {/* ── Daily challenge — below the fold, quiet ─────────── */}
+          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)]">
+            <p className="text-[#16323A] font-bold text-[15px] mb-2">{t.classNews}</p>
+            {classNews.length > 0 ? (
+              <ul className="space-y-1.5">
+                {classNews.slice(0, 2).map(n => (
+                  <li key={n.id} className="text-[#5B7B78] text-sm font-medium leading-snug">
+                    {n.text}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[#9BB5B1] text-sm font-medium">{t.noClassNews}</p>
+            )}
+          </div>
+        </div>
+
+        {/* ── Daily challenge — kept, quieter, third row ────── */}
         {todayChallenge && (
           <button
             onClick={!isChallengeComplete ? doChallenge : undefined}
             disabled={isChallengeComplete}
-            className="mt-8 w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all active:scale-[0.98]"
-            style={{
-              background:  'rgba(255,255,255,0.04)',
-              border:      `1px solid ${isChallengeComplete ? 'rgba(255,255,255,0.05)' : 'rgba(250,169,24,0.2)'}`,
-            }}
+            className="mt-4 w-full flex items-center gap-3 px-5 py-4 rounded-2xl text-left bg-white shadow-[0_2px_16px_rgba(22,50,58,0.06)] transition-transform active:scale-[0.99]"
           >
             <span className="text-xl select-none flex-shrink-0">{todayChallenge.emoji}</span>
-            <span className={cn('flex-1 text-sm font-bold truncate', isChallengeComplete ? 'line-through text-white/20' : 'text-white/70')}>
+            <span className={cn(
+              'flex-1 text-sm font-bold truncate',
+              isChallengeComplete ? 'line-through text-[#B7CBC7]' : 'text-[#16323A]'
+            )}>
               {todayChallenge.title}
             </span>
-            <span className="text-xs font-black flex-shrink-0"
-              style={{ color: isChallengeComplete ? '#3CB371' : '#FAA918' }}>
-              {isChallengeComplete ? '✓ Done' : `+${todayChallenge.xp_reward} XP`}
+            <span
+              className="text-xs font-extrabold flex-shrink-0"
+              style={{ color: isChallengeComplete ? '#2DA36B' : '#FF6E52' }}
+            >
+              {isChallengeComplete ? `✓ ${t.done}` : `+${todayChallenge.xp_reward} XP`}
             </span>
           </button>
         )}

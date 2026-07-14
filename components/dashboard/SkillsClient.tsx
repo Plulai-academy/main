@@ -1,9 +1,21 @@
 'use client'
 // components/dashboard/SkillsClient.tsx
+//
+// Re-themed to match the app's light mint / coral / teal design system
+// (same palette as CoachClient / ProfileClient). The path itself stays a
+// winding "snake" — zigzag node offsets + a smooth Catmull-Rom curve through
+// every bubble — rather than the straight horizontal line from the reference
+// screenshot. The header block ("Track name" / "Class curriculum · Unit X of Y")
+// borrows that screenshot's typography pattern.
+//
+// Color semantics (consistent with Profile's pearls/badges):
+//   teal   (#1FBF9F) = completed node
+//   coral  (#FF9A3C→#FF7A3C gradient) = current node
+//   muted mint (#DCEAE4) = locked node
 import { useMemo, useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { setCurrentTrack } from '@/app/dashboard/skills/actions'
+import { setCurrentTrack } from '@/app/dashboard/path/actions'
 
 const UI: Record<string, Record<string, string>> = {
   en: {
@@ -15,7 +27,7 @@ const UI: Record<string, Record<string, string>> = {
     leaderboard: 'Leaderboard', viewAll: 'View all', you: 'You',
     dailyQuests: 'Daily Quests', dailyChallenges: 'Daily Challenges',
     challengeDone: 'Completed! 🎉', challengeCheck: "Check today's challenge",
-    unit: 'Unit',
+    unit: 'Unit', curriculum: 'Class curriculum',
   },
   ar: {
     continueBtn: 'واصل', startBtn: 'ابدأ', jumpHere: 'اقفز هنا؟',
@@ -26,7 +38,7 @@ const UI: Record<string, Record<string, string>> = {
     leaderboard: 'لوحة الصدارة', viewAll: 'عرض الكل', you: 'أنت',
     dailyQuests: 'المهام اليومية', dailyChallenges: 'التحديات اليومية',
     challengeDone: 'مكتمل! 🎉', challengeCheck: 'تحقق من تحدي اليوم',
-    unit: 'الوحدة',
+    unit: 'الوحدة', curriculum: 'منهج الصف',
   },
   fr: {
     continueBtn: 'Continuer', startBtn: 'Commencer', jumpHere: 'SAUTER ICI ?',
@@ -37,7 +49,7 @@ const UI: Record<string, Record<string, string>> = {
     leaderboard: 'Classement', viewAll: 'Tout voir', you: 'Toi',
     dailyQuests: 'Quêtes du jour', dailyChallenges: 'Défis du jour',
     challengeDone: 'Terminé ! 🎉', challengeCheck: 'Vérifie le défi du jour',
-    unit: 'Unité',
+    unit: 'Unité', curriculum: 'Programme de la classe',
   },
 }
 
@@ -221,12 +233,13 @@ function PathNode({
 }) {
   const [imgError, setImgError] = useState(false)
 
+  // teal = done, coral = current, muted mint = locked
   const palette =
     state === 'current'
-      ? { face: '#1CB0F6', base: '#15527A', icon: '#FFFFFF' }
+      ? { face: 'linear-gradient(160deg,#FFA94D,#FF7A3C)', base: '#D97A2A', icon: '#FFFFFF' }
       : state === 'done'
-      ? { face: '#27B883', base: '#1A4D3C', icon: '#FFFFFF' }
-      : { face: '#3A4450', base: '#262E37', icon: '#8A96A3' }
+      ? { face: 'linear-gradient(160deg,#2ED1AC,#1FBF9F)', base: '#159178', icon: '#FFFFFF' }
+      : { face: '#DCEAE4', base: '#C3D9D0', icon: '#9BB3AA' }
 
   const iconSrc = ICONS.node[iconIndex]
 
@@ -247,6 +260,14 @@ function PathNode({
         style={{ backgroundColor: palette.base, transform: 'translateY(4px)' }}
       />
 
+      {isCurrent && (
+        <div
+          aria-hidden
+          className="absolute inset-0 rounded-[50%/52%]"
+          style={{ boxShadow: '0 0 0 6px rgba(255,169,77,0.28)' }}
+        />
+      )}
+
       <button
         type="button"
         onClick={onClick}
@@ -260,8 +281,8 @@ function PathNode({
         )}
         style={{
           height: '87%',
-          backgroundColor: palette.face,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+          background: palette.face,
+          boxShadow: '0 1px 3px rgba(22,40,61,0.12)',
         }}
       >
         {!imgError ? (
@@ -270,8 +291,8 @@ function PathNode({
           alt=""
           className="w-[44%] h-[44%] object-contain"
           style={{
-            filter: 'brightness(0) invert(1)',
-            opacity: state === 'locked' ? 0.6 : 1,
+            filter: state === 'locked' ? 'brightness(0) invert(0.72)' : 'brightness(0) invert(1)',
+            opacity: state === 'locked' ? 0.8 : 1,
           }}
           onError={() => setImgError(true)}
         />
@@ -287,7 +308,7 @@ function PathNode({
           <span
             aria-hidden
             className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: '#FAA918', boxShadow: '0 1px 0 rgba(0,0,0,0.2)' }}
+            style={{ backgroundColor: '#FFA928', boxShadow: '0 1px 0 rgba(22,40,61,0.15)' }}
           >
             <NodeIcon kind="check" className="w-3 h-3 text-white" />
           </span>
@@ -307,15 +328,15 @@ function JumpBubble({ text }: { text: string }) {
       }}
     >
       <div
-        className="relative rounded-2xl px-4 py-2 bg-white shadow-[0_4px_0_rgba(0,0,0,0.15)]"
-        style={{ color: '#1CB0F6' }}
+        className="relative rounded-2xl px-4 py-2 bg-white shadow-[0_3px_10px_rgba(22,40,61,0.12)] border border-[#E2ECE8]"
+        style={{ color: '#FF5B3D' }}
       >
         <span className="font-extrabold tracking-wide text-sm whitespace-nowrap">
           {text}
         </span>
         <span
           aria-hidden
-          className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-3 h-3 bg-white rotate-45"
+          className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-3 h-3 bg-white rotate-45 border-r border-b border-[#E2ECE8]"
         />
       </div>
     </div>
@@ -355,7 +376,7 @@ function SideAvatar({
 
 function SideCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn('bg-[#10151B] border border-white/10 rounded-2xl p-5', className)}>
+    <div className={cn('bg-white border border-[#E2ECE8] rounded-2xl p-5 shadow-sm', className)}>
       {children}
     </div>
   )
@@ -364,11 +385,11 @@ function SideCard({ children, className }: { children: React.ReactNode; classNam
 function SideCardHeader({ title, onViewAll, t }: { title: string; onViewAll?: () => void; t: Record<string, string> }) {
   return (
     <div className="flex items-center justify-between mb-4">
-      <h3 className="font-black text-base">{title}</h3>
+      <h3 className="font-black text-base text-[#16283D]">{title}</h3>
       {onViewAll && (
         <button
           onClick={onViewAll}
-          className="text-xs font-extrabold tracking-wide uppercase text-[#1CB0F6] hover:text-[#14D4F4] transition-colors"
+          className="text-xs font-extrabold tracking-wide uppercase text-[#FF5B3D] hover:text-[#FF7A59] transition-colors"
         >
           {t.viewAll}
         </button>
@@ -378,13 +399,13 @@ function SideCardHeader({ title, onViewAll, t }: { title: string; onViewAll?: ()
 }
 
 function RankBadge({ rank }: { rank: number }) {
-  const medal = rank === 1 ? '#FFC93C' : rank === 2 ? '#B9C2CC' : rank === 3 ? '#E8915A' : null
+  const medal = rank === 1 ? '#FFC93C' : rank === 2 ? '#C7D2CC' : rank === 3 ? '#E8915A' : null
   return (
     <div
       className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0"
       style={{
-        backgroundColor: medal ?? 'rgba(245,245,245,0.08)',
-        color: medal ? '#1A1A1A' : 'rgba(245,245,245,0.6)',
+        backgroundColor: medal ?? '#EAF5F1',
+        color: medal ? '#16283D' : '#5C7C74',
       }}
     >
       {rank}
@@ -401,7 +422,7 @@ function LeaderboardAvatar({ name, avatarUrl }: { name: string; avatarUrl: strin
       <img
         src={avatarUrl}
         alt=""
-        className="w-8 h-8 rounded-full object-cover shrink-0 bg-white/10"
+        className="w-8 h-8 rounded-full object-cover shrink-0 bg-[#EAF5F1]"
         onError={() => setErrored(true)}
       />
     )
@@ -409,7 +430,7 @@ function LeaderboardAvatar({ name, avatarUrl }: { name: string; avatarUrl: strin
   return (
     <div
       className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0"
-      style={{ backgroundColor: 'rgba(245,245,245,0.08)', color: 'rgba(245,245,245,0.6)' }}
+      style={{ backgroundColor: '#EAF5F1', color: '#5C7C74' }}
     >
       {initial}
     </div>
@@ -433,7 +454,7 @@ function LeaderboardCard({
             key={entry.id}
             className={cn(
               'flex items-center gap-3 px-2.5 py-2 rounded-xl',
-              entry.is_current_user && 'bg-[#16324A] border border-[#1CB0F6]/40',
+              entry.is_current_user && 'bg-[#FFF1E8] border border-[#FFA928]/40',
             )}
           >
             {entry.rank_global != null ? (
@@ -442,10 +463,10 @@ function LeaderboardCard({
               <div className="w-8 h-8 shrink-0" />
             )}
             <LeaderboardAvatar name={entry.name} avatarUrl={entry.avatar_url} />
-            <span className={cn('flex-1 min-w-0 truncate text-[15px]', entry.is_current_user ? 'font-black' : 'font-bold')}>
+            <span className={cn('flex-1 min-w-0 truncate text-[15px] text-[#16283D]', entry.is_current_user ? 'font-black' : 'font-bold')}>
               {entry.is_current_user ? t.you : entry.name}
             </span>
-            <span className="text-sm font-bold text-[#F5F5F5]/60 shrink-0">{entry.xp} XP</span>
+            <span className="text-sm font-bold text-[#5C7C74] shrink-0">{entry.xp} XP</span>
           </div>
         ))}
       </div>
@@ -459,19 +480,19 @@ function DailyQuestCard({ quest, t }: { quest: DailyQuest; t: Record<string, str
     <SideCard>
       <SideCardHeader title={t.dailyQuests} t={t} />
       <div className="flex items-center gap-3">
-        <span className="shrink-0" style={{ color: '#FAA918' }}>
+        <span className="shrink-0" style={{ color: '#FFA928' }}>
           <NodeIcon kind="bolt" className="w-7 h-7" />
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-bold mb-2">{quest.label}</p>
+          <p className="text-[15px] font-bold mb-2 text-[#16283D]">{quest.label}</p>
           <div className="flex items-center gap-2">
-            <div className="flex-1 h-2.5 rounded-full bg-white/10 overflow-hidden">
+            <div className="flex-1 h-2.5 rounded-full bg-[#E3EFE9] overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${pct}%`, backgroundColor: '#FAA918' }}
+                style={{ width: `${pct}%`, backgroundColor: '#FFA928' }}
               />
             </div>
-            <span className="text-xs font-bold text-[#F5F5F5]/50 shrink-0">{quest.current} / {quest.target}</span>
+            <span className="text-xs font-bold text-[#5C7C74] shrink-0">{quest.current} / {quest.target}</span>
           </div>
         </div>
       </div>
@@ -496,15 +517,15 @@ function DailyChallengeCard({
         className={cn(
           'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-colors',
           challenge.completed
-            ? 'border-white/5 bg-white/[0.02] cursor-default'
-            : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.08]',
+            ? 'border-[#E2ECE8] bg-[#F5FBF9] cursor-default'
+            : 'border-[#E2ECE8] bg-[#F5FBF9] hover:bg-[#EAF5F1]',
         )}
       >
         <span
           aria-hidden
           className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
           style={{
-            backgroundColor: challenge.completed ? '#3CB371' : 'rgba(245,245,245,0.08)',
+            backgroundColor: challenge.completed ? '#1FBF9F' : '#EAF5F1',
           }}
         >
           {challenge.completed ? (
@@ -517,7 +538,7 @@ function DailyChallengeCard({
           <p
             className={cn(
               'truncate text-sm font-bold',
-              challenge.completed && 'line-through text-[#F5F5F5]/40',
+              challenge.completed ? 'line-through text-[#9AA7AD]' : 'text-[#16283D]',
             )}
           >
             {challenge.title}
@@ -525,13 +546,13 @@ function DailyChallengeCard({
           <p
             className={cn(
               'text-xs font-bold mt-0.5',
-              challenge.completed ? 'text-[#3CB371]' : 'text-[#1CB0F6]',
+              challenge.completed ? 'text-[#1FBF9F]' : 'text-[#FF5B3D]',
             )}
           >
             {challenge.completed ? t.challengeDone : t.challengeCheck}
           </p>
         </div>
-        <span className="text-xs font-black text-[#1CB0F6] shrink-0">+{challenge.xp_reward} XP</span>
+        <span className="text-xs font-black text-[#FF5B3D] shrink-0">+{challenge.xp_reward} XP</span>
       </button>
     </SideCard>
   )
@@ -545,15 +566,12 @@ function UnitBanner({
   t: Record<string, string>
 }) {
   return (
-    <div
-      className="relative z-10 w-full rounded-2xl px-4 py-3 my-6 shadow-[0_4px_0_rgba(0,0,0,0.25)]"
-      style={{ backgroundColor: '#1CB0F6' }}
-    >
-      <p className="text-xs font-black tracking-wider uppercase text-white/90">
+    <div className="relative z-10 w-full bg-white border border-[#E2ECE8] rounded-2xl px-4 py-3 my-6 shadow-sm">
+      <p className="text-xs font-black tracking-wider uppercase text-[#1FBF9F]">
         {t.unit} {unitNumber}
       </p>
       {title && (
-        <h3 className="text-white font-black text-lg leading-tight truncate">
+        <h3 className="text-[#16283D] font-black text-lg leading-tight truncate">
           {title}
         </h3>
       )}
@@ -562,8 +580,8 @@ function UnitBanner({
 }
 
 export default function SkillsClient({
-  userId, tracks, initialTrackId, skills, skillProgress, lessonCountMap,
-  language, streak, gems, initialCurrentSkillId, initialFirstIncompleteLessonId,
+  userId, tracks = [], initialTrackId, skills = [], skillProgress = [], lessonCountMap = {},
+  language, streak = 0, gems = 0, initialCurrentSkillId, initialFirstIncompleteLessonId,
   leaderboard = [], dailyQuest, dailyChallenge, totalTimeMins = 0,
 }: Props) {
   const router = useRouter()
@@ -609,6 +627,11 @@ export default function SkillsClient({
   const activeTrack = tracks.find(tr => tr.id === activeTrackId) ?? null
   const currentSkill = orderedSkills.find(s => s.id === currentSkillId) ?? null
   const allDone = orderedSkills.length > 0 && orderedSkills.every(s => isComplete(s.id))
+
+  // Unit progress, mirroring the screenshot's "Unit 2 of 4" subtitle.
+  const currentSkillIdx = currentSkill ? orderedSkills.findIndex(s => s.id === currentSkill.id) : -1
+  const currentUnitNumber = currentSkillIdx >= 0 ? Math.floor(currentSkillIdx / UNIT_SIZE) + 1 : 1
+  const totalUnits = orderedSkills.length > 0 ? Math.ceil(orderedSkills.length / UNIT_SIZE) : 1
 
   useEffect(() => {
     if (!showPicker) return
@@ -681,7 +704,7 @@ export default function SkillsClient({
     }
 
     try {
-      const res = await fetch('/api/skills/resolve-track', {
+      const res = await fetch('/api/path/resolve-track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ trackId }),
@@ -701,14 +724,14 @@ export default function SkillsClient({
 
   const goToCurrentLesson = () => {
     if (!currentSkill) return
-    if (firstIncompleteLessonId) router.push(`/dashboard/skills/${currentSkill.id}/lesson/${firstIncompleteLessonId}`)
-    else router.push(`/dashboard/skills/${currentSkill.id}`)
+    if (firstIncompleteLessonId) router.push(`/dashboard/path/${currentSkill.id}/lesson/${firstIncompleteLessonId}`)
+    else router.push(`/dashboard/path/${currentSkill.id}`)
   }
 
   const handleNodeTap = (skill: Skill, unlocked: boolean) => {
     if (!unlocked) return
     if (skill.id === currentSkillId) goToCurrentLesson()
-    else router.push(`/dashboard/skills/${skill.id}`)
+    else router.push(`/dashboard/path/${skill.id}`)
   }
 
   const currentLessonCount = currentSkill ? (lessonCountMap[currentSkill.id] ?? 0) : 0
@@ -718,80 +741,99 @@ export default function SkillsClient({
     : 1
 
   return (
-    <div dir={dir} className="min-h-screen bg-[#0B0F14] text-[#F5F5F5] font-[Nunito,sans-serif] flex flex-col">
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');`}</style>
+    <div dir={dir} className="min-h-screen bg-[#EAF5F1] text-[#16283D] font-[Nunito,sans-serif] flex flex-col">
+      <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');` }} />
 
-      <div className="flex items-center justify-between px-4 py-3 gap-3">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-[#F5F5F5]/90 font-extrabold">
-            <img src={ICONS.streak} alt="" className="w-5 h-5"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}/>
-            {streak}
+      {/* ── Header: track name + "Class curriculum · Unit X of Y" + streak/gems ── */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-5 sm:pt-6 pb-2 max-w-[1100px] mx-auto w-full">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            {activeTrack && (
+              <h1 className="font-black text-2xl sm:text-3xl leading-tight text-[#16283D] truncate">
+                {activeTrack.name}
+              </h1>
+            )}
+            <p className="text-sm sm:text-base font-bold text-[#5C7C74] truncate">
+              {t.curriculum} · {t.unit} {currentUnitNumber} {t.of} {totalUnits}
+            </p>
           </div>
-          <div className="flex items-center gap-1.5 text-[#F5F5F5]/90 font-extrabold">
-            <img src={ICONS.gems} alt="" className="w-5 h-5"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}/>
-            {gems}
-          </div>
-        </div>
 
-        {activeTrack && (
-          <div className="relative" ref={pickerRef}>
-            <button
-              onClick={() => setShowPicker(v => !v)}
-              className="flex items-center gap-1.5 text-[#F5F5F5]/90 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors max-w-[40vw] sm:max-w-none font-extrabold"
-            >
-              <span>{activeTrack.emoji}</span>
-              <span className="truncate">{activeTrack.name}</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
-            </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-3 bg-white border border-[#E2ECE8] rounded-2xl px-3.5 py-2 shadow-sm">
+              <div className="flex items-center gap-1.5 text-[#16283D] font-extrabold text-sm">
+                <img src={ICONS.streak} alt="" className="w-5 h-5"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}/>
+                {streak}
+              </div>
+              <div className="w-px h-4 bg-[#E2ECE8]" />
+              <div className="flex items-center gap-1.5 text-[#16283D] font-extrabold text-sm">
+                <img src={ICONS.gems} alt="" className="w-5 h-5"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}/>
+                {gems}
+              </div>
+            </div>
 
-            {showPicker && (
-              <div className="absolute right-0 mt-2 w-64 bg-[#141A21] border border-white/10 rounded-xl overflow-hidden shadow-xl z-30">
-                {tracks.map(tr => (
-                  <button
-                    key={tr.id}
-                    onClick={() => handleTrackSelect(tr.id)}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
-                      tr.id === activeTrackId ? 'bg-[#1CB0F6]/12' : 'hover:bg-white/5',
-                    )}
-                  >
-                    <span>{tr.emoji}</span>
-                    <span className="flex-1 font-bold">{tr.name}</span>
-                    {tr.id === activeTrackId && (
-                      <span className="w-2 h-2 rounded-full bg-[#1CB0F6]"/>
-                    )}
-                  </button>
-                ))}
+            {activeTrack && (
+              <div className="relative" ref={pickerRef}>
+                <button
+                  onClick={() => setShowPicker(v => !v)}
+                  aria-label="Switch track"
+                  className="flex items-center justify-center w-10 h-10 bg-white border border-[#E2ECE8] rounded-2xl shadow-sm hover:border-[#FF7A59]/40 transition-colors"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#5C7C74"><path d="M7 10l5 5 5-5z"/></svg>
+                </button>
+
+                {showPicker && (
+                  <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-64 bg-white border border-[#E2ECE8] rounded-xl overflow-hidden shadow-xl z-30">
+                    {tracks.map(tr => (
+                      <button
+                        key={tr.id}
+                        onClick={() => handleTrackSelect(tr.id)}
+                        className={cn(
+                          'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors',
+                          tr.id === activeTrackId ? 'bg-[#EAF5F1]' : 'hover:bg-[#F5FBF9]',
+                        )}
+                      >
+                        <span>{tr.emoji}</span>
+                        <span className="flex-1 font-bold text-[#16283D]">{tr.name}</span>
+                        {tr.id === activeTrackId && (
+                          <span className="w-2 h-2 rounded-full bg-[#1FBF9F]"/>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       <div className="flex-1 flex justify-center gap-8 px-4 pb-12 pt-4 max-w-[1100px] mx-auto w-full">
         <div className="relative flex-1 min-w-0 max-w-[640px]">
           {switching ? (
             <div className="flex items-center justify-center py-20">
-              <p className="text-[#F5F5F5]/70 font-bold">{t.switching}</p>
+              <p className="text-[#5C7C74] font-bold">{t.switching}</p>
             </div>
           ) : allDone ? (
             <div className="text-center py-20">
               <p className="text-6xl mb-3">🏆</p>
-              <p className="text-xl font-black">{t.allDone}</p>
-              <p className="text-[#F5F5F5]/60 mt-2">{t.allDoneSub}</p>
+              <p className="text-xl font-black text-[#16283D]">{t.allDone}</p>
+              <p className="text-[#5C7C74] mt-2">{t.allDoneSub}</p>
             </div>
           ) : currentSkill ? (
             <>
-              <div className="bg-[#1CB0F6] rounded-2xl px-4 py-3 mb-8 flex items-start justify-between gap-3 shadow-[0_4px_0_rgba(0,0,0,0.25)]">
+              <div
+                className="rounded-2xl px-4 py-3 mb-8 flex items-start justify-between gap-3 shadow-sm"
+                style={{ background: 'linear-gradient(135deg,#FF9A5A,#FF6B4A)' }}
+              >
                 <div className="flex-1 min-w-0">
                   <button
                     onClick={() => router.back()}
                     aria-label={t.back}
                     className="flex items-center gap-1.5 opacity-90 hover:opacity-100 transition-opacity -ml-1 mb-0.5"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
                     <span className="text-xs font-black tracking-wider uppercase text-white/90">
                       {t.lessonOf} {currentLessonIdx} {t.of} {currentLessonCount || 1}
                     </span>
@@ -812,7 +854,7 @@ export default function SkillsClient({
                     <path
                       d={snakePath}
                       fill="none"
-                      stroke="#2A3440"
+                      stroke="#C9DDD5"
                       strokeWidth={6}
                       strokeLinecap="round"
                       strokeDasharray="2 14"
@@ -886,7 +928,7 @@ export default function SkillsClient({
         </aside>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes jumpBob {
           0%, 100% { transform: translate(-50%, 0); }
           50%      { transform: translate(-50%, -4px); }
@@ -895,7 +937,7 @@ export default function SkillsClient({
           0%   { transform: scale(1); opacity: 1; }
           100% { transform: scale(1.4); opacity: 0; }
         }
-      `}</style>
+      ` }} />
     </div>
   )
 }

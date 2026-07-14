@@ -1,13 +1,13 @@
 'use client'
 // app/auth/signup/page.tsx
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { signUp, signInWithGoogle } from '@/lib/supabase/queries'
+import { signUpWithOptionalClassCode, signInWithGoogle } from '@/lib/supabase/queries'
 import { cn } from '@/lib/utils'
+import styles from '../auth.module.css'
 
 const schema = z.object({
   displayName: z.string().min(2, 'Name must be at least 2 characters').max(30),
@@ -20,6 +20,7 @@ const schema = z.object({
       if (!v) return true // optional
       return /^[\d\s\+\-\(\)]{6,20}$/.test(v)
     }, 'Please enter a valid phone number'),
+  classCode:   z.string().optional(),
   password:    z.string().min(8, 'Password must be at least 8 characters'),
   confirm:     z.string(),
   agreeTerms:  z.boolean().refine((v: boolean) => v, 'You must agree to continue'),
@@ -31,7 +32,6 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export default function SignupPage() {
-  const router = useRouter()
   const [serverError, setServerError] = useState('')
   const [success, setSuccess]         = useState(false)
   const [loading, setLoading]         = useState(false)
@@ -45,11 +45,12 @@ export default function SignupPage() {
   const onSubmit = async (values: FormData) => {
     setLoading(true)
     setServerError('')
-    const { error } = await signUp(
+    const { error } = await signUpWithOptionalClassCode(
       values.email,
       values.password,
       values.displayName,
-      values.phone        // ← phone passed through
+      values.phone,
+      values.classCode
     )
     if (error) {
       if (error.message.includes('already registered')) {
@@ -71,49 +72,49 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 relative z-10">
-        <div className="max-w-md w-full bg-card border border-white/5 rounded-3xl p-10 text-center shadow-2xl animate-slide-up">
-          <div className="text-6xl mb-5 animate-bounce-slow">📬</div>
-          <h2 className="font-fredoka text-3xl text-accent3 mb-3">Check your email!</h2>
-          <p className="text-muted font-semibold leading-relaxed mb-7">
-            We sent a confirmation link to your email. Click it to activate your account and start learning!
-          </p>
-          <Link href="/auth/login" className="block w-full py-4 rounded-2xl font-extrabold text-white bg-gradient-to-r from-accent4 to-accent5 text-center hover:-translate-y-0.5 transition-all">
-            Back to Login →
-          </Link>
+      <div className={styles.wrap}>
+        <div className={styles.inner}>
+          <div className={styles.successCard}>
+            <div className={styles.successIcon}>
+              <svg width={28} height={28} viewBox="0 0 28 28">
+                <path d="M6 14 L11.5 19.5 L22 8" stroke="#053D35" strokeWidth={3} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <h2 style={{ marginBottom: 10 }}>Check your email</h2>
+            <p style={{ color: 'rgba(41,57,74,0.65)', lineHeight: 1.6, marginBottom: 28 }}>
+              We sent a confirmation link to your email. Click it to activate your account
+              and start learning.
+            </p>
+            <Link href="/auth/login" className="btn btn-cta btn-block">
+              Back to login
+            </Link>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative z-10">
-      <div className="w-full max-w-md">
+    <div className={styles.wrap}>
+      <div className={styles.inner}>
 
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <Link href="/" className="inline-block">
-            <h1 className="font-fredoka text-4xl bg-gradient-to-r from-accent2 via-accent1 to-accent5 bg-clip-text text-transparent">
-              Plulai
-            </h1>
+        <div className={styles.logoBlock}>
+          <Link href="/" className="wordmark">
+            <span className="brand-mark">/</span>
+            <span>Plulai</span>
           </Link>
-          <p className="text-muted font-semibold text-sm mt-1">
-            Join 1,000+ kids learning AI &amp; Coding across the GCC! 🌍
-          </p>
+          <p className={styles.logoSub}>Join 150+ kids learning AI &amp; coding across the GCC</p>
         </div>
 
-        <div className="bg-card border border-white/5 rounded-3xl p-8 shadow-2xl animate-slide-up">
-          <h2 className="font-fredoka text-2xl mb-1">Create Account</h2>
-          <p className="text-muted text-sm font-semibold mb-7">Free forever • No credit card needed</p>
+        <div className={styles.card}>
+          <h2 className={styles.cardTitle}>Create account</h2>
+          <p className={styles.cardSubtitle}>Free forever — no credit card needed</p>
 
-          {/* Google */}
-          <button
-            onClick={handleGoogle}
-            disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 bg-card2 hover:bg-white/5 border border-white/10 rounded-2xl py-3.5 font-bold text-sm transition-all hover:-translate-y-0.5 mb-5 disabled:opacity-50"
-          >
-            {googleLoading ? <span className="animate-spin">⏳</span> : (
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
+          <button onClick={handleGoogle} disabled={googleLoading} className="oauth-btn">
+            {googleLoading ? (
+              <span className="spinner spinner--dark" />
+            ) : (
+              <svg width={18} height={18} viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -123,170 +124,118 @@ export default function SignupPage() {
             Sign up with Google
           </button>
 
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex-1 h-px bg-white/8" />
-            <span className="text-muted text-xs font-bold">or</span>
-            <div className="flex-1 h-px bg-white/8" />
-          </div>
+          <div className="auth-divider"><span>or</span></div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-
-            {/* Display name */}
-            <div>
-              <label className="block text-sm font-bold mb-2">Your Name</label>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="field">
+              <label>Your name</label>
               <input
                 {...register('displayName')}
                 placeholder="e.g. Ahmed or Sara"
-                className={cn(
-                  'w-full bg-card2 border-2 rounded-2xl px-4 py-3.5 text-white font-semibold text-sm outline-none transition-all placeholder:text-muted',
-                  errors.displayName ? 'border-accent1' : 'border-white/8 focus:border-accent4'
-                )}
+                className={cn('input', errors.displayName && 'input--error')}
               />
-              {errors.displayName && (
-                <p className="text-accent1 text-xs font-bold mt-1.5">{errors.displayName.message}</p>
-              )}
+              {errors.displayName && <p className="error-text">{errors.displayName.message}</p>}
             </div>
 
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-bold mb-2">Email</label>
+            <div className="field">
+              <label>Email</label>
               <input
                 {...register('email')}
                 type="email"
                 placeholder="your@email.com"
                 autoComplete="email"
-                className={cn(
-                  'w-full bg-card2 border-2 rounded-2xl px-4 py-3.5 text-white font-semibold text-sm outline-none transition-all placeholder:text-muted',
-                  errors.email ? 'border-accent1' : 'border-white/8 focus:border-accent4'
-                )}
+                className={cn('input', errors.email && 'input--error')}
               />
-              {errors.email && (
-                <p className="text-accent1 text-xs font-bold mt-1.5">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="error-text">{errors.email.message}</p>}
             </div>
 
-            {/* Phone — optional */}
-            <div>
-              <label className="block text-sm font-bold mb-2">
-                Phone Number
-                <span className="text-muted font-semibold ml-1.5">(optional)</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm select-none">
-                  📱
-                </span>
-                <input
-                  {...register('phone')}
-                  type="tel"
-                  placeholder="+216 XX XXX XXX"
-                  autoComplete="tel"
-                  className={cn(
-                    'w-full bg-card2 border-2 rounded-2xl pl-10 pr-4 py-3.5 text-white font-semibold text-sm outline-none transition-all placeholder:text-muted',
-                    errors.phone ? 'border-accent1' : 'border-white/8 focus:border-accent4'
-                  )}
-                />
-              </div>
+            <div className="field">
+              <label>Phone number <span style={{ fontWeight: 500, opacity: 0.6 }}>(optional)</span></label>
+              <input
+                {...register('phone')}
+                type="tel"
+                placeholder="+216 XX XXX XXX"
+                autoComplete="tel"
+                className={cn('input', errors.phone && 'input--error')}
+              />
               {errors.phone ? (
-                <p className="text-accent1 text-xs font-bold mt-1.5">{errors.phone.message}</p>
+                <p className="error-text">{errors.phone.message}</p>
               ) : (
-                <p className="text-muted/60 text-xs font-semibold mt-1.5">
-                  Used for competition updates and support only.
-                </p>
+                <p className="field-hint">Used for competition updates and support only.</p>
               )}
             </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-bold mb-2">Password</label>
+            {/* Class code — student joining a school. Optional, visually
+                distinct so it reads as "special" rather than a required
+                field most signups will skip. */}
+            <div className={styles.codeField}>
+              <p className={styles.codeFieldLabel}>Have a class code?</p>
+              <p className={styles.codeFieldHint}>
+                If your teacher gave you a code, enter it to join your class. Skip this if not.
+              </p>
+              <input
+                {...register('classCode')}
+                placeholder="e.g. MATH5B-7X2K"
+                className="input"
+                style={{ background: '#fff' }}
+              />
+            </div>
+
+            <div className="field">
+              <label>Password</label>
               <input
                 {...register('password')}
                 type="password"
                 placeholder="Min 8 characters"
                 autoComplete="new-password"
-                className={cn(
-                  'w-full bg-card2 border-2 rounded-2xl px-4 py-3.5 text-white font-semibold text-sm outline-none transition-all placeholder:text-muted',
-                  errors.password ? 'border-accent1' : 'border-white/8 focus:border-accent4'
-                )}
+                className={cn('input', errors.password && 'input--error')}
               />
-              {errors.password && (
-                <p className="text-accent1 text-xs font-bold mt-1.5">{errors.password.message}</p>
-              )}
+              {errors.password && <p className="error-text">{errors.password.message}</p>}
             </div>
 
-            {/* Confirm password */}
-            <div>
-              <label className="block text-sm font-bold mb-2">Confirm Password</label>
+            <div className="field">
+              <label>Confirm password</label>
               <input
                 {...register('confirm')}
                 type="password"
                 placeholder="Same password again"
                 autoComplete="new-password"
-                className={cn(
-                  'w-full bg-card2 border-2 rounded-2xl px-4 py-3.5 text-white font-semibold text-sm outline-none transition-all placeholder:text-muted',
-                  errors.confirm ? 'border-accent1' : 'border-white/8 focus:border-accent4'
-                )}
+                className={cn('input', errors.confirm && 'input--error')}
               />
-              {errors.confirm && (
-                <p className="text-accent1 text-xs font-bold mt-1.5">{errors.confirm.message}</p>
-              )}
+              {errors.confirm && <p className="error-text">{errors.confirm.message}</p>}
             </div>
 
-            {/* Terms */}
-            <label className="flex items-start gap-3 cursor-pointer group">
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', marginBottom: 16 }}>
               <input
                 {...register('agreeTerms')}
                 type="checkbox"
-                className="mt-0.5 w-4 h-4 accent-accent4 cursor-pointer"
+                style={{ marginTop: 3, width: 16, height: 16, accentColor: 'var(--raw-coral)', cursor: 'pointer' }}
               />
-              <span className="text-xs text-muted font-semibold leading-relaxed group-hover:text-white transition-colors">
-                I agree to Plulai&apos;s{' '}
-                <a href="#" className="text-accent4 hover:underline">Terms of Service</a>
-                {' '}and{' '}
-                <a href="#" className="text-accent4 hover:underline">Privacy Policy</a>.
-                I confirm I am at least 6 years old or have parental consent.
+              <span style={{ fontSize: 12, color: 'rgba(41,57,74,0.65)', fontWeight: 500, lineHeight: 1.5 }}>
+                I agree to Plulai&apos;s <a href="#" style={{ color: 'var(--raw-coral)', fontWeight: 700 }}>Terms of Service</a>{' '}
+                and <a href="#" style={{ color: 'var(--raw-coral)', fontWeight: 700 }}>Privacy Policy</a>. I confirm I am at
+                least 6 years old or have parental consent.
               </span>
             </label>
-            {errors.agreeTerms && (
-              <p className="text-accent1 text-xs font-bold">{errors.agreeTerms.message}</p>
-            )}
+            {errors.agreeTerms && <p className="error-text" style={{ marginBottom: 12 }}>{errors.agreeTerms.message}</p>}
 
-            {/* Server error */}
-            {serverError && (
-              <div className="bg-accent1/10 border border-accent1/25 rounded-xl px-4 py-3 text-accent1 text-sm font-bold">
-                ⚠️ {serverError}
-              </div>
-            )}
+            {serverError && <div className="server-error">{serverError}</div>}
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 rounded-2xl font-extrabold text-white text-base bg-gradient-to-r from-accent3 to-accent4 shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-            >
-              {loading ? '⏳ Creating account...' : '🚀 Start Learning Free!'}
+            <button type="submit" disabled={loading} className="btn btn-cta btn-block">
+              {loading ? <span className="spinner" /> : 'Start learning free'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-muted font-semibold mt-6">
-            Already have an account?{' '}
-            <Link href="/auth/login" className="text-accent4 font-bold hover:underline">Log in →</Link>
+          <p className={styles.footerNote}>
+            Already have an account? <Link href="/auth/login">Log in</Link>
           </p>
         </div>
 
-        {/* Value props */}
-        <div className="grid grid-cols-3 gap-3 mt-7">
-          {[
-            { emoji: '🆓', label: 'Free plan forever' },
-            { emoji: '🔒', label: 'COPPA compliant' },
-            { emoji: '🌍', label: 'Arabic & English' },
-          ].map(i => (
-            <div key={i.label} className="bg-card/50 border border-white/5 rounded-2xl p-3 text-center">
-              <div className="text-xl mb-1">{i.emoji}</div>
-              <div className="text-xs text-muted font-bold">{i.label}</div>
-            </div>
-          ))}
+        <div className={styles.valueGrid}>
+          <div className={styles.valueTile}><b>Free plan forever</b></div>
+          <div className={styles.valueTile}><b>COPPA compliant</b></div>
+          <div className={styles.valueTile}><b>Arabic &amp; English</b></div>
         </div>
-
       </div>
     </div>
   )

@@ -1,25 +1,88 @@
 /* File: page.module.css
    Placement: app/page.module.css
-   ============================================================
-   page.module.css — layout specific to the home page only.
-   Shared tokens, buttons, cards, pills, pearls, and the brand
-   mark all come from globals.css — this file is purely the
-   one-off composition (wave dividers, pearl cluster, pricing
-   string, testimonial scatter) that doesn't belong in the
-   shared design system.
+   Shared by app/page.tsx (en) and app/ar/page.tsx (ar) — the ar
+   page imports this same file, no second stylesheet.
    ============================================================ */
 
 /* ---------- NAV ---------- */
-.nav { padding: 22px 0; position: relative; z-index: 5; }
-.navRow { display: flex; align-items: center; justify-content: space-between; }
+.nav { padding: 22px 0; position: relative; z-index: 50; }
+.navRow { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+
 .navLinks { display: flex; align-items: center; gap: 28px; }
 .navLinks a { font-size: 13.5px; color: var(--raw-depth); font-weight: 600; }
+
 .navRight { display: flex; align-items: center; gap: 16px; }
+
+.burger {
+  display: none;
+  position: relative;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.burger span {
+  position: absolute;
+  inset-inline-start: 6px;
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--raw-depth);
+  transition: transform 0.2s ease, opacity 0.2s ease, top 0.2s ease;
+}
+.burger span:nth-child(1) { top: 11px; }
+.burger span:nth-child(2) { top: 16px; }
+.burger span:nth-child(3) { top: 21px; }
+.burgerTopOpen { top: 16px !important; transform: rotate(45deg); }
+.burgerMidOpen { opacity: 0; }
+.burgerBotOpen { top: 16px !important; transform: rotate(-45deg); }
+
+.mobilePanel { display: none; }
+
+@media (max-width: 760px) {
+  .navLinks, .navRight { display: none; }
+  .burger { display: block; }
+
+  .mobilePanel {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    margin-top: 0;
+    transition: max-height 0.25s ease, opacity 0.2s ease, margin-top 0.2s ease;
+  }
+  .mobilePanelOpen {
+    max-height: 420px;
+    opacity: 1;
+    margin-top: 14px;
+    padding: 10px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+  }
+  .mobilePanel a {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--raw-depth);
+    padding: 12px 10px;
+    border-radius: 10px;
+  }
+  .mobilePanelDivider {
+    height: 1px;
+    background: rgba(41, 57, 74, 0.08);
+    margin: 4px 6px;
+  }
+}
 
 /* ---------- HERO ---------- */
 .hero { position: relative; padding: 40px 0 130px; overflow: hidden; }
 .heroWatermark {
-  position: absolute; top: -100px; right: -60px;
+  position: absolute; top: -100px; inset-inline-end: -60px;
   font-family: var(--font-display); font-weight: 800;
   font-size: 520px; color: rgba(212, 162, 76, 0.13); line-height: 1;
   z-index: 1; pointer-events: none;
@@ -30,7 +93,7 @@
   background: #fff; padding: 7px 14px; border-radius: 20px;
   font-size: 12px; font-weight: 600; color: var(--raw-depth); margin-bottom: 22px;
 }
-.statDot { width: 6px; height: 6px; border-radius: 50%; background: var(--raw-reef); }
+.statDot { width: 6px; height: 6px; border-radius: 50%; background: var(--raw-reef); flex-shrink: 0; }
 .heroTitle { font-size: 46px; line-height: 1.12; color: var(--raw-depth); margin-bottom: 20px; }
 .heroSub { font-size: 15.5px; line-height: 1.65; color: #4E7169; max-width: 460px; margin-bottom: 30px; }
 .ctaRow { display: flex; gap: 14px; flex-wrap: wrap; }
@@ -38,19 +101,36 @@
 .floatBadge {
   position: absolute; background: #fff; border-radius: 14px; padding: 11px 15px;
   box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 10px;
+  max-width: calc(50% - 10px);
 }
 .floatBadgeTitle { font-family: var(--font-display); font-weight: 700; font-size: 12.5px; color: var(--raw-depth); }
 .floatBadgeSub { font-size: 10.5px; color: #7A9691; }
 
-/* wave divider between sections */
 .divider { position: relative; height: 0; }
-.divider svg { position: absolute; bottom: -1px; left: 0; width: 100%; height: 70px; display: block; }
+.divider svg { position: absolute; bottom: -1px; inset-inline-start: 0; width: 100%; height: 70px; display: block; }
+
+/* ---------- PARTNERS ---------- */
+.partnersSec { padding: 50px 0; text-align: center; background: var(--raw-pearlwhite); }
+.partnersLabel { font-size: 12px; color: rgba(41,57,74,0.5); margin-bottom: 22px; font-weight: 600; }
+.partnerRow { display: flex; justify-content: center; gap: 36px; flex-wrap: wrap; opacity: 0.6; }
+.partnerTile { width: 90px; height: 34px; background: var(--raw-lagoonfill); border-radius: 6px; }
+.partnersSub { margin-top: 20px; font-size: 12.5px; color: #7A9691; }
+
+/* ---------- ALUMNI PROJECTS ---------- */
+.alumniSec { background: var(--raw-lagoon); padding: 90px 0; text-align: center; }
+.alumniIntro { color: #4E7169; max-width: 520px; margin: 0 auto 48px; }
+.projectGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: start; }
+.projectCard { background: #fff; border-radius: 16px; padding: 26px; box-shadow: var(--shadow-sm); }
+.projectIcon { width: 44px; height: 44px; border-radius: 12px; margin-bottom: 16px; }
+.projectTitle { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--raw-depth); margin-bottom: 8px; }
+.projectDesc { font-size: 12.5px; color: #5C7873; line-height: 1.6; margin-bottom: 16px; }
+.projectStudent { font-size: 11px; color: rgba(41,57,74,0.5); font-weight: 600; }
 
 /* ---------- TRACKS: pearl cluster ---------- */
 .tracksSec { background: var(--raw-pearlwhite); padding: 60px 0 100px; }
 .tracksHead { text-align: center; margin-bottom: 20px; }
 .pearlCluster { display: flex; align-items: flex-start; justify-content: center; gap: 60px; margin-top: 50px; flex-wrap: wrap; }
-.pearlItem { display: flex; flex-direction: column; align-items: center; text-align: center; width: 220px; }
+.pearlItem { display: flex; flex-direction: column; align-items: center; text-align: center; width: 220px; max-width: 100%; }
 .pearlItem:nth-child(1) { margin-top: 40px; }
 .pearlItem:nth-child(3) { margin-top: 60px; }
 .pearlCircle {
@@ -70,7 +150,7 @@
 .mapNodes { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
 .mapNode { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .mapNodeCurrent { width: 52px; height: 52px; box-shadow: 0 0 0 4px rgba(255,185,48,0.25); }
-.mapLine { flex: 1; height: 2px; background: #1E4650; }
+.mapLine { flex: 1; height: 2px; background: #1E4650; min-width: 12px; }
 .hudRow { display: flex; gap: 14px; margin-bottom: 24px; }
 .hudChip { background: #123A42; border-radius: 10px; padding: 10px 14px; font-size: 11.5px; flex: 1; }
 .hudChip b { display: block; font-family: var(--font-mono); font-size: 16px; color: var(--raw-sungold); }
@@ -91,10 +171,10 @@
 .schoolsList { display: flex; flex-direction: column; gap: 16px; margin: 24px 0 28px; }
 .schoolsItem b { font-family: var(--font-display); font-size: 14px; color: var(--raw-depth); display: block; }
 .schoolsItem span { font-size: 12.5px; color: #5C7873; }
-.dashMock { background: var(--raw-depth); border-radius: 16px; padding: 20px; }
+.dashMock { background: var(--raw-depth); border-radius: 16px; padding: 20px; overflow: hidden; }
 .dashBar { display: flex; gap: 6px; margin-bottom: 16px; }
 .dashDot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.15); }
-.rosterRow { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 11.5px; color: #C7DDD8; }
+.rosterRow { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 11.5px; color: #C7DDD8; }
 
 /* ---------- STATS ---------- */
 .statsSec { background: var(--raw-lagoon); padding: 70px 0; }
@@ -102,11 +182,11 @@
 .statNum { font-family: var(--font-display); font-weight: 800; font-size: 34px; color: var(--raw-coral); }
 .statLabel { font-size: 12px; color: #5C7873; margin-top: 4px; }
 
-/* ---------- TESTIMONIALS: scattered bubbles ---------- */
+/* ---------- TESTIMONIALS ---------- */
 .testiSec { background: var(--raw-reef); padding: 100px 0; }
 .testiCluster { display: flex; justify-content: center; gap: 30px; margin-top: 56px; flex-wrap: wrap; }
 .testiBubble {
-  background: #fff; border-radius: 20px 20px 20px 4px; padding: 24px; width: 270px;
+  background: #fff; border-radius: 20px 20px 20px 4px; padding: 24px; width: 270px; max-width: 100%;
   box-shadow: 0 14px 30px rgba(8,63,56,0.15);
 }
 .testiBubble:nth-child(1) { transform: rotate(-2deg); margin-top: 20px; }
@@ -117,16 +197,16 @@
 .testiPerson { display: flex; align-items: center; gap: 10px; }
 .testiAvatar {
   width: 32px; height: 32px; border-radius: 50%; background: var(--raw-depth);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   font-family: var(--font-display); font-weight: 700; font-size: 12px; color: var(--raw-gold);
 }
 .testiName { font-size: 12px; font-weight: 600; color: var(--raw-depth); }
 .testiRole { font-size: 10.5px; color: #8FA8A3; }
 
-/* ---------- PRICING: pearl string ---------- */
+/* ---------- PRICING ---------- */
 .pricingSec { background: var(--raw-pearlwhite); padding: 100px 0; }
 .priceRow { display: flex; justify-content: center; align-items: flex-end; gap: 0; margin-top: -30px; flex-wrap: wrap; }
-.pricePanel { padding: 30px 26px; width: 260px; text-align: center; }
+.pricePanel { padding: 30px 26px; width: 260px; max-width: 100%; text-align: center; }
 .heroPlan {
   background: var(--raw-depth); border-radius: 24px; color: var(--raw-pearlwhite);
   padding: 44px 30px; margin: 0 -10px; z-index: 2; box-shadow: var(--shadow-lg);
@@ -135,7 +215,7 @@
 .planPrice { font-family: var(--font-display); font-weight: 800; font-size: 30px; margin: 10px 0 4px; }
 .planNote { font-size: 11.5px; color: #7A9691; margin-bottom: 18px; }
 .heroPlan .planNote { color: #8FA8A3; }
-.planFeatures { display: flex; flex-direction: column; gap: 9px; margin-bottom: 22px; font-size: 12.5px; color: #4E7169; text-align: left; }
+.planFeatures { display: flex; flex-direction: column; gap: 9px; margin-bottom: 22px; font-size: 12.5px; color: #4E7169; text-align: start; }
 .heroPlan .planFeatures { color: #C7DDD8; }
 .planFeatures span { display: flex; align-items: center; gap: 8px; }
 
@@ -156,13 +236,172 @@
   display: flex; justify-content: space-between; font-size: 11.5px; color: #6E9691; flex-wrap: wrap; gap: 10px;
 }
 
-/* ---------- RESPONSIVE ---------- */
+/* ---------- ARABIC TYPE OVERRIDE ----------
+   Applied via className={styles.arRoot} on the ar page's root <main>
+   (attribute selectors like [lang='ar'] aren't allowed here — Next's
+   CSS Modules loader requires every rule to contain a local class).
+   --font-display / --font-mono (from globals.css) are Latin fonts,
+   so headings/mono numerals need an Arabic-capable stack instead.
+   Swap this for your real Arabic webfont if you already load one
+   in layout.tsx. */
+.arRoot {
+  font-family: 'Tajawal', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+}
+.arRoot h1,
+.arRoot h2,
+.arRoot h3 {
+  font-family: 'Tajawal', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 900px) {
   .heroGrid, .mapGrid, .schoolsGrid { grid-template-columns: 1fr; }
-  .pearlCluster { flex-direction: column; align-items: center; }
+  .heroVisual { order: -1; }
+  .pearlCluster { flex-direction: column; align-items: center; gap: 40px; }
   .pearlItem { margin-top: 0 !important; }
   .priceRow { flex-direction: column; align-items: center; }
-  .heroPlan { margin: 20px 0; }
+  .heroPlan { margin: 20px 0; order: -1; }
   .footerGrid { grid-template-columns: 1fr 1fr; }
   .heroTitle { font-size: 34px; }
+  .heroWatermark { font-size: 340px; }
+  .projectGrid { grid-template-columns: 1fr; }
+  .pathSec, .schoolsSec, .alumniSec, .testiSec, .pricingSec, .statsSec { padding-top: 70px; padding-bottom: 70px; }
+}
+
+@media (max-width: 640px) {
+  .hero { padding: 24px 0 90px; }
+  .heroWatermark { font-size: 220px; top: -50px; }
+  .heroTitle { font-size: 28px; }
+  .heroSub { font-size: 14.5px; }
+  .statBadge { font-size: 11px; padding: 6px 12px; }
+  .ctaRow { flex-direction: column; align-items: stretch; }
+  .ctaRow > a, .ctaRow > button { width: 100%; }
+  .ctaRow button { width: 100%; }
+
+  .heroVisual { padding: 0 10px; margin-bottom: 10px; }
+  .floatBadge { padding: 8px 11px; font-size: 11px; }
+  .floatBadgeTitle { font-size: 11px; }
+  .floatBadgeSub { font-size: 9.5px; }
+
+  .partnersSec { padding: 34px 0; }
+  .partnerRow { gap: 18px; }
+  .partnerTile { width: 68px; height: 26px; }
+
+  .alumniSec, .tracksSec, .pathSec, .schoolsSec, .statsSec, .testiSec, .pricingSec { padding-top: 50px; padding-bottom: 50px; }
+
+  .pearlCluster { gap: 30px; margin-top: 34px; }
+  .pearlCircleLg { width: 130px; height: 130px; }
+  .pearlCircleMd { width: 100px; height: 100px; }
+  .pearlCircleSm { width: 88px; height: 88px; }
+
+  .mapNodes { gap: 8px; }
+  .mapNode { width: 36px; height: 36px; }
+  .mapNodeCurrent { width: 42px; height: 42px; }
+  .hudRow { flex-direction: column; gap: 10px; }
+
+  .dashMock { padding: 16px; }
+  .rosterRow { font-size: 11px; }
+
+  .statsRow { gap: 24px 18px; }
+  .statNum { font-size: 26px; }
+
+  .testiCluster { gap: 20px; margin-top: 36px; }
+  .testiBubble { transform: none !important; margin-top: 0 !important; width: 100%; max-width: 340px; }
+
+  .heroPlan { padding: 34px 22px; }
+  .pricePanel { width: 100%; max-width: 320px; }
+
+  .finalCtaTitle { font-size: 24px; }
+  .finalCta { padding: 70px 0 60px; }
+  .finalCtas { flex-direction: column; align-items: stretch; width: 100%; }
+  .finalCtas > a, .finalCtas > button { width: 100%; }
+
+  .footerGrid { grid-template-columns: 1fr; gap: 26px; }
+  .footerBottom { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 400px) {
+  .heroTitle { font-size: 24px; }
+  .heroWatermark { font-size: 160px; }
+  .pearlCircleLg { width: 110px; height: 110px; }
+  .pearlCircleMd { width: 88px; height: 88px; }
+  .pearlCircleSm { width: 78px; height: 78px; }
+  .statNum { font-size: 22px; }
+}
+.partnerTile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  /* remove any background/placeholder styling that was there before */
+  opacity: 0.6;
+  filter: grayscale(100%);
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.partnerTile:hover {
+  opacity: 1;
+  filter: grayscale(0%);
+}
+
+.partnerLogo {
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+}
+.projectCarousel {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 40px 24px 20px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.projectCarousel::-webkit-scrollbar {
+  display: none;
+}
+
+.projectSlide {
+  flex: 0 0 auto;
+  width: 280px;
+  scroll-snap-align: start;
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.projectShot {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  background: #F0EEE4;
+}
+
+.projectImg {
+  object-fit: cover;
+}
+
+.projectTitle {
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.projectStudent {
+  color: rgba(41,57,74,0.6);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+@media (max-width: 640px) {
+  .projectSlide {
+    width: 78vw;
+  }
 }

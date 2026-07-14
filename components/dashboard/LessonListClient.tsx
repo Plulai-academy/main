@@ -136,7 +136,7 @@ export default function LessonListClient({ userId, skill, lessons, completions, 
     <div className="p-4 md:p-6 lg:p-10 max-w-3xl" dir={dir}>
       {/* Back */}
       <Link
-        href="/dashboard/skills"
+        href="/dashboard/path"
         className="inline-flex items-center gap-1.5 text-muted font-extrabold text-sm hover:text-white transition-colors mb-5 md:mb-6 group"
       >
         <Icon kind="chevronLeft" className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -257,7 +257,7 @@ export default function LessonListClient({ userId, skill, lessons, completions, 
 
                     {!isLocked && (
                       <Link
-                        href={`/dashboard/skills/${skill.id}/lesson/${lesson.id}`}
+                        href={`/dashboard/path/${skill.id}/lesson/${lesson.id}`}
                         className={cn(
                           'px-4 py-2 rounded-2xl font-black text-xs shrink-0 transition-all touch-manipulation',
                           'active:translate-y-0.5 active:shadow-none',

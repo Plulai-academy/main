@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardNav from '@/components/layout/DashboardNav'
 import TrialBanner from '@/components/layout/TrialBanner'
+import PresenceHeartbeat from '@/components/dashboard/PresenceHeartbeat'
 import { updateStreak } from '@/lib/supabase/queries'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
@@ -12,43 +13,34 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   if (!user) redirect('/auth/login')
 
-  // Fetch profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  // No profile row → onboarding
   if (!profile) redirect('/onboarding')
 
-  // Onboarding not completed → onboarding
-  // Admin accounts bypass this: they have is_admin=true and we skip the check
   const isAdmin = (profile as any).is_admin === true
   if (!profile.onboarding_done && !isAdmin) {
     redirect('/onboarding')
   }
 
-  // ── Update streak + award 1,000 coins if a new day has started ──
-  // updateStreak is idempotent: if last_active_date === today it returns
-  // immediately, so navigating between dashboard pages costs nothing.
-  // Non-blocking: wrapped in try/catch so a streak error never breaks layout.
   try { await updateStreak(user.id) } catch (_) {}
-  // ────────────────────────────────────────────────────────────────
 
-  // Compute trial / subscription status
   const now      = Date.now()
   const trialEnd = profile?.trial_ends_at ? new Date(profile.trial_ends_at).getTime() : 0
   const subEnd   = profile?.subscription_ends_at ? new Date(profile.subscription_ends_at).getTime() : 0
   const isTrialing    = trialEnd > now
   const isPaid        = subEnd > now || ['pro', 'school'].includes(profile?.subscription ?? '')
   const trialDaysLeft = isTrialing ? Math.ceil((trialEnd - now) / 86_400_000) : 0
-  // Note: subscription access gate is enforced in middleware.ts
 
   return (
     <div className="flex min-h-screen">
+      <PresenceHeartbeat userId={user.id} />
       <DashboardNav profile={profile} userId={user.id} />
-      <main className="flex-1 ml-20 lg:ml-64 relative z-10">
+
+      <main className="flex-1 pb-16 lg:pb-0 lg:ml-64 relative z-10">
         <TrialBanner
           trialDaysLeft={trialDaysLeft}
           isTrialing={isTrialing}

@@ -1,4 +1,4 @@
-// app/dashboard/skills/page.tsx — Server Component
+// app/dashboard/path/page.tsx — Server Component
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import SkillsClient from '@/components/dashboard/SkillsClient'

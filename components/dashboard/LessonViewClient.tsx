@@ -73,18 +73,33 @@ function Icon({ kind, className, style }: { kind: IconKind; className?: string; 
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Design system, condensed: ONE neutral content card, ONE dark terminal card,
-// and four semantic colors (primary/success/danger/warning) reused for every
-// state everywhere. Activity types keep their icon for recognizability, but
-// no longer get their own unique background/border color — that's what made
-// scrolling the page feel like the palette was changing every few seconds.
+// and two semantic action colors (coral primary / teal-green success) reused
+// for every state everywhere. Activity types keep their icon for
+// recognizability, but no longer get their own unique background/border color.
+//
+// GULF CIRCUIT REBRAND — "energetic" mode (kid-facing B2C app, ages 6-18):
+// Cards now sit on the Lagoon (#EAF7F4) page background (set globally on
+// <body>) as clean WHITE surfaces with soft navy hairlines, instead of the
+// old dark/space theme. Every hardcoded accent color across the ~20 activity
+// renderers in this file was pulled from a tiny palette, so recoloring it
+// here recolors the whole lesson experience consistently:
+//   accent / "correct"   → Reef Bright  #17D9C0
+//   reward / hint / tip  → Sun Gold     #FFB930
+//   primary CTA          → Coral        #FF6B57  (never used for anything else)
+//   error / "wrong"      → shared error red #E15B71 (unchanged — matches
+//                           --color-error in globals.css)
+// Code/terminal windows (code, code_editor, fill-blank, unscramble, debug,
+// drag-drop) intentionally KEEP a dark "editor" background — that's a
+// familiar, legible metaphor for a code surface even inside an otherwise
+// light, playful kid UI — but their accent hex values are updated to match.
 // ─────────────────────────────────────────────────────────────────────────────
-const CARD       = 'bg-card border border-white/8 rounded-3xl'
-const TERMINAL   = 'bg-[#0d1117] border border-white/10 rounded-3xl overflow-hidden'
-const PRIMARY_BTN  = 'bg-[#1CB0F6] text-black shadow-[0_4px_0_rgba(0,0,0,0.2)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none'
-const SUCCESS_BTN  = 'bg-[#3CB371] text-white shadow-[0_4px_0_rgba(0,0,0,0.2)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none'
+const CARD       = 'bg-white border border-[#0D2B32]/8 rounded-3xl shadow-[0_4px_20px_rgba(13,43,50,0.05)]'
+const TERMINAL   = 'bg-[#0D2B32] border border-white/10 rounded-3xl overflow-hidden'
+const PRIMARY_BTN  = 'bg-[#FF6B57] text-white shadow-[0_4px_0_rgba(13,43,50,0.18)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none'
+const SUCCESS_BTN  = 'bg-[#17D9C0] text-white shadow-[0_4px_0_rgba(13,43,50,0.18)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none'
 
 // Shared chrome for "code-window" style activities — mac-style dots, icon +
-// label, all using the same neutral terminal background regardless of type.
+// label, all using the same dark terminal background regardless of type.
 function CodeWindowHeader({ icon, label, trailing }: { icon: IconKind; label: string; trailing?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/2">
@@ -93,7 +108,7 @@ function CodeWindowHeader({ icon, label, trailing }: { icon: IconKind; label: st
         <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
         <div className="w-3 h-3 rounded-full bg-[#28c840]" />
       </div>
-      <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-muted">
+      <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-white/50">
         <Icon kind={icon} className="w-3.5 h-3.5" /> {label}
       </span>
       {trailing && <span className="ml-auto">{trailing}</span>}
@@ -102,14 +117,14 @@ function CodeWindowHeader({ icon, label, trailing }: { icon: IconKind; label: st
 }
 
 // Section eyebrow used across content blocks — small icon chip carries the
-// only color; the card itself stays neutral.
+// only color; the card itself stays neutral white.
 function SectionEyebrow({ icon, label, color }: { icon: IconKind; label: string; color: string }) {
   return (
     <div className="flex items-center gap-2 mb-3">
       <span className={cn('w-7 h-7 rounded-lg flex items-center justify-center shrink-0', color)}>
         <Icon kind={icon} className="w-4 h-4" />
       </span>
-      <span className="text-xs font-black text-muted uppercase tracking-wider">{label}</span>
+      <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{label}</span>
     </div>
   )
 }
@@ -410,12 +425,12 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
 
   if (!started) return (
     <div className={cn(CARD, 'p-6 text-center')}>
-      <div className="w-14 h-14 rounded-2xl bg-[#1CB0F6]/15 flex items-center justify-center mx-auto mb-3">
-        <Icon kind="bolt" className="w-7 h-7 text-[#1CB0F6]" />
+      <div className="w-14 h-14 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-3">
+        <Icon kind="bolt" className="w-7 h-7 text-[#0D2B32]" style={{ color: '#0F9B87' }} />
       </div>
-      <h3 className="font-fredoka text-lg mb-2">{t.speedQuiz}</h3>
-      <p className="text-sm text-muted font-semibold mb-1">{questions.length} questions · {timePerQ}s each</p>
-      {s.text && <p className="text-xs text-muted/70 mb-4">{s.text}</p>}
+      <h3 className="font-extrabold text-lg mb-2 text-[#0D2B32]">{t.speedQuiz}</h3>
+      <p className="text-sm text-[#4E7169] font-semibold mb-1">{questions.length} questions · {timePerQ}s each</p>
+      {s.text && <p className="text-xs text-[#4E7169]/70 mb-4">{s.text}</p>}
       <button onClick={() => setStarted(true)} className={cn('px-8 py-3 rounded-2xl font-extrabold text-sm transition-all', PRIMARY_BTN)}>
         {t.startQuiz}
       </button>
@@ -427,21 +442,21 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
     const resultIcon: IconKind = pct === 100 ? 'trophy' : pct >= 70 ? 'partyPop' : 'fire'
     return (
       <div className={cn(CARD, 'p-6 text-center')}>
-        <div className="w-16 h-16 rounded-2xl bg-[#3CB371]/15 flex items-center justify-center mx-auto mb-3">
-          <Icon kind={resultIcon} className="w-8 h-8 text-[#3CB371]" />
+        <div className="w-16 h-16 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-3">
+          <Icon kind={resultIcon} className="w-8 h-8" style={{ color: '#0F9B87' }} />
         </div>
-        <h3 className="font-fredoka text-2xl mb-1">{score}/{questions.length}</h3>
-        <p className="text-sm text-muted font-semibold mb-4">{pct}% — {pct === 100 ? 'Perfect!' : pct >= 70 ? 'Great job!' : 'Keep practising!'}</p>
+        <h3 className="font-extrabold text-2xl mb-1 text-[#0D2B32]">{score}/{questions.length}</h3>
+        <p className="text-sm text-[#4E7169] font-semibold mb-4">{pct}% — {pct === 100 ? 'Perfect!' : pct >= 70 ? 'Great job!' : 'Keep practising!'}</p>
         <div className="flex justify-center gap-2 mb-4">
           {results.map((r, i) => (
-            <span key={i} className={cn('w-8 h-8 rounded-full flex items-center justify-center', r ? 'bg-[#3CB371]/20 text-[#3CB371]' : 'bg-red-500/20 text-red-400')}>
+            <span key={i} className={cn('w-8 h-8 rounded-full flex items-center justify-center', r ? 'bg-[#17D9C0]/20 text-[#0F9B87]' : 'bg-[#E15B71]/20 text-[#E15B71]')}>
               <Icon kind={r ? 'check' : 'x'} className="w-4 h-4" />
             </span>
           ))}
         </div>
         {pct < 100 && (
           <button onClick={() => { setStarted(false); setQIdx(0); setTimeLeft(timePerQ); setSelected(null); setSubmitted(false); setScore(0); setDone(false); setResults([]) }}
-            className="px-6 py-2 rounded-xl font-extrabold text-sm border border-white/10 text-muted hover:text-white hover:border-white/25 transition-all">
+            className="px-6 py-2 rounded-xl font-extrabold text-sm border border-[#0D2B32]/15 text-[#4E7169] hover:text-[#0D2B32] hover:border-[#0D2B32]/30 transition-all">
             {t.tryAgain}
           </button>
         )}
@@ -451,39 +466,39 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
 
   const q    = questions[qIdx]
   const pct  = Math.round((timeLeft / timePerQ) * 100)
-  const timerColor = timeLeft <= 3 ? 'bg-red-500' : timeLeft <= 5 ? 'bg-amber-500' : 'bg-[#1CB0F6]'
+  const timerColor = timeLeft <= 3 ? 'bg-[#E15B71]' : timeLeft <= 5 ? 'bg-[#FFB930]' : 'bg-[#17D9C0]'
 
   return (
     <div className={cn(CARD, 'p-5 sm:p-6')}>
       <div className="flex items-center justify-between mb-4">
-        <span className="text-xs font-black text-muted uppercase tracking-wider flex items-center gap-1.5">
-          <Icon kind="bolt" className="w-3.5 h-3.5 text-[#1CB0F6]" /> {t.speedQuiz}
+        <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider flex items-center gap-1.5">
+          <Icon kind="bolt" className="w-3.5 h-3.5" style={{ color: '#0F9B87' }} /> {t.speedQuiz}
         </span>
         <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-muted">{qIdx + 1}/{questions.length}</span>
+          <span className="text-xs font-bold text-[#4E7169]">{qIdx + 1}/{questions.length}</span>
           <div className="flex items-center gap-2">
-            <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="w-24 h-2 bg-[#0D2B32]/8 rounded-full overflow-hidden">
               <div className={cn('h-full rounded-full transition-all duration-1000', timerColor)} style={{ width: `${pct}%` }} />
             </div>
-            <span className={cn('text-sm font-extrabold tabular-nums w-5 text-right', timeLeft <= 3 ? 'text-red-400' : 'text-white')}>{timeLeft}</span>
+            <span className={cn('text-sm font-extrabold tabular-nums w-5 text-right', timeLeft <= 3 ? 'text-[#E15B71]' : 'text-[#0D2B32]')}>{timeLeft}</span>
           </div>
         </div>
       </div>
 
-      <p className="font-extrabold text-sm mb-4 leading-relaxed">{q.question}</p>
+      <p className="font-extrabold text-sm mb-4 leading-relaxed text-[#0D2B32]">{q.question}</p>
 
       <div className="space-y-2 mb-4">
         {q.options.map((opt, oi) => {
-          let cls = 'border-white/10 bg-white/3 text-muted hover:border-white/25 hover:text-white cursor-pointer'
+          let cls = 'border-[#0D2B32]/10 bg-[#EAF7F4]/50 text-[#4E7169] hover:border-[#0D2B32]/25 hover:text-[#0D2B32] cursor-pointer'
           if (submitted) {
-            if (oi === q.correct) cls = 'border-[#3CB371]/60 bg-[#3CB371]/15 text-[#3CB371] cursor-default'
-            else if (selected === oi) cls = 'border-red-500/40 bg-red-500/10 text-red-400 cursor-default'
-            else cls = 'border-white/5 bg-white/1 text-muted/40 cursor-default'
-          } else if (selected === oi) cls = 'border-[#1CB0F6]/50 bg-[#1CB0F6]/15 text-white cursor-pointer'
+            if (oi === q.correct) cls = 'border-[#17D9C0]/60 bg-[#17D9C0]/15 text-[#0F9B87] cursor-default'
+            else if (selected === oi) cls = 'border-[#E15B71]/40 bg-[#E15B71]/10 text-[#E15B71] cursor-default'
+            else cls = 'border-[#0D2B32]/5 bg-[#0D2B32]/3 text-[#4E7169]/40 cursor-default'
+          } else if (selected === oi) cls = 'border-[#17D9C0]/50 bg-[#17D9C0]/15 text-[#0D2B32] cursor-pointer'
           return (
             <button key={oi} onClick={() => !submitted && setSelected(oi)} disabled={submitted}
               className={cn('w-full text-left px-4 py-3 rounded-2xl text-sm font-bold border transition-all', cls)}>
-              <span className="font-extrabold mr-2 text-muted/60">{String.fromCharCode(65 + oi)}.</span> {opt}
+              <span className="font-extrabold mr-2 text-[#4E7169]/60">{String.fromCharCode(65 + oi)}.</span> {opt}
             </button>
           )
         })}
@@ -497,8 +512,8 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
       ) : (
         <div className="space-y-3">
           {q.explanation && (
-            <div className="bg-white/4 border border-white/8 rounded-2xl p-3">
-              <p className="text-xs text-muted font-semibold leading-relaxed">{q.explanation}</p>
+            <div className="bg-[#EAF7F4]/60 border border-[#0D2B32]/8 rounded-2xl p-3">
+              <p className="text-xs text-[#4E7169] font-semibold leading-relaxed">{q.explanation}</p>
             </div>
           )}
           <button onClick={goNext} className={cn('w-full py-2.5 rounded-2xl font-extrabold text-sm flex items-center justify-center gap-1.5 transition-all', SUCCESS_BTN)}>
@@ -509,10 +524,10 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
       )}
 
       <div className="flex justify-between items-center mt-3">
-        <span className="text-xs text-muted font-semibold">{t.score}: {score}</span>
+        <span className="text-xs text-[#4E7169] font-semibold">{t.score}: {score}</span>
         <div className="flex gap-1">
           {questions.map((_, i) => (
-            <div key={i} className={cn('w-2 h-2 rounded-full', i < results.length ? (results[i] ? 'bg-[#3CB371]' : 'bg-red-500') : i === qIdx ? 'bg-[#1CB0F6]' : 'bg-white/10')} />
+            <div key={i} className={cn('w-2 h-2 rounded-full', i < results.length ? (results[i] ? 'bg-[#17D9C0]' : 'bg-[#E15B71]') : i === qIdx ? 'bg-[#17D9C0]' : 'bg-[#0D2B32]/10')} />
           ))}
         </div>
       </div>
@@ -550,7 +565,7 @@ function FillBlankActivity({ s, t, onComplete }: { s: Section; t: Record<string,
   return (
     <div className={TERMINAL}>
       <CodeWindowHeader icon="pencil" label={t.fillBlank}
-        trailing={s.text ? <span className="text-xs text-muted/60 truncate max-w-xs">{s.text}</span> : undefined} />
+        trailing={s.text ? <span className="text-xs text-white/40 truncate max-w-xs">{s.text}</span> : undefined} />
 
       <div className="p-5 font-mono text-sm leading-8 overflow-x-auto">
         {parts.map((part, pi) => {
@@ -560,7 +575,7 @@ function FillBlankActivity({ s, t, onComplete }: { s: Section; t: Record<string,
           const isWrong   = checked && !results[currentBlank]
           return (
             <React.Fragment key={pi}>
-              <span className="text-green-300 whitespace-pre">{part}</span>
+              <span className="text-[#17D9C0] whitespace-pre">{part}</span>
               {pi < parts.length - 1 && (
                 <input
                   ref={el => { inputRefs.current[currentBlank] = el }}
@@ -570,9 +585,9 @@ function FillBlankActivity({ s, t, onComplete }: { s: Section; t: Record<string,
                   disabled={checked && isCorrect}
                   className={cn(
                     'inline-block px-2 py-0.5 rounded-md border text-sm font-mono font-bold text-center transition-all outline-none min-w-[80px]',
-                    isCorrect ? 'bg-[#3CB371]/20 border-[#3CB371]/60 text-[#3CB371]' :
-                    isWrong   ? 'bg-red-500/20 border-red-500/50 text-red-400' :
-                                'bg-white/8 border-white/20 text-white focus:border-[#1CB0F6]/60 focus:bg-[#1CB0F6]/10'
+                    isCorrect ? 'bg-[#17D9C0]/20 border-[#17D9C0]/60 text-[#17D9C0]' :
+                    isWrong   ? 'bg-[#E15B71]/20 border-[#E15B71]/50 text-[#E15B71]' :
+                                'bg-white/8 border-white/20 text-white focus:border-[#17D9C0]/60 focus:bg-[#17D9C0]/10'
                   )}
                   style={{ width: `${Math.max(blanks[currentBlank]?.length * 10 + 24, 80)}px` }}
                   placeholder="___" spellCheck={false} autoComplete="off"
@@ -588,10 +603,10 @@ function FillBlankActivity({ s, t, onComplete }: { s: Section; t: Record<string,
           {hints.map((hint, i) => (
             <div key={i} className="flex items-center gap-1.5">
               <button onClick={() => { const n = [...showHints]; n[i] = !n[i]; setShowHints(n) }}
-                className="text-xs font-bold text-amber-400/70 hover:text-amber-400 transition-colors flex items-center gap-1">
+                className="text-xs font-bold text-[#FFB930]/80 hover:text-[#FFB930] transition-colors flex items-center gap-1">
                 <Icon kind="flashlight" className="w-3 h-3" /> {showHints[i] ? t.hideHint : `${t.showHint} ${i + 1}`}
               </button>
-              {showHints[i] && <span className="text-xs text-muted italic">→ {hint}</span>}
+              {showHints[i] && <span className="text-xs text-white/50 italic">→ {hint}</span>}
             </div>
           ))}
         </div>
@@ -599,18 +614,18 @@ function FillBlankActivity({ s, t, onComplete }: { s: Section; t: Record<string,
 
       <div className="px-5 py-4 border-t border-white/5 flex items-center justify-between gap-3">
         {allCorrect ? (
-          <p className="text-sm font-extrabold text-[#3CB371] flex items-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> Perfect! Every blank is correct.</p>
+          <p className="text-sm font-extrabold text-[#17D9C0] flex items-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> Perfect! Every blank is correct.</p>
         ) : checked && !allCorrect ? (
-          <p className="text-sm font-bold text-red-400">{results.filter(Boolean).length}/{blanks.length} correct — check the red ones</p>
+          <p className="text-sm font-bold text-[#E15B71]">{results.filter(Boolean).length}/{blanks.length} correct — check the red ones</p>
         ) : (
-          <p className="text-xs text-muted/50">Fill all blanks then check</p>
+          <p className="text-xs text-white/30">Fill all blanks then check</p>
         )}
         <div className="flex gap-2">
           {checked && !allCorrect && (
-            <button onClick={reset} className="px-4 py-2 rounded-xl text-xs font-extrabold border border-white/10 text-muted hover:text-white transition-all">Reset</button>
+            <button onClick={reset} className="px-4 py-2 rounded-xl text-xs font-extrabold border border-white/10 text-white/50 hover:text-white transition-all">Reset</button>
           )}
           <button onClick={check} disabled={inputs.some(v => !v.trim()) || allCorrect}
-            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#1CB0F6]/20 text-[#1CB0F6] border border-[#1CB0F6]/30 hover:bg-[#1CB0F6]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#17D9C0]/20 text-[#17D9C0] border border-[#17D9C0]/30 hover:bg-[#17D9C0]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
             {t.checkAnswer}
           </button>
         </div>
@@ -653,10 +668,10 @@ function UnscrambleActivity({ s, t, onComplete }: { s: Section; t: Record<string
   return (
     <div className={TERMINAL}>
       <CodeWindowHeader icon="shuffle" label={t.unscramble}
-        trailing={s.text ? <span className="text-xs text-muted/60">{s.text}</span> : undefined} />
+        trailing={s.text ? <span className="text-xs text-white/40">{s.text}</span> : undefined} />
 
       <div className="p-4 space-y-2">
-        <p className="text-xs text-muted/60 font-semibold mb-3 flex items-center gap-1.5">
+        <p className="text-xs text-white/30 font-semibold mb-3 flex items-center gap-1.5">
           <Icon kind="dragHandle" className="w-3.5 h-3.5" /> Drag to reorder, or use the arrow buttons
         </p>
         {order.map((lineIdx, i) => {
@@ -671,20 +686,20 @@ function UnscrambleActivity({ s, t, onComplete }: { s: Section; t: Record<string
               onDrop={() => handleDrop(i)}
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all cursor-grab active:cursor-grabbing select-none',
-                dragOver === i ? 'border-[#1CB0F6]/60 bg-[#1CB0F6]/10' :
-                lineCorrect    ? 'border-[#3CB371]/50 bg-[#3CB371]/10' :
-                lineWrong      ? 'border-red-500/40 bg-red-500/8' :
-                dragging === i ? 'border-[#1CB0F6]/40 bg-[#1CB0F6]/8 opacity-50' :
+                dragOver === i ? 'border-[#17D9C0]/60 bg-[#17D9C0]/10' :
+                lineCorrect    ? 'border-[#17D9C0]/50 bg-[#17D9C0]/10' :
+                lineWrong      ? 'border-[#E15B71]/40 bg-[#E15B71]/8' :
+                dragging === i ? 'border-[#17D9C0]/40 bg-[#17D9C0]/8 opacity-50' :
                                  'border-white/8 bg-white/3 hover:border-white/15'
               )}>
               <span className="text-xs font-mono text-white/20 w-4 flex-shrink-0">{i + 1}</span>
               <Icon kind="dragHandle" className="w-3.5 h-3.5 text-white/20 flex-shrink-0" />
-              <code className={cn('flex-1 text-sm font-mono whitespace-pre', lineCorrect ? 'text-[#3CB371]' : lineWrong ? 'text-red-400' : 'text-green-300')}>{lines[lineIdx]}</code>
+              <code className={cn('flex-1 text-sm font-mono whitespace-pre', lineCorrect ? 'text-[#17D9C0]' : lineWrong ? 'text-[#E15B71]' : 'text-[#17D9C0]/80')}>{lines[lineIdx]}</code>
               <div className="flex flex-col gap-0.5 flex-shrink-0">
                 <button onClick={() => moveUp(i)} disabled={i === 0} aria-label="Move line up" className="text-white/20 hover:text-white/60 disabled:opacity-10 transition-colors"><Icon kind="arrowUp" className="w-3 h-3" /></button>
                 <button onClick={() => moveDown(i)} disabled={i === order.length - 1} aria-label="Move line down" className="text-white/20 hover:text-white/60 disabled:opacity-10 transition-colors"><Icon kind="arrowDown" className="w-3 h-3" /></button>
               </div>
-              {checked && <Icon kind={lineCorrect ? 'check' : 'x'} className={cn('w-4 h-4 flex-shrink-0', lineCorrect ? 'text-[#3CB371]' : 'text-red-400')} />}
+              {checked && <Icon kind={lineCorrect ? 'check' : 'x'} className={cn('w-4 h-4 flex-shrink-0', lineCorrect ? 'text-[#17D9C0]' : 'text-[#E15B71]')} />}
             </div>
           )
         })}
@@ -692,14 +707,14 @@ function UnscrambleActivity({ s, t, onComplete }: { s: Section; t: Record<string
 
       <div className="px-5 py-4 border-t border-white/5 flex items-center justify-between">
         {correct ? (
-          <p className="text-sm font-extrabold text-[#3CB371] flex items-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> Perfect order! The code runs correctly.</p>
+          <p className="text-sm font-extrabold text-[#17D9C0] flex items-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> Perfect order! The code runs correctly.</p>
         ) : checked ? (
-          <p className="text-sm font-bold text-red-400">Not quite — some lines are out of order</p>
+          <p className="text-sm font-bold text-[#E15B71]">Not quite — some lines are out of order</p>
         ) : (
-          <p className="text-xs text-muted/50">Arrange the lines into the correct order</p>
+          <p className="text-xs text-white/30">Arrange the lines into the correct order</p>
         )}
         {!correct && (
-          <button onClick={check} className="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#1CB0F6]/20 text-[#1CB0F6] border border-[#1CB0F6]/30 hover:bg-[#1CB0F6]/30 transition-all">
+          <button onClick={check} className="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#17D9C0]/20 text-[#17D9C0] border border-[#17D9C0]/30 hover:bg-[#17D9C0]/30 transition-all">
             {t.checkAnswer}
           </button>
         )}
@@ -734,33 +749,33 @@ function DebugActivity({ s, t, onComplete }: { s: Section; t: Record<string, str
           <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
           <div className="w-3 h-3 rounded-full bg-[#28c840]" />
         </div>
-        <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-muted">
-          <Icon kind="bug" className="w-3.5 h-3.5 text-red-400" /> {t.debug}
+        <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-white/50">
+          <Icon kind="bug" className="w-3.5 h-3.5 text-[#E15B71]" /> {t.debug}
         </span>
-        <span className="ml-auto text-xs text-muted/60 font-semibold">{bugs.length} bug{bugs.length !== 1 ? 's' : ''} hidden</span>
+        <span className="ml-auto text-xs text-white/40 font-semibold">{bugs.length} bug{bugs.length !== 1 ? 's' : ''} hidden</span>
       </div>
 
-      {s.text && <p className="px-5 pt-4 text-sm text-muted font-semibold">{s.text}</p>}
+      {s.text && <p className="px-5 pt-4 text-sm text-white/60 font-semibold">{s.text}</p>}
 
       <div className="relative">
-        <pre className="px-5 py-4 text-sm font-mono text-red-300/90 leading-7 overflow-x-auto whitespace-pre">{code}</pre>
+        <pre className="px-5 py-4 text-sm font-mono text-[#FF9A8C] leading-7 overflow-x-auto whitespace-pre">{code}</pre>
         <button
           onClick={() => { navigator.clipboard.writeText(code); setCopiedBroken(true); setTimeout(() => setCopiedBroken(false), 2000) }}
           aria-label={copiedBroken ? 'Code copied' : 'Copy code'}
-          className="absolute top-3 right-3 text-xs font-bold text-muted/50 hover:text-white border border-white/10 rounded-lg px-2 py-1 transition-all flex items-center gap-1">
+          className="absolute top-3 right-3 text-xs font-bold text-white/40 hover:text-white border border-white/10 rounded-lg px-2 py-1 transition-all flex items-center gap-1">
           <Icon kind={copiedBroken ? 'check' : 'copy'} className="w-3 h-3" /> {copiedBroken ? '' : 'Copy'}
         </button>
       </div>
 
       <div className="px-5 py-4 border-t border-white/5 space-y-2">
-        <p className="text-xs font-black text-muted uppercase tracking-wider mb-3">Find and fix each bug, then check it off:</p>
+        <p className="text-xs font-black text-white/40 uppercase tracking-wider mb-3">Find and fix each bug, then check it off:</p>
         {bugs.map((bug, i) => (
           <button key={i} onClick={() => toggleFound(i)}
             className={cn(
               'w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-sm font-semibold text-left transition-all',
-              found[i] ? 'bg-[#3CB371]/10 border-[#3CB371]/30 text-[#3CB371]' : 'bg-white/3 border-white/8 text-muted hover:border-white/20 hover:text-white'
+              found[i] ? 'bg-[#17D9C0]/10 border-[#17D9C0]/30 text-[#17D9C0]' : 'bg-white/3 border-white/8 text-white/60 hover:border-white/20 hover:text-white'
             )}>
-            <span className={cn('w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-all', found[i] ? 'bg-[#3CB371] border-[#3CB371] text-white' : 'border-white/20')}>
+            <span className={cn('w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-all', found[i] ? 'bg-[#17D9C0] border-[#17D9C0] text-white' : 'border-white/20')}>
               {found[i] && <Icon kind="check" className="w-3 h-3" />}
             </span>
             <span className={cn(found[i] && 'line-through opacity-50')}>Bug {i + 1}: {bug}</span>
@@ -773,10 +788,10 @@ function DebugActivity({ s, t, onComplete }: { s: Section; t: Record<string, str
           {hints.map((hint, i) => (
             <div key={i} className="flex items-center gap-2">
               <button onClick={() => { const n = [...showH]; n[i] = !n[i]; setShowH(n) }}
-                className="text-xs font-bold text-amber-400/70 hover:text-amber-400 transition-colors flex items-center gap-1">
+                className="text-xs font-bold text-[#FFB930]/80 hover:text-[#FFB930] transition-colors flex items-center gap-1">
                 <Icon kind="flashlight" className="w-3 h-3" /> {showH[i] ? 'Hide' : `Hint ${i + 1}`}
               </button>
-              {showH[i] && <span className="text-xs text-amber-300/80 italic">{hint}</span>}
+              {showH[i] && <span className="text-xs text-[#FFB930]/90 italic">{hint}</span>}
             </div>
           ))}
         </div>
@@ -784,8 +799,8 @@ function DebugActivity({ s, t, onComplete }: { s: Section; t: Record<string, str
 
       {allFixed && (
         <div className="px-5 pb-5">
-          <div className="bg-[#3CB371]/10 border border-[#3CB371]/30 rounded-2xl p-4 text-center">
-            <p className="text-sm font-extrabold text-[#3CB371] flex items-center justify-center gap-1.5">
+          <div className="bg-[#17D9C0]/10 border border-[#17D9C0]/30 rounded-2xl p-4 text-center">
+            <p className="text-sm font-extrabold text-[#17D9C0] flex items-center justify-center gap-1.5">
               <Icon kind="bug" className="w-4 h-4" /> All bugs squashed! Great debugging.
             </p>
           </div>
@@ -823,24 +838,24 @@ function TimedChallengeActivity({ s, t, lessonTitle, onComplete }: { s: Section;
   const mins = Math.floor(timeLeft / 60)
   const secs = timeLeft % 60
   const pct  = Math.round((timeLeft / duration) * 100)
-  const timerColor = pct > 50 ? '#3CB371' : pct > 25 ? '#f59e0b' : '#ef4444'
+  const timerColor = pct > 50 ? '#17D9C0' : pct > 25 ? '#FFB930' : '#E15B71'
 
   if (phase === 'idle') return (
     <div className={cn(CARD, 'p-6')}>
       <div className="flex items-center gap-2 mb-3">
-        <Icon kind="timer" className="w-5 h-5 text-[#1CB0F6]" />
-        <span className="text-xs font-black text-muted uppercase tracking-wider">{t.timedChallenge}</span>
+        <Icon kind="timer" className="w-5 h-5" style={{ color: '#0F9B87' }} />
+        <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.timedChallenge}</span>
       </div>
-      {s.title && <h3 className="font-extrabold text-base mb-2">{s.title}</h3>}
-      <p className="text-sm font-semibold leading-relaxed text-muted mb-4">{s.task ?? s.text}</p>
+      {s.title && <h3 className="font-extrabold text-base mb-2 text-[#0D2B32]">{s.title}</h3>}
+      <p className="text-sm font-semibold leading-relaxed text-[#4E7169] mb-4">{s.task ?? s.text}</p>
       {s.expected_output && (
-        <div className="bg-[#0d1117] border border-white/10 rounded-2xl p-3 mb-4">
-          <p className="text-xs font-bold text-muted mb-1">Expected output:</p>
-          <pre className="text-sm font-mono text-green-400 whitespace-pre-wrap">{s.expected_output}</pre>
+        <div className="bg-[#0D2B32] border border-white/10 rounded-2xl p-3 mb-4">
+          <p className="text-xs font-bold text-white/50 mb-1">Expected output:</p>
+          <pre className="text-sm font-mono text-[#17D9C0] whitespace-pre-wrap">{s.expected_output}</pre>
         </div>
       )}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="text-sm text-muted font-semibold">
+        <div className="text-sm text-[#4E7169] font-semibold">
           {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, '0')} — finish early for bonus XP!
         </div>
         <button onClick={start} className={cn('px-6 py-2.5 rounded-2xl font-extrabold text-sm transition-all', PRIMARY_BTN)}>
@@ -852,18 +867,18 @@ function TimedChallengeActivity({ s, t, lessonTitle, onComplete }: { s: Section;
 
   if (phase === 'done') return (
     <div className={cn(CARD, 'p-6 text-center')}>
-      <div className="w-14 h-14 rounded-2xl bg-[#3CB371]/15 flex items-center justify-center mx-auto mb-3">
-        <Icon kind={bonusUnlocked ? 'star' : 'check'} className="w-7 h-7 text-[#3CB371]" />
+      <div className="w-14 h-14 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-3">
+        <Icon kind={bonusUnlocked ? 'star' : 'check'} className="w-7 h-7" style={{ color: '#0F9B87' }} />
       </div>
-      <h3 className="font-extrabold text-lg mb-2">{bonusUnlocked ? t.bonusChallenge : 'Challenge complete!'}</h3>
+      <h3 className="font-extrabold text-lg mb-2 text-[#0D2B32]">{bonusUnlocked ? t.bonusChallenge : 'Challenge complete!'}</h3>
       {bonusUnlocked && s.bonus_task && (
-        <div className="bg-white/4 border border-white/8 rounded-2xl p-4 mt-3 text-left">
-          <p className="text-xs font-extrabold text-muted mb-2 uppercase tracking-wider">Bonus challenge:</p>
-          <p className="text-sm font-semibold text-muted">{s.bonus_task}</p>
+        <div className="bg-[#EAF7F4] border border-[#0D2B32]/8 rounded-2xl p-4 mt-3 text-left">
+          <p className="text-xs font-extrabold text-[#4E7169] mb-2 uppercase tracking-wider">Bonus challenge:</p>
+          <p className="text-sm font-semibold text-[#4E7169]">{s.bonus_task}</p>
         </div>
       )}
       <Link href={`/dashboard/coach?topic=${encodeURIComponent(lessonTitle)}`}
-        className="inline-flex items-center gap-1.5 mt-4 text-xs font-bold text-[#1CB0F6] hover:text-white transition-colors">
+        className="inline-flex items-center gap-1.5 mt-4 text-xs font-bold text-[#0F9B87] hover:text-[#0D2B32] transition-colors">
         <Icon kind="robot" className="w-3.5 h-3.5" /> Get feedback from AI Coach
       </Link>
     </div>
@@ -872,21 +887,21 @@ function TimedChallengeActivity({ s, t, lessonTitle, onComplete }: { s: Section;
   return (
     <div className={cn(CARD, 'p-6')}>
       <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <Icon kind="timer" className="w-5 h-5 text-[#1CB0F6]" />
-        <span className="text-xs font-black text-muted uppercase tracking-wider">{t.timedChallenge}</span>
+        <Icon kind="timer" className="w-5 h-5" style={{ color: '#0F9B87' }} />
+        <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.timedChallenge}</span>
         <div className="ml-auto flex items-center gap-2">
-          <div className="w-32 h-2.5 bg-white/10 rounded-full overflow-hidden">
+          <div className="w-32 h-2.5 bg-[#0D2B32]/8 rounded-full overflow-hidden">
             <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: timerColor }} />
           </div>
-          <span className={cn('text-base font-extrabold tabular-nums', timeLeft <= 60 ? 'text-red-400' : 'text-white')}>{mins}:{String(secs).padStart(2, '0')}</span>
+          <span className={cn('text-base font-extrabold tabular-nums', timeLeft <= 60 ? 'text-[#E15B71]' : 'text-[#0D2B32]')}>{mins}:{String(secs).padStart(2, '0')}</span>
         </div>
       </div>
-      {s.title && <h3 className="font-extrabold text-base mb-2">{s.title}</h3>}
-      <p className="text-sm font-semibold leading-relaxed text-muted mb-4">{s.task ?? s.text}</p>
+      {s.title && <h3 className="font-extrabold text-base mb-2 text-[#0D2B32]">{s.title}</h3>}
+      <p className="text-sm font-semibold leading-relaxed text-[#4E7169] mb-4">{s.task ?? s.text}</p>
       {s.hint && (
         <details className="mb-4">
-          <summary className="text-xs font-bold text-[#1CB0F6] cursor-pointer hover:text-white transition-colors">Hint</summary>
-          <p className="text-sm text-muted font-semibold mt-2 pl-4 border-l-2 border-[#1CB0F6]/30 leading-relaxed">{s.hint}</p>
+          <summary className="text-xs font-bold text-[#0F9B87] cursor-pointer hover:text-[#0D2B32] transition-colors">Hint</summary>
+          <p className="text-sm text-[#4E7169] font-semibold mt-2 pl-4 border-l-2 border-[#17D9C0]/30 leading-relaxed">{s.hint}</p>
         </details>
       )}
       <button onClick={submit} className={cn('w-full py-3 rounded-2xl font-extrabold text-sm transition-all', SUCCESS_BTN)}>
@@ -905,11 +920,11 @@ function RemixActivity({ s, t, lessonTitle, onComplete }: { s: Section; t: Recor
 
   if (!unlocked) return (
     <div className={cn(CARD, 'border-dashed p-5 text-center')}>
-      <div className="w-12 h-12 rounded-2xl bg-[#1CB0F6]/15 flex items-center justify-center mx-auto mb-2">
-        <Icon kind="palette" className="w-6 h-6 text-[#1CB0F6]" />
+      <div className="w-12 h-12 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-2">
+        <Icon kind="palette" className="w-6 h-6" style={{ color: '#0F9B87' }} />
       </div>
-      <p className="font-extrabold text-sm mb-1">{t.remix}</p>
-      <p className="text-xs text-muted font-semibold mb-4">{t.remixDesc}</p>
+      <p className="font-extrabold text-sm mb-1 text-[#0D2B32]">{t.remix}</p>
+      <p className="text-xs text-[#4E7169] font-semibold mb-4">{t.remixDesc}</p>
       <button onClick={() => setUnlocked(true)} className={cn('px-6 py-2.5 rounded-2xl font-extrabold text-sm flex items-center gap-1.5 mx-auto transition-all', PRIMARY_BTN)}>
         Unlock Remix <Icon kind="lock" className="w-3.5 h-3.5" />
       </button>
@@ -919,30 +934,30 @@ function RemixActivity({ s, t, lessonTitle, onComplete }: { s: Section; t: Recor
   return (
     <div className={cn(CARD, 'p-5')}>
       <div className="flex items-center gap-2 mb-3">
-        <Icon kind="palette" className="w-5 h-5 text-[#1CB0F6]" />
-        <span className="text-xs font-black text-muted uppercase tracking-wider">{t.remix}</span>
-        {s.xp_bonus && <span className="ml-auto text-xs font-extrabold text-[#1CB0F6] bg-[#1CB0F6]/15 border border-[#1CB0F6]/25 px-2.5 py-0.5 rounded-full">+{s.xp_bonus} XP</span>}
+        <Icon kind="palette" className="w-5 h-5" style={{ color: '#0F9B87' }} />
+        <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.remix}</span>
+        {s.xp_bonus && <span className="ml-auto text-xs font-extrabold text-[#0F9B87] bg-[#17D9C0]/15 border border-[#17D9C0]/25 px-2.5 py-0.5 rounded-full">+{s.xp_bonus} XP</span>}
       </div>
-      {s.title && <h3 className="font-extrabold text-base mb-2">{s.title}</h3>}
-      <p className="text-sm font-semibold leading-relaxed mb-4">{s.twist ?? s.text}</p>
+      {s.title && <h3 className="font-extrabold text-base mb-2 text-[#0D2B32]">{s.title}</h3>}
+      <p className="text-sm font-semibold leading-relaxed mb-4 text-[#0D2B32]">{s.twist ?? s.text}</p>
       {s.hint && (
         <details className="mb-4">
-          <summary className="text-xs font-bold text-[#1CB0F6] cursor-pointer hover:text-white transition-colors">{t.showHint}</summary>
-          <p className="text-sm text-muted font-semibold mt-2 pl-4 border-l-2 border-[#1CB0F6]/30 leading-relaxed">{s.hint}</p>
+          <summary className="text-xs font-bold text-[#0F9B87] cursor-pointer hover:text-[#0D2B32] transition-colors">{t.showHint}</summary>
+          <p className="text-sm text-[#4E7169] font-semibold mt-2 pl-4 border-l-2 border-[#17D9C0]/30 leading-relaxed">{s.hint}</p>
         </details>
       )}
       <div className="flex items-center gap-3 flex-wrap">
         <Link href={`/dashboard/coach?topic=${encodeURIComponent(lessonTitle + ' remix')}`}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1CB0F6] hover:text-white transition-colors">
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F9B87] hover:text-[#0D2B32] transition-colors">
           <Icon kind="robot" className="w-3.5 h-3.5" /> Show AI Coach my remix
         </Link>
         {!finished ? (
           <button onClick={() => { setFinished(true); onComplete?.() }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-[#3CB371]/15 text-[#3CB371] border border-[#3CB371]/25 hover:bg-[#3CB371]/25 transition-all">
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-[#17D9C0]/15 text-[#0F9B87] border border-[#17D9C0]/25 hover:bg-[#17D9C0]/25 transition-all">
             <Icon kind="check" className="w-3.5 h-3.5" /> {t.remixDone}
           </button>
         ) : (
-          <p className="text-xs font-extrabold text-[#3CB371] flex items-center gap-1.5">
+          <p className="text-xs font-extrabold text-[#0F9B87] flex items-center gap-1.5">
             <Icon kind="check" className="w-4 h-4" /> {t.remixComplete}
           </p>
         )}
@@ -1006,10 +1021,10 @@ function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, 
   return (
     <div className={TERMINAL}>
       <CodeWindowHeader icon="puzzle" label={t.dragDrop}
-        trailing={s.text ? <span className="text-xs text-muted/60 truncate max-w-xs">{s.text}</span> : undefined} />
+        trailing={s.text ? <span className="text-xs text-white/40 truncate max-w-xs">{s.text}</span> : undefined} />
 
       <div className="p-5 space-y-6">
-        <p className="text-xs font-semibold text-muted/70">{s.instructions ?? t.dragInstruction}</p>
+        <p className="text-xs font-semibold text-white/40">{s.instructions ?? t.dragInstruction}</p>
 
         <div className="space-y-3">
           {targets.map(tgt => {
@@ -1019,24 +1034,24 @@ function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, 
             return (
               <div key={tgt.id} onDragOver={e => e.preventDefault()} onDrop={() => dropOnSlot(tgt.id)} className="flex items-center gap-3">
                 <div className="min-w-[120px] sm:min-w-[160px] text-right">
-                  <code className="text-sm font-mono text-green-300 whitespace-pre">{tgt.label}</code>
+                  <code className="text-sm font-mono text-[#17D9C0]/80 whitespace-pre">{tgt.label}</code>
                 </div>
-                <Icon kind="chevronRight" className="w-4 h-4 text-muted/40 flex-shrink-0" />
+                <Icon kind="chevronRight" className="w-4 h-4 text-white/25 flex-shrink-0" />
                 <div className={cn(
                   'flex-1 min-h-[40px] rounded-2xl border-2 border-dashed flex items-center px-3 transition-all',
                   filled
-                    ? isCorrect ? 'border-[#3CB371]/50 bg-[#3CB371]/10' : isWrong ? 'border-red-500/50 bg-red-500/10' : 'border-[#1CB0F6]/50 bg-[#1CB0F6]/10'
-                    : dragging  ? 'border-[#1CB0F6]/50 bg-[#1CB0F6]/5 scale-[1.01]' : 'border-white/15 bg-white/3'
+                    ? isCorrect ? 'border-[#17D9C0]/50 bg-[#17D9C0]/10' : isWrong ? 'border-[#E15B71]/50 bg-[#E15B71]/10' : 'border-[#17D9C0]/50 bg-[#17D9C0]/10'
+                    : dragging  ? 'border-[#17D9C0]/50 bg-[#17D9C0]/5 scale-[1.01]' : 'border-white/15 bg-white/3'
                 )}>
                   {filled ? (
                     <div draggable onDragStart={() => setDragging({ word: filled, from: tgt.id })}
                       className={cn('px-3 py-1 rounded-lg text-sm font-bold cursor-grab active:cursor-grabbing select-none flex items-center gap-1.5',
-                        isCorrect ? 'bg-[#3CB371]/20 text-[#3CB371]' : isWrong ? 'bg-red-500/20 text-red-400' : 'bg-[#1CB0F6]/20 text-[#1CB0F6]')}>
+                        isCorrect ? 'bg-[#17D9C0]/20 text-[#17D9C0]' : isWrong ? 'bg-[#E15B71]/20 text-[#E15B71]' : 'bg-[#17D9C0]/20 text-[#17D9C0]')}>
                       {filled}
                       {checked && <Icon kind={isCorrect ? 'check' : 'x'} className="w-3.5 h-3.5" />}
                     </div>
                   ) : (
-                    <span className="text-xs text-white/20 font-semibold">Drop here</span>
+                    <span className="text-xs text-white/25 font-semibold">Drop here</span>
                   )}
                 </div>
               </div>
@@ -1045,12 +1060,12 @@ function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, 
         </div>
 
         <div onDragOver={e => e.preventDefault()} onDrop={dropOnBank} className="min-h-[52px] rounded-2xl border border-white/8 bg-white/2 p-3">
-          <p className="text-xs font-black text-muted/50 uppercase tracking-wider mb-2">{t.wordBank}</p>
+          <p className="text-xs font-black text-white/30 uppercase tracking-wider mb-2">{t.wordBank}</p>
           <div className="flex flex-wrap gap-2">
-            {bank.length === 0 && <span className="text-xs text-white/20 italic">All words placed — drag back to swap</span>}
+            {bank.length === 0 && <span className="text-xs text-white/25 italic">All words placed — drag back to swap</span>}
             {bank.map((word, i) => (
               <div key={`${word}-${i}`} draggable onDragStart={() => setDragging({ word, from: 'bank' })}
-                className="px-3 py-1.5 rounded-lg text-sm font-bold bg-[#1CB0F6]/15 text-[#1CB0F6] border border-[#1CB0F6]/25 cursor-grab active:cursor-grabbing select-none hover:bg-[#1CB0F6]/25 transition-all">
+                className="px-3 py-1.5 rounded-lg text-sm font-bold bg-[#17D9C0]/15 text-[#17D9C0] border border-[#17D9C0]/25 cursor-grab active:cursor-grabbing select-none hover:bg-[#17D9C0]/25 transition-all">
                 {word}
               </div>
             ))}
@@ -1058,20 +1073,20 @@ function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, 
         </div>
 
         {allCorrect && (
-          <div className="bg-[#3CB371]/10 border border-[#3CB371]/30 rounded-2xl p-4 text-center">
-            <p className="text-sm font-extrabold text-[#3CB371] flex items-center justify-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> Perfect! Every word is in the right place.</p>
+          <div className="bg-[#17D9C0]/10 border border-[#17D9C0]/30 rounded-2xl p-4 text-center">
+            <p className="text-sm font-extrabold text-[#17D9C0] flex items-center justify-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> Perfect! Every word is in the right place.</p>
           </div>
         )}
         {checked && !allCorrect && (
-          <div className="bg-red-500/8 border border-red-500/20 rounded-2xl p-3 text-center">
-            <p className="text-sm font-bold text-red-400">{Object.values(results).filter(Boolean).length}/{targets.length} correct — drag and swap the wrong ones</p>
+          <div className="bg-[#E15B71]/8 border border-[#E15B71]/20 rounded-2xl p-3 text-center">
+            <p className="text-sm font-bold text-[#E15B71]">{Object.values(results).filter(Boolean).length}/{targets.length} correct — drag and swap the wrong ones</p>
           </div>
         )}
 
         <div className="flex items-center justify-between">
-          <button onClick={reset} className="text-xs font-bold text-muted hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-all hover:border-white/25">{t.resetWords}</button>
+          <button onClick={reset} className="text-xs font-bold text-white/50 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-all hover:border-white/25">{t.resetWords}</button>
           <button onClick={check} disabled={!allFilled || allCorrect}
-            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#1CB0F6]/20 text-[#1CB0F6] border border-[#1CB0F6]/30 hover:bg-[#1CB0F6]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#17D9C0]/20 text-[#17D9C0] border border-[#17D9C0]/30 hover:bg-[#17D9C0]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
             {t.checkAnswer}
           </button>
         </div>
@@ -1114,19 +1129,19 @@ function SubmitWorkActivity({ s, t, userId, lessonId, onComplete }: { s: Section
 
   if (submitted) return (
     <div className={cn(CARD, 'p-6 text-center')}>
-      <div className="w-16 h-16 rounded-2xl bg-[#3CB371]/15 flex items-center justify-center mx-auto mb-3">
-        <Icon kind="partyPop" className="w-8 h-8 text-[#3CB371]" />
+      <div className="w-16 h-16 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-3">
+        <Icon kind="partyPop" className="w-8 h-8" style={{ color: '#0F9B87' }} />
       </div>
-      <h3 className="font-extrabold text-lg text-[#3CB371] mb-2">{t.submitDone}</h3>
-      <p className="text-sm text-muted font-semibold">Your work has been saved to your portfolio.</p>
+      <h3 className="font-extrabold text-lg text-[#0F9B87] mb-2">{t.submitDone}</h3>
+      <p className="text-sm text-[#4E7169] font-semibold">Your work has been saved to your portfolio.</p>
       <div className="flex items-center justify-center gap-4 mt-4">
         {urlVal && (
-          <a href={urlVal} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1CB0F6] hover:text-white transition-colors">
+          <a href={urlVal} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F9B87] hover:text-[#0D2B32] transition-colors">
             <Icon kind="link" className="w-3.5 h-3.5" /> View project
           </a>
         )}
         {videoVal && (
-          <a href={videoVal} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1CB0F6] hover:text-white transition-colors">
+          <a href={videoVal} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F9B87] hover:text-[#0D2B32] transition-colors">
             <Icon kind="video" className="w-3.5 h-3.5" /> Watch video
           </a>
         )}
@@ -1136,67 +1151,67 @@ function SubmitWorkActivity({ s, t, userId, lessonId, onComplete }: { s: Section
 
   return (
     <div className={cn(CARD, 'overflow-hidden')}>
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-white/8 bg-white/2">
-        <div className="w-10 h-10 rounded-xl bg-[#1CB0F6]/15 flex items-center justify-center shrink-0">
-          <Icon kind="upload" className="w-5 h-5 text-[#1CB0F6]" />
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-[#0D2B32]/8 bg-[#EAF7F4]/40">
+        <div className="w-10 h-10 rounded-xl bg-[#17D9C0]/15 flex items-center justify-center shrink-0">
+          <Icon kind="upload" className="w-5 h-5" style={{ color: '#0F9B87' }} />
         </div>
         <div>
-          <p className="font-extrabold text-sm text-muted">{t.submitWork}</p>
-          {s.prompt && <p className="text-xs text-muted font-semibold mt-0.5">{s.prompt}</p>}
+          <p className="font-extrabold text-sm text-[#0D2B32]">{t.submitWork}</p>
+          {s.prompt && <p className="text-xs text-[#4E7169] font-semibold mt-0.5">{s.prompt}</p>}
         </div>
       </div>
 
       <div className="p-5 space-y-4">
         {s.text && (
-          <div className="bg-white/3 border border-white/8 rounded-2xl p-4">
-            <p className="text-sm font-semibold text-muted leading-relaxed">{s.text}</p>
+          <div className="bg-[#EAF7F4]/50 border border-[#0D2B32]/8 rounded-2xl p-4">
+            <p className="text-sm font-semibold text-[#4E7169] leading-relaxed">{s.text}</p>
           </div>
         )}
 
         {(subType === 'url' || subType === 'both') && (
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-black text-muted uppercase tracking-wider mb-2">
+            <label className="flex items-center gap-1.5 text-xs font-black text-[#4E7169] uppercase tracking-wider mb-2">
               <Icon kind="link" className="w-3.5 h-3.5" /> {t.submitUrl}
             </label>
             <input type="url" value={urlVal} onChange={e => { setUrlVal(e.target.value); setError('') }}
               placeholder={s.placeholder ?? t.submitPlaceholder}
-              className="w-full bg-white/4 border border-white/12 rounded-2xl px-4 py-3 text-sm font-semibold text-white placeholder:text-white/25 outline-none focus:border-[#1CB0F6]/50 focus:bg-[#1CB0F6]/5 transition-all" />
+              className="w-full bg-white border border-[#0D2B32]/15 rounded-2xl px-4 py-3 text-sm font-semibold text-[#0D2B32] placeholder:text-[#4E7169]/40 outline-none focus:border-[#17D9C0]/60 focus:bg-[#17D9C0]/5 transition-all" />
             {urlVal && !validate(urlVal) && (
-              <p className="text-xs text-red-400 font-semibold mt-1.5">That doesn&apos;t look like a valid URL — make sure it starts with https://</p>
+              <p className="text-xs text-[#E15B71] font-semibold mt-1.5">That doesn&apos;t look like a valid URL — make sure it starts with https://</p>
             )}
           </div>
         )}
 
         {(subType === 'video' || subType === 'both') && (
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-black text-muted uppercase tracking-wider mb-2">
+            <label className="flex items-center gap-1.5 text-xs font-black text-[#4E7169] uppercase tracking-wider mb-2">
               <Icon kind="video" className="w-3.5 h-3.5" /> {t.submitVideo}
             </label>
             <input type="url" value={videoVal} onChange={e => { setVideoVal(e.target.value); setError('') }}
               placeholder="https://loom.com/share/… or https://youtube.com/…"
-              className="w-full bg-white/4 border border-white/12 rounded-2xl px-4 py-3 text-sm font-semibold text-white placeholder:text-white/25 outline-none focus:border-[#1CB0F6]/50 focus:bg-[#1CB0F6]/5 transition-all" />
+              className="w-full bg-white border border-[#0D2B32]/15 rounded-2xl px-4 py-3 text-sm font-semibold text-[#0D2B32] placeholder:text-[#4E7169]/40 outline-none focus:border-[#17D9C0]/60 focus:bg-[#17D9C0]/5 transition-all" />
             {videoVal && !validate(videoVal) && (
-              <p className="text-xs text-red-400 font-semibold mt-1.5">That doesn&apos;t look like a valid URL — paste the full link</p>
+              <p className="text-xs text-[#E15B71] font-semibold mt-1.5">That doesn&apos;t look like a valid URL — paste the full link</p>
             )}
-            <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-white/3 rounded-lg border border-white/6">
-              <Icon kind="lightbulb" className="w-4 h-4 text-amber-400/80 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-muted/70 font-semibold leading-relaxed">
+            <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-[#FFB930]/8 rounded-lg border border-[#FFB930]/15">
+              <Icon kind="lightbulb" className="w-4 h-4 text-[#B8790E] flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-[#4E7169] font-semibold leading-relaxed">
                 No video yet? Record a 90-second screen demo on{' '}
-                <a href="https://loom.com" target="_blank" rel="noopener noreferrer" className="text-[#1CB0F6] hover:text-white transition-colors">Loom.com</a>
+                <a href="https://loom.com" target="_blank" rel="noopener noreferrer" className="text-[#0F9B87] hover:text-[#0D2B32] transition-colors">Loom.com</a>
                 {' '}— free, no install, works in your browser.
               </p>
             </div>
           </div>
         )}
 
-        {error && <p className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
+        {error && <p className="text-xs font-bold text-[#E15B71] bg-[#E15B71]/10 border border-[#E15B71]/20 rounded-lg px-3 py-2">{error}</p>}
 
         <button onClick={handleSubmit} disabled={loading}
           className={cn('w-full py-3.5 rounded-2xl font-extrabold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2', PRIMARY_BTN)}>
           {loading ? <><Icon kind="hourglass" className="w-4 h-4" /> Saving…</> : t.submitBtn}
         </button>
 
-        <p className="text-xs text-center text-muted/50 font-semibold">
+        <p className="text-xs text-center text-[#4E7169]/70 font-semibold">
           Your submission is saved to your Plulai portfolio and visible to your teacher.
         </p>
       </div>
@@ -1358,36 +1373,37 @@ export default function LessonViewClient({
   const canComplete         = allActivitiesDone
 
   const markComplete = () => {
-    if (isDone) return
-    startTransition(async () => {
-      const score = 100
-      await completeLesson(userId, lesson.id, score, lesson.duration_mins)
-      await updateStreak(userId)
-      const result = await addXP(userId, lesson.xp_reward, 'lesson_complete', lesson.id)
-      const pct = Math.min(100, Math.round((lessonIndex / totalLessons) * 100))
-      await updateSkillProgress(userId, skill.id, pct)
-      if (!nextLesson && pct >= 100) await addXP(userId, skill.xp_reward, 'skill_complete', skill.id)
-      await checkAndAwardBadges(userId)
+  if (isDone) return
+  startTransition(async () => {
+    const score = 100
+    const elapsedMins = Math.max(1, Math.round((Date.now() - lessonStartRef.current) / 60000))
+    await completeLesson(userId, lesson.id, score, elapsedMins)
+    await updateStreak(userId)
+    const result = await addXP(userId, lesson.xp_reward, 'lesson_complete', lesson.id)
+    const pct = Math.min(100, Math.round((lessonIndex / totalLessons) * 100))
+    await updateSkillProgress(userId, skill.id, pct)
+    if (!nextLesson && pct >= 100) await addXP(userId, skill.xp_reward, 'skill_complete', skill.id)
+    await checkAndAwardBadges(userId)
 
-      fetch('/api/coins/xp', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ xpEarned: lesson.xp_reward }),
-      }).catch(() => {})
+    fetch('/api/coins/xp', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ xpEarned: lesson.xp_reward }),
+    }).catch(() => {})
 
-      setJustCompleted(true); setShowFeedback(true)
-      showToast(`+${lesson.xp_reward} ${t.xpEarned}`)
-      if (result.data && result.data.leveledUp) {
-        const rd = result.data as any
-        setLevelUp(`${t.levelUp} Level ${rd.newLevel}!`)
-        setTimeout(() => setLevelUp(null), 4000)
-        setTimeout(() => setShareCard({ type: 'level', childName: userName, childAvatar: userAvatar, newLevel: rd.newLevel, levelTitle: rd.levelTitle ?? '', totalXP: rd.totalXP ?? undefined }), 1200)
-      }
-      if (!nextLesson && pct >= 100) {
-        setTimeout(() => setShareCard({ type: 'skill', childName: userName, childAvatar: userAvatar, skillName: skill.title, skillEmoji: skill.emoji, trackName: skill.track_id, xpEarned: (lesson.xp_reward ?? 0) + (skill.xp_reward ?? 0) }), levelUp ? 5000 : 800)
-      }
-      router.refresh()
-    })
-  }
+    setJustCompleted(true); setShowFeedback(true)
+    showToast(`+${lesson.xp_reward} ${t.xpEarned}`)
+    if (result.data && result.data.leveledUp) {
+      const rd = result.data as any
+      setLevelUp(`${t.levelUp} Level ${rd.newLevel}!`)
+      setTimeout(() => setLevelUp(null), 4000)
+      setTimeout(() => setShareCard({ type: 'level', childName: userName, childAvatar: userAvatar, newLevel: rd.newLevel, levelTitle: rd.levelTitle ?? '', totalXP: rd.totalXP ?? undefined }), 1200)
+    }
+    if (!nextLesson && pct >= 100) {
+      setTimeout(() => setShareCard({ type: 'skill', childName: userName, childAvatar: userAvatar, skillName: skill.title, skillEmoji: skill.emoji, trackName: skill.track_id, xpEarned: (lesson.xp_reward ?? 0) + (skill.xp_reward ?? 0) }), levelUp ? 5000 : 800)
+    }
+    router.refresh()
+  })
+}
 
   const getVideoEmbed = (url: string): string | null => {
     const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/)
@@ -1408,8 +1424,8 @@ export default function LessonViewClient({
       case 'reading':
         return (
           <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
-            <SectionEyebrow icon="book" label={t.reading} color="bg-[#1CB0F6]/15 text-[#1CB0F6]" />
-            <p className="text-sm font-semibold leading-relaxed whitespace-pre-line">{s.text}</p>
+            <SectionEyebrow icon="book" label={t.reading} color="bg-[#17D9C0]/15 text-[#0F9B87]" />
+            <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-[#0D2B32]">{s.text}</p>
           </div>
         )
 
@@ -1417,22 +1433,22 @@ export default function LessonViewClient({
         return (
           <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
             <div className="flex items-center gap-2 mb-2">
-              <Icon kind="lightbulb" className="w-4 h-4 text-[#1CB0F6]" />
-              <p className="font-extrabold text-sm text-muted">{t.analogy}</p>
+              <Icon kind="lightbulb" className="w-4 h-4" style={{ color: '#0F9B87' }} />
+              <p className="font-extrabold text-sm text-[#4E7169]">{t.analogy}</p>
             </div>
-            <p className="text-sm font-semibold leading-relaxed">{s.text}</p>
+            <p className="text-sm font-semibold leading-relaxed text-[#0D2B32]">{s.text}</p>
           </div>
         )
 
       case 'tip':
         return (
           <div key={idx} className={cn(CARD, 'p-4 sm:p-5 flex gap-3')}>
-            <span className="w-9 h-9 rounded-xl bg-amber-400/15 flex items-center justify-center flex-shrink-0">
-              <Icon kind="lightbulb" className="w-5 h-5 text-amber-400" />
+            <span className="w-9 h-9 rounded-xl bg-[#FFB930]/15 flex items-center justify-center flex-shrink-0">
+              <Icon kind="lightbulb" className="w-5 h-5 text-[#B8790E]" />
             </span>
             <div>
-              <p className="font-extrabold text-xs text-amber-400 mb-1 uppercase tracking-wider">{t.tip}</p>
-              <p className="text-sm font-semibold leading-relaxed whitespace-pre-line">{s.text}</p>
+              <p className="font-extrabold text-xs text-[#B8790E] mb-1 uppercase tracking-wider">{t.tip}</p>
+              <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-[#0D2B32]">{s.text}</p>
             </div>
           </div>
         )
@@ -1446,15 +1462,15 @@ export default function LessonViewClient({
                 <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
                 <div className="w-3 h-3 rounded-full bg-[#28c840]" />
               </div>
-              <span className="text-xs font-bold text-muted flex-1 truncate flex items-center gap-1.5">
+              <span className="text-xs font-bold text-white/50 flex-1 truncate flex items-center gap-1.5">
                 <Icon kind="code" className="w-3.5 h-3.5" /> {t.code} — {s.language ?? 'code'}
               </span>
             </div>
-            {s.instructions && <p className="px-4 sm:px-5 pt-4 text-xs text-muted/80 font-semibold italic">{s.instructions}</p>}
-            <pre className="px-4 sm:px-5 py-4 text-sm font-mono text-green-400 leading-relaxed overflow-x-auto whitespace-pre-wrap break-all max-w-full">{s.starter}</pre>
+            {s.instructions && <p className="px-4 sm:px-5 pt-4 text-xs text-white/50 font-semibold italic">{s.instructions}</p>}
+            <pre className="px-4 sm:px-5 py-4 text-sm font-mono text-[#17D9C0] leading-relaxed overflow-x-auto whitespace-pre-wrap break-all max-w-full">{s.starter}</pre>
             <div className="px-4 sm:px-5 pb-4">
               <Link href={`/dashboard/coach?topic=${encodeURIComponent(lesson.title)}`}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1CB0F6] hover:text-white transition-colors">
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17D9C0] hover:text-white transition-colors">
                 <Icon kind="robot" className="w-3.5 h-3.5" /> {lang === 'ar' ? 'اسأل المدرب' : lang === 'fr' ? "Demander au Coach" : 'Ask AI Coach to explain'}
               </Link>
             </div>
@@ -1470,19 +1486,19 @@ export default function LessonViewClient({
                 <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
                 <div className="w-3 h-3 rounded-full bg-[#28c840]" />
               </div>
-              <span className="text-xs font-bold text-muted flex-1 truncate flex items-center gap-1.5">
+              <span className="text-xs font-bold text-white/50 flex-1 truncate flex items-center gap-1.5">
                 <Icon kind="code" className="w-3.5 h-3.5" /> {t.codeViewer}
               </span>
               <button onClick={() => copyCode(s.starter ?? '', idx)}
                 aria-label={copiedIdx === idx ? t.copied : t.copyCode}
                 className={cn('flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex-shrink-0',
-                  copiedIdx === idx ? 'bg-[#3CB371]/20 text-[#3CB371] border border-[#3CB371]/30' : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white border border-white/8')}>
+                  copiedIdx === idx ? 'bg-[#17D9C0]/20 text-[#17D9C0] border border-[#17D9C0]/30' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white border border-white/8')}>
                 <Icon kind={copiedIdx === idx ? 'check' : 'copy'} className="w-3 h-3" /> {copiedIdx === idx ? t.copied : t.copyCode}
               </button>
             </div>
             {s.instructions && (
               <div className="px-4 sm:px-5 py-3 bg-white/2 border-b border-white/8">
-                <p className="text-xs text-muted font-semibold leading-relaxed">{s.instructions}</p>
+                <p className="text-xs text-white/50 font-semibold leading-relaxed">{s.instructions}</p>
               </div>
             )}
             <div className="flex overflow-x-auto">
@@ -1491,18 +1507,18 @@ export default function LessonViewClient({
                   <div key={i} className="text-xs font-mono text-white/15 leading-6">{i + 1}</div>
                 ))}
               </div>
-              <pre className="flex-1 px-4 sm:px-5 py-5 text-sm font-mono text-green-300 leading-6 whitespace-pre-wrap break-all min-w-0 max-w-full overflow-x-auto">{s.starter}</pre>
+              <pre className="flex-1 px-4 sm:px-5 py-5 text-sm font-mono text-[#17D9C0]/90 leading-6 whitespace-pre-wrap break-all min-w-0 max-w-full overflow-x-auto">{s.starter}</pre>
             </div>
             {s.hint && (
-              <div className="px-4 sm:px-5 py-3 border-t border-white/5 bg-amber-500/5 flex items-start gap-2">
-                <Icon kind="lightbulb" className="w-4 h-4 text-amber-400/80 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-300/80 font-semibold">{s.hint}</p>
+              <div className="px-4 sm:px-5 py-3 border-t border-white/5 bg-[#FFB930]/5 flex items-start gap-2">
+                <Icon kind="lightbulb" className="w-4 h-4 text-[#FFB930]/90 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#FFB930]/90 font-semibold">{s.hint}</p>
               </div>
             )}
             <div className="px-4 sm:px-5 py-3 border-t border-white/5 flex items-center justify-between">
               <span className="text-xs text-white/20 font-mono">Python 3.10</span>
               <Link href={`/dashboard/coach?topic=${encodeURIComponent(lesson.title)}`}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1CB0F6] hover:text-white transition-colors">
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17D9C0] hover:text-white transition-colors">
                 <Icon kind="robot" className="w-3.5 h-3.5" /> {lang === 'ar' ? 'اسأل المدرب' : lang === 'fr' ? 'Demander au Coach' : 'Ask AI Coach'}
               </Link>
             </div>
@@ -1516,24 +1532,24 @@ export default function LessonViewClient({
         return (
           <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
             <div className="flex items-center gap-2 mb-4">
-              <span className={cn('w-8 h-8 rounded-xl flex items-center justify-center', isCorrect ? 'bg-[#3CB371]/20 text-[#3CB371]' : isWrong ? 'bg-red-500/15 text-red-400' : 'bg-[#1CB0F6]/15 text-[#1CB0F6]')}>
+              <span className={cn('w-8 h-8 rounded-xl flex items-center justify-center', isCorrect ? 'bg-[#17D9C0]/20 text-[#0F9B87]' : isWrong ? 'bg-[#E15B71]/15 text-[#E15B71]' : 'bg-[#17D9C0]/15 text-[#0F9B87]')}>
                 <Icon kind={isCorrect ? 'check' : isWrong ? 'x' : 'quiz'} className="w-4 h-4" />
               </span>
-              <span className="text-xs font-black text-muted uppercase tracking-wider">{t.quiz}</span>
+              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.quiz}</span>
             </div>
-            <p className="font-extrabold text-sm mb-4 sm:mb-5 leading-relaxed">{s.question}</p>
+            <p className="font-extrabold text-sm mb-4 sm:mb-5 leading-relaxed text-[#0D2B32]">{s.question}</p>
             <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
               {(s.options ?? []).map((opt, oi) => {
-                let cls = 'border-white/8 bg-card2 text-muted hover:border-white/25 hover:text-white cursor-pointer'
+                let cls = 'border-[#0D2B32]/10 bg-[#EAF7F4]/40 text-[#4E7169] hover:border-[#0D2B32]/25 hover:text-[#0D2B32] cursor-pointer'
                 if (state.submitted) {
-                  if (oi === s.correct) cls = 'border-[#3CB371]/60 bg-[#3CB371]/15 text-[#3CB371] cursor-default'
-                  else if (state.selected === oi) cls = 'border-red-500/40 bg-red-500/10 text-red-400 cursor-default'
-                  else cls = 'border-white/5 bg-card2/50 text-muted/50 cursor-default'
-                } else if (state.selected === oi) cls = 'border-[#1CB0F6]/50 bg-[#1CB0F6]/15 text-white cursor-pointer'
+                  if (oi === s.correct) cls = 'border-[#17D9C0]/60 bg-[#17D9C0]/15 text-[#0F9B87] cursor-default'
+                  else if (state.selected === oi) cls = 'border-[#E15B71]/40 bg-[#E15B71]/10 text-[#E15B71] cursor-default'
+                  else cls = 'border-[#0D2B32]/5 bg-[#0D2B32]/3 text-[#4E7169]/50 cursor-default'
+                } else if (state.selected === oi) cls = 'border-[#17D9C0]/50 bg-[#17D9C0]/15 text-[#0D2B32] cursor-pointer'
                 return (
                   <button key={oi} onClick={() => selectOption(idx, oi)} disabled={state.submitted}
                     className={cn('w-full text-start px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl text-sm font-bold border transition-all', cls)}>
-                    <span className="font-extrabold mr-2 sm:mr-3 text-muted/60">{String.fromCharCode(65 + oi)}.</span>{opt}
+                    <span className="font-extrabold mr-2 sm:mr-3 text-[#4E7169]/60">{String.fromCharCode(65 + oi)}.</span>{opt}
                   </button>
                 )
               })}
@@ -1544,17 +1560,17 @@ export default function LessonViewClient({
                 {t.submit}
               </button>
             ) : isWrong ? (
-              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/20">
-                <Icon kind="x" className="w-5 h-5 text-red-400 flex-shrink-0" />
-                <p className="text-xs font-extrabold text-red-400">{t.wrong}</p>
+              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#E15B71]/10 border border-[#E15B71]/20">
+                <Icon kind="x" className="w-5 h-5 text-[#E15B71] flex-shrink-0" />
+                <p className="text-xs font-extrabold text-[#E15B71]">{t.wrong}</p>
               </div>
             ) : isCorrect ? (
               <div className="space-y-2">
-                <p className="text-sm font-extrabold text-[#3CB371] flex items-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> {t.correct}</p>
+                <p className="text-sm font-extrabold text-[#0F9B87] flex items-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> {t.correct}</p>
                 {s.explanation && (
-                  <div className="mt-3 bg-white/4 border border-white/8 rounded-2xl p-3 sm:p-4">
-                    <p className="text-xs font-bold text-muted mb-1">{lang === 'ar' ? 'الشرح' : lang === 'fr' ? 'Explication' : 'Explanation'}</p>
-                    <p className="text-sm text-muted font-semibold leading-relaxed">{s.explanation}</p>
+                  <div className="mt-3 bg-[#EAF7F4]/60 border border-[#0D2B32]/8 rounded-2xl p-3 sm:p-4">
+                    <p className="text-xs font-bold text-[#4E7169] mb-1">{lang === 'ar' ? 'الشرح' : lang === 'fr' ? 'Explication' : 'Explanation'}</p>
+                    <p className="text-sm text-[#4E7169] font-semibold leading-relaxed">{s.explanation}</p>
                   </div>
                 )}
               </div>
@@ -1566,13 +1582,13 @@ export default function LessonViewClient({
       case 'steps':
         return (
           <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
-            <SectionEyebrow icon="ladder" label={t.steps} color="bg-[#1CB0F6]/15 text-[#1CB0F6]" />
-            {s.text && <p className="text-sm font-semibold text-muted mb-4 leading-relaxed">{s.text}</p>}
+            <SectionEyebrow icon="ladder" label={t.steps} color="bg-[#17D9C0]/15 text-[#0F9B87]" />
+            {s.text && <p className="text-sm font-semibold text-[#4E7169] mb-4 leading-relaxed">{s.text}</p>}
             <ol className="space-y-3">
               {(s.items ?? []).map((item, i) => (
                 <li key={i} className="flex gap-3 sm:gap-4 items-start">
-                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1CB0F6] flex items-center justify-center text-xs font-extrabold text-black">{i + 1}</span>
-                  <p className="text-sm font-semibold leading-relaxed pt-0.5">{item}</p>
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#17D9C0] flex items-center justify-center text-xs font-extrabold text-white">{i + 1}</span>
+                  <p className="text-sm font-semibold leading-relaxed pt-0.5 text-[#0D2B32]">{item}</p>
                 </li>
               ))}
             </ol>
@@ -1583,30 +1599,30 @@ export default function LessonViewClient({
         return (
           <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
             <div className="flex items-center gap-2 mb-3">
-              <span className="w-8 h-8 rounded-xl bg-[#1CB0F6]/15 flex items-center justify-center">
-                <Icon kind="target" className="w-4 h-4 text-[#1CB0F6]" />
+              <span className="w-8 h-8 rounded-xl bg-[#17D9C0]/15 flex items-center justify-center">
+                <Icon kind="target" className="w-4 h-4" style={{ color: '#0F9B87' }} />
               </span>
-              <span className="text-xs font-black text-muted uppercase tracking-wider">{t.challenge}</span>
+              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.challenge}</span>
             </div>
-            {s.title && <p className="font-extrabold text-base mb-2">{s.title}</p>}
-            <p className="text-sm font-semibold leading-relaxed mb-4">{s.text}</p>
+            {s.title && <p className="font-extrabold text-base mb-2 text-[#0D2B32]">{s.title}</p>}
+            <p className="text-sm font-semibold leading-relaxed mb-4 text-[#0D2B32]">{s.text}</p>
             {s.expected_output && (
-              <div className="bg-[#0d1117] border border-white/10 rounded-2xl p-3 sm:p-4 mb-4">
-                <p className="text-xs font-bold text-muted mb-2">{lang === 'ar' ? 'النتيجة المتوقعة:' : lang === 'fr' ? 'Résultat attendu :' : 'Expected output:'}</p>
-                <pre className="text-sm font-mono text-green-400 whitespace-pre-wrap overflow-x-auto break-all max-w-full">{s.expected_output}</pre>
+              <div className="bg-[#0D2B32] border border-white/10 rounded-2xl p-3 sm:p-4 mb-4">
+                <p className="text-xs font-bold text-white/50 mb-2">{lang === 'ar' ? 'النتيجة المتوقعة:' : lang === 'fr' ? 'Résultat attendu :' : 'Expected output:'}</p>
+                <pre className="text-sm font-mono text-[#17D9C0] whitespace-pre-wrap overflow-x-auto break-all max-w-full">{s.expected_output}</pre>
               </div>
             )}
             {s.hint && (
               <details className="mt-2">
-                <summary className="text-xs font-bold text-[#1CB0F6] cursor-pointer hover:text-white transition-colors select-none">
+                <summary className="text-xs font-bold text-[#0F9B87] cursor-pointer hover:text-[#0D2B32] transition-colors select-none">
                   {lang === 'ar' ? 'تلميح' : lang === 'fr' ? 'Indice' : 'Hint'}
                 </summary>
-                <p className="text-sm text-muted font-semibold mt-2 leading-relaxed pl-4 border-l-2 border-[#1CB0F6]/30">{s.hint}</p>
+                <p className="text-sm text-[#4E7169] font-semibold mt-2 leading-relaxed pl-4 border-l-2 border-[#17D9C0]/30">{s.hint}</p>
               </details>
             )}
             <div className="mt-4">
               <Link href={`/dashboard/coach?topic=${encodeURIComponent(s.title ?? lesson.title)}`}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold bg-[#1CB0F6]/15 text-[#1CB0F6] border border-[#1CB0F6]/25 hover:bg-[#1CB0F6]/25 transition-all">
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold bg-[#17D9C0]/15 text-[#0F9B87] border border-[#17D9C0]/25 hover:bg-[#17D9C0]/25 transition-all">
                 <Icon kind="robot" className="w-3.5 h-3.5" /> {lang === 'ar' ? 'اطلب مساعدة المدرب' : lang === 'fr' ? "Aide du Coach IA" : 'Get help from AI Coach'}
               </Link>
             </div>
@@ -1616,10 +1632,10 @@ export default function LessonViewClient({
       case 'callout': {
         const variant = s.variant ?? 'note'
         const styles: Record<string, { icon: IconKind; text: string; chipBg: string; label: string }> = {
-          note:    { icon: 'note',    text: 'text-blue-400',   chipBg: 'bg-blue-400/15',   label: t.callout_note },
-          warning: { icon: 'warning', text: 'text-amber-400',  chipBg: 'bg-amber-400/15',  label: t.callout_warning },
-          danger:  { icon: 'danger',  text: 'text-red-400',    chipBg: 'bg-red-400/15',    label: t.callout_danger },
-          success: { icon: 'success', text: 'text-[#3CB371]',  chipBg: 'bg-[#3CB371]/15',  label: 'Good to know' },
+          note:    { icon: 'note',    text: 'text-[#0F9B87]',  chipBg: 'bg-[#17D9C0]/15',  label: t.callout_note },
+          warning: { icon: 'warning', text: 'text-[#B8790E]',  chipBg: 'bg-[#FFB930]/15',  label: t.callout_warning },
+          danger:  { icon: 'danger',  text: 'text-[#E15B71]',  chipBg: 'bg-[#E15B71]/15',  label: t.callout_danger },
+          success: { icon: 'success', text: 'text-[#0F9B87]',  chipBg: 'bg-[#17D9C0]/15',  label: 'Good to know' },
         }
         const st = styles[variant] ?? styles.note
         return (
@@ -1629,7 +1645,7 @@ export default function LessonViewClient({
             </span>
             <div>
               <p className={cn('font-extrabold text-xs mb-1.5 uppercase tracking-wider', st.text)}>{st.label}</p>
-              <p className="text-sm font-semibold leading-relaxed whitespace-pre-line">{s.text}</p>
+              <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-[#0D2B32]">{s.text}</p>
             </div>
           </div>
         )
@@ -1638,25 +1654,25 @@ export default function LessonViewClient({
       case 'comparison':
         return (
           <div key={idx} className={cn(CARD, 'overflow-hidden')}>
-            <div className="px-4 sm:px-5 py-3 border-b border-white/8 flex items-center gap-2">
-              <Icon kind="compare" className="w-4 h-4 text-muted" />
-              <span className="text-xs font-black text-muted uppercase tracking-wider">{t.comparison}</span>
+            <div className="px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8 flex items-center gap-2">
+              <Icon kind="compare" className="w-4 h-4 text-[#4E7169]" />
+              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.comparison}</span>
             </div>
-            {s.text && <p className="px-4 sm:px-5 pt-4 text-sm font-semibold text-muted leading-relaxed">{s.text}</p>}
+            {s.text && <p className="px-4 sm:px-5 pt-4 text-sm font-semibold text-[#4E7169] leading-relaxed">{s.text}</p>}
             <div className="grid grid-cols-1 sm:grid-cols-2">
-              <div className="p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-white/8">
+              <div className="p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-[#0D2B32]/8">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="w-5 h-5 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center"><Icon kind="x" className="w-3 h-3 text-red-400" /></span>
-                  <span className="text-xs font-extrabold text-red-400 uppercase">{s.before_label ?? (lang === 'ar' ? 'قبل' : lang === 'fr' ? 'Avant' : 'Before')}</span>
+                  <span className="w-5 h-5 rounded-full bg-[#E15B71]/20 border border-[#E15B71]/40 flex items-center justify-center"><Icon kind="x" className="w-3 h-3 text-[#E15B71]" /></span>
+                  <span className="text-xs font-extrabold text-[#E15B71] uppercase">{s.before_label ?? (lang === 'ar' ? 'قبل' : lang === 'fr' ? 'Avant' : 'Before')}</span>
                 </div>
-                <pre className="text-xs font-mono text-red-400/80 bg-red-500/5 border border-red-500/15 rounded-2xl p-3 sm:p-4 whitespace-pre-wrap break-all leading-relaxed overflow-x-auto max-w-full">{s.before}</pre>
+                <pre className="text-xs font-mono text-[#E15B71]/90 bg-[#E15B71]/5 border border-[#E15B71]/15 rounded-2xl p-3 sm:p-4 whitespace-pre-wrap break-all leading-relaxed overflow-x-auto max-w-full">{s.before}</pre>
               </div>
               <div className="p-4 sm:p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="w-5 h-5 rounded-full bg-[#3CB371]/20 border border-[#3CB371]/40 flex items-center justify-center"><Icon kind="check" className="w-3 h-3 text-[#3CB371]" /></span>
-                  <span className="text-xs font-extrabold text-[#3CB371] uppercase">{s.after_label ?? (lang === 'ar' ? 'بعد' : lang === 'fr' ? 'Après' : 'After')}</span>
+                  <span className="w-5 h-5 rounded-full bg-[#17D9C0]/20 border border-[#17D9C0]/40 flex items-center justify-center"><Icon kind="check" className="w-3 h-3" style={{ color: '#0F9B87' }} /></span>
+                  <span className="text-xs font-extrabold text-[#0F9B87] uppercase">{s.after_label ?? (lang === 'ar' ? 'بعد' : lang === 'fr' ? 'Après' : 'After')}</span>
                 </div>
-                <pre className="text-xs font-mono text-[#3CB371]/80 bg-[#3CB371]/5 border border-[#3CB371]/15 rounded-2xl p-3 sm:p-4 whitespace-pre-wrap break-all leading-relaxed overflow-x-auto max-w-full">{s.after}</pre>
+                <pre className="text-xs font-mono text-[#0F9B87] bg-[#17D9C0]/5 border border-[#17D9C0]/15 rounded-2xl p-3 sm:p-4 whitespace-pre-wrap break-all leading-relaxed overflow-x-auto max-w-full">{s.after}</pre>
               </div>
             </div>
           </div>
@@ -1668,14 +1684,14 @@ export default function LessonViewClient({
         const allDone = checks.every((_, i) => states[i])
         return (
           <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
-            <SectionEyebrow icon="checklist" label={t.checklist} color={allDone ? 'bg-[#3CB371]/15 text-[#3CB371]' : 'bg-white/8 text-muted'} />
-            {s.text && <p className="text-sm font-semibold text-muted mb-4 leading-relaxed">{s.text}</p>}
+            <SectionEyebrow icon="checklist" label={t.checklist} color={allDone ? 'bg-[#17D9C0]/15 text-[#0F9B87]' : 'bg-[#0D2B32]/6 text-[#4E7169]'} />
+            {s.text && <p className="text-sm font-semibold text-[#4E7169] mb-4 leading-relaxed">{s.text}</p>}
             <div className="space-y-2 sm:space-y-3">
               {checks.map((item, i) => (
                 <button key={i} onClick={() => toggleCheck(idx, i, checks.length)}
                   className={cn('w-full flex items-center gap-3 px-3 sm:px-4 py-3 rounded-2xl border text-sm font-semibold text-start transition-all',
-                    states[i] ? 'bg-[#3CB371]/10 border-[#3CB371]/30 text-[#3CB371]' : 'bg-card2 border-white/8 text-muted hover:border-white/20 hover:text-white')}>
-                  <span className={cn('w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-all', states[i] ? 'bg-[#3CB371] border-[#3CB371] text-white' : 'border-white/20')}>
+                    states[i] ? 'bg-[#17D9C0]/10 border-[#17D9C0]/30 text-[#0F9B87]' : 'bg-[#EAF7F4]/40 border-[#0D2B32]/8 text-[#4E7169] hover:border-[#0D2B32]/20 hover:text-[#0D2B32]')}>
+                  <span className={cn('w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-all', states[i] ? 'bg-[#17D9C0] border-[#17D9C0] text-white' : 'border-[#0D2B32]/20')}>
                     {states[i] && <Icon kind="check" className="w-3 h-3" />}
                   </span>
                   <span className={cn(states[i] && 'line-through opacity-70')}>{item}</span>
@@ -1683,7 +1699,7 @@ export default function LessonViewClient({
               ))}
             </div>
             {allDone && (
-              <p className="text-xs font-extrabold text-[#3CB371] mt-4 flex items-center gap-1.5">
+              <p className="text-xs font-extrabold text-[#0F9B87] mt-4 flex items-center gap-1.5">
                 <Icon kind="partyPop" className="w-3.5 h-3.5" /> {lang === 'ar' ? 'أحسنت! اكتملت جميع العناصر' : lang === 'fr' ? 'Bravo ! Tout est coché !' : 'All done!'}
               </p>
             )}
@@ -1695,10 +1711,10 @@ export default function LessonViewClient({
         const embedUrl = s.url ? getVideoEmbed(s.url) : null
         return (
           <div key={idx} className={cn(CARD, 'overflow-hidden')}>
-            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-white/8">
-              <Icon kind="play" className="w-4 h-4 text-muted" />
-              <span className="text-xs font-black text-muted uppercase tracking-wider">{t.video}</span>
-              {s.caption && <span className="text-xs text-muted/60 font-semibold ml-auto truncate max-w-[50%] sm:max-w-[60%]">{s.caption}</span>}
+            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8">
+              <Icon kind="play" className="w-4 h-4 text-[#4E7169]" />
+              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.video}</span>
+              {s.caption && <span className="text-xs text-[#4E7169]/70 font-semibold ml-auto truncate max-w-[50%] sm:max-w-[60%]">{s.caption}</span>}
             </div>
             {embedUrl ? (
               <div className="relative bg-black" style={{ paddingBottom: '56.25%' }}>
@@ -1708,8 +1724,8 @@ export default function LessonViewClient({
               </div>
             ) : (
               <div className="p-6 sm:p-8 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-[#1CB0F6]/15 flex items-center justify-center mx-auto mb-4">
-                  <Icon kind="play" className="w-8 h-8 text-[#1CB0F6]" />
+                <div className="w-16 h-16 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-4">
+                  <Icon kind="play" className="w-8 h-8" style={{ color: '#0F9B87' }} />
                 </div>
                 <a href={s.url} target="_blank" rel="noopener noreferrer"
                   className={cn('inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm transition-all', PRIMARY_BTN)}>
@@ -1726,32 +1742,32 @@ export default function LessonViewClient({
         const frameHeight = s.height ?? 500
         return (
           <div key={idx} className={cn(CARD, 'overflow-hidden')}>
-            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-white/8 bg-card2">
-              <Icon kind="link" className="w-4 h-4 text-muted flex-shrink-0" />
-              <span className="text-xs font-black text-muted uppercase tracking-wider flex-1 truncate">{t.website}</span>
+            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8 bg-[#EAF7F4]/50">
+              <Icon kind="link" className="w-4 h-4 text-[#4E7169] flex-shrink-0" />
+              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider flex-1 truncate">{t.website}</span>
               {(s.url ?? s.embed_url) && (
                 <a href={s.url ?? s.embed_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs font-bold text-[#1CB0F6] hover:text-white transition-colors flex-shrink-0 ml-2">
+                  className="flex items-center gap-1 text-xs font-bold text-[#0F9B87] hover:text-[#0D2B32] transition-colors flex-shrink-0 ml-2">
                   <Icon kind="external" className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{t.openSite}</span>
                 </a>
               )}
             </div>
-            {s.caption && <div className="px-4 sm:px-5 py-2 border-b border-white/5 bg-white/1"><p className="text-xs font-semibold text-muted">{s.caption}</p></div>}
-            <div className="px-3 sm:px-4 py-2 bg-white/3 border-b border-white/5 flex items-center gap-2">
+            {s.caption && <div className="px-4 sm:px-5 py-2 border-b border-[#0D2B32]/6 bg-[#EAF7F4]/30"><p className="text-xs font-semibold text-[#4E7169]">{s.caption}</p></div>}
+            <div className="px-3 sm:px-4 py-2 bg-[#EAF7F4]/40 border-b border-[#0D2B32]/6 flex items-center gap-2">
               <div className="flex gap-1.5 flex-shrink-0">
-                <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-                <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-                <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#0D2B32]/10" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#0D2B32]/10" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#0D2B32]/10" />
               </div>
-              <div className="flex-1 bg-white/5 rounded-md px-3 py-1 text-xs font-mono text-muted/50 truncate">{iframeSrc}</div>
+              <div className="flex-1 bg-white rounded-md px-3 py-1 text-xs font-mono text-[#4E7169]/70 truncate border border-[#0D2B32]/6">{iframeSrc}</div>
             </div>
             {iframeSrc ? (
               <iframe src={iframeSrc} style={{ height: frameHeight }} className="w-full max-w-full border-0 block"
                 title={s.caption ?? 'Interactive resource'} sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="lazy" />
             ) : (
-              <div className="flex items-center justify-center text-muted text-sm font-semibold" style={{ height: frameHeight }}>No URL provided</div>
+              <div className="flex items-center justify-center text-[#4E7169] text-sm font-semibold" style={{ height: frameHeight }}>No URL provided</div>
             )}
-            {s.text && <div className="px-4 sm:px-5 py-4 border-t border-white/5"><p className="text-xs font-semibold text-muted leading-relaxed">{s.text}</p></div>}
+            {s.text && <div className="px-4 sm:px-5 py-4 border-t border-[#0D2B32]/6"><p className="text-xs font-semibold text-[#4E7169] leading-relaxed">{s.text}</p></div>}
           </div>
         )
       }
@@ -1759,21 +1775,21 @@ export default function LessonViewClient({
       case 'image':
         return (
           <div key={idx} className={cn(CARD, 'overflow-hidden')}>
-            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-white/8">
-              <Icon kind="image" className="w-4 h-4 text-muted" />
-              <span className="text-xs font-black text-muted uppercase tracking-wider">{t.image}</span>
+            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8">
+              <Icon kind="image" className="w-4 h-4 text-[#4E7169]" />
+              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.image}</span>
             </div>
             <div className="p-3 sm:p-4">
               {s.src ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.src} alt={s.alt ?? 'Lesson diagram'} className="w-full rounded-2xl border border-white/8 object-contain max-h-64 sm:max-h-96" />
+                <img src={s.src} alt={s.alt ?? 'Lesson diagram'} className="w-full rounded-2xl border border-[#0D2B32]/8 object-contain max-h-64 sm:max-h-96" />
               ) : (
-                <div className="h-32 sm:h-40 bg-card2 rounded-2xl flex items-center justify-center text-muted text-sm font-semibold gap-2">
+                <div className="h-32 sm:h-40 bg-[#EAF7F4]/50 rounded-2xl flex items-center justify-center text-[#4E7169] text-sm font-semibold gap-2">
                   <Icon kind="image" className="w-5 h-5" /> Image placeholder
                 </div>
               )}
             </div>
-            {(s.alt || s.text) && <p className="px-4 sm:px-5 pb-4 text-xs text-muted font-semibold">{s.alt ?? s.text}</p>}
+            {(s.alt || s.text) && <p className="px-4 sm:px-5 pb-4 text-xs text-[#4E7169] font-semibold">{s.alt ?? s.text}</p>}
           </div>
         )
 
@@ -1781,24 +1797,24 @@ export default function LessonViewClient({
         const btnLabel = s.button_label ?? `Open on ${s.platform ?? 'external platform'}`
         return (
           <div key={idx} className={cn(CARD, 'overflow-hidden')}>
-            <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/2">
-              <Icon kind="external" className="w-4 h-4 text-[#1CB0F6] flex-shrink-0" />
-              <span className="text-xs font-black text-muted uppercase tracking-wider">{t.external}</span>
-              {s.platform && <span className="ml-auto text-xs font-bold text-muted bg-white/5 border border-white/8 px-2 sm:px-2.5 py-0.5 rounded-full truncate max-w-[40%]">{s.platform}</span>}
+            <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8 bg-[#EAF7F4]/40">
+              <Icon kind="external" className="w-4 h-4 text-[#0F9B87] flex-shrink-0" />
+              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.external}</span>
+              {s.platform && <span className="ml-auto text-xs font-bold text-[#4E7169] bg-white border border-[#0D2B32]/10 px-2 sm:px-2.5 py-0.5 rounded-full truncate max-w-[40%]">{s.platform}</span>}
             </div>
             <div className="p-4 sm:p-6">
-              {s.title && <h3 className="font-extrabold text-base mb-2">{s.title}</h3>}
-              {s.text && <p className="text-sm font-semibold text-muted leading-relaxed mb-4 sm:mb-5">{s.text}</p>}
+              {s.title && <h3 className="font-extrabold text-base mb-2 text-[#0D2B32]">{s.title}</h3>}
+              {s.text && <p className="text-sm font-semibold text-[#4E7169] leading-relaxed mb-4 sm:mb-5">{s.text}</p>}
               <a href={s.url} target="_blank" rel="noopener noreferrer"
                 className={cn('group inline-flex items-center gap-3 px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl font-extrabold text-sm w-full justify-center transition-all', PRIMARY_BTN)}>
                 <Icon kind="external" className="w-5 h-5" />
                 <span className="truncate">{btnLabel}</span>
                 <Icon kind="chevronRight" className="w-4 h-4 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
               </a>
-              <p className="text-center text-xs text-muted font-semibold mt-4">{t.externalDone}</p>
+              <p className="text-center text-xs text-[#4E7169] font-semibold mt-4">{t.externalDone}</p>
             </div>
-            <div className="px-4 sm:px-5 py-3 border-t border-white/5 bg-white/1">
-              <p className="text-xs text-muted/60 font-semibold">{t.externalDesc}</p>
+            <div className="px-4 sm:px-5 py-3 border-t border-[#0D2B32]/6 bg-[#EAF7F4]/30">
+              <p className="text-xs text-[#4E7169]/80 font-semibold">{t.externalDesc}</p>
             </div>
           </div>
         )
@@ -1831,7 +1847,7 @@ export default function LessonViewClient({
         @keyframes shake        { 0%,100%{transform:translateX(0)} 15%{transform:translateX(-8px)} 30%{transform:translateX(8px)} 45%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 75%{transform:translateX(-3px)} 90%{transform:translateX(3px)} }
         @keyframes heartPop     { 0%{transform:scale(1)} 40%{transform:scale(1.4)} 100%{transform:scale(1)} }
         @keyframes comboPop     { 0%{transform:scale(1)} 50%{transform:scale(1.25)} 100%{transform:scale(1)} }
-        @keyframes continuePulse{ 0%,100%{box-shadow:0 4px 0 rgba(0,0,0,0.2),0 0 0 0 rgba(28,176,246,0.5)} 50%{box-shadow:0 4px 0 rgba(0,0,0,0.2),0 0 0 10px rgba(28,176,246,0)} }
+        @keyframes continuePulse{ 0%,100%{box-shadow:0 4px 0 rgba(13,43,50,0.18),0 0 0 0 rgba(23,217,192,0.5)} 50%{box-shadow:0 4px 0 rgba(13,43,50,0.18),0 0 0 10px rgba(23,217,192,0)} }
         .slide-right { animation: slideInRight 0.28s cubic-bezier(0.22,1,0.36,1) both; }
         .slide-left  { animation: slideInLeft  0.28s cubic-bezier(0.22,1,0.36,1) both; }
         .card-shake  { animation: shake 0.5s ease-in-out; }
@@ -1839,7 +1855,7 @@ export default function LessonViewClient({
 
       {/* ── Toast ── */}
       <div className={cn(
-        'fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:w-auto z-50 px-5 py-3 rounded-2xl bg-card border border-white/10 text-[#1CB0F6] font-bold text-sm shadow-xl transition-all duration-300 flex items-center gap-2',
+        'fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:w-auto z-50 px-5 py-3 rounded-2xl bg-white border border-[#0D2B32]/10 text-[#0F9B87] font-bold text-sm shadow-xl transition-all duration-300 flex items-center gap-2',
         toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'
       )}>
         <Icon kind="sparkle" className="w-4 h-4 shrink-0" />
@@ -1853,7 +1869,7 @@ export default function LessonViewClient({
           aria-hidden
         >
           <div
-            className="font-fredoka text-3xl md:text-4xl text-[#3CB371] drop-shadow-lg px-6 py-3 rounded-3xl bg-[#3CB371]/10 border border-[#3CB371]/30 backdrop-blur-sm"
+            className="font-extrabold text-3xl md:text-4xl text-[#0F9B87] drop-shadow-lg px-6 py-3 rounded-3xl bg-[#17D9C0]/10 border border-[#17D9C0]/30 backdrop-blur-sm"
             style={{ animation: 'praiseIn 1.5s ease forwards' }}
           >
             {praiseMsg}
@@ -1863,22 +1879,22 @@ export default function LessonViewClient({
 
       {/* ── Level-up overlay ── */}
       {levelUp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setLevelUp(null)}>
-          <div className="bg-card border border-white/10 rounded-3xl p-8 sm:p-10 text-center shadow-2xl w-full max-w-sm">
-            <div className="w-20 h-20 rounded-full bg-[#1CB0F6]/15 flex items-center justify-center mx-auto mb-4 animate-bounce">
-              <Icon kind="partyPop" className="w-10 h-10 text-[#1CB0F6]" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D2B32]/60 backdrop-blur-sm px-4" onClick={() => setLevelUp(null)}>
+          <div className="bg-white border border-[#0D2B32]/10 rounded-3xl p-8 sm:p-10 text-center shadow-2xl w-full max-w-sm">
+            <div className="w-20 h-20 rounded-full bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-4 animate-bounce">
+              <Icon kind="partyPop" className="w-10 h-10" style={{ color: '#0F9B87' }} />
             </div>
-            <h2 className="font-fredoka text-3xl sm:text-4xl text-[#1CB0F6] mb-2">{levelUp}</h2>
-            <p className="text-muted font-bold text-sm">{lang === 'ar' ? 'استمر، أنت لا يُوقف!' : lang === 'fr' ? 'Continue — inarrêtable !' : 'Keep going — unstoppable!'}</p>
+            <h2 className="font-extrabold text-3xl sm:text-4xl text-[#0F9B87] mb-2">{levelUp}</h2>
+            <p className="text-[#4E7169] font-bold text-sm">{lang === 'ar' ? 'استمر، أنت لا يُوقف!' : lang === 'fr' ? 'Continue — inarrêtable !' : 'Keep going — unstoppable!'}</p>
           </div>
         </div>
       )}
 
       {/* ── GAME HUD: back | step dots | combo ── */}
       <div className="flex items-center gap-2 sm:gap-3 mb-5 sm:mb-6">
-        <Link href={`/dashboard/skills/${skill?.id}`}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-card border border-white/8 hover:border-white/20 transition-colors shrink-0">
-          <Icon kind="chevronLeft" className="w-5 h-5 text-muted" />
+        <Link href={`/dashboard/path/${skill?.id}`}
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-[#0D2B32]/10 hover:border-[#0D2B32]/25 transition-colors shrink-0">
+          <Icon kind="chevronLeft" className="w-5 h-5 text-[#4E7169]" />
         </Link>
 
         {sections.length > 0 && !isDone && (
@@ -1886,33 +1902,33 @@ export default function LessonViewClient({
             {sections.map((_, i) => (
               <div key={i} className={cn(
                 'h-2 flex-1 rounded-full transition-all duration-400',
-                i < currentStep ? 'bg-[#3CB371]' : i === currentStep ? 'bg-[#1CB0F6]' : 'bg-white/10'
+                i < currentStep ? 'bg-[#17D9C0]' : i === currentStep ? 'bg-[#0F9B87]' : 'bg-[#0D2B32]/10'
               )} />
             ))}
           </div>
         )}
 
         {combo >= 2 && !isDone && (
-          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/25 shrink-0" style={{ animation: 'comboPop 0.3s ease' }}>
-            <Icon kind="fire" className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-xs font-extrabold text-amber-400">{combo}x</span>
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFB930]/15 border border-[#FFB930]/30 shrink-0" style={{ animation: 'comboPop 0.3s ease' }}>
+            <Icon kind="fire" className="w-3.5 h-3.5 text-[#B8790E]" />
+            <span className="text-xs font-extrabold text-[#B8790E]">{combo}x</span>
           </div>
         )}
       </div>
 
       {/* ── Lesson title — compact ── */}
       <div className="flex items-center gap-3 mb-5 sm:mb-6">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-[0_3px_0_rgba(0,0,0,0.2)]" style={{ backgroundColor: '#1CB0F6' }}>
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-[0_3px_0_rgba(13,43,50,0.18)]" style={{ backgroundColor: '#FF6B57' }}>
           {lesson.emoji}
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="font-fredoka text-lg sm:text-xl leading-tight">{lesson.title}</h1>
-          <span className="text-xs font-bold text-muted">{t.lesson} {lessonIndex}/{totalLessons} · +{lesson.xp_reward} XP</span>
+          <h1 className="font-extrabold text-lg sm:text-xl leading-tight text-[#0D2B32]">{lesson.title}</h1>
+          <span className="text-xs font-bold text-[#4E7169]">{t.lesson} {lessonIndex}/{totalLessons} · +{lesson.xp_reward} XP</span>
         </div>
         {/* Floating XP burst */}
         <div className="relative shrink-0 w-10 h-10">
           {xpBurst && (
-            <span key={xpBurst.id} className="absolute bottom-0 left-1/2 -translate-x-1/2 font-extrabold text-sm text-[#1CB0F6] pointer-events-none whitespace-nowrap" style={{ animation: 'xpFloat 1.2s ease-out forwards' }}>
+            <span key={xpBurst.id} className="absolute bottom-0 left-1/2 -translate-x-1/2 font-extrabold text-sm text-[#0F9B87] pointer-events-none whitespace-nowrap" style={{ animation: 'xpFloat 1.2s ease-out forwards' }}>
               +{xpBurst.amount} XP
             </span>
           )}
@@ -1920,14 +1936,14 @@ export default function LessonViewClient({
       </div>
 
       {/* ── AI Coach — slim strip ── */}
-      <Link href={coachUrl} className={cn(CARD, 'flex items-center gap-3 px-4 py-3 mb-5 sm:mb-6 hover:border-white/20 transition-colors group')}>
-        <span className="w-8 h-8 rounded-xl bg-[#1CB0F6]/15 flex items-center justify-center shrink-0">
-          <Icon kind="robot" className="w-4 h-4 text-[#1CB0F6]" />
+      <Link href={coachUrl} className={cn(CARD, 'flex items-center gap-3 px-4 py-3 mb-5 sm:mb-6 hover:border-[#0D2B32]/20 transition-colors group')}>
+        <span className="w-8 h-8 rounded-xl bg-[#17D9C0]/15 flex items-center justify-center shrink-0">
+          <Icon kind="robot" className="w-4 h-4" style={{ color: '#0F9B87' }} />
         </span>
-        <span className="flex-1 text-xs font-bold text-muted group-hover:text-white transition-colors">
+        <span className="flex-1 text-xs font-bold text-[#4E7169] group-hover:text-[#0D2B32] transition-colors">
           {lang === 'ar' ? 'لديك سؤال؟ اسأل مدربك الذكي' : lang === 'fr' ? 'Une question ? Demande au Coach IA' : 'Confused? Ask your AI Coach'}
         </span>
-        <Icon kind="chevronRight" className="w-3.5 h-3.5 text-muted/50 shrink-0" />
+        <Icon kind="chevronRight" className="w-3.5 h-3.5 text-[#4E7169]/60 shrink-0" />
       </Link>
 
       {/* ── ONE SECTION AT A TIME (in progress) — or full scroll for review ── */}
@@ -1961,7 +1977,7 @@ export default function LessonViewClient({
                 <button
                   onClick={() => setCurrentStep(i => Math.max(0, i - 1))}
                   disabled={currentStep === 0}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-bold text-sm text-muted hover:text-white disabled:opacity-0 disabled:pointer-events-none transition-all"
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-bold text-sm text-[#4E7169] hover:text-[#0D2B32] disabled:opacity-0 disabled:pointer-events-none transition-all"
                 >
                   <Icon kind="chevronLeft" className="w-4 h-4" />
                   {lang === 'ar' ? 'السابق' : lang === 'fr' ? 'Précédent' : 'Back'}
@@ -1971,7 +1987,7 @@ export default function LessonViewClient({
                   disabled={!stepReady}
                   className={cn(
                     'flex items-center gap-2 px-8 py-3 rounded-2xl font-extrabold text-sm transition-all',
-                    stepReady ? PRIMARY_BTN : 'bg-card2 text-muted/40 cursor-not-allowed'
+                    stepReady ? PRIMARY_BTN : 'bg-[#0D2B32]/8 text-[#4E7169]/50 cursor-not-allowed'
                   )}
                 >
                   {lang === 'ar' ? 'متابعة' : lang === 'fr' ? 'Continuer' : 'Continue'}
@@ -1983,19 +1999,19 @@ export default function LessonViewClient({
         </>
         )
       ) : (
-        <div className={cn(CARD, 'p-8 text-center mb-8')}><p className="text-muted font-semibold text-sm">Content loading...</p></div>
+        <div className={cn(CARD, 'p-8 text-center mb-8')}><p className="text-[#4E7169] font-semibold text-sm">Content loading...</p></div>
       )}
       {!isDone && currentStep === Math.max(0, sections.length - 1) && (
         <div className={cn(CARD, 'p-5 sm:p-6 mb-5 sm:mb-6 text-center')}>
           {blockingItems.length > 0 && (
             <>
-              <p className="text-xs font-bold text-muted/70 mb-2 uppercase tracking-wider">
+              <p className="text-xs font-bold text-[#4E7169]/80 mb-2 uppercase tracking-wider">
                 {lang === 'ar' ? 'أكمل هذه الأنشطة أولاً' : lang === 'fr' ? "Termine d'abord ces activités" : 'Finish these activities first'}
               </p>
               <ul className="mb-4 space-y-1">
                 {blockingItems.map((item, i) => (
-                  <li key={i} className="text-xs text-muted font-semibold flex items-center justify-center gap-2">
-                    <Icon kind="chevronRight" className="w-3 h-3 text-[#1CB0F6]" /> {item}
+                  <li key={i} className="text-xs text-[#4E7169] font-semibold flex items-center justify-center gap-2">
+                    <Icon kind="chevronRight" className="w-3 h-3" style={{ color: '#0F9B87' }} /> {item}
                   </li>
                 ))}
               </ul>
@@ -2003,8 +2019,8 @@ export default function LessonViewClient({
           )}
           <button onClick={markComplete} disabled={isPending || !canComplete}
             className={cn('w-full sm:w-auto px-8 py-3.5 rounded-2xl font-extrabold text-sm transition-all flex items-center justify-center gap-2',
-              isPending ? 'opacity-50 cursor-not-allowed bg-card2 text-muted' :
-              !canComplete ? 'bg-card2 text-muted/60 cursor-not-allowed border border-white/5' :
+              isPending ? 'opacity-50 cursor-not-allowed bg-[#0D2B32]/8 text-[#4E7169]' :
+              !canComplete ? 'bg-[#0D2B32]/8 text-[#4E7169]/70 cursor-not-allowed border border-[#0D2B32]/5' :
               SUCCESS_BTN)}>
             {isPending ? <><Icon kind="hourglass" className="w-4 h-4" /> Saving...</> : <><Icon kind="check" className="w-4 h-4" /> {t.complete}</>}
           </button>
@@ -2030,29 +2046,29 @@ export default function LessonViewClient({
       )}
 
       {/* Prev / Next nav */}
-      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-5 sm:pt-6 border-t border-white/5">
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-5 sm:pt-6 border-t border-[#0D2B32]/8">
         {prevLesson ? (
-          <Link href={`/dashboard/skills/${skill?.id}/lesson/${prevLesson.id}`}
-            className="flex items-center justify-center sm:justify-start gap-2 px-4 sm:px-5 py-3 rounded-2xl font-extrabold text-sm border-2 border-white/10 text-muted hover:text-white hover:border-white/25 transition-all truncate">
+          <Link href={`/dashboard/path/${skill?.id}/lesson/${prevLesson.id}`}
+            className="flex items-center justify-center sm:justify-start gap-2 px-4 sm:px-5 py-3 rounded-2xl font-extrabold text-sm border-2 border-[#0D2B32]/10 text-[#4E7169] hover:text-[#0D2B32] hover:border-[#0D2B32]/25 transition-all truncate">
             <Icon kind="chevronLeft" className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{prevLesson.emoji} {prevLesson.title}</span>
           </Link>
         ) : (
-          <Link href={`/dashboard/skills/${skill?.id}`} className="text-sm font-bold text-muted hover:text-white transition-colors text-center sm:text-left flex items-center gap-1.5">
+          <Link href={`/dashboard/path/${skill?.id}`} className="text-sm font-bold text-[#4E7169] hover:text-[#0D2B32] transition-colors text-center sm:text-left flex items-center gap-1.5">
             <Icon kind="chevronLeft" className="w-4 h-4" /> {t.back}
           </Link>
         )}
         {nextLesson ? (
-          <Link href={`/dashboard/skills/${skill?.id}/lesson/${nextLesson.id}`}
+          <Link href={`/dashboard/path/${skill?.id}/lesson/${nextLesson.id}`}
             className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm truncate transition-all', PRIMARY_BTN)}>
             <span className="truncate">{nextLesson.emoji} {nextLesson.title}</span> <Icon kind="chevronRight" className="w-4 h-4 flex-shrink-0" />
           </Link>
         ) : nextSkill ? (
-          <Link href={`/dashboard/skills/${nextSkill.id}/lesson/${nextSkill.lessonId}`}
+          <Link href={`/dashboard/path/${nextSkill.id}/lesson/${nextSkill.lessonId}`}
             className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm truncate transition-all', PRIMARY_BTN)}>
             <span className="truncate">{nextSkill.emoji} {nextSkill.title}</span> <Icon kind="chevronRight" className="w-4 h-4 flex-shrink-0" />
           </Link>
         ) : (
-          <Link href={`/dashboard/skills/${skill?.id}`}
+          <Link href={`/dashboard/path/${skill?.id}`}
             className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm transition-all', SUCCESS_BTN)}>
             <Icon kind="partyPop" className="w-4 h-4" /> {t.finish}
           </Link>
@@ -2061,8 +2077,8 @@ export default function LessonViewClient({
 
       {/* Feedback Modal */}
       {showFeedback && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4" onClick={() => setShowFeedback(false)}>
-          <div className="bg-card border border-white/10 rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-2xl animate-slide-up" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[#0D2B32]/60 backdrop-blur-sm p-3 sm:p-4" onClick={() => setShowFeedback(false)}>
+          <div className="bg-white border border-[#0D2B32]/10 rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-2xl animate-slide-up" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
             <LessonFeedback userId={userId} lessonId={lesson.id} lang={lang as 'en'|'ar'|'fr'} onDone={() => setShowFeedback(false)} onSkip={() => setShowFeedback(false)} />
           </div>
         </div>

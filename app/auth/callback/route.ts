@@ -76,6 +76,8 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         await writePhoneIfMissing(supabase, user.id, user.user_metadata)
+        await redeemPendingClassCodeIfNeeded(supabase, user.id, user.user_metadata)
+
       }
       return NextResponse.redirect(`${origin}${next}`)
     }
@@ -84,4 +86,66 @@ export async function GET(request: NextRequest) {
 
   // Nothing worked
   return NextResponse.redirect(`${origin}/auth/login?error=Could+not+sign+you+in.+Try+again+or+contact+support.`)
+}
+
+async function redeemPendingClassCodeIfNeeded(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  userMetadata: Record<string, any>
+) {
+  try {
+    const code = userMetadata?.pending_class_code as string | undefined
+    if (!code) return
+
+    // Already enrolled somewhere? Don't double-redeem on repeat callback hits.
+    const { data: existingEnrollment } = await supabase
+      .from('class_enrollments')
+      .select('id')
+      .eq('student_id', userId)
+      .eq('status', 'active')
+      .maybeSingle()
+
+    if (existingEnrollment) return
+
+    const { data: joinCode } = await supabase
+      .from('class_join_codes')
+      .select('id, class_id, expires_at, max_uses, use_count, is_active')
+      .eq('code', code)
+      .single()
+
+    if (!joinCode || !joinCode.is_active) return
+    if (joinCode.expires_at && new Date(joinCode.expires_at) < new Date()) return
+    if (joinCode.max_uses != null && joinCode.use_count >= joinCode.max_uses) return
+
+    const { data: classRow } = await supabase
+      .from('classes')
+      .select('id, school_id')
+      .eq('id', joinCode.class_id)
+      .single()
+
+    if (!classRow) return
+
+    await supabase.from('class_enrollments').insert({
+      class_id: classRow.id,
+      student_id: userId,
+      status: 'active',
+      enrolled_at: new Date().toISOString(),
+    })
+
+    await supabase
+      .from('class_join_codes')
+      .update({ use_count: joinCode.use_count + 1 })
+      .eq('id', joinCode.id)
+
+    await supabase
+      .from('profiles')
+      .update({
+        account_type: 'b2b2c',
+        school_id: classRow.school_id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId)
+  } catch {
+    // Non-blocking — never let this break the auth flow, same as writePhoneIfMissing
+  }
 }

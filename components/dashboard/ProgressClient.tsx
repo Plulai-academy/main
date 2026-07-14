@@ -162,7 +162,7 @@ export default function ProgressClient({
       <div className="grid grid-cols-3 gap-3">
         <StatTile icon="fire"   color="#FAA918" value={`${streak}`}       label={t.streak}  onTap={() => {}} />
         <StatTile icon="trophy" color="#3CB371" value={`${badgesEarned}`} label={t.badges}  onTap={() => router.push('/dashboard/badges')} />
-        <StatTile icon="book"   color="#A66BFF" value={`${totalLessons}`} label={t.lessons} onTap={() => router.push('/dashboard/skills')} />
+        <StatTile icon="book"   color="#A66BFF" value={`${totalLessons}`} label={t.lessons} onTap={() => router.push('/dashboard/path')} />
       </div>
 
       {showLevel && (

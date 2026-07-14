@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { SEO_CONFIG } from '@/lib/seo/config'
+import StyledComponentsRegistry from '@/components/StyledComponentsRegistry'
 import './globals.css'
 
 const SITE = SEO_CONFIG.siteUrl
@@ -98,7 +99,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(SEO_CONFIG.schema.course) }} />
       </head>
       <body className="font-nunito bg-bg text-white antialiased">
-        {children}
+        <StyledComponentsRegistry>
+          {children}
+        </StyledComponentsRegistry>
         <Analytics />
       </body>
     </html>

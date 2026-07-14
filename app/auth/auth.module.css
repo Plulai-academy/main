@@ -1,0 +1,93 @@
+/* File: auth.module.css
+   Placement: app/auth/auth.module.css
+   Shared by login/page.tsx and signup/page.tsx — layout only.
+   Colors/type/radius all come from globals.css tokens. */
+
+.wrap{
+  min-height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  padding:48px 16px;
+  background: var(--raw-lagoon);
+}
+
+.inner{ width:100%; max-width:420px; }
+
+.logoBlock{ text-align:center; margin-bottom:36px; }
+.logoBlock .wordmark{ justify-content:center; }
+.logoSub{
+  font-size:13.5px; color: rgba(41,57,74,0.6); font-weight:600; margin-top:6px;
+}
+
+.card{
+  background:#fff;
+  border-radius: var(--radius-xl);
+  padding:32px;
+  box-shadow: var(--shadow-lg);
+}
+
+.cardTitle{ margin-bottom:2px; }
+.cardSubtitle{
+  font-size:13.5px; color: rgba(41,57,74,0.6); font-weight:600; margin-bottom:26px;
+}
+
+.footerNote{
+  text-align:center; font-size:13.5px; color: rgba(41,57,74,0.6);
+  font-weight:600; margin-top:22px;
+}
+.footerNote a{ color: var(--raw-coral); font-weight:700; }
+
+.trustRow{
+  display:flex; align-items:center; justify-content:center; gap:18px;
+  margin-top:26px; flex-wrap:wrap;
+}
+.trustItem{
+  font-size:11.5px; color: rgba(41,57,74,0.5); font-weight:700;
+}
+.trustSub{
+  text-align:center; font-size:11px; color: rgba(41,57,74,0.4);
+  font-weight:600; margin-top:6px;
+}
+
+.valueGrid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:26px;
+}
+.valueTile{
+  background:rgba(255,255,255,0.6);
+  border:1px solid var(--raw-lagoonfill);
+  border-radius: var(--radius-lg);
+  padding:12px; text-align:center;
+}
+.valueTile b{
+  display:block; font-size:11px; color: var(--raw-ink); font-weight:700;
+}
+
+/* success / check-email state */
+.successCard{
+  background:#fff; border-radius: var(--radius-xl); padding:40px 32px;
+  text-align:center; box-shadow: var(--shadow-lg);
+}
+.successIcon{
+  width:64px; height:64px; border-radius:50%;
+  background: var(--raw-reef-bright);
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 20px;
+}
+
+/* class-code field on signup — visually distinct as an "optional, special" field */
+.codeField{
+  background: var(--raw-lagoon);
+  border:1.5px dashed var(--raw-reef);
+  border-radius: var(--radius-lg);
+  padding:16px;
+  margin-bottom:18px;
+}
+.codeFieldLabel{
+  font-size:13px; font-weight:700; color: var(--raw-depth); margin-bottom:4px;
+}
+.codeFieldHint{
+  font-size:12px; color: rgba(41,57,74,0.6); margin-bottom:10px;
+}
+
+@media (max-width:480px){
+  .card{ padding:24px; }
+}

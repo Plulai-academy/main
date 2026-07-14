@@ -7,41 +7,49 @@ import { getWelcomeMessage, STARTER_PROMPTS } from '@/lib/openrouter'
 import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
 import type { AgeGroup } from '@/lib/supabase/database.types'
-import Image from 'next/image'
+
+// ── Design tokens (screenshot palette) ────────────────────────────
+// bg:        #EAF5F1  pale mint background
+// surface:   #FFFFFF  assistant bubbles / input pill
+// accent:    #FF7A59 → #FF5B3D  coral gradient, user bubbles + CTA
+// ink:       #16283D  primary text
+// muted:     #7C8B93  secondary text
+// pill-bg:   #DCEFE8  privacy notice pill background
+// pill-ink:  #2B8C7E  privacy notice pill text
+// border:    #E2ECE8  hairline borders
 
 // Premium SVG Icons
 const SendIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 )
 
 const LoadingIcon = () => (
-  <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
   </svg>
 )
 
-const JimmyAvatar = ({ className }: { className?: string }) => (
-  <div className={cn("relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] p-0.5 shadow-lg", className)}>
-    <div className="bg-card w-full h-full rounded-[14px] flex items-center justify-center overflow-hidden">
-      <Image 
-        src="/icons/coach.png" 
-        alt="Jimmy" 
-        width={48} 
-        height={48} 
-        className="w-full h-full object-cover scale-110"
-      />
-    </div>
-  </div>
+const LockIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
 )
 
 const LANG_FLAGS:  Record<Language, string> = { en: '🇬🇧', ar: '🇦🇪', fr: '🇫🇷' }
 const LANG_LABELS: Record<Language, string> = { en: 'English', ar: 'العربية', fr: 'Français' }
 const INPUT_PH:    Record<Language, string> = {
-  en: 'Ask Jimmy anything…',
-  ar: 'اسأل جيمي أي شيء…',
-  fr: "Pose n'importe quelle question à Jimmy…",
+  en: 'Ask Marjan anything…',
+  ar: 'اسأل مرجان أي شيء…',
+  fr: "Pose n'importe quelle question à Marjan…",
+}
+// Privacy notice shown under the header — mirrors the screenshot's
+// "Ms. Ranya can see which topics you ask about" pill.
+const WATCHED_BY: Record<Language, (name: string) => string> = {
+  en: (name) => `${name} can see which topics you ask about`,
+  ar: (name) => `يمكن لـ ${name} رؤية المواضيع التي تسأل عنها`,
+  fr: (name) => `${name} peut voir les sujets que tu demandes`,
 }
 
 interface Msg { role: 'user' | 'assistant'; content: string; ts: string }
@@ -104,9 +112,9 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
     if (topic || lesson) {
       // Build the context message in the user's language
       const ctx: Record<Language, string> = {
-        en: `I'm studying "${lesson || topic}" in the ${topic} track. Can you help me understand it, Jimmy?`,
-        ar: `أنا أدرس "${lesson || topic}" في مسار ${topic}. هل يمكنك مساعدتي يا جيمي؟`,
-        fr: `J'étudie "${lesson || topic}" dans le parcours ${topic}. Peux-tu m'aider, Jimmy ?`,
+        en: `I'm studying "${lesson || topic}" in the ${topic} track. Can you help me understand it, Marjan?`,
+        ar: `أنا أدرس "${lesson || topic}" في مسار ${topic}. هل يمكنك مساعدتي يا مرجان؟`,
+        fr: `J'étudie "${lesson || topic}" dans le parcours ${topic}. Peux-tu m'aider, Marjan ?`,
       }
       const userMsg: Msg = { role: 'user', content: ctx[activeLang], ts: new Date().toISOString() }
       base.push(userMsg)
@@ -224,9 +232,9 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
         setMsgs((p: Msg[]) => [...p, { role: 'assistant', content: full, ts: new Date().toISOString() }])
       } else {
         const retryMsg: Record<Language, string> = {
-          en: 'Jimmy is thinking hard but couldn\'t find the words — try again! 🤔',
-          ar: 'جيمي يفكر بعمق لكنه لم يجد الكلمات. حاول مرة أخرى! 🤔',
-          fr: 'Jimmy réfléchit intensément mais n\'a pas trouvé les mots — réessaie ! 🤔',
+          en: 'Marjan is thinking hard but couldn\'t find the words — try again! 🤔',
+          ar: 'مرجان يفكر بعمق لكنه لم يجد الكلمات. حاول مرة أخرى! 🤔',
+          fr: 'Marjan réfléchit intensément mais n\'a pas trouvé les mots — réessaie ! 🤔',
         }
         setMsgs((p: Msg[]) => [...p, { role: 'assistant', content: retryMsg[lang as Language], ts: new Date().toISOString() }])
       }
@@ -239,16 +247,16 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
         content = '⚙️ AI service not configured — add OPENROUTER_API_KEY to .env.local'
       } else if (msg.includes('429') || msg.includes('rate limit') || msg.includes('quota')) {
         content = lang === 'ar'
-          ? '⏳ جيمي مشغول قليلاً — انتظر لحظة وحاول مجدداً'
+          ? '⏳ مرجان مشغول قليلاً — انتظر لحظة وحاول مجدداً'
           : lang === 'fr'
-          ? '⏳ Jimmy est un peu occupé — attends un moment puis réessaie'
-          : '⏳ Jimmy is a bit busy — wait a moment and try again'
+          ? '⏳ Marjan est un peu occupé — attends un moment puis réessaie'
+          : '⏳ Marjan is a bit busy — wait a moment and try again'
       } else {
         content = lang === 'ar'
-          ? `خطأ من جيمي: ${msg || 'حاول مرة أخرى'} 🤔`
+          ? `خطأ من مرجان: ${msg || 'حاول مرة أخرى'} 🤔`
           : lang === 'fr'
-          ? `Erreur de Jimmy: ${msg || 'Réessaie'} 🤔`
-          : `Jimmy error: ${msg || 'Something went wrong — please try again'} 🤔`
+          ? `Erreur de Marjan: ${msg || 'Réessaie'} 🤔`
+          : `Marjan error: ${msg || 'Something went wrong — please try again'} 🤔`
       }
       setMsgs((p: Msg[]) => [...p, { role: 'assistant', content, ts: new Date().toISOString() }])
     } finally {
@@ -259,128 +267,112 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
 
   if (!profile) return null
   const starters = STARTER_PROMPTS[profile.age_group as AgeGroup]?.[lang as Language] ?? []
+  const watcherName = profile.guardian_name || profile.teacher_name || (lang === 'ar' ? 'معلمتك' : lang === 'fr' ? 'ton enseignant·e' : 'Your teacher')
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" dir={dir}>
-
+    <div
+      className="flex flex-col h-[100dvh] overflow-hidden bg-[#EAF5F1]"
+      dir={dir}
+    >
       {/* ── Header ── */}
-      <div className="flex-shrink-0 p-4 lg:p-5 border-b border-white/5 glass flex items-center gap-4 z-20">
-        <div className="relative">
-          <JimmyAvatar className="w-12 h-12" />
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-black border-2 border-black flex items-center justify-center">
-            <div className="w-2 h-2 rounded-full bg-[#14D4F4] animate-pulse" />
+      <div className="flex-shrink-0 px-4 sm:px-6 lg:px-8 pt-5 sm:pt-6 pb-4 z-20">
+        <div className="max-w-4xl mx-auto flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.15em] text-[#7C8B93]">
+              {lang === 'ar' ? 'المعلم الذكي' : lang === 'fr' ? 'Tuteur IA' : 'AI Tutor'}
+            </p>
+            <h1 className="font-fredoka text-2xl sm:text-3xl leading-tight text-[#16283D] truncate">
+              {lang === 'ar' ? 'مرجان' : 'Marjan'}
+            </h1>
           </div>
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <h1 className="font-fredoka text-xl leading-tight text-[#F5F5F5]">
-            {lang === 'ar' ? 'جيمي' : 'Jimmy'}
-          </h1>
-          <div className="flex items-center gap-2">
-            <span className="text-[#6F6F6F] text-[10px] font-bold uppercase tracking-widest">
-              {profile.display_name}
-            </span>
-            <span className="w-1 h-1 rounded-full bg-[#6F6F6F]/40" />
-            <span className="text-[#14D4F4] text-[10px] font-bold uppercase tracking-widest">
-              {lang === 'ar' ? 'نشط الآن' : lang === 'fr' ? 'Actif' : 'Active Now'}
-            </span>
+
+          {/* Language switcher */}
+          <div className="relative flex-shrink-0">
+            <button
+              onClick={() => setLangMenu((p: boolean) => !p)}
+              className="flex items-center gap-1.5 sm:gap-2 bg-white border border-[#E2ECE8] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm font-bold hover:border-[#FF7A59]/40 transition-all shadow-sm"
+            >
+              <span className="text-base sm:text-lg">{LANG_FLAGS[lang as Language]}</span>
+              <span className="hidden sm:inline text-xs text-[#16283D]">{LANG_LABELS[lang as Language]}</span>
+              <span className="text-[#7C8B93] text-xs">▾</span>
+            </button>
+            {showLangMenu && (
+              <div className="absolute top-full mt-2 right-0 rtl:right-auto rtl:left-0 bg-white border border-[#E2ECE8] rounded-2xl p-2 shadow-xl z-50 min-w-[150px] animate-in fade-in slide-in-from-top-2 duration-200">
+                {(['en','ar','fr'] as Language[]).map(l => (
+                  <button
+                    key={l}
+                    onClick={() => switchLang(l)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all',
+                      l === lang ? 'bg-[#FF7A59]/10 text-[#FF5B3D]' : 'text-[#7C8B93] hover:bg-[#EAF5F1] hover:text-[#16283D]'
+                    )}
+                  >
+                    <span className="text-lg">{LANG_FLAGS[l]}</span>
+                    <span>{LANG_LABELS[l]}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Language switcher */}
-        <div className="relative flex-shrink-0">
-          <button
-            onClick={() => setLangMenu((p: boolean) => !p)}
-            className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 text-sm font-bold hover:bg-white/10 hover:border-[#1CB0F6]/30 transition-all group"
-          >
-            <span className="text-lg">{LANG_FLAGS[lang as Language]}</span>
-            <span className="hidden sm:inline text-xs text-[#F5F5F5]">{LANG_LABELS[lang as Language]}</span>
-            <span className="text-[#6F6F6F] text-xs group-hover:text-[#1CB0F6] transition-colors">▾</span>
-          </button>
-          {showLangMenu && (
-            <div className="absolute top-full mt-2 right-0 bg-card border border-white/10 rounded-2xl p-2 shadow-2xl z-50 min-w-[160px] animate-in fade-in slide-in-from-top-2 duration-200">
-              {(['en','ar','fr'] as Language[]).map(l => (
-                <button
-                  key={l}
-                  onClick={() => switchLang(l)}
-                  className={cn(
-                    'w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all',
-                    l === lang ? 'bg-[#1CB0F6]/10 text-[#1CB0F6]' : 'text-[#6F6F6F] hover:bg-white/5 hover:text-[#F5F5F5]'
-                  )}
-                >
-                  <span className="text-lg">{LANG_FLAGS[l]}</span>
-                  <span>{LANG_LABELS[l]}</span>
-                </button>
-              ))}
-            </div>
-          )}
+        {/* Privacy notice pill */}
+        <div className="max-w-4xl mx-auto mt-3">
+          <div className="inline-flex items-center gap-1.5 bg-[#DCEFE8] text-[#2B8C7E] rounded-full px-3.5 py-1.5 text-[11px] sm:text-xs font-bold">
+            <LockIcon />
+            <span>{WATCHED_BY[lang as Language](watcherName)}</span>
+          </div>
         </div>
       </div>
 
       {/* ── Messages Area ── */}
-      <div className="flex-1 overflow-y-auto px-4 lg:px-8 py-6 space-y-8 scrollbar-hide">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-2 space-y-4 scrollbar-hide">
+        <div className="max-w-4xl mx-auto space-y-4">
           {messages.map((msg: Msg, i: number) => (
             <div
               key={i}
-              className={cn('flex gap-4 group animate-slide-up', msg.role === 'user' ? 'flex-row-reverse' : 'flex-row')}
+              className={cn('flex animate-slide-up', msg.role === 'user' ? 'justify-end' : 'justify-start')}
             >
-              <div className="flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                {msg.role === 'user' ? (
-                  <div className="w-10 h-10 rounded-2xl bg-[#1CB0F6]/10 border border-[#1CB0F6]/20 flex items-center justify-center text-xl shadow-md text-[#1CB0F6]">
-                    {profile.avatar || '👤'}
-                  </div>
-                ) : (
-                  <JimmyAvatar className="w-10 h-10" />
-                )}
-              </div>
-              <div className={cn(
-                'flex flex-col gap-1.5',
-                msg.role === 'user' ? 'items-end' : 'items-start'
-              )}>
+              <div className={cn('flex flex-col gap-1', msg.role === 'user' ? 'items-end' : 'items-start')}>
                 <div className={cn(
-                  'max-w-[85%] md:max-w-[75%] rounded-3xl px-6 py-4 text-[15px] font-medium leading-relaxed shadow-sm',
+                  'max-w-[85%] sm:max-w-[75%] md:max-w-[65%] rounded-3xl px-5 py-3.5 text-[14px] sm:text-[15px] font-medium leading-relaxed shadow-sm break-words',
                   msg.role === 'user'
-                    ? 'bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] text-white rounded-tr-none'
-                    : 'bg-card border border-white/5 text-[#F5F5F5] rounded-tl-none'
+                    ? 'bg-gradient-to-br from-[#FF7A59] to-[#FF5B3D] text-white'
+                    : 'bg-white text-[#16283D] border border-[#E2ECE8]'
                 )}>
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                 </div>
-                <span className="text-[10px] text-[#6F6F6F] font-bold uppercase tracking-widest px-1">
-                  {new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
               </div>
             </div>
           ))}
 
           {/* Streaming / Loading States */}
           {(streaming || (loading && !streaming)) && (
-            <div className="flex gap-4 animate-slide-up">
-              <JimmyAvatar className="w-10 h-10" />
-              <div className="bg-card border border-white/5 rounded-3xl rounded-tl-none px-6 py-4 shadow-sm">
+            <div className="flex justify-start animate-slide-up">
+              <div className="max-w-[85%] sm:max-w-[75%] md:max-w-[65%] bg-white border border-[#E2ECE8] rounded-3xl px-5 py-3.5 shadow-sm">
                 {streaming ? (
-                  <div className="text-[15px] font-medium leading-relaxed text-[#F5F5F5]">
+                  <div className="text-[14px] sm:text-[15px] font-medium leading-relaxed text-[#16283D]">
                     <p className="whitespace-pre-wrap">{streaming}</p>
-                    <span className="inline-block w-2 h-4 bg-[#1CB0F6] rounded-sm ml-1 animate-pulse" />
+                    <span className="inline-block w-2 h-4 bg-[#FF5B3D] rounded-sm ml-1 animate-pulse" />
                   </div>
                 ) : (
                   <div className="flex gap-2 items-center py-1">
                     {[0,1,2].map(i => (
-                      <div key={i} className="w-2 h-2 bg-[#1CB0F6] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                      <div key={i} className="w-2 h-2 bg-[#FF5B3D] rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
                     ))}
                   </div>
                 )}
               </div>
             </div>
           )}
-          <div ref={endRef} className="h-4" />
+          <div ref={endRef} className="h-2" />
         </div>
       </div>
 
       {/* ── Footer / Input Area ── */}
-      <div className="flex-shrink-0 p-4 lg:p-6 bg-gradient-to-t from-black via-black/80 to-transparent z-10">
-        <div className="max-w-4xl mx-auto space-y-4">
-          
+      <div className="flex-shrink-0 px-4 sm:px-6 lg:px-8 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-6 bg-gradient-to-t from-[#EAF5F1] via-[#EAF5F1]/95 to-transparent z-10">
+        <div className="max-w-4xl mx-auto space-y-3">
+
           {/* Starter prompts — show until the user sends their first message */}
           {messages.length <= 1 && starters.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
@@ -388,7 +380,7 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
                 <button
                   key={s}
                   onClick={() => sendMsg(s)}
-                  className="bg-card/50 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-2.5 text-sm font-bold text-[#6F6F6F] hover:text-[#1CB0F6] hover:border-[#1CB0F6]/30 transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-[#1CB0F6]/10"
+                  className="bg-white border border-[#E2ECE8] rounded-2xl px-4 py-2 text-xs sm:text-sm font-bold text-[#7C8B93] hover:text-[#FF5B3D] hover:border-[#FF7A59]/40 transition-all shadow-sm"
                 >
                   {s}
                 </button>
@@ -396,46 +388,38 @@ export default function CoachClient({ userId, profile, sessionId, history = [] }
             </div>
           )}
 
-          {/* Input box */}
-          <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#1CB0F6] to-[#2B70C9] rounded-[26px] blur opacity-10 group-focus-within:opacity-25 transition duration-500" />
-            <div className="relative flex items-center gap-3 bg-card2 border-2 border-white/5 focus-within:border-[#1CB0F6]/50 rounded-[22px] p-2 pl-6 transition-all shadow-2xl">
-              <input
-                ref={inputRef}
-                className="flex-1 bg-transparent py-3.5 text-[#F5F5F5] font-semibold text-sm outline-none placeholder:text-[#6F6F6F] placeholder:font-bold"
-                placeholder={INPUT_PH[lang as Language]}
-                value={input}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && !e.shiftKey && sendMsg()}
-                disabled={loading}
-                dir={lang === 'ar' ? 'rtl' : 'ltr'}
-                maxLength={2000}
-              />
-              <button
-                onClick={() => sendMsg()}
-                disabled={loading || !input.trim()}
-                className={cn(
-                  "w-12 h-12 rounded-2xl flex items-center justify-center transition-all flex-shrink-0 shadow-lg",
-                  loading || !input.trim() 
-                    ? "bg-white/5 text-[#6F6F6F] cursor-not-allowed"
-                    : "bg-gradient-to-br from-[#1CB0F6] to-[#2B70C9] text-white hover:scale-105 active:scale-95 hover:shadow-[#1CB0F6]/30"
-                )}
-              >
-                {loading ? <LoadingIcon /> : <SendIcon />}
-              </button>
-            </div>
+          {/* Input pill */}
+          <div className="flex items-center gap-2 bg-white border border-[#E2ECE8] rounded-full pl-5 pr-2 py-2 shadow-md focus-within:border-[#FF7A59]/50 transition-all">
+            <input
+              ref={inputRef}
+              className="flex-1 min-w-0 bg-transparent py-2.5 text-[#16283D] font-medium text-sm outline-none placeholder:text-[#9AA7AD]"
+              placeholder={INPUT_PH[lang as Language]}
+              value={input}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && !e.shiftKey && sendMsg()}
+              disabled={loading}
+              dir={lang === 'ar' ? 'rtl' : 'ltr'}
+              maxLength={2000}
+            />
+            <button
+              onClick={() => sendMsg()}
+              disabled={loading || !input.trim()}
+              aria-label="Send"
+              className={cn(
+                "w-10 h-10 rounded-full flex items-center justify-center transition-all flex-shrink-0",
+                loading || !input.trim()
+                  ? "bg-[#EAF5F1] text-[#9AA7AD] cursor-not-allowed"
+                  : "bg-gradient-to-br from-[#FF7A59] to-[#FF5B3D] text-white hover:scale-105 active:scale-95 shadow-md"
+              )}
+            >
+              {loading ? <LoadingIcon /> : <SendIcon />}
+            </button>
           </div>
-          
-          <p className="text-center text-[10px] text-[#6F6F6F] font-bold uppercase tracking-widest opacity-50">
-            Jimmy can make mistakes. Verify important information.
+
+          <p className="text-center text-[10px] text-[#9AA7AD] font-semibold uppercase tracking-widest">
+            {lang === 'ar' ? 'قد يخطئ مرجان. تحقق من المعلومات المهمة.' : lang === 'fr' ? 'Marjan peut se tromper. Vérifie les informations importantes.' : 'Marjan can make mistakes. Verify important information.'}
           </p>
         </div>
-      </div>
-
-      {/* Background Glows */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#1CB0F6]/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2B70C9]/5 rounded-full blur-[120px]" />
       </div>
     </div>
   )

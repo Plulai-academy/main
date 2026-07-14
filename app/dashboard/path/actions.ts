@@ -30,6 +30,6 @@ export async function setCurrentTrack(trackId: string) {
     return { error: 'Track save did not persist' }
   }
 
-  revalidatePath('/dashboard/skills')
+  revalidatePath('/dashboard/path')
   return { success: true }
 }

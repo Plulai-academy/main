@@ -3,5 +3,5 @@
 // Redirect users to the skill tree where coding lessons live.
 import { redirect } from 'next/navigation'
 export default function CodeLabPage() {
-  redirect('/dashboard/skills')
+  redirect('/dashboard/path')
 }

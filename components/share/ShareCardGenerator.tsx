@@ -1,446 +1,319 @@
 'use client'
-// components/share/ShareCardGenerator.tsx
-// Draws a stunning achievement card on Canvas and lets the user download/share it.
-// Card types: badge, skill, level, track
-// Design direction: cosmic dark luxury — deep space gradient, gold foil accents,
-// star particles, bold typography. Feels premium, not childish — kids want to show this off.
 
-import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { cn } from '@/lib/utils'
+import { useEffect, useRef, useState } from 'react'
+import BadgeIcon, { RARITY, ICON_PATHS, type BadgeIconKind } from '@/components/dashboard/BadgeIcon'
 
-export type CardType = 'badge' | 'skill' | 'level' | 'track'
+export type ShareCardProps =
+  | {
+      type: 'level'
+      childName: string
+      childAvatar: string
+      newLevel: number
+      levelTitle?: string
+      totalXP?: number
+    }
+  | {
+      type: 'skill'
+      childName: string
+      childAvatar: string
+      skillName: string
+      skillEmoji: string
+      trackName: string
+      xpEarned: number
+    }
+  | {
+      type: 'badge'
+      childName: string
+      childAvatar: string
+      badgeId: string
+      badgeName: string
+      badgeEmoji: string
+      badgeDescription: string
+      rarity: 'common' | 'rare' | 'epic' | 'legendary'
+      xpBonus: number
+    }
 
-export interface ShareCardProps {
-  type:       CardType
-  // Common
-  childName:  string
-  childAvatar: string
-  // Badge card
-  badgeName?:   string
-  badgeEmoji?:  string
-  badgeRarity?: 'common' | 'rare' | 'epic' | 'legendary'
-  badgeDesc?:   string
-  // Skill card
-  skillName?:  string
-  skillEmoji?: string
-  trackName?:  string
-  xpEarned?:   number
-  // Level card
-  newLevel?:   number
-  levelTitle?: string
-  totalXP?:    number
-  // Track card
-  trackEmoji?: string
-  lessonsCompleted?: number
+const RARITY_LABEL: Record<string, string> = {
+  common: 'Common',
+  rare: 'Rare',
+  epic: 'Epic',
+  legendary: 'Legendary',
 }
 
-// ── Rarity palettes ───────────────────────────────────────────
-const RARITY_PALETTES = {
-  common:    { bg: ['#1a1a2e', '#16213e'], glow: '#8888bb', accent: '#c0c0d0', star: '#ffffff' },
-  rare:      { bg: ['#0d1b2a', '#1b4332'], glow: '#4d96ff', accent: '#60a5fa', star: '#60a5fa' },
-  epic:      { bg: ['#1a0a2e', '#2d1b69'], glow: '#c77dff', accent: '#a78bfa', star: '#c77dff' },
-  legendary: { bg: ['#1a1200', '#3d2b00'], glow: '#ffd93d', accent: '#fbbf24', star: '#ffd93d' },
-}
-
-const TYPE_PALETTES: Record<CardType, typeof RARITY_PALETTES.epic> = {
-  badge:  RARITY_PALETTES.epic,
-  skill:  { bg: ['#0d1b3e', '#1e3a5f'], glow: '#4d96ff', accent: '#60a5fa', star: '#4d96ff' },
-  level:  { bg: ['#1a0d2e', '#3b1f6b'], glow: '#c77dff', accent: '#a78bfa', star: '#c77dff' },
-  track:  { bg: ['#0a1f1a', '#0d3b2e'], glow: '#6bcb77', accent: '#4ade80', star: '#6bcb77' },
-}
-
-// Card dimensions — 1080×1080 (perfect for Instagram/WhatsApp)
-const W = 1080
-const H = 1080
-
-function drawStars(ctx: CanvasRenderingContext2D, color: string, count = 80) {
-  for (let i = 0; i < count; i++) {
-    const x = Math.random() * W
-    const y = Math.random() * H
-    const r = Math.random() * 1.5 + 0.3
-    const alpha = Math.random() * 0.7 + 0.15
-    ctx.beginPath()
-    ctx.arc(x, y, r, 0, Math.PI * 2)
-    ctx.fillStyle = color.replace(')', `, ${alpha})`).replace('rgb', 'rgba').replace('#', 'rgba(')
-    // simpler: just use rgba white
-    ctx.fillStyle = `rgba(255,255,255,${alpha * 0.6})`
-    ctx.fill()
+function buildShareText(props: ShareCardProps): string {
+  switch (props.type) {
+    case 'level':
+      return `I just hit Level ${props.newLevel}${props.levelTitle ? ` — ${props.levelTitle}` : ''} on Plulai! 🚀`
+    case 'skill':
+      return `I just finished ${props.skillName} (${props.trackName}) on Plulai! ${props.skillEmoji}`
+    case 'badge':
+      return `I just earned the "${props.badgeName}" badge on Plulai! ${props.badgeEmoji}`
   }
 }
 
-function drawGlowCircle(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string, alpha = 0.15) {
-  const grad = ctx.createRadialGradient(x, y, 0, x, y, r)
-  grad.addColorStop(0, color + Math.round(alpha * 255).toString(16).padStart(2, '0'))
-  grad.addColorStop(1, 'transparent')
-  ctx.fillStyle = grad
-  ctx.beginPath()
-  ctx.arc(x, y, r, 0, Math.PI * 2)
-  ctx.fill()
+function accentFor(props: ShareCardProps): string {
+  if (props.type === 'badge') return RARITY[props.rarity]?.ring ?? '#17D9C0'
+  if (props.type === 'level') return '#FFC93C'
+  return '#17D9C0'
 }
 
-function hexToRgb(hex: string): [number, number, number] {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return [r, g, b]
+function subtitleFor(props: ShareCardProps): string {
+  switch (props.type) {
+    case 'level':
+      return props.levelTitle ?? `${(props.totalXP ?? 0).toLocaleString()} total XP`
+    case 'skill':
+      return `${props.trackName} · +${props.xpEarned.toLocaleString()} XP`
+    case 'badge':
+      return props.badgeDescription
+  }
 }
 
-function drawRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath()
-  ctx.moveTo(x + r, y)
-  ctx.lineTo(x + w - r, y)
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r)
-  ctx.lineTo(x + w, y + h - r)
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-  ctx.lineTo(x + r, y + h)
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r)
-  ctx.lineTo(x, y + r)
-  ctx.quadraticCurveTo(x, y, x + r, y)
-  ctx.closePath()
+function titleFor(props: ShareCardProps): string {
+  switch (props.type) {
+    case 'level':
+      return `Level ${props.newLevel}`
+    case 'skill':
+      return props.skillName
+    case 'badge':
+      return props.badgeName
+  }
 }
 
-export function generateShareCard(canvas: HTMLCanvasElement, props: ShareCardProps) {
-  const ctx = canvas.getContext('2d')!
-  canvas.width  = W
-  canvas.height = H
+// Builds a self-contained SVG string for the whole card, at export
+// resolution, so it can be rasterized to a real downloadable PNG without
+// any external screenshot/rendering library.
+function buildCardSVG(props: ShareCardProps): string {
+  const W = 1080
+  const H = 1350
+  const accent = accentFor(props)
+  const title = titleFor(props).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  const subtitle = subtitleFor(props).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  const name = props.childName.replace(/&/g, '&amp;').replace(/</g, '&lt;')
 
-  // Pick palette
-  let palette = TYPE_PALETTES[props.type]
-  if (props.type === 'badge' && props.badgeRarity) {
-    palette = RARITY_PALETTES[props.badgeRarity] ?? palette
-  }
+  let emoji = '🏆'
+  let iconSvg = ''
 
-  // ── Background gradient ────────────────────────────────────
-  const bgGrad = ctx.createLinearGradient(0, 0, W * 0.5, H)
-  bgGrad.addColorStop(0, palette.bg[0])
-  bgGrad.addColorStop(1, palette.bg[1])
-  ctx.fillStyle = bgGrad
-  ctx.fillRect(0, 0, W, H)
-
-  // ── Star field ─────────────────────────────────────────────
-  drawStars(ctx, palette.star, 120)
-
-  // ── Glow blobs (atmosphere) ────────────────────────────────
-  drawGlowCircle(ctx, W * 0.15, H * 0.2, 350, palette.glow, 0.18)
-  drawGlowCircle(ctx, W * 0.85, H * 0.75, 300, palette.accent, 0.12)
-  drawGlowCircle(ctx, W * 0.5,  H * 0.5,  250, palette.glow, 0.06)
-
-  // ── Card frame (glass border) ──────────────────────────────
-  const pad = 48
-  drawRoundRect(ctx, pad, pad, W - pad * 2, H - pad * 2, 48)
-  const rgb = hexToRgb(palette.accent)
-  ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.25)`
-  ctx.lineWidth = 2
-  ctx.stroke()
-
-  // inner subtle fill
-  ctx.fillStyle = 'rgba(255,255,255,0.03)'
-  ctx.fill()
-
-  // ── Plulai logo top-left ───────────────────────────────────
-  ctx.font = 'bold 36px "Fredoka One", sans-serif'
-  ctx.fillStyle = palette.accent
-  ctx.fillText('🚀 Plulai', 96, 128)
-
-  // Tagline top-right
-  ctx.font = 'bold 22px sans-serif'
-  ctx.fillStyle = `rgba(255,255,255,0.35)`
-  ctx.textAlign = 'right'
-  ctx.fillText('plulai.com', W - 96, 128)
-  ctx.textAlign = 'left'
-
-  // ── Horizontal divider ─────────────────────────────────────
-  const divGrad = ctx.createLinearGradient(96, 0, W - 96, 0)
-  divGrad.addColorStop(0, 'transparent')
-  divGrad.addColorStop(0.3, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.4)`)
-  divGrad.addColorStop(0.7, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.4)`)
-  divGrad.addColorStop(1, 'transparent')
-  ctx.strokeStyle = divGrad
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.moveTo(96, 152)
-  ctx.lineTo(W - 96, 152)
-  ctx.stroke()
-
-  // ── Content area starts at y=180 ─────────────────────────
-
-  // ── Emoji / main icon (big, centered with glow) ───────────
-  const emoji = props.badgeEmoji ?? props.skillEmoji ?? props.trackEmoji ?? '🌟'
-  const emojiY = 340
-
-  // Glow behind emoji
-  drawGlowCircle(ctx, W / 2, emojiY, 180, palette.glow, 0.3)
-
-  // Emoji circle background
-  ctx.beginPath()
-  ctx.arc(W / 2, emojiY, 110, 0, Math.PI * 2)
-  ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.12)`
-  ctx.fill()
-  ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.4)`
-  ctx.lineWidth = 3
-  ctx.stroke()
-
-  // Emoji
-  ctx.font = '120px serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(emoji, W / 2, emojiY)
-  ctx.textBaseline = 'alphabetic'
-
-  // ── Rarity / type label ────────────────────────────────────
-  const labelY = 500
-  let typeLabel = ''
-  if (props.type === 'badge')  typeLabel = props.badgeRarity ? `✦ ${props.badgeRarity.toUpperCase()} BADGE ✦` : '✦ BADGE ✦'
-  if (props.type === 'skill')  typeLabel = '✦ SKILL COMPLETE ✦'
-  if (props.type === 'level')  typeLabel = '✦ LEVEL UP ✦'
-  if (props.type === 'track')  typeLabel = '✦ TRACK MASTERED ✦'
-
-  ctx.font = 'bold 26px sans-serif'
-  ctx.fillStyle = palette.accent
-  ctx.textAlign = 'center'
-  ctx.letterSpacing = '4px'
-  ctx.fillText(typeLabel, W / 2, labelY)
-  ctx.letterSpacing = '0px'
-
-  // ── Main title ─────────────────────────────────────────────
-  const titleY = 590
-  let title = ''
-  if (props.type === 'badge')  title = props.badgeName ?? 'Achievement Unlocked'
-  if (props.type === 'skill')  title = props.skillName ?? 'Skill Mastered'
-  if (props.type === 'level')  title = props.levelTitle ? `Level ${props.newLevel} — ${props.levelTitle}` : `Level ${props.newLevel}`
-  if (props.type === 'track')  title = `${props.trackName ?? 'Track'} Master`
-
-  // Text glow
-  ctx.shadowColor = palette.glow
-  ctx.shadowBlur = 30
-  ctx.font = 'bold 72px "Fredoka One", cursive, sans-serif'
-  ctx.fillStyle = '#ffffff'
-  ctx.textAlign = 'center'
-
-  // Word-wrap if too long
-  const maxW = W - 200
-  const words = title.split(' ')
-  let line = '', lines: string[] = []
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word
-    if (ctx.measureText(test).width > maxW && line) {
-      lines.push(line); line = word
-    } else { line = test }
-  }
-  lines.push(line)
-
-  lines.forEach((l, i) => ctx.fillText(l, W / 2, titleY + i * 82))
-  ctx.shadowBlur = 0
-
-  // ── Subtitle / description ────────────────────────────────
-  const descY = titleY + lines.length * 82 + 28
-  let desc = ''
-  if (props.type === 'badge')  desc = props.badgeDesc ?? ''
-  if (props.type === 'skill')  desc = props.trackName ? `${props.trackName} track${props.xpEarned ? ` · +${props.xpEarned} XP` : ''}` : ''
-  if (props.type === 'level')  desc = props.totalXP ? `${props.totalXP.toLocaleString()} total XP` : ''
-  if (props.type === 'track')  desc = props.lessonsCompleted ? `${props.lessonsCompleted} lessons completed` : ''
-
-  if (desc) {
-    ctx.font = '32px sans-serif'
-    ctx.fillStyle = 'rgba(255,255,255,0.55)'
-    ctx.textAlign = 'center'
-    ctx.fillText(desc, W / 2, descY)
-  }
-
-  // ── Achieved by (child name + avatar) ────────────────────
-  const achievedY = H - 200
-
-  // Divider
-  const div2 = ctx.createLinearGradient(180, 0, W - 180, 0)
-  div2.addColorStop(0, 'transparent')
-  div2.addColorStop(0.4, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.35)`)
-  div2.addColorStop(0.6, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.35)`)
-  div2.addColorStop(1, 'transparent')
-  ctx.strokeStyle = div2
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.moveTo(180, achievedY - 32)
-  ctx.lineTo(W - 180, achievedY - 32)
-  ctx.stroke()
-
-  // Avatar bubble
-  const avatarX = W / 2 - 120
-  const avatarY = achievedY + 12
-  ctx.beginPath()
-  ctx.arc(avatarX, avatarY + 28, 44, 0, Math.PI * 2)
-  ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.15)`
-  ctx.fill()
-  ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.5)`
-  ctx.lineWidth = 2
-  ctx.stroke()
-
-  ctx.font = '52px serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(props.childAvatar, avatarX, avatarY + 28)
-  ctx.textBaseline = 'alphabetic'
-
-  // Name
-  ctx.font = 'bold 42px "Fredoka One", sans-serif'
-  ctx.fillStyle = '#ffffff'
-  ctx.textAlign = 'left'
-  ctx.fillText(props.childName, W / 2 - 60, achievedY + 22)
-
-  ctx.font = 'bold 24px sans-serif'
-  ctx.fillStyle = 'rgba(255,255,255,0.45)'
-  ctx.fillText('achieved this', W / 2 - 60, achievedY + 56)
-
-  // ── Date bottom-right ──────────────────────────────────────
-  ctx.font = '22px sans-serif'
-  ctx.fillStyle = 'rgba(255,255,255,0.25)'
-  ctx.textAlign = 'right'
-  ctx.fillText(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }), W - 96, H - 80)
-
-  // ── Decorative corner stars ────────────────────────────────
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.font = '28px serif'
-  ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.5)`
-  ctx.fillText('✦', 96 + 36, 96 + 36)
-  ctx.fillText('✦', W - 96 - 36, 96 + 36)
-  ctx.fillText('✦', 96 + 36, H - 96 - 36)
-  ctx.fillText('✦', W - 96 - 36, H - 96 - 36)
-}
-
-
-// ── ShareCardModal component ──────────────────────────────────
-interface ModalProps {
-  props:    ShareCardProps
-  onClose: () => void
-}
-
-export default function ShareCardModal({ props, onClose }: ModalProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [rendered,  setRendered]  = useState(false)
-  const [shareSupported, setShareSupported] = useState(false)
-  const [copying,   setCopying]   = useState(false)
-
-  useEffect(() => {
-    setShareSupported(typeof navigator !== 'undefined' && !!navigator.share && !!navigator.canShare)
-  }, [])
-
-  // Re-draw whenever props change
-  const draw = useCallback(() => {
-    if (!canvasRef.current) return
-    generateShareCard(canvasRef.current, props)
-    setRendered(true)
-  }, [props])
-
-  useEffect(() => { draw() }, [draw])
-
-  const getBlob = (): Promise<Blob> =>
-    new Promise((res, rej) => {
-      if (!canvasRef.current) return rej(new Error('No canvas'))
-      canvasRef.current.toBlob((b: Blob | null) => b ? res(b) : rej(new Error('Failed')), 'image/png', 1)
-    })
-
-  const download = async () => {
-    const blob = await getBlob()
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = `plulai-${props.type}-${props.childName.toLowerCase().replace(/\s/g, '-')}.png`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  const share = async () => {
-    try {
-      const blob = await getBlob()
-      const file = new File([blob], 'plulai-achievement.png', { type: 'image/png' })
-      await navigator.share({ title: `I earned the ${props.badgeName ?? props.skillName ?? 'achievement'} on Plulai!`, files: [file] })
-    } catch {}
-  }
-
-  const copyImage = async () => {
-    try {
-      setCopying(true)
-      const blob = await getBlob()
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-      setTimeout(() => setCopying(false), 2000)
-    } catch {
-      setCopying(false)
+  if (props.type === 'level') emoji = '🏆'
+  if (props.type === 'skill') emoji = props.skillEmoji
+  if (props.type === 'badge') {
+    emoji = props.badgeEmoji
+    const path = ICON_PATHS[props.badgeId as BadgeIconKind]
+    const iconColor = RARITY[props.rarity]?.iconColor ?? '#0F9B87'
+    if (path) {
+      iconSvg = `<svg x="440" y="330" width="200" height="200" viewBox="0 0 24 24"><path d="${path}" fill="${iconColor}" fill-opacity="0.9" stroke="${iconColor}" stroke-width="0.6"/></svg>`
     }
   }
 
-  const rarity = props.badgeRarity ?? 'epic'
-  const glowColor = {
-    common: '#8888bb', rare: '#4d96ff', epic: '#c77dff', legendary: '#ffd93d',
-  }[rarity] ?? '#c77dff'
+  const emojiFallback = iconSvg
+    ? ''
+    : `<text x="540" y="470" font-size="140" text-anchor="middle" dominant-baseline="middle">${emoji}</text>`
+
+  const rarityPill =
+    props.type === 'badge'
+      ? `<rect x="440" y="580" width="200" height="52" rx="26" fill="${accent}" fill-opacity="0.18"/>
+         <text x="540" y="614" font-size="26" font-weight="800" text-anchor="middle" fill="${accent}" letter-spacing="2">${RARITY_LABEL[props.rarity].toUpperCase()}</text>`
+      : ''
+
+  return `
+<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#EAF7F4"/>
+      <stop offset="1" stop-color="#D9F1EC"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="${accent}" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="${accent}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="${W}" height="${H}" rx="56" fill="url(#bg)"/>
+
+  <circle cx="540" cy="420" r="280" fill="url(#glow)"/>
+  <circle cx="540" cy="420" r="210" fill="#FFFFFF"/>
+  <circle cx="540" cy="420" r="210" fill="none" stroke="${accent}" stroke-width="6"/>
+
+  ${iconSvg}
+  ${emojiFallback}
+
+  ${rarityPill}
+
+  <text x="540" y="${props.type === 'badge' ? 700 : 640}" font-size="72" font-weight="900" text-anchor="middle" fill="#0D2B32" font-family="Nunito, sans-serif">${title}</text>
+  <text x="540" y="${props.type === 'badge' ? 760 : 700}" font-size="34" font-weight="700" text-anchor="middle" fill="#4E7169" font-family="Nunito, sans-serif">${subtitle}</text>
+
+  <line x1="180" y1="1140" x2="900" y2="1140" stroke="#0D2B32" stroke-opacity="0.08" stroke-width="2"/>
+
+  <text x="540" y="1210" font-size="30" font-weight="800" text-anchor="middle" fill="#0D2B32" font-family="Nunito, sans-serif">Earned by ${name}</text>
+  <text x="540" y="1260" font-size="26" font-weight="700" text-anchor="middle" fill="${accent}" letter-spacing="1" font-family="Nunito, sans-serif">PLULAI</text>
+</svg>`.trim()
+}
+
+function downloadCard(props: ShareCardProps, onDone: () => void) {
+  const svgString = buildCardSVG(props)
+  const svg64 = typeof window !== 'undefined' ? window.btoa(unescape(encodeURIComponent(svgString))) : ''
+  const dataUrl = `data:image/svg+xml;base64,${svg64}`
+
+  const img = new Image()
+  img.onload = () => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 1080
+    canvas.height = 1350
+    const ctx = canvas.getContext('2d')
+    if (!ctx) { onDone(); return }
+    ctx.drawImage(img, 0, 0)
+    canvas.toBlob((blob) => {
+      if (!blob) { onDone(); return }
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      const safeName = props.childName.trim().replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'plulai'
+      const kind = props.type === 'badge' ? 'badge' : props.type === 'level' ? 'level' : 'skill'
+      a.href = url
+      a.download = `${safeName}-${kind}.png`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      onDone()
+    }, 'image/png')
+  }
+  img.onerror = () => onDone()
+  img.src = dataUrl
+}
+
+export default function ShareCardModal({ props, onClose }: { props: ShareCardProps; onClose: () => void }) {
+  const [copied, setCopied] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  const shareText = buildShareText(props)
+  const accent = accentFor(props)
+
+  const handleShare = async () => {
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      try {
+        await (navigator as any).share({ text: shareText, title: 'Plulai' })
+        return
+      } catch {
+        // cancelled or unsupported — fall through to copy
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(shareText)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // clipboard unavailable — nothing else to do
+    }
+  }
+
+  const handleDownload = () => {
+    setDownloading(true)
+    downloadCard(props, () => setDownloading(false))
+  }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D2B32]/60 backdrop-blur-sm px-4"
       onClick={onClose}
     >
       <div
-        className="bg-card border border-white/10 rounded-3xl p-6 max-w-lg w-full shadow-2xl animate-star-pop"
-        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        className="bg-white rounded-[32px] w-full max-w-sm shadow-2xl relative overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-fredoka text-xl">🎉 Share Your Achievement!</h2>
-          <button onClick={onClose} className="text-muted hover:text-white text-2xl leading-none transition-colors">×</button>
-        </div>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center text-[#4E7169] bg-white/80 hover:bg-white transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5 12 10.6 6.4 5Z" />
+          </svg>
+        </button>
 
-        {/* Canvas preview */}
-        <div className="relative rounded-2xl overflow-hidden mb-5 shadow-xl" style={{ boxShadow: `0 0 40px ${glowColor}40` }}>
-          <canvas
-            ref={canvasRef}
-            className="w-full h-auto block"
-            style={{ aspectRatio: '1/1' }}
+        {/* ── Hero panel ── */}
+        <div
+          className="relative flex flex-col items-center pt-10 pb-8 px-6 text-center"
+          style={{ background: 'linear-gradient(160deg, #EAF7F4, #D9F1EC)' }}
+        >
+          <div
+            aria-hidden
+            className="absolute rounded-full"
+            style={{
+              width: 260,
+              height: 260,
+              background: `radial-gradient(circle, ${accent}55, transparent 70%)`,
+              top: 10,
+            }}
           />
-          {!rendered && (
-            <div className="absolute inset-0 flex items-center justify-center bg-card text-muted font-bold text-sm">
-              Generating card...
-            </div>
-          )}
-        </div>
 
-        {/* Action buttons */}
-        <div className="grid grid-cols-3 gap-3">
-          <button
-            onClick={download}
-            className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-card2 border border-white/8 hover:border-accent4/40 hover:bg-accent4/10 transition-all group"
-          >
-            <span className="text-xl group-hover:scale-110 transition-transform">⬇️</span>
-            <span className="text-xs font-extrabold text-muted group-hover:text-white transition-colors">Download</span>
-          </button>
-
-          {shareSupported && (
-            <button
-              onClick={share}
-              className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-accent5/20 to-accent1/20 border border-accent5/30 hover:-translate-y-0.5 hover:shadow-lg transition-all group"
-            >
-              <span className="text-xl group-hover:scale-110 transition-transform">📤</span>
-              <span className="text-xs font-extrabold text-accent5">Share</span>
-            </button>
-          )}
-
-          <button
-            onClick={copyImage}
-            className={cn(
-              'flex flex-col items-center gap-1.5 py-3 rounded-2xl border transition-all group',
-              copying
-                ? 'bg-accent3/15 border-accent3/40'
-                : 'bg-card2 border-white/8 hover:border-accent3/40 hover:bg-accent3/10'
+          <div className="relative mb-5">
+            {props.type === 'badge' ? (
+              <BadgeIcon badgeId={props.badgeId} fallbackEmoji={props.badgeEmoji} rarity={props.rarity} earned size={130} />
+            ) : (
+              <div
+                className="w-[130px] h-[130px] rounded-full bg-white flex items-center justify-center text-6xl"
+                style={{ border: `4px solid ${accent}`, boxShadow: `0 0 24px ${accent}55` }}
+              >
+                {props.type === 'level' ? '🏆' : props.skillEmoji}
+              </div>
             )}
-          >
-            <span className="text-xl group-hover:scale-110 transition-transform">{copying ? '✅' : '📋'}</span>
-            <span className={cn('text-xs font-extrabold transition-colors', copying ? 'text-accent3' : 'text-muted group-hover:text-white')}>
-              {copying ? 'Copied!' : 'Copy'}
+          </div>
+
+          {props.type === 'badge' && (
+            <span
+              className="relative inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest mb-3"
+              style={{ background: `${accent}22`, color: accent }}
+            >
+              {RARITY_LABEL[props.rarity]}
             </span>
-          </button>
+          )}
+
+          <h2 className="relative font-extrabold text-2xl text-[#0D2B32] mb-1.5 leading-tight">
+            {titleFor(props)}
+          </h2>
+          <p className="relative text-sm font-bold text-[#4E7169] leading-relaxed max-w-[260px]">
+            {subtitleFor(props)}
+          </p>
         </div>
 
-        <p className="text-center text-xs text-muted font-semibold mt-4">
-          1080×1080px · Perfect for Instagram, WhatsApp & Snapchat
-        </p>
+        {/* ── Signature footer ── */}
+        <div className="px-6 py-5 border-t border-[#0D2B32]/8 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0"
+              style={{ background: '#F1F5F4', color: '#4E7169' }}
+            >
+              {props.childAvatar}
+            </div>
+            <p className="text-sm font-bold text-[#0D2B32] truncate">{props.childName}</p>
+          </div>
+          <span className="text-xs font-black uppercase tracking-widest shrink-0" style={{ color: accent }}>
+            Plulai
+          </span>
+        </div>
+
+        {/* ── Actions ── */}
+        <div className="px-6 pb-6 flex gap-3">
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex-1 py-3 rounded-2xl font-extrabold text-sm border-2 border-[#0D2B32]/10 text-[#0D2B32] hover:border-[#0D2B32]/25 transition-all disabled:opacity-50"
+          >
+            {downloading ? 'Saving…' : 'Download'}
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex-1 py-3 rounded-2xl font-extrabold text-sm text-white transition-transform hover:-translate-y-0.5"
+            style={{ background: '#FF6B57', boxShadow: '0 4px 0 rgba(13,43,50,0.18)' }}
+          >
+            {copied ? 'Copied!' : 'Share'}
+          </button>
+        </div>
       </div>
     </div>
   )

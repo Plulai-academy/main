@@ -332,7 +332,7 @@ function WhatsNext({
     <div className="space-y-2" dir={dir}>
       <p className="text-xs font-extrabold text-muted/60 uppercase tracking-wider">{t.nextLesson}</p>
       <Link
-        href={`/dashboard/skills/${skillId}/lesson/${nextLesson.id}`}
+        href={`/dashboard/path/${skillId}/lesson/${nextLesson.id}`}
         className="flex items-center gap-4 p-4 bg-gradient-to-r from-accent4/10 to-accent5/10 border-2 border-accent4/30 rounded-2xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent4/10 transition-all group"
       >
         <span className="text-3xl flex-shrink-0">{nextLesson.emoji}</span>
@@ -356,7 +356,7 @@ function WhatsNext({
     <div className="space-y-2" dir={dir}>
       <p className="text-xs font-extrabold text-muted/60 uppercase tracking-wider">{t.nextSkill}</p>
       <Link
-        href={`/dashboard/skills/${nextSkill.id}/lesson/${nextSkill.lessonId}`}
+        href={`/dashboard/path/${nextSkill.id}/lesson/${nextSkill.lessonId}`}
         className="flex items-center gap-4 p-4 bg-gradient-to-r from-accent4/10 to-accent5/10 border-2 border-accent4/30 rounded-2xl hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent4/10 transition-all group"
       >
         <span className="text-3xl flex-shrink-0">{nextSkill.emoji}</span>
@@ -385,7 +385,7 @@ function WhatsNext({
           {tracks.map((tr) => (
             <Link
               key={tr.id}
-              href={`/dashboard/skills?track=${tr.id}`}
+              href={`/dashboard/path?track=${tr.id}`}
               className="flex items-center gap-3 p-3.5 bg-white/3 border border-white/8 rounded-2xl hover:border-accent5/30 hover:bg-accent5/5 transition-all group"
             >
               <span className="text-2xl flex-shrink-0">{tr.emoji}</span>
@@ -400,7 +400,7 @@ function WhatsNext({
           {/* Fallback if no suggested tracks */}
           {tracks.length === 0 && (
             <Link
-              href="/dashboard/skills"
+              href="/dashboard/path"
               className="flex items-center gap-3 p-3.5 bg-white/3 border border-white/8 rounded-2xl hover:border-accent5/30 hover:bg-accent5/5 transition-all group col-span-2"
             >
               <Icon src="/icons/rocket.png" fallback="🚀" className="w-6 h-6 flex-shrink-0" />
@@ -422,7 +422,7 @@ function WhatsNext({
         </Link>
 
         <Link
-          href={`/dashboard/skills/${skillId}`}
+          href={`/dashboard/path/${skillId}`}
           className="block text-center text-xs font-bold text-muted hover:text-white transition-colors pt-1"
         >
           {t.backToSkill}
@@ -462,7 +462,7 @@ function WhatsNext({
       </Link>
 
       <Link
-        href={`/dashboard/skills/${skillId}`}
+        href={`/dashboard/path/${skillId}`}
         className="block text-center text-xs font-bold text-muted hover:text-white transition-colors"
       >
         {t.backToSkill}
