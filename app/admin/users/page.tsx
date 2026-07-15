@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { Panel, PanelHeader, PanelTitle, Eyebrow, Badge, Table, TableScroll, GhostButton, PrimaryButton, EmptyState } from '@/components/school-admin/ui';
 import { Modal, FormField } from '@/components/school-admin/Modal';
 import { searchUsers, deleteUserAccount, sendPasswordRecovery, updateUserAccount } from '@/lib/admin/queries';
+import { exportToCSV } from '@/lib/admin/export';
 import type { AdminUserRow } from '@/types/admin';
 
 const Title = styled.h1`
@@ -66,6 +67,7 @@ export default function AdminUsersPage() {
   const [query, setQuery] = useState('');
   const [accountType, setAccountType] = useState('');
   const [subscription, setSubscription] = useState('');
+  const [sortBy, setSortBy] = useState<'created_at' | 'last_active'>('created_at');
   const [page, setPage] = useState(1);
   const [users, setUsers] = useState<AdminUserRow[] | null>(null);
   const [total, setTotal] = useState(0);
@@ -74,7 +76,14 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<AdminUserRow | null>(null);
 
   const refresh = () => {
-    searchUsers({ query, accountType: accountType || undefined, subscription: subscription || undefined, page, pageSize: PAGE_SIZE })
+    searchUsers({
+      query,
+      accountType: accountType || undefined,
+      subscription: subscription || undefined,
+      sortBy,
+      page,
+      pageSize: PAGE_SIZE,
+    })
       .then((res) => {
         setUsers(res.users);
         setTotal(res.total);
@@ -85,11 +94,30 @@ export default function AdminUsersPage() {
   useEffect(() => {
     const t = setTimeout(refresh, 300);
     return () => clearTimeout(t);
-  }, [query, accountType, subscription, page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, accountType, subscription, sortBy, page]);
 
   useEffect(() => {
     setPage(1);
-  }, [query, accountType, subscription]);
+  }, [query, accountType, subscription, sortBy]);
+
+  function handleExport() {
+    if (!users) return;
+    exportToCSV(
+      'users-export.csv',
+      users.map((u: AdminUserRow) => ({
+        Name: u.displayName,
+        Email: u.email,
+        Type: u.accountType,
+        Subscription: u.subscription ?? '',
+        Plan: u.planId ?? '',
+        School: u.schoolName ?? '',
+        XP: u.xp,
+        LastActive: u.lastActiveDate ?? '',
+        JoinedAt: u.createdAt,
+      }))
+    );
+  }
 
   async function handleDelete(u: AdminUserRow) {
     if (!confirm(`Permanently delete ${u.displayName} (${u.email})? This cannot be undone.`)) return;
@@ -139,7 +167,10 @@ export default function AdminUsersPage() {
           <option value="">All subscriptions</option>
           <option value="free">Free</option>
           <option value="pro">Pro</option>
-          <option value="school">School</option>
+        </FilterSelect>
+        <FilterSelect value={sortBy} onChange={(e) => setSortBy(e.target.value as 'created_at' | 'last_active')}>
+          <option value="created_at">Newest first</option>
+          <option value="last_active">Last active</option>
         </FilterSelect>
       </FilterRow>
 
@@ -151,6 +182,7 @@ export default function AdminUsersPage() {
             <Eyebrow>Accounts</Eyebrow>
             <PanelTitle>{total} result{total === 1 ? '' : 's'}</PanelTitle>
           </div>
+          <GhostButton onClick={handleExport}>Export CSV</GhostButton>
         </PanelHeader>
         <div style={{ paddingTop: 12 }}>
           {users && users.length === 0 ? (
@@ -296,6 +328,7 @@ function EditUserModal({
     </Modal>
   );
 }
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }

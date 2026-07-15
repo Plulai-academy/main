@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import type { AdminSchoolRow, AdminUserRow, AdminTrack, AdminSkillNode, AdminLesson, PlatformKPIs } from '@/types/admin';
+import type { AdminSchoolRow, AdminUserRow, AdminTrack, AdminSkillNode, AdminLesson, PlatformKPIs, FinanceOverview, PlanBreakdown, RevenueTrendPoint } from '@/types/admin';
 const supabase = createClient();
 
 export async function getAllSchools(): Promise<AdminSchoolRow[]> {
@@ -92,6 +92,7 @@ export async function searchUsers(params: {
   query?: string;
   accountType?: string;
   subscription?: string;
+  sortBy?: 'created_at' | 'last_active';
   page?: number;
   pageSize?: number;
 }): Promise<{ users: AdminUserRow[]; total: number }> {
@@ -104,11 +105,10 @@ export async function searchUsers(params: {
     .from('profiles')
     .select(
       `id, display_name, email, account_type, school_id, subscription, plan_id, created_at,
-      schools(name),
-      user_progress(xp, last_active_date)`,
+       schools(name),
+       user_progress(xp, last_active_date)`,
       { count: 'exact' }
-    )
-    .order('created_at', { ascending: false });
+    );
 
   if (params.query?.trim()) {
     q = q.or(`display_name.ilike.%${params.query}%,email.ilike.%${params.query}%`);
@@ -118,6 +118,14 @@ export async function searchUsers(params: {
   }
   if (params.subscription) {
     q = q.eq('subscription', params.subscription);
+  }
+
+  // Sorting by last_active_date requires the joined table's column, which
+  // PostgREST can order by directly using its dotted foreign-table syntax.
+  if (params.sortBy === 'last_active') {
+    q = q.order('last_active_date', { ascending: false, foreignTable: 'user_progress', nullsFirst: false });
+  } else {
+    q = q.order('created_at', { ascending: false });
   }
 
   const { data, error, count } = await q.range(from, to);
@@ -143,7 +151,6 @@ export async function searchUsers(params: {
 
   return { users, total: count ?? 0 };
 }
-
 export async function updateUserAccount(
   userId: string,
   params: { displayName: string; subscription: string | null; planId: string | null }
@@ -396,4 +403,55 @@ export async function getPlatformKPIs(): Promise<PlatformKPIs> {
     activeSchools,
     renewalsDueSoon,
   };
+}
+
+export async function getFinanceOverview(): Promise<FinanceOverview> {
+  const [{ data: payingProfiles }, { data: plans }] = await Promise.all([
+    supabase.from('profiles').select('plan_id, subscribed_at').eq('subscription', 'pro'),
+    supabase.from('subscription_plans').select('id, name, price_usd, interval').eq('is_active', true),
+  ]);
+
+  const planMap = new Map((plans ?? []).map((p: any) => [p.id, { name: p.name, price: Number(p.price_usd), interval: p.interval }]));
+
+  const countByPlan = new Map<string, number>();
+  for (const p of payingProfiles ?? []) {
+    const key = p.plan_id ?? 'monthly';
+    countByPlan.set(key, (countByPlan.get(key) ?? 0) + 1);
+  }
+
+  const byPlan: PlanBreakdown[] = Array.from(countByPlan.entries()).map(([planId, count]) => {
+    const plan = planMap.get(planId);
+    const price = plan?.price ?? 79;
+    const interval = plan?.interval ?? 'month';
+    const monthlyEquivalent = interval === 'year' ? price / 12 : price;
+    return {
+      planId,
+      planName: plan?.name ?? planId,
+      interval,
+      price,
+      subscriberCount: count,
+      monthlyRevenue: Math.round(monthlyEquivalent * count),
+    };
+  });
+
+  const totalMRR = byPlan.reduce((sum, p) => sum + p.monthlyRevenue, 0);
+  const totalPayingUsers = (payingProfiles ?? []).length;
+
+  // New-subscriber trend, last 6 months, grouped by subscribed_at.
+  const now = new Date();
+  const months: string[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+  const trendCounts = new Map(months.map((m) => [m, 0]));
+  for (const p of payingProfiles ?? []) {
+    if (!p.subscribed_at) continue;
+    const d = new Date(p.subscribed_at);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    if (trendCounts.has(key)) trendCounts.set(key, (trendCounts.get(key) ?? 0) + 1);
+  }
+  const trend: RevenueTrendPoint[] = months.map((m) => ({ month: m, newSubscribers: trendCounts.get(m) ?? 0 }));
+
+  return { totalMRR, totalPayingUsers, byPlan, trend };
 }

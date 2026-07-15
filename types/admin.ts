@@ -76,3 +76,23 @@ export interface PlatformKPIs {
   activeSchools: number;
   renewalsDueSoon: { id: string; name: string; licenseEnd: string; daysLeft: number }[];
 }
+export interface PlanBreakdown {
+  planId: string;
+  planName: string;
+  interval: string;
+  price: number;
+  subscriberCount: number;
+  monthlyRevenue: number;
+}
+
+export interface RevenueTrendPoint {
+  month: string; // YYYY-MM
+  newSubscribers: number;
+}
+
+export interface FinanceOverview {
+  totalMRR: number;
+  totalPayingUsers: number;
+  byPlan: PlanBreakdown[];
+  trend: RevenueTrendPoint[];
+}

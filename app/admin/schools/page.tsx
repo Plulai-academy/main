@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { Panel, PanelHeader, PanelTitle, Eyebrow, Badge, Table, TableScroll, PrimaryButton, GhostButton, EmptyState } from '@/components/school-admin/ui';
 import { Modal, FormField } from '@/components/school-admin/Modal';
 import { getAllSchools, createSchool, updateSchool, deleteSchool } from '@/lib/admin/queries';
+import { exportToCSV } from '@/lib/admin/export';
 import type { AdminSchoolRow } from '@/types/admin';
 
 const PageHead = styled.div`
@@ -40,13 +41,30 @@ export default function AdminSchoolsPage() {
     await deleteSchool(school.id);
     refresh();
   }
+  function handleExport() {
+  if (!schools) return;
+  exportToCSV('schools-export.csv', schools.map((s) => ({
+    Name: s.name,
+    Country: s.country ?? '',
+    Status: s.status,
+    Seats: s.licenseSeats,
+    Staff: s.staffCount,
+    Students: s.studentCount,
+    LicenseStart: s.licenseStart ?? '',
+    LicenseEnd: s.licenseEnd ?? '',
+    CreatedAt: s.createdAt,
+  })));
+}
 
   return (
     <>
       <PageHead>
-        <Title>Schools</Title>
+      <Title>Schools</Title>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <GhostButton onClick={handleExport}>Export CSV</GhostButton>
         <PrimaryButton onClick={() => setCreateOpen(true)}>Add school</PrimaryButton>
-      </PageHead>
+      </div>
+    </PageHead>
 
       <Panel>
         <PanelHeader>
@@ -100,7 +118,7 @@ export default function AdminSchoolsPage() {
             </TableScroll>
           )}
         </div>
-      </Panel>
+      </Panel>  
 
       {createOpen && <SchoolFormModal mode="create" onClose={() => setCreateOpen(false)} onSaved={refresh} />}
       {editingSchool && (
