@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
@@ -12,14 +12,14 @@ interface InviteDetails {
   alreadyAccepted: boolean;
 }
 
-export default function AcceptInvitePage() {
+function AcceptInviteContent() {
   const params = useSearchParams();
   const router = useRouter();
   const token = params.get('token');
 
   const [details, setDetails] = useState<InviteDetails | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null | undefined>(undefined); // undefined = still loading
+  const [userEmail, setUserEmail] = useState<string | null | undefined>(undefined);
   const [accepting, setAccepting] = useState(false);
   const [acceptErr, setAcceptErr] = useState<string | null>(null);
 
@@ -43,24 +43,25 @@ export default function AcceptInvitePage() {
   }, []);
 
   async function handleAccept() {
-  if (!token) return;
-  setAccepting(true);
-  setAcceptErr(null);
-  try {
-    const res = await fetch('/api/school-admin/accept-invite', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? 'Could not accept invite');
-    router.push(data.role === 'school_admin' ? '/school-admin' : '/teacher');
-  } catch (err: any) {
-    setAcceptErr(err.message ?? 'Something went wrong. Try again.');
-  } finally {
-    setAccepting(false);
+    if (!token) return;
+    setAccepting(true);
+    setAcceptErr(null);
+    try {
+      const res = await fetch('/api/school-admin/accept-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Could not accept invite');
+      router.push(data.role === 'school_admin' ? '/school-admin' : '/teacher');
+    } catch (err: any) {
+      setAcceptErr(err.message ?? 'Something went wrong. Try again.');
+    } finally {
+      setAccepting(false);
+    }
   }
-}
+
   const wrapStyle: React.CSSProperties = {
     minHeight: '100vh',
     display: 'flex',
@@ -134,7 +135,6 @@ export default function AcceptInvitePage() {
     );
   }
 
-  // Not signed in — send to login/signup, preserving the token so they land back here.
   if (userEmail === null) {
     const redirectTo = encodeURIComponent(`/accept-invite?token=${token}`);
     return (
@@ -142,7 +142,7 @@ export default function AcceptInvitePage() {
         <div style={cardStyle}>
           <h2>Join {details.schoolName}</h2>
           <p style={{ color: '#8FAEAC' }}>
-            You&apos;ve been invited as a {details.role === 'school_admin' ? 'school admin' : 'teacher'}. Sign in or create an
+            You've been invited as a {details.role === 'school_admin' ? 'school admin' : 'teacher'}. Sign in or create an
             account with <strong>{details.email}</strong> to accept.
           </p>
           <a href={`/auth/login?redirectTo=${redirectTo}`} style={{ ...buttonStyle, textDecoration: 'none' }}>
@@ -150,7 +150,7 @@ export default function AcceptInvitePage() {
           </a>
           <div style={{ marginTop: 12 }}>
             <a href={`/auth/signup?redirectTo=${redirectTo}`} style={{ color: '#1FB8A6', fontSize: 13 }}>
-              Don&apos;t have an account? Sign up
+              Don't have an account? Sign up
             </a>
           </div>
         </div>
@@ -158,14 +158,13 @@ export default function AcceptInvitePage() {
     );
   }
 
-  // Signed in with a different email than the invite.
   if (userEmail.toLowerCase() !== details.email.toLowerCase()) {
     return (
       <div style={wrapStyle}>
         <div style={cardStyle}>
           <h2>Wrong account</h2>
           <p style={{ color: '#8FAEAC' }}>
-            This invite was sent to <strong>{details.email}</strong>, but you&apos;re signed in as {userEmail}. Sign out
+            This invite was sent to <strong>{details.email}</strong>, but you're signed in as {userEmail}. Sign out
             and try again with the invited email.
           </p>
         </div>
@@ -177,12 +176,35 @@ export default function AcceptInvitePage() {
     <div style={wrapStyle}>
       <div style={cardStyle}>
         <h2>Join {details.schoolName}</h2>
-        <p style={{ color: '#8FAEAC' }}>You&apos;ve been invited as a {details.role === 'school_admin' ? 'school admin' : 'teacher'}.</p>
+        <p style={{ color: '#8FAEAC' }}>You've been invited as a {details.role === 'school_admin' ? 'school admin' : 'teacher'}.</p>
         {acceptErr && <p style={{ color: '#FF6B57', fontSize: 13 }}>{acceptErr}</p>}
         <button style={buttonStyle} onClick={handleAccept} disabled={accepting}>
           {accepting ? 'Joining…' : 'Accept invite'}
         </button>
       </div>
     </div>
+  );
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#0D2B32',
+            color: '#EAF3F1',
+          }}
+        >
+          Loading…
+        </div>
+      }
+    >
+      <AcceptInviteContent />
+    </Suspense>
   );
 }
