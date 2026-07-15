@@ -142,7 +142,7 @@ function AcceptInviteContent() {
         <div style={cardStyle}>
           <h2>Join {details.schoolName}</h2>
           <p style={{ color: '#8FAEAC' }}>
-            You've been invited as a {details.role === 'school_admin' ? 'school admin' : 'teacher'}. Sign in or create an
+            You&apos;ve been invited as a {details.role === 'school_admin' ? 'school admin' : 'teacher'}. Sign in or create an
             account with <strong>{details.email}</strong> to accept.
           </p>
           <a href={`/auth/login?redirectTo=${redirectTo}`} style={{ ...buttonStyle, textDecoration: 'none' }}>
@@ -150,7 +150,7 @@ function AcceptInviteContent() {
           </a>
           <div style={{ marginTop: 12 }}>
             <a href={`/auth/signup?redirectTo=${redirectTo}`} style={{ color: '#1FB8A6', fontSize: 13 }}>
-              Don't have an account? Sign up
+             Don&apos;t have an account? Sign up
             </a>
           </div>
         </div>
@@ -164,8 +164,8 @@ function AcceptInviteContent() {
         <div style={cardStyle}>
           <h2>Wrong account</h2>
           <p style={{ color: '#8FAEAC' }}>
-            This invite was sent to <strong>{details.email}</strong>, but you're signed in as {userEmail}. Sign out
-            and try again with the invited email.
+            This invite was sent to <strong>{details.email}</strong>, but you&apos;re signed in as {userEmail}. Sign out
+              and try again with the invited email.
           </p>
         </div>
       </div>
@@ -176,7 +176,7 @@ function AcceptInviteContent() {
     <div style={wrapStyle}>
       <div style={cardStyle}>
         <h2>Join {details.schoolName}</h2>
-        <p style={{ color: '#8FAEAC' }}>You've been invited as a {details.role === 'school_admin' ? 'school admin' : 'teacher'}.</p>
+        <p style={{ color: '#8FAEAC' }}>You&apos;ve been invited as a {details.role === 'school_admin' ? 'school admin' : 'teacher'}.</p>
         {acceptErr && <p style={{ color: '#FF6B57', fontSize: 13 }}>{acceptErr}</p>}
         <button style={buttonStyle} onClick={handleAccept} disabled={accepting}>
           {accepting ? 'Joining…' : 'Accept invite'}
