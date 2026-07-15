@@ -22,6 +22,7 @@ export interface AdminUserRow {
   schoolId: string | null;
   schoolName: string | null;
   subscription: string | null;
+  planId: string | null;
   xp: number;
   lastActiveDate: string | null;
   createdAt: string;
@@ -62,4 +63,16 @@ export interface AdminLesson {
   ageGroups: string[];
   contentJson: string; // stringified for the editor
   isActive: boolean;
+}
+export interface PlatformKPIs {
+  dau: number;
+  wau: number;
+  totalUsers: number;
+  b2cUsers: number;
+  b2b2cUsers: number;
+  payingUsers: number;
+  estimatedMRR: number;
+  totalSchools: number;
+  activeSchools: number;
+  renewalsDueSoon: { id: string; name: string; licenseEnd: string; daysLeft: number }[];
 }

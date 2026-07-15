@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import type { AdminSchoolRow, AdminUserRow, AdminTrack, AdminSkillNode, AdminLesson } from '@/types/admin';
+import type { AdminSchoolRow, AdminUserRow, AdminTrack, AdminSkillNode, AdminLesson, PlatformKPIs } from '@/types/admin';
 const supabase = createClient();
 
 export async function getAllSchools(): Promise<AdminSchoolRow[]> {
@@ -103,9 +103,9 @@ export async function searchUsers(params: {
   let q = supabase
     .from('profiles')
     .select(
-      `id, display_name, email, account_type, school_id, subscription, created_at,
-       schools(name),
-       user_progress(xp, last_active_date)`,
+      `id, display_name, email, account_type, school_id, subscription, plan_id, created_at,
+      schools(name),
+      user_progress(xp, last_active_date)`,
       { count: 'exact' }
     )
     .order('created_at', { ascending: false });
@@ -134,6 +134,7 @@ export async function searchUsers(params: {
       schoolId: row.school_id,
       schoolName: school?.name ?? null,
       subscription: row.subscription,
+      planId: row.plan_id,
       xp: progress?.xp ?? 0,
       lastActiveDate: progress?.last_active_date ?? null,
       createdAt: row.created_at,
@@ -145,13 +146,14 @@ export async function searchUsers(params: {
 
 export async function updateUserAccount(
   userId: string,
-  params: { displayName: string; subscription: string | null }
+  params: { displayName: string; subscription: string | null; planId: string | null }
 ): Promise<void> {
   const { error } = await supabase
     .from('profiles')
     .update({
       display_name: params.displayName,
       subscription: params.subscription,
+      plan_id: params.subscription === 'pro' ? params.planId : null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', userId);
@@ -325,4 +327,73 @@ export async function upsertLesson(lesson: AdminLesson, isNew: boolean): Promise
 export async function deleteLesson(lessonId: string): Promise<void> {
   const { error } = await supabase.from('lessons').delete().eq('id', lessonId);
   if (error) throw error;
+}
+export async function getPlatformKPIs(): Promise<PlatformKPIs> {
+  const now = new Date();
+  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const thirtyDaysOut = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [
+    { count: dau },
+    { count: wau },
+    { count: totalUsers },
+    { count: b2cUsers },
+    { count: b2b2cUsers },
+    { count: payingUsers },
+    { data: schools },
+    { data: payingProfiles },
+    { data: plans },
+  ] = await Promise.all([
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('last_seen_at', dayAgo),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('last_seen_at', weekAgo),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('account_type', 'b2c'),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('account_type', 'b2b2c'),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('subscription', 'pro'),
+    supabase.from('schools').select('id, name, status, license_end'),
+    supabase.from('profiles').select('plan_id').eq('subscription', 'pro'),
+    supabase.from('subscription_plans').select('id, price_usd, interval').eq('is_active', true),
+  ]);
+
+  const priceMap = new Map(
+    (plans ?? []).map((p: any) => [p.id, { price: Number(p.price_usd), interval: p.interval }])
+  );
+
+  // Real MRR based on each paying user's actual plan_id. Yearly plans are
+  // normalized to their monthly-equivalent value. Any row still missing a
+  // plan_id (shouldn't happen after the backfill, but just in case) falls
+  // back to the monthly price as a safe default rather than being excluded.
+  const FALLBACK_MONTHLY_PRICE = priceMap.get('monthly')?.price ?? 79;
+
+  const estimatedMRR = (payingProfiles ?? []).reduce((sum: number, p: any) => {
+    const plan = priceMap.get(p.plan_id);
+    if (!plan) return sum + FALLBACK_MONTHLY_PRICE;
+    return sum + (plan.interval === 'year' ? plan.price / 12 : plan.price);
+  }, 0);
+
+  const activeSchools = (schools ?? []).filter((s: any) => s.status === 'active').length;
+
+  const renewalsDueSoon = (schools ?? [])
+    .filter((s: any) => s.license_end && s.license_end <= thirtyDaysOut && s.license_end >= now.toISOString())
+    .map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      licenseEnd: s.license_end,
+      daysLeft: Math.ceil((new Date(s.license_end).getTime() - now.getTime()) / 86400000),
+    }))
+    .sort((a: any, b: any) => a.daysLeft - b.daysLeft);
+
+  return {
+    dau: dau ?? 0,
+    wau: wau ?? 0,
+    totalUsers: totalUsers ?? 0,
+    b2cUsers: b2cUsers ?? 0,
+    b2b2cUsers: b2b2cUsers ?? 0,
+    payingUsers: payingUsers ?? 0,
+    estimatedMRR: Math.round(estimatedMRR),
+    totalSchools: (schools ?? []).length,
+    activeSchools,
+    renewalsDueSoon,
+  };
 }

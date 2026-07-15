@@ -236,6 +236,7 @@ function EditUserModal({
 }) {
   const [displayName, setDisplayName] = useState(user.displayName);
   const [subscription, setSubscription] = useState(user.subscription ?? '');
+  const [planId, setPlanId] = useState(user.planId ?? 'monthly');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -244,7 +245,11 @@ function EditUserModal({
     setError(null);
     setSubmitting(true);
     try {
-      await updateUserAccount(user.id, { displayName, subscription: subscription || null });
+      await updateUserAccount(user.id, {
+        displayName,
+        subscription: subscription || null,
+        planId: subscription === 'pro' ? planId : null,
+      });
       onSaved();
       onClose();
     } catch (err) {
@@ -267,9 +272,17 @@ function EditUserModal({
             <option value="">None</option>
             <option value="free">Free</option>
             <option value="pro">Pro</option>
-            <option value="school">School</option>
           </select>
         </FormField>
+        {subscription === 'pro' && (
+          <FormField>
+            Plan
+            <select value={planId} onChange={(e) => setPlanId(e.target.value)}>
+              <option value="monthly">Monthly — $79/mo</option>
+              <option value="yearly">Yearly — $663/yr</option>
+            </select>
+          </FormField>
+        )}
         {error && <p style={{ color: '#FF6B57', fontSize: 13, marginBottom: 12 }}>{error}</p>}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <GhostButton type="button" onClick={onClose}>
@@ -283,7 +296,6 @@ function EditUserModal({
     </Modal>
   );
 }
-
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
