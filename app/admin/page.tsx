@@ -91,7 +91,7 @@ export default function AdminOverviewPage() {
         <Card>
           <Label>Paying users</Label>
           <Value>{kpis.payingUsers}</Value>
-          <Note>subscription = 'pro'</Note>
+          <Note>subscription = &apos;pro&apos;</Note>
         </Card>
        <Card>
           <Label>MRR</Label>
@@ -147,9 +147,9 @@ export default function AdminOverviewPage() {
       </Panel>
       <Panel style={{ padding: '20px 24px' }}>
         <p style={{ fontSize: 13, color: '#7C9995', lineHeight: 1.6, margin: 0 }}>
-          <strong>Note on churn:</strong> churn isn't tracked precisely yet, since there's no payment webhook integration
+          <strong>Note on churn:</strong> churn isn&apos;t tracked precisely yet, since there&apos;s no payment webhook integration
           recording actual cancellation events — the numbers above reflect current state (active paying users, MRR),
-          not historical churn rate. Wiring up your payment provider's webhooks would let this track real cancellation
+          not historical churn rate. Wiring up your payment provider&apos;s webhooks would let this track real cancellation
           events going forward.
         </p>
       </Panel>
