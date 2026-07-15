@@ -1237,6 +1237,7 @@ export default function LessonViewClient({
   const [showFeedback, setShowFeedback]   = useState(false)
   const [activityDone, setActivityDone]   = useState<Record<number, boolean>>({})
   const [currentStep, setCurrentStep]     = useState(0)
+  const lessonStartRef = useRef<number>(Date.now())
 
   // `lang` is declared early (right after props are destructured) because it's
   // referenced below by `praiseBank` — `const` bindings aren't hoisted the way
