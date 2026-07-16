@@ -275,7 +275,7 @@ function MascotSpeech({ text, sub }: { text: string; sub?: string }) {
       <div className="flex-shrink-0 w-16 h-16 relative">
         <Image
           src="/icons/mascot-celebrating.svg"
-          alt="Jimmy"
+          alt="Marjan"
           width={64}
           height={64}
           className="w-full h-full object-contain drop-shadow-md"
@@ -428,7 +428,7 @@ export default function OnboardingFlow() {
 
   // ── Mascot speech per step ──────────────────────────────────
   const mascotLines: Record<number, { text: string; sub?: string }> = {
-    1: { text: "Hi! I'm Jimmy, your AI coach. First — what language do you want to learn in?", sub: 'You can change this anytime.' },
+    1: { text: "Hi! I'm Marjan, your AI coach. First — what language do you want to learn in?", sub: 'You can change this anytime.' },
     2: { text: `Great choice! Now — what's your name?`, sub: "I'll use it to personalize everything." },
     3: { text: `Love it, ${name || 'friend'}! Pick an avatar that feels like you.` },
     4: { text: `Nice! How old are you? I'll match the lessons to your level.` },
