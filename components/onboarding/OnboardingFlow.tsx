@@ -3,6 +3,10 @@
 // Duolingo-style onboarding — mascot-led, one question per screen,
 // ends with an inline micro-lesson so the kid arrives at dashboard
 // with streak=1 and XP already on the board.
+//
+// VISUAL REFRESH: moved from the old dark card/card2 theme to the
+// light mint/coral/teal system used across Dashboard, Profile, and
+// Lesson pages — same steps, same state, same handlers, new look.
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -51,7 +55,7 @@ const GOALS = [
     emoji: '🎮',
     label: 'Build a game',
     desc:  'Create your own games people can actually play',
-    color: 'border-accent1 bg-accent1/10 text-accent1',
+    color: 'border-[#FF6E52] bg-[#FF6E52]/10 text-[#D9522F]',
     track: 'python-foundation',
   },
   {
@@ -59,7 +63,7 @@ const GOALS = [
     emoji: '💡',
     label: 'Start a business',
     desc:  'Turn your ideas into a real product or startup',
-    color: 'border-accent3 bg-accent3/10 text-accent3',
+    color: 'border-[#17D9C0] bg-[#17D9C0]/10 text-[#0F9B87]',
     track: 'entrepreneurship',
   },
   {
@@ -67,7 +71,7 @@ const GOALS = [
     emoji: '🧠',
     label: 'Learn AI & ML',
     desc:  'Train models and build intelligent systems',
-    color: 'border-accent5 bg-accent5/10 text-accent5',
+    color: 'border-[#A78BFA] bg-[#A78BFA]/10 text-[#7C5CE0]',
     track: 'ml-explorer',
   },
   {
@@ -75,7 +79,7 @@ const GOALS = [
     emoji: '📱',
     label: 'Build an app or website',
     desc:  'Ship something real people use every day',
-    color: 'border-accent4 bg-accent4/10 text-accent4',
+    color: 'border-[#FFB930] bg-[#FFB930]/10 text-[#B8790E]',
     track: 'ai4youth',
   },
   {
@@ -83,7 +87,7 @@ const GOALS = [
     emoji: '🐍',
     label: 'Learn to code',
     desc:  'Go from zero to writing real Python programs',
-    color: 'border-blue-400 bg-blue-400/10 text-blue-400',
+    color: 'border-blue-400 bg-blue-400/10 text-blue-500',
     track: 'python-foundation',
   },
   {
@@ -91,7 +95,7 @@ const GOALS = [
     emoji: '🤖',
     label: 'Build robots',
     desc:  'Connect code to the real world with hardware',
-    color: 'border-orange-400 bg-orange-400/10 text-orange-400',
+    color: 'border-orange-400 bg-orange-400/10 text-orange-500',
     track: 'python-foundation',
   },
 ] as const
@@ -100,9 +104,9 @@ type GoalId = typeof GOALS[number]['id']
 
 // ── Weekly commitment options ─────────────────────────────────
 const COMMITMENTS = [
-  { days: 3, label: 'Casual',   desc: '3 days / week', emoji: '🌱', color: 'border-accent3 bg-accent3/10 text-accent3' },
-  { days: 5, label: 'Regular',  desc: '5 days / week', emoji: '🔥', color: 'border-accent4 bg-accent4/10 text-accent4' },
-  { days: 7, label: 'Intense',  desc: 'Every day!',    emoji: '⚡', color: 'border-accent1 bg-accent1/10 text-accent1' },
+  { days: 3, label: 'Casual',   desc: '3 days / week', emoji: '🌱', color: 'border-[#17D9C0] bg-[#17D9C0]/10 text-[#0F9B87]' },
+  { days: 5, label: 'Regular',  desc: '5 days / week', emoji: '🔥', color: 'border-[#FFB930] bg-[#FFB930]/10 text-[#B8790E]' },
+  { days: 7, label: 'Intense',  desc: 'Every day!',    emoji: '⚡', color: 'border-[#FF6E52] bg-[#FF6E52]/10 text-[#D9522F]' },
 ]
 
 // ── Inline micro-lesson — 3 questions per goal type ───────────
@@ -274,16 +278,16 @@ function MascotSpeech({ text, sub }: { text: string; sub?: string }) {
           alt="Jimmy"
           width={64}
           height={64}
-          className="w-full h-full object-contain drop-shadow-lg"
+          className="w-full h-full object-contain drop-shadow-md"
           priority
         />
       </div>
       {/* Bubble */}
-      <div className="relative bg-card2 border border-white/10 rounded-2xl rounded-bl-sm px-5 py-3.5 flex-1">
+      <div className="relative bg-white rounded-2xl rounded-bl-sm px-5 py-3.5 flex-1 shadow-[0_2px_16px_rgba(22,50,58,0.06)]">
         {/* Triangle pointer */}
-        <div className="absolute -left-2 bottom-4 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-card2" />
-        <p className="font-extrabold text-sm leading-snug text-white">{text}</p>
-        {sub && <p className="text-xs text-muted font-semibold mt-1">{sub}</p>}
+        <div className="absolute -left-2 bottom-4 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[8px] border-r-white" />
+        <p className="font-extrabold text-sm leading-snug text-[#16323A]">{text}</p>
+        {sub && <p className="text-xs text-[#7C9995] font-semibold mt-1">{sub}</p>}
       </div>
     </div>
   )
@@ -294,7 +298,7 @@ function XPPop({ xp }: { xp: number }) {
   return (
     <div className="flex items-center justify-center gap-2 py-2 animate-bounce">
       <span className="text-2xl">⚡</span>
-      <span className="font-fredoka text-2xl text-accent2">+{xp} XP</span>
+      <span className="font-extrabold text-2xl text-[#D9822B]">+{xp} XP</span>
     </div>
   )
 }
@@ -306,9 +310,9 @@ function ProgressDots({ total, current }: { total: number; current: number }) {
       {Array.from({ length: total }).map((_, i) => (
         <div key={i} className={cn(
           'rounded-full transition-all duration-300',
-          i + 1 === current ? 'w-6 h-2.5 bg-accent4' :
-          i + 1 < current   ? 'w-2.5 h-2.5 bg-accent3' :
-                               'w-2.5 h-2.5 bg-card2'
+          i + 1 === current ? 'w-6 h-2.5 bg-[#FF6E52]' :
+          i + 1 < current   ? 'w-2.5 h-2.5 bg-[#17D9C0]' :
+                               'w-2.5 h-2.5 bg-[#DCEFE9]'
         )} />
       ))}
     </div>
@@ -439,25 +443,25 @@ export default function OnboardingFlow() {
     : mascotLines[step]
 
   return (
-    <div className="relative min-h-screen z-10 bg-background" dir={dir}>
+    <div className="relative min-h-screen z-10 bg-[#EAF6F1] font-[Nunito,sans-serif]" dir={dir}>
       <div className="max-w-lg mx-auto px-5 py-8">
 
         {/* Plulai wordmark */}
         <div className="text-center mb-6">
-          <h1 className="font-fredoka text-3xl bg-gradient-to-r from-accent2 via-accent1 to-accent5 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-extrabold text-[#16323A]">
             🚀 Plulai
           </h1>
         </div>
 
         {/* Progress bar */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex-1 h-2 bg-card2 rounded-full overflow-hidden">
+          <div className="flex-1 h-2 bg-[#DCEFE9] rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-accent4 to-accent5 rounded-full transition-all duration-500"
-              style={{ width: `${Math.round((step / TOTAL_STEPS) * 100)}%` }}
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${Math.round((step / TOTAL_STEPS) * 100)}%`, background: '#FF6E52' }}
             />
           </div>
-          <span className="text-muted text-xs font-bold flex-shrink-0">
+          <span className="text-[#7C9995] text-xs font-bold flex-shrink-0">
             {step}/{TOTAL_STEPS}
           </span>
         </div>
@@ -469,7 +473,7 @@ export default function OnboardingFlow() {
 
         {/* ── STEP 1: Language ──────────────────────────────── */}
         {step === 1 && (
-          <div className="bg-card rounded-3xl p-6 border border-white/5 shadow-2xl animate-slide-up space-y-3">
+          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)] animate-slide-up space-y-3">
             {LANGUAGES.map(l => (
               <button
                 key={l.id}
@@ -477,22 +481,22 @@ export default function OnboardingFlow() {
                 className={cn(
                   'w-full flex items-center gap-4 p-4 rounded-2xl border-2 font-extrabold text-base transition-all',
                   lang === l.id
-                    ? 'border-accent4 bg-accent4/15 text-white scale-[1.02]'
-                    : 'border-white/8 bg-card2 text-muted hover:border-white/25 hover:text-white'
+                    ? 'border-[#FF6E52] bg-[#FF6E52]/10 text-[#16323A] scale-[1.02]'
+                    : 'border-[#E3EEEB] bg-[#F7FAF9] text-[#7C9995] hover:border-[#2DD4BF]/40 hover:text-[#16323A]'
                 )}
               >
                 <span className="text-3xl">{l.flag}</span>
                 <div className="text-left">
                   <div className="font-extrabold">{l.native}</div>
-                  <div className="text-xs text-muted font-semibold">{l.label}</div>
+                  <div className="text-xs text-[#7C9995] font-semibold">{l.label}</div>
                 </div>
-                {lang === l.id && <span className="ml-auto text-accent4">✓</span>}
+                {lang === l.id && <span className="ml-auto text-[#FF6E52]">✓</span>}
               </button>
             ))}
 
             {/* Country picker inline — collapsed into step 1 to save a step */}
-            <div className="pt-2 border-t border-white/5">
-              <p className="text-xs font-bold text-muted uppercase tracking-wider mb-2">📍 Your country</p>
+            <div className="pt-2 border-t border-[#0D2B32]/8">
+              <p className="text-xs font-bold text-[#7C9995] uppercase tracking-wider mb-2">📍 Your country</p>
               <div className="grid grid-cols-4 gap-1.5 max-h-40 overflow-y-auto pr-1">
                 {COUNTRIES.map(c => (
                   <button
@@ -501,8 +505,8 @@ export default function OnboardingFlow() {
                     className={cn(
                       'flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-bold transition-all',
                       country === c.code
-                        ? 'border-accent4 bg-accent4/10 text-white'
-                        : 'border-white/8 bg-card2 text-muted hover:border-white/20'
+                        ? 'border-[#FF6E52] bg-[#FF6E52]/10 text-[#16323A]'
+                        : 'border-[#E3EEEB] bg-[#F7FAF9] text-[#7C9995] hover:border-[#2DD4BF]/40'
                     )}
                   >
                     <span className="text-lg">{c.flag}</span>
@@ -514,7 +518,8 @@ export default function OnboardingFlow() {
 
             <button
               onClick={next}
-              className="w-full py-4 rounded-2xl font-extrabold text-white bg-gradient-to-r from-accent4 to-accent5 hover:-translate-y-0.5 transition-all mt-2"
+              className="w-full py-4 rounded-2xl font-extrabold text-white transition-all mt-2 hover:-translate-y-0.5"
+              style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.3)' }}
             >
               Continue →
             </button>
@@ -523,9 +528,9 @@ export default function OnboardingFlow() {
 
         {/* ── STEP 2: Name ─────────────────────────────────── */}
         {step === 2 && (
-          <div className="bg-card rounded-3xl p-6 border border-white/5 shadow-2xl animate-slide-up space-y-4">
+          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)] animate-slide-up space-y-4">
             <input
-              className="w-full bg-card2 border-2 border-white/8 focus:border-accent4 rounded-2xl px-5 py-4 text-white font-bold text-lg outline-none transition-all placeholder:text-muted"
+              className="w-full bg-[#F7FAF9] border-2 border-[#E3EEEB] focus:border-[#2DD4BF] rounded-2xl px-5 py-4 text-[#16323A] font-bold text-lg outline-none transition-all placeholder:text-[#9BB5B1]"
               placeholder={lang === 'ar' ? 'اكتب اسمك الأول...' : lang === 'fr' ? 'Ton prénom...' : 'Your first name...'}
               maxLength={20}
               value={name}
@@ -534,11 +539,12 @@ export default function OnboardingFlow() {
               autoFocus
             />
             <div className="flex gap-3">
-              <button onClick={back} className="px-5 py-4 rounded-2xl font-extrabold bg-card2 text-muted hover:text-white transition-all">←</button>
+              <button onClick={back} className="px-5 py-4 rounded-2xl font-extrabold bg-[#F1F5F4] text-[#7C9995] hover:text-[#16323A] transition-all">←</button>
               <button
                 disabled={name.trim().length < 2}
                 onClick={next}
-                className="flex-1 py-4 rounded-2xl font-extrabold text-white bg-gradient-to-r from-accent4 to-accent5 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 py-4 rounded-2xl font-extrabold text-white transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.3)' }}
               >
                 {lang === 'ar' ? 'التالي →' : lang === 'fr' ? 'Suivant →' : "That's me! →"}
               </button>
@@ -549,7 +555,7 @@ export default function OnboardingFlow() {
 
         {/* ── STEP 3: Avatar ───────────────────────────────── */}
         {step === 3 && (
-          <div className="bg-card rounded-3xl p-6 border border-white/5 shadow-2xl animate-slide-up space-y-4">
+          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)] animate-slide-up space-y-4">
             <div className="grid grid-cols-5 gap-3">
               {AVATARS.map((a: string) => (
                 <button
@@ -558,8 +564,8 @@ export default function OnboardingFlow() {
                   className={cn(
                     'text-3xl rounded-2xl py-3 transition-all border-2',
                     avatar === a
-                      ? 'border-accent4 bg-accent4/15 scale-110 shadow-lg'
-                      : 'border-white/8 bg-card2 hover:border-white/25 hover:scale-105'
+                      ? 'border-[#FF6E52] bg-[#FF6E52]/10 scale-110 shadow-md'
+                      : 'border-[#E3EEEB] bg-[#F7FAF9] hover:border-[#2DD4BF]/40 hover:scale-105'
                   )}
                 >
                   {a}
@@ -567,10 +573,11 @@ export default function OnboardingFlow() {
               ))}
             </div>
             <div className="flex gap-3">
-              <button onClick={back} className="px-5 py-4 rounded-2xl font-extrabold bg-card2 text-muted hover:text-white transition-all">←</button>
+              <button onClick={back} className="px-5 py-4 rounded-2xl font-extrabold bg-[#F1F5F4] text-[#7C9995] hover:text-[#16323A] transition-all">←</button>
               <button
                 onClick={next}
-                className="flex-1 py-4 rounded-2xl font-extrabold text-white bg-gradient-to-r from-accent4 to-accent5 hover:-translate-y-0.5 transition-all"
+                className="flex-1 py-4 rounded-2xl font-extrabold text-white transition-all hover:-translate-y-0.5"
+                style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.3)' }}
               >
                 {lang === 'ar' ? 'هذا أنا! →' : lang === 'fr' ? "C'est moi ! →" : 'This is me! →'}
               </button>
@@ -581,29 +588,29 @@ export default function OnboardingFlow() {
 
         {/* ── STEP 4: Age ──────────────────────────────────── */}
         {step === 4 && (
-          <div className="bg-card rounded-3xl p-6 border border-white/5 shadow-2xl animate-slide-up space-y-5">
+          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)] animate-slide-up space-y-5">
             <div className="flex items-center gap-5">
               <button
                 onClick={() => setAge((a: number) => Math.max(6, a - 1))}
-                className="w-14 h-14 rounded-full bg-card2 font-extrabold text-2xl hover:bg-card border border-white/10 transition-all"
+                className="w-14 h-14 rounded-full bg-[#F1F5F4] font-extrabold text-2xl text-[#16323A] hover:bg-[#E3EEEB] border border-[#E3EEEB] transition-all"
               >
                 −
               </button>
               <div className="flex-1 text-center">
-                <div className="font-fredoka text-6xl text-accent4 leading-none">{age}</div>
-                <div className="text-sm font-bold text-muted mt-2">{AGE_LABELS[getAgeGroup(age)]}</div>
+                <div className="text-6xl leading-none font-extrabold" style={{ color: '#FF6E52' }}>{age}</div>
+                <div className="text-sm font-bold text-[#7C9995] mt-2">{AGE_LABELS[getAgeGroup(age)]}</div>
               </div>
               <button
                 onClick={() => setAge((a: number) => Math.min(18, a + 1))}
-                className="w-14 h-14 rounded-full bg-card2 font-extrabold text-2xl hover:bg-card border border-white/10 transition-all"
+                className="w-14 h-14 rounded-full bg-[#F1F5F4] font-extrabold text-2xl text-[#16323A] hover:bg-[#E3EEEB] border border-[#E3EEEB] transition-all"
               >
                 +
               </button>
             </div>
 
             {/* Age group description */}
-            <div className="bg-accent4/8 border border-accent4/20 rounded-2xl p-4 text-center">
-              <p className="text-sm font-semibold text-muted">
+            <div className="bg-[#EAF6F1] border border-[#2DD4BF]/25 rounded-2xl p-4 text-center">
+              <p className="text-sm font-semibold text-[#5B7B78]">
                 {getAgeGroup(age) === 'mini'   && "🌱 We'll use super simple words and fun games. Perfect for you!"}
                 {getAgeGroup(age) === 'junior' && "🛠️ You'll get hands-on projects and real coding. Let's build stuff!"}
                 {getAgeGroup(age) === 'pro'    && "🗺️ Technical challenges, real AI, and startup thinking. Let's go!"}
@@ -612,10 +619,11 @@ export default function OnboardingFlow() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={back} className="px-5 py-4 rounded-2xl font-extrabold bg-card2 text-muted hover:text-white transition-all">←</button>
+              <button onClick={back} className="px-5 py-4 rounded-2xl font-extrabold bg-[#F1F5F4] text-[#7C9995] hover:text-[#16323A] transition-all">←</button>
               <button
                 onClick={next}
-                className="flex-1 py-4 rounded-2xl font-extrabold text-white bg-gradient-to-r from-accent4 to-accent5 hover:-translate-y-0.5 transition-all"
+                className="flex-1 py-4 rounded-2xl font-extrabold text-white transition-all hover:-translate-y-0.5"
+                style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.3)' }}
               >
                 {lang === 'ar' ? 'هذا عمري →' : lang === 'fr' ? "C'est mon âge →" : "That's my age! →"}
               </button>
@@ -626,7 +634,7 @@ export default function OnboardingFlow() {
 
         {/* ── STEP 5: Goal picker ──────────────────────────── */}
         {step === 5 && (
-          <div className="bg-card rounded-3xl p-6 border border-white/5 shadow-2xl animate-slide-up space-y-3">
+          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)] animate-slide-up space-y-3">
             {GOALS.map(g => (
               <button
                 key={g.id}
@@ -635,7 +643,7 @@ export default function OnboardingFlow() {
                   'w-full flex items-center gap-4 p-4 rounded-2xl border-2 font-extrabold text-sm transition-all text-left',
                   goal === g.id
                     ? g.color + ' scale-[1.01]'
-                    : 'border-white/8 bg-card2 text-muted hover:border-white/25 hover:text-white'
+                    : 'border-[#E3EEEB] bg-[#F7FAF9] text-[#7C9995] hover:border-[#2DD4BF]/40 hover:text-[#16323A]'
                 )}
               >
                 <span className="text-2xl flex-shrink-0">{g.emoji}</span>
@@ -647,11 +655,12 @@ export default function OnboardingFlow() {
               </button>
             ))}
             <div className="flex gap-3 pt-2">
-              <button onClick={back} className="px-5 py-4 rounded-2xl font-extrabold bg-card2 text-muted hover:text-white transition-all">←</button>
+              <button onClick={back} className="px-5 py-4 rounded-2xl font-extrabold bg-[#F1F5F4] text-[#7C9995] hover:text-[#16323A] transition-all">←</button>
               <button
                 disabled={!goal}
                 onClick={next}
-                className="flex-1 py-4 rounded-2xl font-extrabold text-white bg-gradient-to-r from-accent4 to-accent5 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 py-4 rounded-2xl font-extrabold text-white transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.3)' }}
               >
                 {lang === 'ar' ? 'هذا هدفي →' : lang === 'fr' ? "C'est mon objectif →" : "This is my goal! →"}
               </button>
@@ -662,7 +671,7 @@ export default function OnboardingFlow() {
 
         {/* ── STEP 6: Commitment ───────────────────────────── */}
         {step === 6 && (
-          <div className="bg-card rounded-3xl p-6 border border-white/5 shadow-2xl animate-slide-up space-y-3">
+          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)] animate-slide-up space-y-3">
             {COMMITMENTS.map(c => (
               <button
                 key={c.days}
@@ -671,7 +680,7 @@ export default function OnboardingFlow() {
                   'w-full flex items-center gap-4 p-5 rounded-2xl border-2 font-extrabold transition-all text-left',
                   weekDays === c.days
                     ? c.color + ' scale-[1.01]'
-                    : 'border-white/8 bg-card2 text-muted hover:border-white/25 hover:text-white'
+                    : 'border-[#E3EEEB] bg-[#F7FAF9] text-[#7C9995] hover:border-[#2DD4BF]/40 hover:text-[#16323A]'
                 )}
               >
                 <span className="text-3xl">{c.emoji}</span>
@@ -684,8 +693,8 @@ export default function OnboardingFlow() {
             ))}
 
             {/* Motivational line */}
-            <div className="bg-accent2/8 border border-accent2/20 rounded-2xl px-4 py-3 text-center">
-              <p className="text-sm font-bold text-accent2">
+            <div className="bg-[#EAF6F1] border border-[#17D9C0]/25 rounded-2xl px-4 py-3 text-center">
+              <p className="text-sm font-bold text-[#0F9B87]">
                 {weekDays === 7
                   ? "⚡ Every day? You're going to go far."
                   : weekDays === 5
@@ -695,10 +704,11 @@ export default function OnboardingFlow() {
             </div>
 
             <div className="flex gap-3 pt-1">
-              <button onClick={back} className="px-5 py-4 rounded-2xl font-extrabold bg-card2 text-muted hover:text-white transition-all">←</button>
+              <button onClick={back} className="px-5 py-4 rounded-2xl font-extrabold bg-[#F1F5F4] text-[#7C9995] hover:text-[#16323A] transition-all">←</button>
               <button
                 onClick={next}
-                className="flex-1 py-4 rounded-2xl font-extrabold text-white bg-gradient-to-r from-accent4 to-accent5 hover:-translate-y-0.5 transition-all"
+                className="flex-1 py-4 rounded-2xl font-extrabold text-white transition-all hover:-translate-y-0.5"
+                style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.3)' }}
               >
                 {lang === 'ar' ? 'ملتزم! →' : lang === 'fr' ? "Je m'engage ! →" : "I'm committed! →"}
               </button>
@@ -713,26 +723,27 @@ export default function OnboardingFlow() {
 
             {/* Intro screen */}
             {mlStep === 0 && (
-              <div className="bg-card rounded-3xl p-6 border border-white/5 shadow-2xl text-center space-y-4">
+              <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)] text-center space-y-4">
                 <div className="text-5xl">{GOALS.find(g => g.id === goal)?.emoji}</div>
-                <h2 className="font-fredoka text-2xl">{microLesson.title}</h2>
-                <p className="text-muted font-semibold text-sm">3 quick questions · Earn up to +45 XP</p>
+                <h2 className="text-2xl font-extrabold text-[#16323A]">{microLesson.title}</h2>
+                <p className="text-[#7C9995] font-semibold text-sm">3 quick questions · Earn up to +45 XP</p>
 
                 {/* XP preview */}
                 <div className="flex justify-center gap-3">
                   {[1,2,3].map(i => (
                     <div key={i} className="flex flex-col items-center gap-1">
-                      <div className="w-10 h-10 rounded-full bg-accent2/10 border-2 border-accent2/25 flex items-center justify-center text-sm font-extrabold text-accent2">
+                      <div className="w-10 h-10 rounded-full bg-[#FFB930]/15 border-2 border-[#FFB930]/30 flex items-center justify-center text-sm font-extrabold text-[#B8790E]">
                         Q{i}
                       </div>
-                      <span className="text-xs font-bold text-muted">+15 XP</span>
+                      <span className="text-xs font-bold text-[#7C9995]">+15 XP</span>
                     </div>
                   ))}
                 </div>
 
                 <button
                   onClick={() => setMlStep(1)}
-                  className="w-full py-4 rounded-2xl font-extrabold text-white bg-gradient-to-r from-accent3 to-accent4 hover:-translate-y-0.5 transition-all"
+                  className="w-full py-4 rounded-2xl font-extrabold text-white transition-all hover:-translate-y-0.5"
+                  style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.3)' }}
                 >
                   {lang === 'ar' ? 'لنبدأ! ⚡' : lang === 'fr' ? 'On y va ! ⚡' : "Let's go! ⚡"}
                 </button>
@@ -741,7 +752,7 @@ export default function OnboardingFlow() {
 
             {/* Question screens */}
             {mlStep >= 1 && mlStep <= 3 && mlQuestion && (
-              <div className="bg-card rounded-3xl p-6 border border-white/5 shadow-2xl space-y-4">
+              <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)] space-y-4">
                 {/* XP pop */}
                 {showXPPop && (
                   <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
@@ -754,25 +765,25 @@ export default function OnboardingFlow() {
                   {[1,2,3].map(i => (
                     <div key={i} className={cn(
                       'rounded-full transition-all duration-300',
-                      i === mlStep ? 'w-6 h-2.5 bg-accent4' :
-                      i < mlStep   ? 'w-2.5 h-2.5 bg-accent3' :
-                                     'w-2.5 h-2.5 bg-card2'
+                      i === mlStep ? 'w-6 h-2.5 bg-[#FF6E52]' :
+                      i < mlStep   ? 'w-2.5 h-2.5 bg-[#17D9C0]' :
+                                     'w-2.5 h-2.5 bg-[#DCEFE9]'
                     )} />
                   ))}
                 </div>
 
-                <p className="font-extrabold text-base leading-relaxed">{mlQuestion.q}</p>
+                <p className="font-extrabold text-base leading-relaxed text-[#16323A]">{mlQuestion.q}</p>
 
                 {/* Options */}
                 <div className="space-y-2">
                   {mlQuestion.options.map((opt, oi) => {
-                    let cls = 'border-white/8 bg-card2 text-muted hover:border-white/25 hover:text-white cursor-pointer'
+                    let cls = 'border-[#E3EEEB] bg-[#F7FAF9] text-[#7C9995] hover:border-[#2DD4BF]/40 hover:text-[#16323A] cursor-pointer'
                     if (mlSubmitted) {
-                      if (oi === mlQuestion.correct) cls = 'border-accent3/60 bg-accent3/15 text-accent3 cursor-default'
-                      else if (mlSelected === oi)    cls = 'border-red-500/40 bg-red-500/10 text-red-400 cursor-default'
-                      else                           cls = 'border-white/5 bg-card2/50 text-muted/40 cursor-default'
+                      if (oi === mlQuestion.correct) cls = 'border-[#17D9C0]/60 bg-[#17D9C0]/15 text-[#0F9B87] cursor-default'
+                      else if (mlSelected === oi)    cls = 'border-[#E15B71]/40 bg-[#E15B71]/10 text-[#E15B71] cursor-default'
+                      else                           cls = 'border-[#0D2B32]/5 bg-[#0D2B32]/3 text-[#4E7169]/40 cursor-default'
                     } else if (mlSelected === oi) {
-                      cls = 'border-accent5/50 bg-accent5/15 text-white cursor-pointer'
+                      cls = 'border-[#FF6E52]/50 bg-[#FF6E52]/10 text-[#16323A] cursor-pointer'
                     }
                     return (
                       <button
@@ -781,7 +792,7 @@ export default function OnboardingFlow() {
                         disabled={mlSubmitted}
                         className={cn('w-full text-left px-4 py-3 rounded-xl text-sm font-bold border transition-all', cls)}
                       >
-                        <span className="font-extrabold mr-2 text-muted/60">{String.fromCharCode(65 + oi)}.</span>
+                        <span className="font-extrabold mr-2 text-[#4E7169]/60">{String.fromCharCode(65 + oi)}.</span>
                         {opt}
                       </button>
                     )
@@ -793,8 +804,8 @@ export default function OnboardingFlow() {
                   <div className={cn(
                     'rounded-xl p-4 border text-sm font-semibold leading-relaxed',
                     mlSelected === mlQuestion.correct
-                      ? 'bg-accent3/10 border-accent3/25 text-accent3'
-                      : 'bg-white/4 border-white/10 text-muted'
+                      ? 'bg-[#17D9C0]/10 border-[#17D9C0]/25 text-[#0F9B87]'
+                      : 'bg-[#F7FAF9] border-[#E3EEEB] text-[#7C9995]'
                   )}>
                     {mlSelected === mlQuestion.correct ? '✅ ' : '💡 '}
                     {mlQuestion.explanation}
@@ -806,14 +817,16 @@ export default function OnboardingFlow() {
                   <button
                     onClick={submitMlAnswer}
                     disabled={mlSelected === null}
-                    className="w-full py-3.5 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent5 to-accent1 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    className="w-full py-3.5 rounded-2xl font-extrabold text-sm text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    style={{ background: '#FF6E52' }}
                   >
                     {lang === 'ar' ? 'تحقق' : lang === 'fr' ? 'Vérifier' : 'Check answer'}
                   </button>
                 ) : (
                   <button
                     onClick={nextMlQuestion}
-                    className="w-full py-3.5 rounded-2xl font-extrabold text-sm bg-gradient-to-r from-accent4 to-accent5 text-white hover:-translate-y-0.5 transition-all"
+                    className="w-full py-3.5 rounded-2xl font-extrabold text-sm text-white hover:-translate-y-0.5 transition-all"
+                    style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.3)' }}
                   >
                     {mlStep >= 3
                       ? (lang === 'ar' ? 'انظر نتيجتي 🏁' : lang === 'fr' ? 'Voir mes résultats 🏁' : 'See my results 🏁')
@@ -825,14 +838,14 @@ export default function OnboardingFlow() {
 
             {/* Results screen */}
             {mlStep === 4 && (
-              <div className="bg-card rounded-3xl p-6 border border-white/5 shadow-2xl text-center space-y-4">
+              <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)] text-center space-y-4">
                 <div className="text-5xl">
                   {mlScore === 3 ? '🏆' : mlScore >= 2 ? '🎉' : '💪'}
                 </div>
-                <div className="font-fredoka text-4xl text-accent2">
+                <div className="text-4xl font-extrabold" style={{ color: '#D9822B' }}>
                   {mlScore}/3
                 </div>
-                <p className="font-extrabold text-base">
+                <p className="font-extrabold text-base text-[#16323A]">
                   {mlScore === 3
                     ? (lang === 'fr' ? 'Parfait ! Tu es prêt.' : lang === 'ar' ? 'ممتاز! أنت جاهز.' : "Perfect! You're a natural.")
                     : mlScore >= 2
@@ -841,18 +854,19 @@ export default function OnboardingFlow() {
                 </p>
 
                 {/* XP earned summary */}
-                <div className="bg-accent2/8 border border-accent2/20 rounded-2xl px-4 py-3">
-                  <p className="text-sm font-bold text-accent2">
+                <div className="bg-[#FFB930]/10 border border-[#FFB930]/25 rounded-2xl px-4 py-3">
+                  <p className="text-sm font-bold text-[#B8790E]">
                     ⚡ +{60 + mlScore * 15} XP earned today
                   </p>
-                  <p className="text-xs text-muted font-semibold mt-0.5">
+                  <p className="text-xs text-[#7C9995] font-semibold mt-0.5">
                     60 for joining + {mlScore * 15} for the quiz
                   </p>
                 </div>
 
                 <button
                   onClick={next}
-                  className="w-full py-4 rounded-2xl font-extrabold text-white bg-gradient-to-r from-accent3 to-accent4 hover:-translate-y-0.5 transition-all"
+                  className="w-full py-4 rounded-2xl font-extrabold text-white transition-all hover:-translate-y-0.5"
+                  style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.3)' }}
                 >
                   {lang === 'ar' ? 'إلى لوحة التحكم! 🚀' : lang === 'fr' ? 'Vers le tableau de bord ! 🚀' : 'Launch my dashboard! 🚀'}
                 </button>
@@ -865,24 +879,24 @@ export default function OnboardingFlow() {
 
         {/* ── STEP 8: Launch ───────────────────────────────── */}
         {step === 8 && (
-          <div className="bg-card rounded-3xl p-6 border border-white/5 shadow-2xl animate-slide-up space-y-5 text-center">
+          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(22,50,58,0.06)] animate-slide-up space-y-5 text-center">
 
             {/* Profile summary card */}
-            <div className="bg-gradient-to-br from-accent4/10 to-accent5/10 border border-accent4/20 rounded-2xl p-5">
+            <div className="bg-[#EAF6F1] border border-[#2DD4BF]/20 rounded-2xl p-5">
               <div className="text-5xl mb-3">{avatar}</div>
-              <div className="font-fredoka text-2xl">{name}</div>
-              <div className="text-sm text-muted font-semibold mt-1">
+              <div className="text-2xl font-extrabold text-[#16323A]">{name}</div>
+              <div className="text-sm text-[#7C9995] font-semibold mt-1">
                 {AGE_LABELS[getAgeGroup(age)]} · {LANGUAGES.find(l => l.id === lang)?.flag} · {COUNTRIES.find(c => c.code === country)?.flag}
               </div>
 
               <div className="flex justify-center gap-2 mt-3 flex-wrap">
-                <span className="text-xs font-extrabold bg-accent2/15 text-accent2 border border-accent2/25 px-3 py-1 rounded-full">
+                <span className="text-xs font-extrabold bg-[#FFB930]/15 text-[#B8790E] border border-[#FFB930]/25 px-3 py-1 rounded-full">
                   ⚡ {60 + mlScore * 15} XP
                 </span>
-                <span className="text-xs font-extrabold bg-accent3/15 text-accent3 border border-accent3/25 px-3 py-1 rounded-full">
+                <span className="text-xs font-extrabold bg-[#17D9C0]/15 text-[#0F9B87] border border-[#17D9C0]/25 px-3 py-1 rounded-full">
                   🔥 Day 1 streak
                 </span>
-                <span className="text-xs font-extrabold bg-card2 text-muted border border-white/10 px-3 py-1 rounded-full">
+                <span className="text-xs font-extrabold bg-[#F1F5F4] text-[#7C9995] border border-[#E3EEEB] px-3 py-1 rounded-full">
                   {GOALS.find(g => g.id === goal)?.emoji} {GOALS.find(g => g.id === goal)?.label}
                 </span>
               </div>
@@ -891,18 +905,18 @@ export default function OnboardingFlow() {
             {/* Badges earned */}
             <div className="flex justify-center gap-3">
               <div className="flex flex-col items-center gap-1">
-                <div className="w-14 h-14 rounded-2xl bg-accent2/10 border-2 border-accent2/30 flex items-center justify-center text-2xl">🌟</div>
-                <span className="text-xs font-bold text-muted">Dream Builder</span>
+                <div className="w-14 h-14 rounded-2xl bg-[#FFB930]/12 border-2 border-[#FFB930]/30 flex items-center justify-center text-2xl">🌟</div>
+                <span className="text-xs font-bold text-[#7C9995]">Dream Builder</span>
               </div>
               <div className="flex flex-col items-center gap-1">
-                <div className="w-14 h-14 rounded-2xl bg-accent3/10 border-2 border-accent3/30 flex items-center justify-center text-2xl">🐦</div>
-                <span className="text-xs font-bold text-muted">Early Bird</span>
+                <div className="w-14 h-14 rounded-2xl bg-[#17D9C0]/12 border-2 border-[#17D9C0]/30 flex items-center justify-center text-2xl">🐦</div>
+                <span className="text-xs font-bold text-[#7C9995]">Early Bird</span>
               </div>
             </div>
 
             {/* Commitment reminder */}
-            <div className="bg-card2 border border-white/8 rounded-2xl px-4 py-3">
-              <p className="text-sm font-bold">
+            <div className="bg-[#F7FAF9] border border-[#E3EEEB] rounded-2xl px-4 py-3">
+              <p className="text-sm font-bold text-[#16323A]">
                 {lang === 'ar'
                   ? `🎯 هدفك: ${weekDays === 7 ? 'كل يوم' : `${weekDays} أيام في الأسبوع`}. أنا سأتابعك!`
                   : lang === 'fr'
@@ -917,9 +931,10 @@ export default function OnboardingFlow() {
               className={cn(
                 'w-full py-5 rounded-2xl font-extrabold text-white text-lg transition-all',
                 saving
-                  ? 'bg-card2 text-muted cursor-not-allowed'
-                  : 'bg-gradient-to-r from-accent3 to-accent4 shadow-[0_0_30px_rgba(107,203,119,0.35)] hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(107,203,119,0.5)]'
+                  ? 'bg-[#F1F5F4] text-[#7C9995] cursor-not-allowed'
+                  : 'hover:-translate-y-1'
               )}
+              style={!saving ? { background: '#FF6E52', boxShadow: '0 6px 24px rgba(255,110,82,0.35)' } : undefined}
             >
               {saving
                 ? '⏳ Setting up your dashboard...'
@@ -928,7 +943,7 @@ export default function OnboardingFlow() {
                 : '🚀 Start my adventure!'}
             </button>
 
-            <p className="text-xs text-muted font-semibold">
+            <p className="text-xs text-[#7C9995] font-semibold">
               {lang === 'ar' ? '14 يوماً مجاناً · لا بطاقة مطلوبة'
                : lang === 'fr' ? '14 jours gratuits · Aucune carte requise'
                : '14-day free trial · No credit card needed'}
