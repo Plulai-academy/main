@@ -7,8 +7,10 @@ import styled, { ThemeProvider } from 'styled-components';
 import { theme } from '@/lib/school-admin/theme';
 import { SchoolAdminGlobalStyle } from '@/styles/school-admin-global';
 
-const NAV = [{ href: '/teacher', label: 'My classes', key: 'classes' }] as const;
-
+const NAV = [
+  { href: '/teacher', label: 'My classes', key: 'classes' },
+  { href: '/teacher/lessons', label: 'Curriculum', key: 'lessons' },
+] as const;
 const Shell = styled.div`
   min-height: 100vh;
   display: grid;
