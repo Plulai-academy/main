@@ -727,3 +727,48 @@ export async function getEngagementTrend(schoolId: string, days = 7): Promise<En
 
   return result.map((r) => ({ ...r, activeCount: byDay.get(r.date)?.size ?? 0 }));
 }
+// ---------------------------------------------------------------------------
+// Curriculum browsing (teacher-facing, read-only)
+// ---------------------------------------------------------------------------
+
+export async function getTracksForBrowse(): Promise<{ id: string; name: string; emoji: string; description: string }[]> {
+  const { data, error } = await supabase
+    .from('tracks')
+    .select('id, name, emoji, description')
+    .eq('is_active', true)
+    .order('sort_order');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getSkillNodesForBrowse(trackId: string): Promise<{ id: string; title: string; emoji: string; description: string }[]> {
+  const { data, error } = await supabase
+    .from('skill_nodes')
+    .select('id, title, emoji, description')
+    .eq('track_id', trackId)
+    .eq('is_active', true)
+    .order('sort_order');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getLessonsForBrowse(skillNodeId: string): Promise<{ id: string; title: string; emoji: string; lesson_type: string; xp_reward: number; duration_mins: number }[]> {
+  const { data, error } = await supabase
+    .from('lessons')
+    .select('id, title, emoji, lesson_type, xp_reward, duration_mins')
+    .eq('skill_node_id', skillNodeId)
+    .eq('is_active', true)
+    .order('sort_order');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getLessonPreview(lessonId: string): Promise<{ title: string; emoji: string; description: string; content_json: any }> {
+  const { data, error } = await supabase
+    .from('lessons')
+    .select('title, emoji, description, content_json')
+    .eq('id', lessonId)
+    .single();
+  if (error) throw error;
+  return data;
+}
