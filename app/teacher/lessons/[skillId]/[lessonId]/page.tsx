@@ -50,8 +50,7 @@ export default function TeacherLessonPreviewPage() {
           </div>
         ) : !lesson ? (
           <div className="bg-white rounded-3xl p-10 text-center shadow-[0_2px_16px_rgba(22,50,58,0.06)]">
-            <p className="text-[#7C9995] font-semibold">Couldn't load this lesson.</p>
-          </div>
+            <p className="text-[#7C9995] font-semibold">Couldn&apos;t load this lesson.</p>          </div>
         ) : (
           <>
             <div className="flex items-center gap-4 mb-8">
