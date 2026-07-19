@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import styled from 'styled-components';
 import { PageHeader } from '@/components/school-admin/PageHeader';
-import { Panel, PanelHeader, PanelTitle, Eyebrow, Badge, GhostButton, EmptyState } from '@/components/school-admin/ui';
-import { LessonPreviewModal } from '@/components/school-admin/LessonPreviewModal';
+import { Panel, EmptyState } from '@/components/school-admin/ui';
 import { getTracksForBrowse, getSkillNodesForBrowse, getLessonsForBrowse } from '@/lib/school-admin/queries';
 
 const Breadcrumb = styled.div`
@@ -14,6 +14,7 @@ const Breadcrumb = styled.div`
   font-size: 13px;
   color: ${({ theme }) => theme.colors.inkMuted};
   margin-bottom: 20px;
+  flex-wrap: wrap;
 
   button {
     background: none;
@@ -28,17 +29,22 @@ const Breadcrumb = styled.div`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 14px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Card = styled(Panel)`
   padding: 18px 20px;
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.reef};
+    transform: translateY(-1px);
   }
 `;
 
@@ -58,12 +64,12 @@ interface SkillItem { id: string; title: string; emoji: string; description: str
 interface LessonItem { id: string; title: string; emoji: string; lesson_type: string; xp_reward: number; duration_mins: number }
 
 export default function TeacherLessonsPage() {
+  const router = useRouter();
   const [tracks, setTracks] = useState<TrackItem[] | null>(null);
   const [selectedTrack, setSelectedTrack] = useState<TrackItem | null>(null);
   const [skills, setSkills] = useState<SkillItem[] | null>(null);
   const [selectedSkill, setSelectedSkill] = useState<SkillItem | null>(null);
   const [lessons, setLessons] = useState<LessonItem[] | null>(null);
-  const [previewLessonId, setPreviewLessonId] = useState<string | null>(null);
 
   useEffect(() => {
     getTracksForBrowse().then(setTracks).catch(console.error);
@@ -79,6 +85,11 @@ export default function TeacherLessonsPage() {
   function openSkill(s: SkillItem) {
     setSelectedSkill(s);
     getLessonsForBrowse(s.id).then(setLessons).catch(console.error);
+  }
+
+  function openLesson(lessonId: string) {
+    if (!selectedSkill) return;
+    router.push(`/teacher/lessons/${selectedSkill.id}/${lessonId}`);
   }
 
   if (selectedSkill) {
@@ -97,15 +108,12 @@ export default function TeacherLessonsPage() {
         ) : (
           <Grid>
             {(lessons ?? []).map((l) => (
-              <Card key={l.id} onClick={() => setPreviewLessonId(l.id)}>
+              <Card key={l.id} onClick={() => openLesson(l.id)}>
                 <CardTitle>{l.emoji} {l.title}</CardTitle>
                 <CardMeta>{l.lesson_type} · {l.duration_mins}m · {l.xp_reward} XP</CardMeta>
               </Card>
             ))}
           </Grid>
-        )}
-        {previewLessonId && (
-          <LessonPreviewModal lessonId={previewLessonId} onClose={() => setPreviewLessonId(null)} />
         )}
       </>
     );
