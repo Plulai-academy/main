@@ -274,7 +274,7 @@ function MascotSpeech({ text, sub }: { text: string; sub?: string }) {
       {/* Mascot */}
       <div className="flex-shrink-0 w-16 h-16 relative">
         <Image
-          src="/icons/mascot-celebrating.svg"
+          src="/avatars/marjanthecamel.png"
           alt="Marjan"
           width={64}
           height={64}
