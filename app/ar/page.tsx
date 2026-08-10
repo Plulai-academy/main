@@ -776,7 +776,7 @@ export default function LandingPageAr() {
       </div>
 
       {/* ================= CASE STUDY ================= */}
-      <div className={styles.tracksSec}>
+      {/* <div className={styles.tracksSec}>
         <div className="container">
           <div
             style={{
@@ -822,7 +822,7 @@ export default function LandingPageAr() {
             مثال توضيحي — استبدله بأرقام تجربة حقيقية عند توفّرها للنشر.
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* ================= PACKAGES ================= */}
       <div className={styles.tracksSec}>

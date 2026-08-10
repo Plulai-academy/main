@@ -778,7 +778,7 @@ export default function LandingPage() {
       </div>
 
       {/* ================= CASE STUDY ================= */}
-      <div className={styles.tracksSec}>
+      {/* <div className={styles.tracksSec}>
         <div className="container">
           <div
             style={{
@@ -825,7 +825,7 @@ export default function LandingPage() {
             Figures from Al Noor&apos;s Fall 2025 pilot term.
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* ================= PACKAGES ================= */}
       <div className={styles.tracksSec}>
