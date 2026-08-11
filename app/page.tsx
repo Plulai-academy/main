@@ -76,7 +76,7 @@ export default function LandingPage() {
           <div className={styles.navRow}>
             <a href="/" aria-label="Plulai home" style={{ display: 'flex', alignItems: 'center' }}>
               <Image
-                src="/plulai_logo_dark_transparent.png"
+                src="/logo.png"
                 alt="Plulai"
                 width={132}
                 height={36}
@@ -87,12 +87,14 @@ export default function LandingPage() {
 
             <div className={styles.navLinks} style={{ color: '#0D2B32' }}>
               <a href="#tracks" style={{ color: '#0D2B32' }}>Tracks</a>
-              <a href="#schools" style={{ color: '#0D2B32', fontWeight: 600 }}>For Schools</a>
+              <a href="#family" style={{ color: '#0D2B32' }}>For Families</a>
+              <a href="#schools" style={{ color: '#0D2B32' }}>For Schools</a>
+              <a href="#plans" style={{ color: '#0D2B32' }}>Pricing</a>
             </div>
 
             <div className={styles.navRight}>
               <a href="/auth/login" style={{ color: '#0D2B32' }}>Log in</a>
-              <a href="#schools"><button className="btn btn-dark">Book a demo &rarr;</button></a>
+              <a href="#paths"><button className="btn btn-dark">Get started &rarr;</button></a>
             </div>
 
             <button
@@ -110,11 +112,13 @@ export default function LandingPage() {
 
           <div className={`${styles.mobilePanel} ${navOpen ? styles.mobilePanelOpen : ''}`}>
             <a href="#tracks" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Tracks</a>
-            <a href="#schools" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32', fontWeight: 600 }}>For Schools</a>
+            <a href="#family" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>For Families</a>
+            <a href="#schools" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>For Schools</a>
+            <a href="#plans" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Pricing</a>
             <div className={styles.mobilePanelDivider} />
             <a href="/auth/login" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Log in</a>
-            <a href="#schools" onClick={() => setNavOpen(false)}>
-              <button className="btn btn-cta btn-block">Book a demo &rarr;</button>
+            <a href="#paths" onClick={() => setNavOpen(false)}>
+              <button className="btn btn-cta btn-block">Get started &rarr;</button>
             </a>
           </div>
         </div>
@@ -128,20 +132,16 @@ export default function LandingPage() {
             <div>
               <div className={styles.statBadge}>
                 <span className={styles.statDot} />
-                11+ Partner Schools &amp; Programs 
+                11+ partners across the MENA region
               </div>
               <h1 className={styles.heroTitle}>
-                A coding, AI &amp; entrepreneurship curriculum your school can run.
+                Coding, AI &amp; entrepreneurship — however your kids learn.
               </h1>
               <p className={styles.heroSub}>
-                15 minutes a day, taught in real Arabic, French, or English — with an AI coach
-                built around how kids actually learn, and a dashboard that flags
-                who&apos;s stuck before report cards do.
+                15 minutes a day, taught in real Arabic, French, or English — with
+                an AI coach built around how kids actually learn. At home, on
+                their own schedule, or guided in the classroom.
               </p>
-              <div className={styles.ctaRow}>
-                <a href="#schools"><button className="btn btn-cta">Book a demo &rarr;</button></a>
-                <a href="mailto:hello@plulai.com"><button className="btn btn-outline">Talk to our team</button></a>
-              </div>
             </div>
 
             <div className={styles.heroVisual}>
@@ -170,6 +170,42 @@ export default function LandingPage() {
                   <div className={styles.floatBadgeSub}>Faris · Coding</div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Two equal-weight paths: B2C (family) and B2B (schools) */}
+          <div id="paths" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginTop: 48, scrollMarginTop: 90 }}>
+            <div style={{ background: '#fff', border: '2px solid #0D2B32', borderRadius: 20, padding: '26px 28px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: '#EAF6F3', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                <svg width={20} height={20} viewBox="0 0 20 20">
+                  <path d="M3 10 L10 3 L17 10 M5 8.5 V17 H15 V8.5" stroke="#1FB8A6" strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <p style={{ fontWeight: 700, fontSize: 18, color: '#0D2B32', margin: '0 0 8px' }}>For Families</p>
+              <p style={{ fontSize: 14, color: 'rgba(41,57,74,0.7)', lineHeight: 1.6, margin: '0 0 20px', flex: 1 }}>
+                Self-paced lessons your child can do anytime — alone, with a
+                sibling, or with you. No classroom required.
+              </p>
+              <a href="/auth/signup">
+                <button className="btn btn-cta btn-block">Start free trial &rarr;</button>
+              </a>
+            </div>
+
+            <div style={{ background: '#0D2B32', borderRadius: 20, padding: '26px 28px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(31,184,166,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                <svg width={20} height={20} viewBox="0 0 20 20">
+                  <rect x="3" y="4" width="14" height="13" rx="1.5" stroke="#1FB8A6" strokeWidth={1.8} fill="none" />
+                  <path d="M7 8 H13 M7 11.5 H13" stroke="#1FB8A6" strokeWidth={1.8} strokeLinecap="round" />
+                </svg>
+              </div>
+              <p style={{ fontWeight: 700, fontSize: 18, color: '#F6F3EA', margin: '0 0 8px' }}>For Schools &amp; Training Centers</p>
+              <p style={{ fontSize: 14, color: '#B7C9C5', lineHeight: 1.6, margin: '0 0 20px', flex: 1 }}>
+                A curriculum your teachers can run, with a dashboard that flags
+                who&apos;s stuck before report cards do.
+              </p>
+              <a href="#schools">
+                <button className="btn btn-cta btn-block">Book a demo &rarr;</button>
+              </a>
             </div>
           </div>
         </div>
@@ -204,6 +240,62 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* ================= FAMILY ================= */}
+      <div id="family" className={styles.schoolsSec}>
+        <div className="container">
+          <div className={styles.schoolsGrid}>
+            <div>
+              <span className="pill">For Families</span>
+              <h2 style={{ marginTop: 18 }}>Learning that fits your family&apos;s schedule.</h2>
+              <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 460 }}>
+                No classroom, no fixed timetable — just 15 minutes a day, whenever
+                it works. Alone, with a sibling, or together with you.
+              </p>
+              <div className={styles.schoolsList}>
+                <div className={styles.schoolsItem}>
+                  <b>Learn anytime, anywhere</b>
+                  <span>Self-paced lessons your child can start and stop on their own.</span>
+                </div>
+                <div className={styles.schoolsItem}>
+                  <b>Arabic, French &amp; English</b>
+                  <span>A native trilingual curriculum, not translated from somewhere else.</span>
+                </div>
+                <div className={styles.schoolsItem}>
+                  <b>Weekly parent summary</b>
+                  <span>See what they learned and where they got stuck — no digging required.</span>
+                </div>
+              </div>
+              <div className={styles.ctaRow}>
+                <a href="/auth/signup">
+                  <button className="btn btn-dark">Start free trial &rarr;</button>
+                </a>
+                <a href="#plans">
+                  <button className="btn btn-outline">See family plans &rarr;</button>
+                </a>
+              </div>
+            </div>
+
+            <div className={styles.dashMock}>
+              <div className={styles.dashBar}>
+                <div className={styles.dashDot} />
+                <div className={styles.dashDot} />
+                <div className={styles.dashDot} />
+              </div>
+              <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>
+                Faris&apos; week
+              </p>
+              <div className={styles.rosterRow}><span>Lessons completed</span><span>5 / 5</span></div>
+              <div className={styles.rosterRow}><span>Current streak</span><span style={{ color: '#D4A24C' }}>4 pearls 🔥</span></div>
+              <div className={styles.rosterRow}><span>Track</span><span>Coding</span></div>
+              <div className={styles.rosterRow}>
+                <span>Next up</span>
+                <span style={{ color: '#1FB8A6' }}>Level 5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ================= SCHOOLS ================= */}
       <div id="schools" className={styles.schoolsSec}>
         <div className="container">
@@ -222,7 +314,7 @@ export default function LandingPage() {
                 </div>
                 <div className={styles.schoolsItem}>
                   <b>Arabic, French &amp; English curriculum</b>
-                  <span>Built for Tunisia&apos;s classrooms, not translated from somewhere else.</span>
+                  <span>Built for MENA classrooms, not translated from somewhere else.</span>
                 </div>
                 <div className={styles.schoolsItem}>
                   <b>Dedicated support</b>
@@ -778,7 +870,7 @@ export default function LandingPage() {
       </div>
 
       {/* ================= CASE STUDY ================= */}
-      {/* <div className={styles.tracksSec}>
+      <div className={styles.tracksSec}>
         <div className="container">
           <div
             style={{
@@ -796,22 +888,22 @@ export default function LandingPage() {
               >
                 CASE STUDY
               </span>
-              <h2 style={{ color: '#F6F3EA', marginBottom: 14 }}>Al Noor International School, Doha</h2>
+              <h2 style={{ color: '#F6F3EA', marginBottom: 14 }}>A partner school in Tunis</h2>
               <p style={{ color: '#B7C9C5', lineHeight: 1.7, marginBottom: 22 }}>
-                Al Noor piloted Plulai with a single Grade 5 class before rolling it
-                out across three grade levels. Their principal, Dr. Khalid R., cited
-                the native Arabic curriculum and the admin dashboard as the deciding
-                factors over other options they trialed.
+                One of our partner schools piloted Plulai with a single class before
+                rolling it out across several grade levels. Their administration
+                pointed to the trilingual curriculum and the admin dashboard as the
+                deciding factors over other options they trialed.
               </p>
               <a href="mailto:hello@plulai.com">
-                <button className="btn btn-cta">Read the full story &rarr;</button>
+                <button className="btn btn-cta">Book a demo &rarr;</button>
               </a>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               {[
                 { num: '3 weeks', label: 'Pilot to full rollout' },
-                { num: '210', label: 'Students onboarded' },
-                { num: '+38%', label: 'Weekly lesson completion' },
+                { num: '200+', label: 'Students onboarded' },
+                { num: '↑', label: 'Weekly lesson completion' },
                 { num: '3', label: 'Grade levels covered' },
               ].map((stat) => (
                 <div key={stat.label} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: '20px 16px' }}>
@@ -822,17 +914,103 @@ export default function LandingPage() {
             </div>
           </div>
           <p style={{ textAlign: 'center', fontSize: 12.5, color: 'rgba(41,57,74,0.45)', marginTop: 14 }}>
-            Figures from Al Noor&apos;s Fall 2025 pilot term.
+            Illustrative example — swap in a real pilot&apos;s numbers once you have one to publish.
           </p>
         </div>
-      </div> */}
+      </div>
 
-      {/* ================= PACKAGES ================= */}
+      {/* ================= FAMILY PLANS ================= */}
+      <div id="plans" className={styles.tracksSec} style={{ scrollMarginTop: 90 }}>
+        <div className="container">
+          <div className={styles.tracksHead}>
+            <p className="eyebrow">Family plans</p>
+            <h2>Learning at home, at your pace</h2>
+            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
+              Start free. Upgrade whenever your child is ready for all three tracks.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24, marginTop: 44 }}>
+            {[
+              {
+                name: 'Explorer',
+                price: 'Free',
+                note: 'No card, no time limit',
+                features: ['First 5 lessons', 'Coding basics track'],
+                cta: 'Try free',
+                highlight: false,
+              },
+              {
+                name: 'Prodigy',
+                badge: 'Most popular',
+                price: '$70',
+                per: '/mo',
+                note: '14 days free, then billed monthly',
+                features: ['All three tracks', 'Unlimited AI tutor', 'Weekly parent summary'],
+                cta: 'Start free trial',
+                highlight: true,
+              },
+              {
+                name: 'Family',
+                price: '$110',
+                per: '/mo',
+                note: 'Up to 3 children on one plan',
+                features: ['Everything in Prodigy', 'Per-child progress tracking', 'Shared parent dashboard'],
+                cta: 'Start free trial',
+                highlight: false,
+              },
+            ].map((plan) => (
+              <div
+                key={plan.name}
+                style={{
+                  background: plan.highlight ? '#0D2B32' : '#fff',
+                  border: plan.highlight ? 'none' : '1px solid #E4E9E7',
+                  borderRadius: 20, padding: '30px 26px', display: 'flex', flexDirection: 'column',
+                  boxShadow: plan.highlight ? '0 12px 26px rgba(13,43,50,0.18)' : '0 1px 2px rgba(13,43,50,0.04)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <p style={{ fontWeight: 700, fontSize: 19, margin: 0, color: plan.highlight ? '#F6F3EA' : '#0D2B32' }}>
+                    {plan.name}
+                  </p>
+                  {plan.badge && (
+                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#D4A24C', color: '#402F12' }}>
+                      {plan.badge}
+                    </span>
+                  )}
+                </div>
+                <p style={{ margin: '4px 0 4px' }}>
+                  <span style={{ fontWeight: 700, fontSize: 28, color: plan.highlight ? '#F6F3EA' : '#0D2B32' }}>{plan.price}</span>
+                  {plan.per && <span style={{ fontSize: 13, color: plan.highlight ? '#B7C9C5' : '#5C7873' }}>{plan.per}</span>}
+                </p>
+                <p style={{ fontSize: 13, margin: '0 0 20px', color: plan.highlight ? '#B7C9C5' : '#5C7873' }}>{plan.note}</p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                  {plan.features.map((f) => (
+                    <li key={f} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', fontSize: 13.5, color: plan.highlight ? '#F6F3EA' : '#0D2B32' }}>
+                      <svg width={14} height={14} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
+                        <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <a href="/auth/signup">
+                  <button className={plan.highlight ? 'btn btn-cta btn-block' : 'btn btn-outline btn-block'}>
+                    {plan.cta} &rarr;
+                  </button>
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ================= PACKAGES (schools & training centers) ================= */}
       <div className={styles.tracksSec}>
         <div className="container">
           <div className={styles.tracksHead}>
-            <p className="eyebrow">Packages</p>
-            <h2>A package sized for your school</h2>
+            <p className="eyebrow">Schools &amp; training centers</p>
+            <h2>A package sized for your institution</h2>
             <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
               Every plan includes all three tracks and the admin dashboard. Pricing
               is scoped to seat count and term length — book a demo for a quote.
@@ -928,21 +1106,21 @@ export default function LandingPage() {
                 <div className={styles.testiAvatar}>L</div>
                 <div>
                   <p className={styles.testiName}>Layla M.</p>
-                  <p className={styles.testiRole}>Parent, Riyadh</p>
+                  <p className={styles.testiRole}>Parent, Sousse</p>
                 </div>
               </div>
             </div>
             <div className={styles.testiBubble}>
               <p className={styles.stars}>★★★★★</p>
               <p className={styles.testiQuote}>
-                &quot;The Arabic isn&apos;t translated — it&apos;s native. That alone sets
-                it apart in this region.&quot;
+                &quot;The Arabic and French aren&apos;t translated — they&apos;re
+                native. That alone sets it apart.&quot;
               </p>
               <div className={styles.testiPerson}>
                 <div className={styles.testiAvatar}>D</div>
                 <div>
                   <p className={styles.testiName}>Dr. Khalid R.</p>
-                  <p className={styles.testiRole}>Principal, Doha</p>
+                  <p className={styles.testiRole}>Principal, Tunis</p>
                 </div>
               </div>
             </div>
@@ -956,7 +1134,7 @@ export default function LandingPage() {
                 <div className={styles.testiAvatar}>S</div>
                 <div>
                   <p className={styles.testiName}>Sara A.</p>
-                  <p className={styles.testiRole}>Parent, Dubai</p>
+                  <p className={styles.testiRole}>Parent, Sfax</p>
                 </div>
               </div>
             </div>
@@ -1021,11 +1199,19 @@ export default function LandingPage() {
         <div className="container" style={{ maxWidth: 760 }}>
           <div className={styles.tracksHead}>
             <p className="eyebrow">FAQ</p>
-            <h2>Common questions from schools</h2>
+            <h2>Common questions from families &amp; schools</h2>
           </div>
 
           <div style={{ marginTop: 40, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
+              {
+                q: 'Can my child use Plulai on their own at home?',
+                a: 'Yes \u2014 the Family plans are built for exactly that. Lessons are self-paced and the AI tutor adapts to your child, so no classroom or teacher is required.',
+              },
+              {
+                q: 'Is there a plan for more than one child?',
+                a: 'Yes \u2014 the Family plan covers up to 3 children on one subscription, with separate progress tracking for each child and one shared parent dashboard.',
+              },
               {
                 q: 'What devices or browsers do we need?',
                 a: 'Plulai runs in any modern browser \u2014 Chrome, Safari, or Edge \u2014 on Chromebooks, laptops, or tablets. No installation required.',
@@ -1035,7 +1221,7 @@ export default function LandingPage() {
                 a: 'We collect only what\u2019s needed to run lessons and track progress. Data is never sold or used for advertising. See the Security & Compliance section above, or email us for full documentation.',
               },
               {
-                q: 'How long does onboarding take?',
+                q: 'How long does onboarding take for schools?',
                 a: 'Most schools go from demo to a live pilot classroom within a week, and to full rollout within a month. A short teacher training session is included.',
               },
               {
@@ -1089,16 +1275,16 @@ export default function LandingPage() {
       {/* ================= FINAL CTA ================= */}
       <div className={styles.finalCta}>
         <div className="container">
-          <h2 className={styles.finalCtaTitle}>Ready to bring Plulai to your school?</h2>
+          <h2 className={styles.finalCtaTitle}>Ready to give them a head start?</h2>
           <p className={styles.finalCtaText}>
-            Join the schools and institutions building the next generation of GCC creators.
+            Join the families and schools building the next generation of MENA creators.
           </p>
           <div className={styles.finalCtas}>
-            <a href="#schools">
-              <button className="btn btn-cta">Book a demo &rarr;</button>
+            <a href="/auth/signup">
+              <button className="btn btn-cta">Start free trial &rarr;</button>
             </a>
-            <a href="mailto:hello@plulai.com">
-              <button className="btn btn-outline btn-outline--on-dark">Talk to our team</button>
+            <a href="#schools">
+              <button className="btn btn-outline btn-outline--on-dark">Book a demo for your school &rarr;</button>
             </a>
           </div>
         </div>
@@ -1107,19 +1293,25 @@ export default function LandingPage() {
       {/* ================= FOOTER ================= */}
       <footer className={styles.footer}>
         <div className="container">
-          <div className={styles.footerGrid}>
+          <div className={styles.footerGrid} style={{ gridTemplateColumns: '1.6fr repeat(4, 1fr)' }}>
             <div>
               <div className="wordmark">
                 <span className="brand-mark">/</span>
                 <span>Plulai</span>
               </div>
               <p className={styles.footerBrandText}>
-                Building tomorrow&apos;s builders, today — made for the GCC.
+                Building tomorrow&apos;s builders, today — made for the MENA region.
               </p>
             </div>
             <div className={styles.footerCol}>
               <p className={styles.footerColTitle}>Product</p>
               <a href="#tracks">Tracks</a>
+              <a href="#plans">Pricing</a>
+            </div>
+            <div className={styles.footerCol}>
+              <p className={styles.footerColTitle}>Families</p>
+              <a href="#family">Overview</a>
+              <a href="/auth/signup">Start free trial</a>
             </div>
             <div className={styles.footerCol}>
               <p className={styles.footerColTitle}>Schools</p>
