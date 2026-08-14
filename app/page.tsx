@@ -947,7 +947,7 @@ export default function LandingPage() {
       </div>
 
       {/* ================= CASE STUDY (schools only) ================= */}
-      {audience === 'schools' && (
+      {/* {audience === 'schools' && (
       <div className={styles.tracksSec}>
         <style>{`
           @media (max-width: 720px) {
@@ -1002,7 +1002,7 @@ export default function LandingPage() {
           </p>
         </div>
       </div>
-      )}
+      )} */}
 
       {/* ================= FAMILY PLANS (family only) ================= */}
       {audience === 'family' && (
