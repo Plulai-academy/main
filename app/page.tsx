@@ -77,7 +77,7 @@ export default function LandingPage() {
           <div className={styles.navRow}>
             <a href="/" aria-label="Plulai home" style={{ display: 'flex', alignItems: 'center' }}>
               <Image
-                src="/plulai_logo_dark_transparent.png"
+                src="/logo.png"
                 alt="Plulai"
                 width={132}
                 height={36}
@@ -805,118 +805,79 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-      {/* ================= PATH SECTION ================= */}
+      {/* ================= PATH SECTION: transformation journey ================= */}
       <div className={styles.pathSec}>
         <div className="container">
           <p className="eyebrow">The pearl path</p>
-          <h2 style={{ color: 'var(--raw-pearlwhite)' }}>A path that shows exactly what&apos;s next</h2>
-          <p style={{ color: '#8FA8A3', maxWidth: 500 }}>
-            Every finished lesson cracks open a guaranteed reward — never a random one.
+          <h2 style={{ color: 'var(--raw-pearlwhite)' }}>
+            {audience === 'family'
+              ? 'Watch them go from curious to confident'
+              : 'Watch your students go from hesitant to confident builders'}
+          </h2>
+          <p style={{ color: '#8FA8A3', maxWidth: 560 }}>
+            {audience === 'family'
+              ? "This isn't a points system \u2014 it's what actually changes over a few months of lessons."
+              : "This is the shift schools notice \u2014 not a leaderboard, a real change in how students work."}
           </p>
 
-          <div className={styles.mapGrid}>
-            <div>
-              <div className={styles.mapNodes}>
-                <div className={styles.mapNode} style={{ background: '#17D9C0' }}>
-                  <svg width={16} height={16} viewBox="0 0 16 16">
-                    <path d="M3 8 L7 12 L13 4" stroke="#053D35" strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <div className={styles.mapLine} />
-                <div className={`${styles.mapNode} ${styles.mapNodeCurrent}`} style={{ background: '#FFB930' }}>
-                  <span className="font-mono" style={{ fontWeight: 700, color: '#4A3403' }}>/</span>
-                </div>
-                <div className={styles.mapLine} />
-                <div className={styles.mapNode} style={{ background: '#D9F1EC' }}>
-                  <LockIcon />
-                </div>
-                <div className={styles.mapLine} />
-                <div className={styles.mapNode} style={{ background: '#D9F1EC' }}>
-                  <LockIcon />
-                </div>
-              </div>
+          <div style={{ position: 'relative', marginTop: 56 }}>
+            <svg
+              viewBox="0 0 1000 40" preserveAspectRatio="none"
+              style={{ position: 'absolute', top: 34, left: 0, width: '100%', height: 40, zIndex: 0, display: 'none' }}
+              className="path-connector"
+              aria-hidden
+            >
+              <line x1="60" y1="20" x2="940" y2="20" stroke="rgba(255,255,255,0.15)" strokeWidth="2" strokeDasharray="2 12" strokeLinecap="round" />
+            </svg>
+            <style>{`@media (min-width: 900px) { .path-connector { display: block !important; } }`}</style>
 
-              <div className={styles.hudRow}>
-                <div className={styles.hudChip}>
-                  Pearls this week
-                  <b>4 / 5</b>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, position: 'relative', zIndex: 1 }}>
+              {[
+                {
+                  time: 'Week 1', color: '#1FB8A6', title: 'First lines of code',
+                  desc: 'Unsure what to expect, a little nervous to try. Then they write something that actually runs.',
+                },
+                {
+                  time: 'Month 1', color: '#D4A24C', title: 'First real build',
+                  desc: 'Ships a working app or game they\u2019re genuinely proud to show someone.',
+                },
+                {
+                  time: 'Month 2', color: '#0D2B32', title: 'Works independently',
+                  desc: 'Debugs their own mistakes and pushes through instead of asking for help every five minutes.',
+                },
+                {
+                  time: 'Month 3+', color: '#053D35', title: 'Thinks like a builder',
+                  desc: 'Pitches an idea, prices it, and presents it like it\u2019s real \u2014 because by now, it is.',
+                },
+              ].map((stage) => (
+                <div
+                  key={stage.time}
+                  style={{
+                    flex: '1 1 220px', minWidth: 220, background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.1)', borderRadius: 18, padding: '22px 20px',
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700,
+                      letterSpacing: 0.4, color: '#0D2B32', background: stage.color, padding: '4px 11px', borderRadius: 999,
+                    }}
+                  >
+                    {stage.time}
+                  </span>
+                  <p style={{ fontWeight: 700, fontSize: 17, color: '#F6F3EA', margin: '16px 0 8px' }}>{stage.title}</p>
+                  <p style={{ fontSize: 13.5, color: '#8FA8A3', lineHeight: 1.6, margin: 0 }}>{stage.desc}</p>
                 </div>
-                <div className={styles.hudChip}>
-                  XP to next level
-                  <b>240 / 300</b>
-                </div>
-              </div>
-
-              <div className={styles.moduleCard}>
-                <p className={styles.moduleTitle}>Build your first app</p>
-                <p className={styles.moduleSub}>Module 1 · 6 lessons · 2 of 6 complete</p>
-                <div className={styles.progTrack}>
-                  <div className={styles.progFill} />
-                </div>
-              </div>
-              <a href="#audience">
-                <button className="btn btn-cta" style={{ marginTop: 24 }}>
-                  {audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;
-                </button>
-              </a>
+              ))}
             </div>
+          </div>
 
-            <div className={styles.featureList}>
-              <div className={styles.featureItem}>
-                <div className={styles.iconTile}>
-                  <svg width={16} height={16} viewBox="0 0 16 16">
-                    <circle cx="8" cy="8" r="6.5" stroke="#8FA8A3" strokeWidth={1.5} fill="none" />
-                    <path d="M8 4.5 V8 L10.5 9.5" stroke="#8FA8A3" strokeWidth={1.5} fill="none" strokeLinecap="round" />
-                  </svg>
-                </div>
-                {audience === 'family' ? (
-                  <div>
-                    <b>15 minutes, not 30</b>
-                    <span>Sized for an actual daily habit.</span>
-                  </div>
-                ) : (
-                  <div>
-                    <b>Fits a class period</b>
-                    <span>Paced in 30–45 minute sessions the teacher controls.</span>
-                  </div>
-                )}
-              </div>
-              <div className={styles.featureItem}>
-                <div className={styles.iconTile}>
-                  <svg width={16} height={16} viewBox="0 0 16 16">
-                    <path d="M2 3 h12 v7 h-6 l-3 3 v-3 h-3 z" fill="#8FA8A3" />
-                  </svg>
-                </div>
-                <div>
-                  <b>A personal AI tutor</b>
-                  <span>Adapts to pace and language, in the moment.</span>
-                </div>
-              </div>
-              <div className={styles.featureItem}>
-                <div className={styles.iconTile}>
-                  <svg width={16} height={16} viewBox="0 0 16 16">
-                    <circle cx="8" cy="8" r="6" fill="#D4A24C" />
-                    <circle cx="8" cy="8" r="2.5" fill="#123A42" />
-                  </svg>
-                </div>
-                <div>
-                  <b>Guaranteed pearl rewards</b>
-                  <span>No loot boxes — every lesson pays off the same way.</span>
-                </div>
-              </div>
-              <div className={styles.featureItem}>
-                <div className={styles.iconTile}>
-                  <svg width={16} height={16} viewBox="0 0 16 16">
-                    <rect x="2" y="2" width="7" height="7" fill="#8FA8A3" />
-                    <rect x="7" y="7" width="7" height="7" fill="#5C7873" />
-                  </svg>
-                </div>
-                <div>
-                  <b>Real projects</b>
-                  <span>Every module ends with something to show.</span>
-                </div>
-              </div>
-            </div>
+          <div style={{ textAlign: 'center', marginTop: 40 }}>
+            <a href="#audience">
+              <button className="btn btn-cta">
+                {audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;
+              </button>
+            </a>
           </div>
         </div>
       </div>
@@ -1402,14 +1363,5 @@ export default function LandingPage() {
         </div>
       </footer>
     </>
-  )
-}
-
-function LockIcon() {
-  return (
-    <svg width={14} height={14} viewBox="0 0 14 14">
-      <rect x="3" y="6" width="8" height="6" rx="1" fill="#9AB5B0" />
-      <path d="M4.5 6 V4 a2.5 2.5 0 0 1 5 0 V6" stroke="#9AB5B0" strokeWidth={1.6} fill="none" />
-    </svg>
   )
 }
