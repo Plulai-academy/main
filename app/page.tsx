@@ -77,7 +77,7 @@ export default function LandingPage() {
           <div className={styles.navRow}>
             <a href="/" aria-label="Plulai home" style={{ display: 'flex', alignItems: 'center' }}>
               <Image
-                src="/logo.png"
+                src="/plulai_logo_dark_transparent.png"
                 alt="Plulai"
                 width={132}
                 height={36}
