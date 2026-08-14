@@ -805,13 +805,16 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-      {/* ================= PATH SECTION: transformation journey ================= */}
+      {/* ================= PATH SECTION: before / after ================= */}
       <div className={styles.pathSec}>
         <style>{`
-          @media (min-width: 900px) { .journey-line { display: block !important; } }
-          @media (max-width: 760px) { .journey-grid { grid-template-columns: repeat(2, 1fr) !important; } }
-          .journey-stage { transition: transform .2s ease; }
-          .journey-stage:hover { transform: translateY(-4px); }
+          @media (max-width: 760px) {
+            .ba-grid { grid-template-columns: 1fr !important; }
+            .ba-panel-before { border-radius: 20px 20px 0 0 !important; }
+            .ba-panel-after { border-radius: 0 0 20px 20px !important; }
+            .ba-divider-desktop { display: none !important; }
+            .ba-divider-mobile { display: flex !important; }
+          }
         `}</style>
         <div className="container">
           <p className="eyebrow">The pearl path</p>
@@ -826,85 +829,98 @@ export default function LandingPage() {
               : "This is the shift schools notice \u2014 not a leaderboard, a real change in how students work."}
           </p>
 
-          <div style={{ position: 'relative', marginTop: 64, paddingTop: 32 }}>
-            <div
-              className="journey-line"
-              style={{
-                position: 'absolute', top: 32, left: '12.5%', right: '12.5%', height: 2,
-                background: 'linear-gradient(90deg, #1FB8A6, #D4A24C, #17948A, #053D35)',
-                opacity: 0.5, zIndex: 0, display: 'none',
-              }}
-            />
+          <div style={{ position: 'relative', marginTop: 56, maxWidth: 920, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="ba-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+              {/* BEFORE */}
+              <div
+                className="ba-panel-before"
+                style={{
+                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '20px 0 0 20px', padding: '40px 34px',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6,
+                    color: '#8FA8A3', background: 'rgba(255,255,255,0.06)', padding: '5px 13px',
+                    borderRadius: 999, marginBottom: 22,
+                  }}
+                >
+                  BEFORE
+                </span>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {(audience === 'family'
+                    ? ['Never touched a line of code', 'Nervous to try, quick to give up', 'Screen time with nothing to show for it']
+                    : ['Hesitant, unsure where to start', 'Needs constant hand-holding', 'Engagement drops after week one']
+                  ).map((item) => (
+                    <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 15, color: '#8FA8A3', lineHeight: 1.5 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8FA8A3', marginTop: 8, flexShrink: 0 }} />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
+              {/* AFTER */}
+              <div
+                className="ba-panel-after"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(31,184,166,0.14), rgba(212,162,76,0.07))',
+                  border: '1px solid rgba(31,184,166,0.4)', borderRadius: '0 20px 20px 0',
+                  padding: '40px 34px', boxShadow: '0 20px 50px rgba(31,184,166,0.12)',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6,
+                    color: '#0D2B32', background: '#1FB8A6', padding: '5px 13px',
+                    borderRadius: 999, marginBottom: 22,
+                  }}
+                >
+                  AFTER · 3 MONTHS LATER
+                </span>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {(audience === 'family'
+                    ? ['Ships their own app or game', 'Debugs mistakes without asking for help', 'Pitches ideas like they mean it']
+                    : ['Builds and presents real projects', 'Works through problems independently', 'Asks to keep going after class ends']
+                  ).map((item) => (
+                    <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 15, color: '#F6F3EA', fontWeight: 600, lineHeight: 1.5 }}>
+                      <svg width={17} height={17} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
+                        <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* divider: circle w/ arrow, desktop only */}
             <div
-              className="journey-grid"
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, position: 'relative', zIndex: 1 }}
+              className="ba-divider-desktop"
+              style={{
+                position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                width: 56, height: 56, borderRadius: '50%', background: '#0D2B32', border: '3px solid #1FB8A6',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2,
+              }}
             >
-              {[
-                {
-                  time: 'Week 1', color: '#1FB8A6', colorDark: '#12756B', title: 'First lines of code',
-                  desc: 'Unsure what to expect, a little nervous to try. Then they write something that actually runs.',
-                  icon: (
-                    <svg width={26} height={26} viewBox="0 0 22 22" fill="none">
-                      <path d="M11 0 L13 9 L22 11 L13 13 L11 22 L9 13 L0 11 L9 9 Z" fill="#fff" />
-                    </svg>
-                  ),
-                },
-                {
-                  time: 'Month 1', color: '#D4A24C', colorDark: '#9C7530', title: 'First real build',
-                  desc: 'Ships a working app or game they\u2019re genuinely proud to show someone.',
-                  icon: (
-                    <svg width={24} height={24} viewBox="0 0 22 22" fill="none">
-                      <rect x="4" y="9" width="14" height="9" rx="1" stroke="#402F12" strokeWidth={1.7} />
-                      <path d="M4 9 L11 4 L18 9" stroke="#402F12" strokeWidth={1.7} fill="none" strokeLinejoin="round" />
-                    </svg>
-                  ),
-                },
-                {
-                  time: 'Month 2', color: '#17948A', colorDark: '#0D5C55', title: 'Works independently',
-                  desc: 'Debugs their own mistakes and pushes through instead of asking for help every five minutes.',
-                  icon: (
-                    <svg width={24} height={24} viewBox="0 0 22 22" fill="none">
-                      <circle cx="11" cy="11" r="8" stroke="#fff" strokeWidth={1.7} />
-                      <path d="M7 11 L10 14 L15 8" stroke="#fff" strokeWidth={1.9} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  ),
-                },
-                {
-                  time: 'Month 3+', color: '#053D35', colorDark: '#02211C', title: 'Thinks like a builder',
-                  desc: 'Pitches an idea, prices it, and presents it like it\u2019s real \u2014 because by now, it is.',
-                  icon: (
-                    <svg width={24} height={24} viewBox="0 0 22 22" fill="none">
-                      <path d="M6 2 V20" stroke="#fff" strokeWidth={1.7} strokeLinecap="round" />
-                      <path d="M6 3 L18 6.5 L6 11 Z" fill="#fff" />
-                    </svg>
-                  ),
-                },
-              ].map((stage) => (
-                <div key={stage.time} className="journey-stage" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                  <div
-                    style={{
-                      width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
-                      background: `linear-gradient(135deg, ${stage.color}, ${stage.colorDark})`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: `0 10px 24px ${stage.color}4D`, marginBottom: 18,
-                    }}
-                  >
-                    {stage.icon}
-                  </div>
-                  <span
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', fontSize: 11.5, fontWeight: 700,
-                      letterSpacing: 0.4, color: '#0D2B32', background: stage.color, padding: '4px 11px',
-                      borderRadius: 999, marginBottom: 14,
-                    }}
-                  >
-                    {stage.time}
-                  </span>
-                  <p style={{ fontWeight: 700, fontSize: 16.5, color: '#F6F3EA', margin: '0 0 8px' }}>{stage.title}</p>
-                  <p style={{ fontSize: 13.5, color: '#8FA8A3', lineHeight: 1.6, margin: 0, maxWidth: 220 }}>{stage.desc}</p>
-                </div>
-              ))}
+              <svg width={22} height={22} viewBox="0 0 20 20">
+                <path d="M4 10 H16 M11 5 L16 10 L11 15" stroke="#1FB8A6" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+
+            {/* divider: arrow row, mobile only */}
+            <div
+              className="ba-divider-mobile"
+              style={{
+                display: 'none', justifyContent: 'center', alignItems: 'center',
+                background: '#0D2B32', borderTop: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)',
+                padding: '10px 0',
+              }}
+            >
+              <svg width={20} height={20} viewBox="0 0 20 20">
+                <path d="M10 4 V16 M5 11 L10 16 L15 11" stroke="#1FB8A6" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
           </div>
 
