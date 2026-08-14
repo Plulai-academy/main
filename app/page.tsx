@@ -758,6 +758,21 @@ export default function LandingPage() {
 
       {/* ================= ALUMNI PROJECTS ================= */}
       <div className={styles.alumniSec}>
+        <style>{`
+          @keyframes plulai-project-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+          }
+          .project-marquee-track {
+            animation: plulai-project-scroll 45s linear infinite;
+          }
+          .project-marquee-wrap:hover .project-marquee-track {
+            animation-play-state: paused;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .project-marquee-track { animation: none; }
+          }
+        `}</style>
         <div className="container">
           <p className="eyebrow">Real work, not just quizzes</p>
           <h2>What kids actually build</h2>
@@ -766,23 +781,28 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className={styles.projectCarousel}>
-          {projects.map((project) => (
-            <div key={project.file} className={styles.projectSlide}>
-              <div className={styles.projectShot}>
-                <Image
-                  src={`/projects/${project.file}`}
-                  alt={project.title}
-                  fill
-                  className={styles.projectImg}
-                  sizes="(max-width: 640px) 80vw, 320px"
-                />
+        <div className="project-marquee-wrap" style={{ overflow: 'hidden' }}>
+          <div
+            className={`${styles.projectCarousel} project-marquee-track`}
+            style={{ display: 'flex', overflow: 'visible', width: 'max-content' }}
+          >
+            {[...projects, ...projects].map((project, i) => (
+              <div key={`${project.file}-${i}`} className={styles.projectSlide}>
+                <div className={styles.projectShot}>
+                  <Image
+                    src={`/projects/${project.file}`}
+                    alt={project.title}
+                    fill
+                    className={styles.projectImg}
+                    sizes="(max-width: 640px) 80vw, 320px"
+                  />
+                </div>
+                <span className={`tag-mono tag-mono--${project.tagColor}`}>{project.track}</span>
+                <p className={styles.projectTitle}>{project.title}</p>
+                <p className={styles.projectStudent}>{project.student}</p>
               </div>
-              <span className={`tag-mono tag-mono--${project.tagColor}`}>{project.track}</span>
-              <p className={styles.projectTitle}>{project.title}</p>
-              <p className={styles.projectStudent}>{project.student}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
       {/* ================= PATH SECTION ================= */}
