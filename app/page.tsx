@@ -807,6 +807,12 @@ export default function LandingPage() {
       </div>
       {/* ================= PATH SECTION: transformation journey ================= */}
       <div className={styles.pathSec}>
+        <style>{`
+          @media (min-width: 900px) { .journey-line { display: block !important; } }
+          @media (max-width: 760px) { .journey-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+          .journey-stage { transition: transform .2s ease; }
+          .journey-stage:hover { transform: translateY(-4px); }
+        `}</style>
         <div className="container">
           <p className="eyebrow">The pearl path</p>
           <h2 style={{ color: 'var(--raw-pearlwhite)' }}>
@@ -820,59 +826,89 @@ export default function LandingPage() {
               : "This is the shift schools notice \u2014 not a leaderboard, a real change in how students work."}
           </p>
 
-          <div style={{ position: 'relative', marginTop: 56 }}>
-            <svg
-              viewBox="0 0 1000 40" preserveAspectRatio="none"
-              style={{ position: 'absolute', top: 34, left: 0, width: '100%', height: 40, zIndex: 0, display: 'none' }}
-              className="path-connector"
-              aria-hidden
-            >
-              <line x1="60" y1="20" x2="940" y2="20" stroke="rgba(255,255,255,0.15)" strokeWidth="2" strokeDasharray="2 12" strokeLinecap="round" />
-            </svg>
-            <style>{`@media (min-width: 900px) { .path-connector { display: block !important; } }`}</style>
+          <div style={{ position: 'relative', marginTop: 64, paddingTop: 32 }}>
+            <div
+              className="journey-line"
+              style={{
+                position: 'absolute', top: 32, left: '12.5%', right: '12.5%', height: 2,
+                background: 'linear-gradient(90deg, #1FB8A6, #D4A24C, #17948A, #053D35)',
+                opacity: 0.5, zIndex: 0, display: 'none',
+              }}
+            />
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, position: 'relative', zIndex: 1 }}>
+            <div
+              className="journey-grid"
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, position: 'relative', zIndex: 1 }}
+            >
               {[
                 {
-                  time: 'Week 1', color: '#1FB8A6', title: 'First lines of code',
+                  time: 'Week 1', color: '#1FB8A6', colorDark: '#12756B', title: 'First lines of code',
                   desc: 'Unsure what to expect, a little nervous to try. Then they write something that actually runs.',
+                  icon: (
+                    <svg width={26} height={26} viewBox="0 0 22 22" fill="none">
+                      <path d="M11 0 L13 9 L22 11 L13 13 L11 22 L9 13 L0 11 L9 9 Z" fill="#fff" />
+                    </svg>
+                  ),
                 },
                 {
-                  time: 'Month 1', color: '#D4A24C', title: 'First real build',
+                  time: 'Month 1', color: '#D4A24C', colorDark: '#9C7530', title: 'First real build',
                   desc: 'Ships a working app or game they\u2019re genuinely proud to show someone.',
+                  icon: (
+                    <svg width={24} height={24} viewBox="0 0 22 22" fill="none">
+                      <rect x="4" y="9" width="14" height="9" rx="1" stroke="#402F12" strokeWidth={1.7} />
+                      <path d="M4 9 L11 4 L18 9" stroke="#402F12" strokeWidth={1.7} fill="none" strokeLinejoin="round" />
+                    </svg>
+                  ),
                 },
                 {
-                  time: 'Month 2', color: '#0D2B32', title: 'Works independently',
+                  time: 'Month 2', color: '#17948A', colorDark: '#0D5C55', title: 'Works independently',
                   desc: 'Debugs their own mistakes and pushes through instead of asking for help every five minutes.',
+                  icon: (
+                    <svg width={24} height={24} viewBox="0 0 22 22" fill="none">
+                      <circle cx="11" cy="11" r="8" stroke="#fff" strokeWidth={1.7} />
+                      <path d="M7 11 L10 14 L15 8" stroke="#fff" strokeWidth={1.9} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ),
                 },
                 {
-                  time: 'Month 3+', color: '#053D35', title: 'Thinks like a builder',
+                  time: 'Month 3+', color: '#053D35', colorDark: '#02211C', title: 'Thinks like a builder',
                   desc: 'Pitches an idea, prices it, and presents it like it\u2019s real \u2014 because by now, it is.',
+                  icon: (
+                    <svg width={24} height={24} viewBox="0 0 22 22" fill="none">
+                      <path d="M6 2 V20" stroke="#fff" strokeWidth={1.7} strokeLinecap="round" />
+                      <path d="M6 3 L18 6.5 L6 11 Z" fill="#fff" />
+                    </svg>
+                  ),
                 },
               ].map((stage) => (
-                <div
-                  key={stage.time}
-                  style={{
-                    flex: '1 1 220px', minWidth: 220, background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.1)', borderRadius: 18, padding: '22px 20px',
-                  }}
-                >
+                <div key={stage.time} className="journey-stage" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                  <div
+                    style={{
+                      width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
+                      background: `linear-gradient(135deg, ${stage.color}, ${stage.colorDark})`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: `0 10px 24px ${stage.color}4D`, marginBottom: 18,
+                    }}
+                  >
+                    {stage.icon}
+                  </div>
                   <span
                     style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700,
-                      letterSpacing: 0.4, color: '#0D2B32', background: stage.color, padding: '4px 11px', borderRadius: 999,
+                      display: 'inline-flex', alignItems: 'center', fontSize: 11.5, fontWeight: 700,
+                      letterSpacing: 0.4, color: '#0D2B32', background: stage.color, padding: '4px 11px',
+                      borderRadius: 999, marginBottom: 14,
                     }}
                   >
                     {stage.time}
                   </span>
-                  <p style={{ fontWeight: 700, fontSize: 17, color: '#F6F3EA', margin: '16px 0 8px' }}>{stage.title}</p>
-                  <p style={{ fontSize: 13.5, color: '#8FA8A3', lineHeight: 1.6, margin: 0 }}>{stage.desc}</p>
+                  <p style={{ fontWeight: 700, fontSize: 16.5, color: '#F6F3EA', margin: '0 0 8px' }}>{stage.title}</p>
+                  <p style={{ fontSize: 13.5, color: '#8FA8A3', lineHeight: 1.6, margin: 0, maxWidth: 220 }}>{stage.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: 40 }}>
+          <div style={{ textAlign: 'center', marginTop: 48 }}>
             <a href="#audience">
               <button className="btn btn-cta">
                 {audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;
