@@ -205,9 +205,10 @@ export default function LandingPage() {
                     A coding, AI &amp; entrepreneurship curriculum your school can run.
                   </h1>
                   <p className={styles.heroSub}>
-                    15 minutes a day, taught in real Arabic, French, or English —
-                    with an AI coach built around how kids actually learn, and a
-                    dashboard that flags who&apos;s stuck before report cards do.
+                    A curriculum built in 30–45 minute class periods, taught in
+                    real Arabic, French, or English — with an AI coach built
+                    around how kids actually learn, and a dashboard that flags
+                    who&apos;s stuck before report cards do.
                   </p>
                   <div className={styles.ctaRow}>
                     <a href="#audience"><button className="btn btn-cta">Book a demo &rarr;</button></a>
@@ -848,10 +849,17 @@ export default function LandingPage() {
                     <path d="M8 4.5 V8 L10.5 9.5" stroke="#8FA8A3" strokeWidth={1.5} fill="none" strokeLinecap="round" />
                   </svg>
                 </div>
-                <div>
-                  <b>15 minutes, not 30</b>
-                  <span>Sized for an actual daily habit.</span>
-                </div>
+                {audience === 'family' ? (
+                  <div>
+                    <b>15 minutes, not 30</b>
+                    <span>Sized for an actual daily habit.</span>
+                  </div>
+                ) : (
+                  <div>
+                    <b>Fits a class period</b>
+                    <span>Paced in 30–45 minute sessions the teacher controls.</span>
+                  </div>
+                )}
               </div>
               <div className={styles.featureItem}>
                 <div className={styles.iconTile}>
@@ -968,84 +976,50 @@ export default function LandingPage() {
       <div id="plans" className={styles.tracksSec} style={{ scrollMarginTop: 90 }}>
         <div className="container">
           <div className={styles.tracksHead}>
-            <p className="eyebrow">Family plans</p>
-            <h2>Learning at home, at your pace</h2>
+            <p className="eyebrow">Family plan</p>
+            <h2>One plan, everything included</h2>
             <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
-              Start free. Upgrade whenever your child is ready for all three tracks.
+              Try it free for 14 days. No commitment, cancel anytime before the
+              trial ends and you won&apos;t be charged.
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24, marginTop: 44 }}>
-            {[
-              {
-                name: 'Explorer',
-                price: 'Free',
-                note: 'No card, no time limit',
-                features: ['First 5 lessons', 'Coding basics track'],
-                cta: 'Try free',
-                highlight: false,
-              },
-              {
-                name: 'Prodigy',
-                badge: 'Most popular',
-                price: '$70',
-                per: '/mo',
-                note: '14 days free, then billed monthly',
-                features: ['All three tracks', 'Unlimited AI tutor', 'Weekly parent summary'],
-                cta: 'Start free trial',
-                highlight: true,
-              },
-              {
-                name: 'Family',
-                price: '$110',
-                per: '/mo',
-                note: 'Up to 3 children on one plan',
-                features: ['Everything in Prodigy', 'Per-child progress tracking', 'Shared parent dashboard'],
-                cta: 'Start free trial',
-                highlight: false,
-              },
-            ].map((plan) => (
-              <div
-                key={plan.name}
+          <div style={{ maxWidth: 380, margin: '44px auto 0' }}>
+            <div
+              style={{
+                background: '#0D2B32', borderRadius: 20, padding: '34px 30px',
+                boxShadow: '0 12px 26px rgba(13,43,50,0.18)', textAlign: 'center',
+              }}
+            >
+              <span
                 style={{
-                  background: plan.highlight ? '#0D2B32' : '#fff',
-                  border: plan.highlight ? 'none' : '1px solid #E4E9E7',
-                  borderRadius: 20, padding: '30px 26px', display: 'flex', flexDirection: 'column',
-                  boxShadow: plan.highlight ? '0 12px 26px rgba(13,43,50,0.18)' : '0 1px 2px rgba(13,43,50,0.04)',
+                  display: 'inline-block', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4,
+                  padding: '4px 12px', borderRadius: 999, background: '#D4A24C', color: '#402F12', marginBottom: 16,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <p style={{ fontWeight: 700, fontSize: 19, margin: 0, color: plan.highlight ? '#F6F3EA' : '#0D2B32' }}>
-                    {plan.name}
-                  </p>
-                  {plan.badge && (
-                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#D4A24C', color: '#402F12' }}>
-                      {plan.badge}
-                    </span>
-                  )}
-                </div>
-                <p style={{ margin: '4px 0 4px' }}>
-                  <span style={{ fontWeight: 700, fontSize: 28, color: plan.highlight ? '#F6F3EA' : '#0D2B32' }}>{plan.price}</span>
-                  {plan.per && <span style={{ fontSize: 13, color: plan.highlight ? '#B7C9C5' : '#5C7873' }}>{plan.per}</span>}
-                </p>
-                <p style={{ fontSize: 13, margin: '0 0 20px', color: plan.highlight ? '#B7C9C5' : '#5C7873' }}>{plan.note}</p>
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-                  {plan.features.map((f) => (
-                    <li key={f} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', fontSize: 13.5, color: plan.highlight ? '#F6F3EA' : '#0D2B32' }}>
-                      <svg width={14} height={14} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
-                        <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <a href="/auth/signup">
-                  <button className={plan.highlight ? 'btn btn-cta btn-block' : 'btn btn-outline btn-block'}>
-                    {plan.cta} &rarr;
-                  </button>
-                </a>
-              </div>
-            ))}
+                14-DAY FREE TRIAL
+              </span>
+              <p style={{ margin: '0 0 4px' }}>
+                <span style={{ fontWeight: 700, fontSize: 40, color: '#F6F3EA' }}>$70</span>
+                <span style={{ fontSize: 15, color: '#B7C9C5' }}>/month</span>
+              </p>
+              <p style={{ fontSize: 13, margin: '0 0 26px', color: '#B7C9C5' }}>
+                after your free trial ends — billed monthly, cancel anytime
+              </p>
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px', display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'left' }}>
+                {['All three tracks — Coding, AI, Entrepreneurship', 'Unlimited AI tutor', 'Weekly parent summary', 'Arabic, French & English'].map((f) => (
+                  <li key={f} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', fontSize: 14, color: '#F6F3EA' }}>
+                    <svg width={15} height={15} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
+                      <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <a href="/auth/signup">
+                <button className="btn btn-cta btn-block">Start 14-day free trial &rarr;</button>
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -1276,8 +1250,8 @@ export default function LandingPage() {
               },
               {
                 q: 'Can lessons fit inside a normal class period?',
-                a: 'Yes \u2014 lessons are built in 15-minute units, so they fit inside a class period or an after-school slot without extra scheduling.',
-                for: 'common',
+                a: 'Yes \u2014 lessons are paced in 30\u201345 minute sessions, built to fit inside a standard class period without extra scheduling.',
+                for: 'schools',
               },
               {
                 q: 'How long does onboarding take for schools?',
