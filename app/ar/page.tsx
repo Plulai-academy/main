@@ -1,20 +1,25 @@
 // File: page.tsx
 // Placement: app/ar/page.tsx
 //
-// Ported from the updated app/page.tsx (B2B focus, new logo, camel mascot,
-// illustrated tracks, tabbed "How it works", case study, packages,
-// security & compliance, FAQ). Reuses ../page.module.css as-is — that file
-// uses logical inline-start/end CSS properties plus flex/grid, which mirror
-// automatically under dir="rtl". The .arRoot class (bottom of
-// page.module.css) swaps in an Arabic font stack.
+// Full re-port from the current app/page.tsx (dual B2C/B2B audience toggle,
+// merged Family/Schools pitch, tabbed "How it works", illustrated Tracks
+// path, auto-scrolling projects marquee, before/after transformation
+// section, single Family plan, institutional Packages, Security &
+// Compliance, filtered FAQ, audience-aware Final CTA).
 //
-// MANUAL RTL MIRRORING — anywhere the English file uses inline left/right,
-// text-align, or margin-left/right, it's been flipped here since inline
-// styles don't auto-mirror the way the CSS module's logical properties do:
+// Reuses ../page.module.css as-is — logical inline-start/end properties and
+// flex/grid mirror automatically under dir="rtl". The .arRoot class (bottom
+// of page.module.css) swaps in an Arabic font stack.
+//
+// MANUAL RTL MIRRORING — inline left/right, text-align, and margin-left/
+// right don't auto-mirror, so they're flipped by hand here:
 //   - hero float badges (left/right swapped)
 //   - tracks section: doodle stars, sticker "STOP" tags, decorative dashed
 //     path (mirrored via scaleX(-1))
 //   - how-it-works tabs: text-align left -> right
+//   - before/after section: panel corner radii swapped (Before renders on
+//     the right in RTL, After on the left — matches natural RTL reading
+//     order), and the desktop divider arrow is mirrored to point left
 //   - FAQ: text-align + icon margin flipped
 //   - arrow glyphs: &rarr; -> &larr;
 
@@ -62,6 +67,7 @@ export default function LandingPageAr() {
   const [navOpen, setNavOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(0)
   const [activeStep, setActiveStep] = useState(0)
+  const [audience, setAudience] = useState<'family' | 'schools'>('family')
 
   return (
     <main dir="rtl" lang="ar" className={styles.arRoot}>
@@ -71,7 +77,7 @@ export default function LandingPageAr() {
           <div className={styles.navRow}>
             <a href="/ar" aria-label="Plulai — الصفحة الرئيسية" style={{ display: 'flex', alignItems: 'center' }}>
               <Image
-                src="/plulai_logo_dark_transparent.png"
+                src="/logo.png"
                 alt="Plulai"
                 width={132}
                 height={36}
@@ -82,12 +88,14 @@ export default function LandingPageAr() {
 
             <div className={styles.navLinks} style={{ color: '#0D2B32' }}>
               <a href="#tracks" style={{ color: '#0D2B32' }}>المسارات</a>
-              <a href="#schools" style={{ color: '#0D2B32', fontWeight: 600 }}>للمدارس</a>
+              <a href="#audience" onClick={() => setAudience('family')} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>للعائلات</a>
+              <a href="#audience" onClick={() => setAudience('schools')} style={{ color: audience === 'schools' ? '#1FB8A6' : '#0D2B32' }}>للمدارس</a>
+              <a href="#plans" style={{ color: '#0D2B32' }}>الأسعار</a>
             </div>
 
             <div className={styles.navRight}>
               <a href="/ar/auth/login" style={{ color: '#0D2B32' }}>تسجيل الدخول</a>
-              <a href="#schools"><button className="btn btn-dark">احجز عرضًا تجريبيًا &larr;</button></a>
+              <a href="#audience"><button className="btn btn-dark">{audience === 'family' ? 'ابدأ التجربة المجانية' : 'احجز عرضًا تجريبيًا'} &larr;</button></a>
             </div>
 
             <button
@@ -105,11 +113,13 @@ export default function LandingPageAr() {
 
           <div className={`${styles.mobilePanel} ${navOpen ? styles.mobilePanelOpen : ''}`}>
             <a href="#tracks" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>المسارات</a>
-            <a href="#schools" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32', fontWeight: 600 }}>للمدارس</a>
+            <a href="#audience" onClick={() => { setAudience('family'); setNavOpen(false) }} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>للعائلات</a>
+            <a href="#audience" onClick={() => { setAudience('schools'); setNavOpen(false) }} style={{ color: audience === 'schools' ? '#1FB8A6' : '#0D2B32' }}>للمدارس</a>
+            <a href="#plans" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>الأسعار</a>
             <div className={styles.mobilePanelDivider} />
             <a href="/ar/auth/login" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>تسجيل الدخول</a>
-            <a href="#schools" onClick={() => setNavOpen(false)}>
-              <button className="btn btn-cta btn-block">احجز عرضًا تجريبيًا &larr;</button>
+            <a href="#audience" onClick={() => setNavOpen(false)}>
+              <button className="btn btn-cta btn-block">{audience === 'family' ? 'ابدأ التجربة المجانية' : 'احجز عرضًا تجريبيًا'} &larr;</button>
             </a>
           </div>
         </div>
@@ -121,22 +131,90 @@ export default function LandingPageAr() {
         <div className="container">
           <div className={styles.heroGrid}>
             <div>
+              <style>{`
+                @media (max-width: 480px) {
+                  .audience-toggle { flex-direction: column !important; border-radius: 14px !important; width: 100%; }
+                  .audience-toggle button { width: 100%; text-align: center; }
+                }
+              `}</style>
+              {/* مبدّل الجمهور — باقي الصفحة يتبع هذا الاختيار */}
+              <div
+                role="tablist"
+                aria-label="اختر جمهورك"
+                className="audience-toggle"
+                style={{
+                  display: 'inline-flex', flexWrap: 'wrap', background: '#EEF2F1', borderRadius: 999,
+                  padding: 4, marginBottom: 22, gap: 2, maxWidth: '100%',
+                }}
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={audience === 'family'}
+                  onClick={() => setAudience('family')}
+                  style={{
+                    border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                    padding: '9px 18px', borderRadius: 999, fontSize: 13.5, fontWeight: 700,
+                    background: audience === 'family' ? '#0D2B32' : 'transparent',
+                    color: audience === 'family' ? '#F6F3EA' : '#5C7873',
+                    transition: 'background .15s ease',
+                  }}
+                >
+                  للعائلات
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={audience === 'schools'}
+                  onClick={() => setAudience('schools')}
+                  style={{
+                    border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                    padding: '9px 18px', borderRadius: 999, fontSize: 13.5, fontWeight: 700,
+                    background: audience === 'schools' ? '#0D2B32' : 'transparent',
+                    color: audience === 'schools' ? '#F6F3EA' : '#5C7873',
+                    transition: 'background .15s ease',
+                  }}
+                >
+                  للمدارس ومراكز التدريب
+                </button>
+              </div>
+
               <div className={styles.statBadge}>
                 <span className={styles.statDot} />
                 +١١ شريكًا في منطقة الشرق الأوسط وشمال أفريقيا
               </div>
-              <h1 className={styles.heroTitle}>
-                منهج في البرمجة والذكاء الاصطناعي وريادة الأعمال يمكن لمدرستكم تطبيقه.
-              </h1>
-              <p className={styles.heroSub}>
-                ١٥ دقيقة يوميًا، بالعربية أو الفرنسية أو الإنجليزية — مع مدرّب ذكاء
-                اصطناعي مصمَّم على طريقة تعلّم الأطفال الحقيقية، ولوحة تحكم تنبّه لمن
-                يواجه صعوبة قبل أن تظهر في بطاقة التقرير.
-              </p>
-              <div className={styles.ctaRow}>
-                <a href="#schools"><button className="btn btn-cta">احجز عرضًا تجريبيًا &larr;</button></a>
-                <a href="mailto:hello@plulai.com"><button className="btn btn-outline">تحدّث مع فريقنا</button></a>
-              </div>
+
+              {audience === 'family' ? (
+                <>
+                  <h1 className={styles.heroTitle}>
+                    البرمجة والذكاء الاصطناعي وريادة الأعمال — يتعلّمها بالسرعة التي تناسبه.
+                  </h1>
+                  <p className={styles.heroSub}>
+                    ١٥ دقيقة يوميًا، بالعربية أو الفرنسية أو الإنجليزية — مع مدرّب
+                    ذكاء اصطناعي مصمَّم على طريقة تعلّم الأطفال الحقيقية. بلا حاجة
+                    لفصل دراسي.
+                  </p>
+                  <div className={styles.ctaRow}>
+                    <a href="/ar/auth/signup"><button className="btn btn-cta">ابدأ التجربة المجانية &larr;</button></a>
+                    <a href="#plans"><button className="btn btn-outline">شاهد باقة العائلة &larr;</button></a>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h1 className={styles.heroTitle}>
+                    منهج في البرمجة والذكاء الاصطناعي وريادة الأعمال يمكن لمدرستكم تطبيقه.
+                  </h1>
+                  <p className={styles.heroSub}>
+                    منهج مبني على حصص من ٣٠ إلى ٤٥ دقيقة، بالعربية أو الفرنسية أو
+                    الإنجليزية — مع مدرّب ذكاء اصطناعي ولوحة تحكم تنبّه لمن يواجه
+                    صعوبة قبل أن تظهر في بطاقة التقرير.
+                  </p>
+                  <div className={styles.ctaRow}>
+                    <a href="#audience"><button className="btn btn-cta">احجز عرضًا تجريبيًا &larr;</button></a>
+                    <a href="mailto:hello@plulai.com"><button className="btn btn-outline">تحدّث مع فريقنا</button></a>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className={styles.heroVisual}>
@@ -201,63 +279,117 @@ export default function LandingPageAr() {
         </div>
       </div>
 
-      {/* ================= SCHOOLS ================= */}
-      <div id="schools" className={styles.schoolsSec}>
+      {/* ================= AUDIENCE-SPECIFIC PITCH (Family / Schools) ================= */}
+      <div id="audience" className={styles.schoolsSec} style={{ scrollMarginTop: 90 }}>
         <div className="container">
-          <div className={styles.schoolsGrid}>
-            <div>
-              <span className="pill">للمدارس والمؤسسات</span>
-              <h2 style={{ marginTop: 18 }}>أدخل Plulai إلى فصلك الدراسي.</h2>
-              <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 460 }}>
-                منهج يستطيع معلّموك تطبيقه — مع لوحة تحكم تنبّه لمن يواجه صعوبة قبل
-                أن تظهر في بطاقة التقرير.
-              </p>
-              <div className={styles.schoolsList}>
-                <div className={styles.schoolsItem}>
-                  <b>من ٥٠ إلى ٥٬٠٠٠ مقعد</b>
-                  <span>تسعير إقليمي، فوترة مرنة.</span>
+          {audience === 'family' ? (
+            <div className={styles.schoolsGrid}>
+              <div>
+                <span className="pill">للعائلات</span>
+                <h2 style={{ marginTop: 18 }}>تعلّم يناسب جدول عائلتكم.</h2>
+                <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 460 }}>
+                  بلا فصل دراسي، وبلا مواعيد ثابتة — فقط ١٥ دقيقة يوميًا، متى ما
+                  ناسب الوقت. بمفرده، مع أخ أو أخت، أو معكم.
+                </p>
+                <div className={styles.schoolsList}>
+                  <div className={styles.schoolsItem}>
+                    <b>تعلّم في أي وقت وأي مكان</b>
+                    <span>دروس ذاتية الوتيرة يبدأها طفلكم ويوقفها بنفسه.</span>
+                  </div>
+                  <div className={styles.schoolsItem}>
+                    <b>عربي وفرنسي وإنجليزي</b>
+                    <span>منهج ثلاثي اللغة أصيل، لا مترجم من مكان آخر.</span>
+                  </div>
+                  <div className={styles.schoolsItem}>
+                    <b>ملخّص أسبوعي لولي الأمر</b>
+                    <span>اطّلعوا على ما تعلّمه وأين واجه صعوبة — دون أي بحث إضافي.</span>
+                  </div>
                 </div>
-                <div className={styles.schoolsItem}>
-                  <b>منهج عربي وفرنسي وإنجليزي</b>
-                  <span>مبني لفصول منطقة الشرق الأوسط وشمال أفريقيا، لا مترجم من مكان آخر.</span>
-                </div>
-                <div className={styles.schoolsItem}>
-                  <b>دعم مخصص</b>
-                  <span>تأهيل، تدريب، ومسؤول نجاح مخصص.</span>
+                <div className={styles.ctaRow}>
+                  <a href="/ar/auth/signup">
+                    <button className="btn btn-dark">ابدأ التجربة المجانية &larr;</button>
+                  </a>
+                  <a href="#plans">
+                    <button className="btn btn-outline">شاهد باقة العائلة &larr;</button>
+                  </a>
                 </div>
               </div>
-              <div className={styles.ctaRow}>
-                <a href="/ar/schools">
-                  <button className="btn btn-dark">استكشف الخيارات للمدارس &larr;</button>
-                </a>
-                <a href="mailto:hello@plulai.com">
-                  <button className="btn btn-outline">احجز عرضًا تجريبيًا &larr;</button>
-                </a>
-              </div>
-            </div>
 
-            <div className={styles.dashMock}>
-              <div className={styles.dashBar}>
-                <div className={styles.dashDot} />
-                <div className={styles.dashDot} />
-                <div className={styles.dashDot} />
-              </div>
-              <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>
-                الصف الخامس ب — مسار البرمجة
-              </p>
-              <div className={styles.rosterRow}><span>سارة ك.</span><span>80%</span></div>
-              <div className={styles.rosterRow}><span>علي م.</span><span>45%</span></div>
-              <div className={styles.rosterRow}><span>فاطمة ر.</span><span>92%</span></div>
-              <div className={styles.rosterRow}>
-                <span>يوسف أ. <span style={{ color: '#D4A24C' }}>· متعثر</span></span>
-                <span>15%</span>
+              <div className={styles.dashMock}>
+                <div className={styles.dashBar}>
+                  <div className={styles.dashDot} />
+                  <div className={styles.dashDot} />
+                  <div className={styles.dashDot} />
+                </div>
+                <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>
+                  أسبوع فارس
+                </p>
+                <div className={styles.rosterRow}><span>الدروس المكتملة</span><span>٥ / ٥</span></div>
+                <div className={styles.rosterRow}><span>السلسلة الحالية</span><span style={{ color: '#D4A24C' }}>٤ لآلئ 🔥</span></div>
+                <div className={styles.rosterRow}><span>المسار</span><span>البرمجة</span></div>
+                <div className={styles.rosterRow}>
+                  <span>القادم</span>
+                  <span style={{ color: '#1FB8A6' }}>المستوى ٥</span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className={styles.schoolsGrid}>
+              <div>
+                <span className="pill">للمدارس والمؤسسات</span>
+                <h2 style={{ marginTop: 18 }}>أدخل Plulai إلى فصلك الدراسي.</h2>
+                <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 460 }}>
+                  منهج يستطيع معلّموك تطبيقه — مع لوحة تحكم تنبّه لمن يواجه صعوبة قبل
+                  أن تظهر في بطاقة التقرير.
+                </p>
+                <div className={styles.schoolsList}>
+                  <div className={styles.schoolsItem}>
+                    <b>من ٥٠ إلى ٥٬٠٠٠ مقعد</b>
+                    <span>تسعير إقليمي، فوترة مرنة.</span>
+                  </div>
+                  <div className={styles.schoolsItem}>
+                    <b>منهج عربي وفرنسي وإنجليزي</b>
+                    <span>مبني لفصول منطقة الشرق الأوسط وشمال أفريقيا، لا مترجم من مكان آخر.</span>
+                  </div>
+                  <div className={styles.schoolsItem}>
+                    <b>دعم مخصص</b>
+                    <span>تأهيل، تدريب، ومسؤول نجاح مخصص.</span>
+                  </div>
+                </div>
+                <div className={styles.ctaRow}>
+                  <a href="/ar/schools">
+                    <button className="btn btn-dark">استكشف الخيارات للمدارس &larr;</button>
+                  </a>
+                  <a href="mailto:hello@plulai.com">
+                    <button className="btn btn-outline">احجز عرضًا تجريبيًا &larr;</button>
+                  </a>
+                </div>
+              </div>
+
+              <div className={styles.dashMock}>
+                <div className={styles.dashBar}>
+                  <div className={styles.dashDot} />
+                  <div className={styles.dashDot} />
+                  <div className={styles.dashDot} />
+                </div>
+                <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>
+                  الصف الخامس ب — مسار البرمجة
+                </p>
+                <div className={styles.rosterRow}><span>سارة ك.</span><span>80%</span></div>
+                <div className={styles.rosterRow}><span>علي م.</span><span>45%</span></div>
+                <div className={styles.rosterRow}><span>فاطمة ر.</span><span>92%</span></div>
+                <div className={styles.rosterRow}>
+                  <span>يوسف أ. <span style={{ color: '#D4A24C' }}>· متعثر</span></span>
+                  <span>15%</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ================= HOW IT WORKS ================= */}
+      {/* ================= HOW IT WORKS (schools only) ================= */}
+      {audience === 'schools' && (
       <div className={styles.tracksSec}>
         <style>{`
           @media (max-width: 760px) {
@@ -405,12 +537,13 @@ export default function LandingPageAr() {
           })()}
 
           <div style={{ textAlign: 'center', marginTop: 40 }}>
-            <a href="#schools">
+            <a href="#audience">
               <button className="btn btn-cta">احجز عرضًا تجريبيًا &larr;</button>
             </a>
           </div>
         </div>
       </div>
+      )}
 
       {/* ================= TRACKS: illustrated path ================= */}
       <div id="tracks" className={styles.tracksSec} style={{ overflow: 'hidden' }}>
@@ -626,6 +759,21 @@ export default function LandingPageAr() {
 
       {/* ================= ALUMNI PROJECTS ================= */}
       <div className={styles.alumniSec}>
+        <style>{`
+          @keyframes plulai-project-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+          }
+          .project-marquee-track {
+            animation: plulai-project-scroll 45s linear infinite;
+          }
+          .project-marquee-wrap:hover .project-marquee-track {
+            animation-play-state: paused;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .project-marquee-track { animation: none; }
+          }
+        `}</style>
         <div className="container">
           <p className="eyebrow">عمل حقيقي، لا مجرد اختبارات</p>
           <h2>ما يبنيه الأطفال فعليًا</h2>
@@ -634,131 +782,156 @@ export default function LandingPageAr() {
           </p>
         </div>
 
-        <div className={styles.projectCarousel}>
-          {projects.map((project) => (
-            <div key={project.file} className={styles.projectSlide}>
-              <div className={styles.projectShot}>
-                <Image
-                  src={`/projects/${project.file}`}
-                  alt={project.title}
-                  fill
-                  className={styles.projectImg}
-                  sizes="(max-width: 640px) 80vw, 320px"
-                />
+        <div className="project-marquee-wrap" style={{ overflow: 'hidden' }}>
+          <div
+            className={`${styles.projectCarousel} project-marquee-track`}
+            style={{ display: 'flex', overflow: 'visible', width: 'max-content' }}
+          >
+            {[...projects, ...projects].map((project, i) => (
+              <div key={`${project.file}-${i}`} className={styles.projectSlide}>
+                <div className={styles.projectShot}>
+                  <Image
+                    src={`/projects/${project.file}`}
+                    alt={project.title}
+                    fill
+                    className={styles.projectImg}
+                    sizes="(max-width: 640px) 80vw, 320px"
+                  />
+                </div>
+                <span className={`tag-mono tag-mono--${project.tagColor}`}>{project.track}</span>
+                <p className={styles.projectTitle}>{project.title}</p>
+                <p className={styles.projectStudent}>{project.student}</p>
               </div>
-              <span className={`tag-mono tag-mono--${project.tagColor}`}>{project.track}</span>
-              <p className={styles.projectTitle}>{project.title}</p>
-              <p className={styles.projectStudent}>{project.student}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* ================= PATH SECTION ================= */}
+      {/* ================= PATH SECTION: before / after ================= */}
       <div className={styles.pathSec}>
+        <style>{`
+          @media (max-width: 760px) {
+            .ba-grid { grid-template-columns: 1fr !important; }
+            .ba-panel-before { border-radius: 0 0 20px 20px !important; }
+            .ba-panel-after { border-radius: 20px 20px 0 0 !important; }
+            .ba-divider-desktop { display: none !important; }
+            .ba-divider-mobile { display: flex !important; }
+          }
+        `}</style>
         <div className="container">
           <p className="eyebrow">مسار اللؤلؤة</p>
-          <h2 style={{ color: 'var(--raw-pearlwhite)' }}>مسار يوضّح تمامًا ما هي الخطوة التالية</h2>
-          <p style={{ color: '#8FA8A3', maxWidth: 500 }}>
-            كل درس مكتمل يفتح مكافأة مضمونة — لا مكافأة عشوائية أبدًا.
+          <h2 style={{ color: 'var(--raw-pearlwhite)' }}>
+            {audience === 'family'
+              ? 'شاهدوه ينتقل من الفضول إلى الثقة'
+              : 'شاهدوا طلابكم ينتقلون من التردّد إلى ثقة البنّائين'}
+          </h2>
+          <p style={{ color: '#8FA8A3', maxWidth: 560 }}>
+            {audience === 'family'
+              ? 'هذا ليس نظام نقاط — إنه ما يتغيّر فعليًا خلال بضعة أشهر من الدروس.'
+              : 'هذا هو التحوّل الذي تلاحظه المدارس — لا لوحة صدارة، بل تغيّر حقيقي في طريقة عمل الطلاب.'}
           </p>
 
-          <div className={styles.mapGrid}>
-            <div>
-              <div className={styles.mapNodes}>
-                <div className={styles.mapNode} style={{ background: '#17D9C0' }}>
-                  <svg width={16} height={16} viewBox="0 0 16 16">
-                    <path d="M3 8 L7 12 L13 4" stroke="#053D35" strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <div className={styles.mapLine} />
-                <div className={`${styles.mapNode} ${styles.mapNodeCurrent}`} style={{ background: '#FFB930' }}>
-                  <span className="font-mono" style={{ fontWeight: 700, color: '#4A3403' }}>/</span>
-                </div>
-                <div className={styles.mapLine} />
-                <div className={styles.mapNode} style={{ background: '#D9F1EC' }}>
-                  <LockIcon />
-                </div>
-                <div className={styles.mapLine} />
-                <div className={styles.mapNode} style={{ background: '#D9F1EC' }}>
-                  <LockIcon />
-                </div>
+          <div style={{ position: 'relative', marginTop: 56, maxWidth: 920, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="ba-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+              {/* BEFORE — renders on the right in RTL, matching natural reading order */}
+              <div
+                className="ba-panel-before"
+                style={{
+                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '0 20px 20px 0', padding: '40px 34px',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6,
+                    color: '#8FA8A3', background: 'rgba(255,255,255,0.06)', padding: '5px 13px',
+                    borderRadius: 999, marginBottom: 22,
+                  }}
+                >
+                  قبل
+                </span>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {(audience === 'family'
+                    ? ['لم يكتب سطر برمجة من قبل', 'متردّد في المحاولة، سريع الاستسلام', 'وقت شاشة بلا أي حصيلة']
+                    : ['متردّد، لا يعرف من أين يبدأ', 'يحتاج متابعة مستمرة', 'التفاعل يتراجع بعد الأسبوع الأول']
+                  ).map((item) => (
+                    <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 15, color: '#8FA8A3', lineHeight: 1.5 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8FA8A3', marginTop: 8, flexShrink: 0 }} />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              <div className={styles.hudRow}>
-                <div className={styles.hudChip}>
-                  لآلئ هذا الأسبوع
-                  <b>4 / 5</b>
-                </div>
-                <div className={styles.hudChip}>
-                  نقاط الخبرة للمستوى التالي
-                  <b>240 / 300</b>
-                </div>
+              {/* AFTER — renders on the left in RTL */}
+              <div
+                className="ba-panel-after"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(31,184,166,0.14), rgba(212,162,76,0.07))',
+                  border: '1px solid rgba(31,184,166,0.4)', borderRadius: '20px 0 0 20px',
+                  padding: '40px 34px', boxShadow: '0 20px 50px rgba(31,184,166,0.12)',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6,
+                    color: '#0D2B32', background: '#1FB8A6', padding: '5px 13px',
+                    borderRadius: 999, marginBottom: 22,
+                  }}
+                >
+                  بعد · ٣ أشهر لاحقًا
+                </span>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {(audience === 'family'
+                    ? ['يبني تطبيقه أو لعبته الخاصة', 'يصحّح أخطاءه دون طلب مساعدة', 'يعرض أفكاره وكأنه يقصدها فعلًا']
+                    : ['يبني ويعرض مشاريع حقيقية', 'يحلّ المشكلات بمفرده', 'يطلب الاستمرار بعد انتهاء الحصّة']
+                  ).map((item) => (
+                    <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 15, color: '#F6F3EA', fontWeight: 600, lineHeight: 1.5 }}>
+                      <svg width={17} height={17} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
+                        <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              <div className={styles.moduleCard}>
-                <p className={styles.moduleTitle}>ابنِ تطبيقك الأول</p>
-                <p className={styles.moduleSub}>الوحدة ١ · ٦ دروس · اكتمل ٢ من ٦</p>
-                <div className={styles.progTrack}>
-                  <div className={styles.progFill} />
-                </div>
-              </div>
-              <a href="#schools">
-                <button className="btn btn-cta" style={{ marginTop: 24 }}>
-                  احجز عرضًا تجريبيًا &larr;
-                </button>
-              </a>
             </div>
 
-            <div className={styles.featureList}>
-              <div className={styles.featureItem}>
-                <div className={styles.iconTile}>
-                  <svg width={16} height={16} viewBox="0 0 16 16">
-                    <circle cx="8" cy="8" r="6.5" stroke="#8FA8A3" strokeWidth={1.5} fill="none" />
-                    <path d="M8 4.5 V8 L10.5 9.5" stroke="#8FA8A3" strokeWidth={1.5} fill="none" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <div>
-                  <b>١٥ دقيقة، لا ٣٠</b>
-                  <span>بحجم مناسب لعادة يومية فعلية.</span>
-                </div>
-              </div>
-              <div className={styles.featureItem}>
-                <div className={styles.iconTile}>
-                  <svg width={16} height={16} viewBox="0 0 16 16">
-                    <path d="M2 3 h12 v7 h-6 l-3 3 v-3 h-3 z" fill="#8FA8A3" />
-                  </svg>
-                </div>
-                <div>
-                  <b>مدرّب ذكاء اصطناعي شخصي</b>
-                  <span>يتكيّف مع السرعة واللغة، لحظة بلحظة.</span>
-                </div>
-              </div>
-              <div className={styles.featureItem}>
-                <div className={styles.iconTile}>
-                  <svg width={16} height={16} viewBox="0 0 16 16">
-                    <circle cx="8" cy="8" r="6" fill="#D4A24C" />
-                    <circle cx="8" cy="8" r="2.5" fill="#123A42" />
-                  </svg>
-                </div>
-                <div>
-                  <b>مكافآت لآلئ مضمونة</b>
-                  <span>بلا صناديق حظ — كل درس يُثمر بالطريقة نفسها.</span>
-                </div>
-              </div>
-              <div className={styles.featureItem}>
-                <div className={styles.iconTile}>
-                  <svg width={16} height={16} viewBox="0 0 16 16">
-                    <rect x="2" y="2" width="7" height="7" fill="#8FA8A3" />
-                    <rect x="7" y="7" width="7" height="7" fill="#5C7873" />
-                  </svg>
-                </div>
-                <div>
-                  <b>مشاريع حقيقية</b>
-                  <span>كل وحدة تنتهي بشيء يمكن عرضه.</span>
-                </div>
-              </div>
+            {/* divider: circle w/ arrow, desktop only — mirrored to point left (before is on the right) */}
+            <div
+              className="ba-divider-desktop"
+              style={{
+                position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                width: 56, height: 56, borderRadius: '50%', background: '#0D2B32', border: '3px solid #1FB8A6',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2,
+              }}
+            >
+              <svg width={22} height={22} viewBox="0 0 20 20" style={{ transform: 'scaleX(-1)' }}>
+                <path d="M4 10 H16 M11 5 L16 10 L11 15" stroke="#1FB8A6" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
+
+            {/* divider: arrow row, mobile only */}
+            <div
+              className="ba-divider-mobile"
+              style={{
+                display: 'none', justifyContent: 'center', alignItems: 'center',
+                background: '#0D2B32', borderTop: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)',
+                padding: '10px 0',
+              }}
+            >
+              <svg width={20} height={20} viewBox="0 0 20 20">
+                <path d="M10 4 V16 M5 11 L10 16 L15 11" stroke="#1FB8A6" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: 48 }}>
+            <a href="#audience">
+              <button className="btn btn-cta">
+                {audience === 'family' ? 'ابدأ التجربة المجانية' : 'احجز عرضًا تجريبيًا'} &larr;
+              </button>
+            </a>
           </div>
         </div>
       </div>
@@ -767,18 +940,25 @@ export default function LandingPageAr() {
       <div className={styles.statsSec}>
         <div className="container">
           <div className={styles.statsRow}>
-            <div><div className={styles.statNum}>+١١</div><div className={styles.statLabel}>شريك في المنطقة</div></div>
+            <div><div className={styles.statNum}>+150</div><div className={styles.statLabel}>متعلم نشط</div></div>
             <div><div className={styles.statNum}>+500</div><div className={styles.statLabel}>درس مصغّر</div></div>
-            <div><div className={styles.statNum}>3</div><div className={styles.statLabel}>لغات تدريس</div></div>
+            <div><div className={styles.statNum}>+9</div><div className={styles.statLabel}>مدرسة شريكة</div></div>
             <div><div className={styles.statNum}>9.2/10</div><div className={styles.statLabel}>رضا المستخدمين</div></div>
           </div>
         </div>
       </div>
 
-      {/* ================= CASE STUDY ================= */}
-      {/* <div className={styles.tracksSec}>
+      {/* ================= CASE STUDY (schools only) ================= */}
+      {/* {audience === 'schools' && (
+      <div className={styles.tracksSec}>
+        <style>{`
+          @media (max-width: 720px) {
+            .case-study-grid { grid-template-columns: 1fr !important; padding: 32px 24px !important; }
+          }
+        `}</style>
         <div className="container">
           <div
+            className="case-study-grid"
             style={{
               background: '#0D2B32', borderRadius: 28, padding: '48px 40px',
               display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 40, alignItems: 'center',
@@ -822,14 +1002,70 @@ export default function LandingPageAr() {
             مثال توضيحي — استبدله بأرقام تجربة حقيقية عند توفّرها للنشر.
           </p>
         </div>
-      </div> */}
+      </div>
+      )} */}
 
-      {/* ================= PACKAGES ================= */}
-      <div className={styles.tracksSec}>
+      {/* ================= FAMILY PLAN (family only) ================= */}
+      {audience === 'family' && (
+      <div id="plans" className={styles.tracksSec} style={{ scrollMarginTop: 90 }}>
         <div className="container">
           <div className={styles.tracksHead}>
-            <p className="eyebrow">الباقات</p>
-            <h2>باقة بحجم مدرستكم</h2>
+            <p className="eyebrow">باقة العائلة</p>
+            <h2>باقة واحدة، كل شيء متضمّن</h2>
+            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
+              جرّبها مجانًا لمدة ١٤ يومًا. بلا التزام، ألغِ في أي وقت قبل انتهاء
+              التجربة ولن يتم خصم أي مبلغ.
+            </p>
+          </div>
+
+          <div style={{ maxWidth: 380, margin: '44px auto 0' }}>
+            <div
+              style={{
+                background: '#0D2B32', borderRadius: 20, padding: '34px 30px',
+                boxShadow: '0 12px 26px rgba(13,43,50,0.18)', textAlign: 'center',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4,
+                  padding: '4px 12px', borderRadius: 999, background: '#D4A24C', color: '#402F12', marginBottom: 16,
+                }}
+              >
+                تجربة مجانية لمدة ١٤ يومًا
+              </span>
+              <p style={{ margin: '0 0 4px' }}>
+                <span style={{ fontWeight: 700, fontSize: 40, color: '#F6F3EA' }}>$70</span>
+                <span style={{ fontSize: 15, color: '#B7C9C5' }}>/شهريًا</span>
+              </p>
+              <p style={{ fontSize: 13, margin: '0 0 26px', color: '#B7C9C5' }}>
+                بعد انتهاء التجربة المجانية — فوترة شهرية، ألغِ في أي وقت
+              </p>
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px', display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'right' }}>
+                {['المسارات الثلاثة كاملة — البرمجة، الذكاء الاصطناعي، ريادة الأعمال', 'مدرّب ذكاء اصطناعي غير محدود', 'ملخّص أسبوعي لولي الأمر', 'عربي وفرنسي وإنجليزي'].map((f) => (
+                  <li key={f} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', fontSize: 14, color: '#F6F3EA' }}>
+                    <svg width={15} height={15} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
+                      <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <a href="/ar/auth/signup">
+                <button className="btn btn-cta btn-block">ابدأ التجربة المجانية لـ ١٤ يومًا &larr;</button>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* ================= PACKAGES (schools & training centers only) ================= */}
+      {audience === 'schools' && (
+      <div id="plans" className={styles.tracksSec} style={{ scrollMarginTop: 90 }}>
+        <div className="container">
+          <div className={styles.tracksHead}>
+            <p className="eyebrow">المدارس ومراكز التدريب</p>
+            <h2>باقة بحجم مؤسستكم</h2>
             <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
               كل باقة تشمل المسارات الثلاثة ولوحة تحكم الإدارة. يُحدَّد السعر حسب
               عدد المقاعد ومدة الفصل الدراسي — احجز عرضًا تجريبيًا للحصول على عرض سعر.
@@ -901,6 +1137,7 @@ export default function LandingPageAr() {
           </div>
         </div>
       </div>
+      )}
 
       <div className={styles.divider}>
         <svg viewBox="0 0 1440 70" preserveAspectRatio="none">
@@ -961,7 +1198,8 @@ export default function LandingPageAr() {
         </div>
       </div>
 
-      {/* ================= SECURITY & COMPLIANCE ================= */}
+      {/* ================= SECURITY & COMPLIANCE (schools only) ================= */}
+      {audience === 'schools' && (
       <div className={styles.tracksSec}>
         <div className="container">
           <div className={styles.tracksHead}>
@@ -1012,42 +1250,54 @@ export default function LandingPageAr() {
           </p>
         </div>
       </div>
+      )}
 
       {/* ================= FAQ ================= */}
       <div className={styles.tracksSec}>
         <div className="container" style={{ maxWidth: 760 }}>
           <div className={styles.tracksHead}>
             <p className="eyebrow">الأسئلة الشائعة</p>
-            <h2>أسئلة متكرّرة من المدارس</h2>
+            <h2>أسئلة متكرّرة من العائلات والمدارس</h2>
           </div>
 
           <div style={{ marginTop: 40, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
               {
+                q: 'هل يمكن لطفلي استخدام Plulai بمفرده في المنزل؟',
+                a: 'نعم — باقة العائلة مبنية لهذا بالضبط. الدروس ذاتية الوتيرة ومدرّب الذكاء الاصطناعي يتكيّف مع طفلكم، فلا حاجة لفصل دراسي أو معلّم.',
+                for: 'family',
+              },
+              {
                 q: 'ما الأجهزة أو المتصفّحات التي نحتاجها؟',
                 a: 'تعمل Plulai على أي متصفّح حديث — Chrome أو Safari أو Edge — على أجهزة Chromebook أو الحواسيب المحمولة أو الأجهزة اللوحية. لا حاجة لأي تثبيت.',
+                for: 'common',
               },
               {
                 q: 'كيف يتم التعامل مع بيانات الطالب؟',
-                a: 'نجمع فقط ما يلزم لتشغيل الدروس وتتبّع التقدّم. لا تُباع البيانات أبدًا ولا تُستخدم للإعلانات. راجع قسم الأمان والامتثال أعلاه، أو راسلونا للحصول على الوثائق الكاملة.',
-              },
-              {
-                q: 'كم يستغرق التأهيل؟',
-                a: 'تنتقل معظم المدارس من العرض التجريبي إلى فصل تجريبي فعلي خلال أسبوع، وإلى التطبيق الكامل خلال شهر. تشمل الباقة جلسة تدريب قصيرة للمعلّمين.',
+                a: 'نجمع فقط ما يلزم لتشغيل الدروس وتتبّع التقدّم. لا تُباع البيانات أبدًا ولا تُستخدم للإعلانات.',
+                for: 'common',
               },
               {
                 q: 'هل تناسب الدروس مدة الحصّة الدراسية العادية؟',
-                a: 'نعم — الدروس مصمَّمة بوحدات مدتها ١٥ دقيقة، لتناسب حصّة دراسية أو نشاطًا بعد المدرسة دون جدولة إضافية.',
+                a: 'نعم — الدروس مرتّبة في حصص من ٣٠ إلى ٤٥ دقيقة، مصمَّمة لتناسب حصّة دراسية عادية دون جدولة إضافية.',
+                for: 'schools',
+              },
+              {
+                q: 'كم يستغرق التأهيل للمدارس؟',
+                a: 'تنتقل معظم المدارس من العرض التجريبي إلى فصل تجريبي فعلي خلال أسبوع، وإلى التطبيق الكامل خلال شهر. تشمل الباقة جلسة تدريب قصيرة للمعلّمين.',
+                for: 'schools',
               },
               {
                 q: 'كيف تعمل الفوترة للمؤسسات؟',
                 a: 'تُفوتَر خطط المؤسسات حسب عدد المقاعد ومدة الفصل الدراسي، مع فوترة مرنة. احجز عرضًا تجريبيًا وسنُعدّ لكم عرض سعر.',
+                for: 'schools',
               },
               {
                 q: 'هل يحتاج المعلّمون خلفية في البرمجة؟',
                 a: 'لا. يحصل المعلّمون على جلسة تأهيل قصيرة، والدروس مصمَّمة لتُدار ذاتيًا — يتولّى مدرّب الذكاء الاصطناعي معظم التوجيه الفردي.',
+                for: 'schools',
               },
-            ].map((item, i) => {
+            ].filter((item) => item.for === 'common' || item.for === audience).map((item, i) => {
               const isOpen = openFaq === i
               return (
                 <div key={item.q} style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', overflow: 'hidden' }}>
@@ -1086,26 +1336,51 @@ export default function LandingPageAr() {
       {/* ================= FINAL CTA ================= */}
       <div className={styles.finalCta}>
         <div className="container">
-          <h2 className={styles.finalCtaTitle}>مستعدّون لإدخال Plulai إلى مدرستكم؟</h2>
-          <p className={styles.finalCtaText}>
-            انضموا إلى المدارس والمؤسسات التي تبني الجيل القادم من مبدعي منطقة
-            الشرق الأوسط وشمال أفريقيا.
-          </p>
-          <div className={styles.finalCtas}>
-            <a href="#schools">
-              <button className="btn btn-cta">احجز عرضًا تجريبيًا &larr;</button>
-            </a>
-            <a href="mailto:hello@plulai.com">
-              <button className="btn btn-outline btn-outline--on-dark">تحدّث مع فريقنا</button>
-            </a>
-          </div>
+          {audience === 'family' ? (
+            <>
+              <h2 className={styles.finalCtaTitle}>مستعدّون لمنحه انطلاقة مبكرة؟</h2>
+              <p className={styles.finalCtaText}>
+                انضموا إلى العائلات في منطقة الشرق الأوسط وشمال أفريقيا التي تبني
+                أول سلسلة لآلئ لأطفالها.
+              </p>
+              <div className={styles.finalCtas}>
+                <a href="/ar/auth/signup">
+                  <button className="btn btn-cta">ابدأ التجربة المجانية &larr;</button>
+                </a>
+                <a href="#plans">
+                  <button className="btn btn-outline btn-outline--on-dark">شاهد باقة العائلة &larr;</button>
+                </a>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className={styles.finalCtaTitle}>مستعدّون لإدخال Plulai إلى مدرستكم؟</h2>
+              <p className={styles.finalCtaText}>
+                انضموا إلى المدارس ومراكز التدريب التي تبني الجيل القادم من
+                مبدعي منطقة الشرق الأوسط وشمال أفريقيا.
+              </p>
+              <div className={styles.finalCtas}>
+                <a href="#audience">
+                  <button className="btn btn-cta">احجز عرضًا تجريبيًا &larr;</button>
+                </a>
+                <a href="mailto:hello@plulai.com">
+                  <button className="btn btn-outline btn-outline--on-dark">تحدّث مع فريقنا &larr;</button>
+                </a>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       {/* ================= FOOTER ================= */}
       <footer className={styles.footer}>
+        <style>{`
+          @media (max-width: 640px) {
+            .footer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+          }
+        `}</style>
         <div className="container">
-          <div className={styles.footerGrid}>
+          <div className={`${styles.footerGrid} footer-grid`} style={{ gridTemplateColumns: '1.6fr repeat(3, 1fr)' }}>
             <div>
               <div className="wordmark">
                 <span className="brand-mark">/</span>
@@ -1118,11 +1393,12 @@ export default function LandingPageAr() {
             <div className={styles.footerCol}>
               <p className={styles.footerColTitle}>المنتج</p>
               <a href="#tracks">المسارات</a>
+              <a href="#plans">الأسعار</a>
             </div>
             <div className={styles.footerCol}>
-              <p className={styles.footerColTitle}>المدارس</p>
-              <a href="/ar/schools">نظرة عامة</a>
-              <a href="mailto:hello@plulai.com">اطلب عرضًا توضيحيًا</a>
+              <p className={styles.footerColTitle}>لك أنت</p>
+              <a href="#audience" onClick={() => setAudience('family')}>للعائلات</a>
+              <a href="#audience" onClick={() => setAudience('schools')}>للمدارس</a>
             </div>
             <div className={styles.footerCol}>
               <p className={styles.footerColTitle}>الشركة</p>
@@ -1137,14 +1413,5 @@ export default function LandingPageAr() {
         </div>
       </footer>
     </main>
-  )
-}
-
-function LockIcon() {
-  return (
-    <svg width={14} height={14} viewBox="0 0 14 14">
-      <rect x="3" y="6" width="8" height="6" rx="1" fill="#9AB5B0" />
-      <path d="M4.5 6 V4 a2.5 2.5 0 0 1 5 0 V6" stroke="#9AB5B0" strokeWidth={1.6} fill="none" />
-    </svg>
   )
 }
