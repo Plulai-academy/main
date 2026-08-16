@@ -11,13 +11,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/pricing`,       lastModified: NOW, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${BASE}/auth/signup`,   lastModified: NOW, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${BASE}/auth/login`,    lastModified: NOW, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE}/ar`,            lastModified: NOW, changeFrequency: 'weekly',  priority: 1.0 },
+    { url: `${BASE}/schools`,       lastModified: NOW, changeFrequency: 'weekly',  priority: 0.9 },
 
-    // ── SEO landing sections (crawlable hash anchors listed as paths) ──
-    // These help Google understand the page structure even if JS-rendered
-    { url: `${BASE}/#features`,     lastModified: NOW, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/#gcc`,          lastModified: NOW, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/#stories`,      lastModified: NOW, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE}/#faq`,          lastModified: NOW, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/#tracks`,       lastModified: NOW, changeFrequency: 'monthly', priority: 0.8 },
+    // ── Country landing pages ─────────────────────────────────
+    { url: `${BASE}/qatar`,         lastModified: NOW, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/uae`,           lastModified: NOW, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/saudi-arabia`,  lastModified: NOW, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/tunisia`,       lastModified: NOW, changeFrequency: 'monthly', priority: 0.8 },
+
+    // NOTE: removed the '/#features', '/#gcc', '/#stories', '/#faq',
+    // '/#tracks' hash-fragment entries that were here before. Google
+    // strips URL fragments before indexing, so a sitemap entry for
+    // `${BASE}/#faq` is treated as identical to `${BASE}` — it doesn't
+    // register as a separate page and just adds noise. If any of those
+    // sections (FAQ, tracks, etc.) deserve their own SEO weight, they
+    // need to be real routes, not anchors — happy to help split any of
+    // them out if that's useful.
   ]
 }

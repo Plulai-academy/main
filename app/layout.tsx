@@ -31,7 +31,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_AE',
-    alternateLocale: ['ar_AE', 'en_SA', 'ar_SA', 'en_QA', 'en_KW'],
+    // Added ar_TN / fr_TN — Tunisia is a real, active market (unlike the
+    // other GCC entries here, which are aspirational at this point) and
+    // was missing entirely from the old locale list.
+    alternateLocale: ['ar_AE', 'en_SA', 'ar_SA', 'en_QA', 'en_KW', 'ar_TN', 'fr_TN'],
     url: SITE,
     siteName: 'Plulai',
     title: SEO_CONFIG.defaultTitle,
@@ -50,17 +53,34 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: SITE,
-    languages: { 'en-AE': `${SITE}`, 'ar-AE': `${SITE}/ar`, 'x-default': SITE },
+    // Pointed at the real country pages instead of generic locale
+    // duplicates of the homepage — these are actual distinct, indexable
+    // pages with their own content, which is what hreflang is for.
+    // 'ar' still points at the general Arabic homepage since there's no
+    // per-country Arabic page yet.
+    languages: {
+      'en': SITE,
+      'ar': `${SITE}/ar`,
+      'en-QA': `${SITE}/qatar`,
+      'en-AE': `${SITE}/uae`,
+      'en-SA': `${SITE}/saudi-arabia`,
+      'en-TN': `${SITE}/tunisia`,
+      'fr-TN': `${SITE}/tunisia`,
+      'x-default': SITE,
+    },
   },
   other: {
-    'geo.region':    'AE,SA,QA,KW,BH,OM',
-    'geo.placename': 'GCC',
+    // Added TN — this previously only listed Gulf countries and omitted
+    // Tunisia, despite Tunisia being the actual launched market with real
+    // partner schools. Ordered first since it's the real one.
+    'geo.region':    'TN,AE,SA,QA,KW,BH,OM',
+    'geo.placename': 'MENA',
     'geo.position':  '25.2048;55.2708',
     ICBM:            '25.2048, 55.2708',
     rating:          'general',
     'revisit-after': '3 days',
     language:        'English, Arabic, French',
-    target_country:  'AE,SA,QA,KW,BH,OM',
+    target_country:  'TN,AE,SA,QA,KW,BH,OM',
     'apple-mobile-web-app-capable':            'yes',
     'apple-mobile-web-app-status-bar-style':   'black-translucent',
     'apple-mobile-web-app-title':              'Plulai',
