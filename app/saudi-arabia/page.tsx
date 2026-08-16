@@ -1,4 +1,4 @@
-// File: app/tunisia/page.tsx
+// File: app/saudi-arabia/page.tsx
 //
 // Server Component (no 'use client') so `metadata` export works and the
 // page ships as plain HTML for crawlers — no client-side render delay.
@@ -10,15 +10,15 @@ import Image from 'next/image'
 const SITE_URL = 'https://plulai.com' // <-- replace with your real domain
 
 export const metadata: Metadata = {
-  title: 'Kids Coding & AI Classes in Tunisia | Plulai',
-  description: 'AI, coding, and entrepreneurship classes for kids ages 6-18 in Tunisia. Self-paced online learning in Arabic or French, plus curriculum for schools in Tunis, Sfax, and beyond.',
+  title: 'Kids Coding & AI Classes in Saudi Arabia | Plulai',
+  description: 'AI, coding, and entrepreneurship classes for kids ages 6-18 in Saudi Arabia. Self-paced online learning in Arabic or English, plus curriculum for schools in Riyadh, Jeddah, and beyond.',
   alternates: {
-    canonical: `${SITE_URL}/tunisia`,
+    canonical: `${SITE_URL}/saudi-arabia`,
   },
   openGraph: {
-    title: 'Kids Coding & AI Classes in Tunisia | Plulai',
-    description: 'AI, coding, and entrepreneurship classes for kids ages 6-18 in Tunisia. Self-paced online learning in Arabic or French, plus curriculum for schools in Tunis, Sfax, and beyond.',
-    url: `${SITE_URL}/tunisia`,
+    title: 'Kids Coding & AI Classes in Saudi Arabia | Plulai',
+    description: 'AI, coding, and entrepreneurship classes for kids ages 6-18 in Saudi Arabia. Self-paced online learning in Arabic or English, plus curriculum for schools in Riyadh, Jeddah, and beyond.',
+    url: `${SITE_URL}/saudi-arabia`,
     images: ['/og-image.png'],
   },
 }
@@ -28,18 +28,18 @@ function JsonLd() {
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
     name: 'Plulai',
-    url: `${SITE_URL}/tunisia`,
+    url: `${SITE_URL}/saudi-arabia`,
     areaServed: {
       '@type': 'Country',
-      name: 'Tunisia',
+      name: 'Saudi Arabia',
     },
-    description: 'AI, coding, and entrepreneurship classes for kids ages 6-18 in Tunisia. Self-paced online learning in Arabic or French, plus curriculum for schools in Tunis, Sfax, and beyond.',
+    description: 'AI, coding, and entrepreneurship classes for kids ages 6-18 in Saudi Arabia. Self-paced online learning in Arabic or English, plus curriculum for schools in Riyadh, Jeddah, and beyond.',
   }
 
   const faqData = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [{"@type": "Question", "name": "Is Plulai available in Tunis and across Tunisia?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — Tunisia is our home market. The family plan is fully online, and we already partner with schools locally for in-person workshops."}}, {"@type": "Question", "name": "What languages are lessons taught in?", "acceptedAnswer": {"@type": "Answer", "text": "Arabic and French, taught natively — not machine-translated."}}, {"@type": "Question", "name": "How much does it cost?", "acceptedAnswer": {"@type": "Answer", "text": "Families get a 14-day free trial, then $70/month (approximately 217 TND), billed in USD. School and training center pricing is scoped to seat count — book a demo for a quote."}}, {"@type": "Question", "name": "What ages is Plulai for?", "acceptedAnswer": {"@type": "Answer", "text": "Ages 6 to 18, with the curriculum adapted per age group."}}, {"@type": "Question", "name": "Do you already work with schools in Tunisia?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — we have partner schools in Tunisia already using Plulai. Book a demo to talk about your school specifically."}}],
+    mainEntity: [{"@type": "Question", "name": "Is Plulai available in Riyadh and Jeddah?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — the family plan is fully online, so it works anywhere in Saudi Arabia with an internet connection. For schools, we also offer in-person workshops on request."}}, {"@type": "Question", "name": "What languages are lessons taught in?", "acceptedAnswer": {"@type": "Answer", "text": "Arabic and English, taught natively — not machine-translated."}}, {"@type": "Question", "name": "How much does it cost?", "acceptedAnswer": {"@type": "Answer", "text": "Families get a 14-day free trial, then $70/month (approximately 263 SAR), billed in USD. School and training center pricing is scoped to seat count — book a demo for a quote."}}, {"@type": "Question", "name": "What ages is Plulai for?", "acceptedAnswer": {"@type": "Answer", "text": "Ages 6 to 18, with the curriculum adapted per age group."}}, {"@type": "Question", "name": "Do you work with schools and training centers in Saudi Arabia?", "acceptedAnswer": {"@type": "Answer", "text": "We're actively partnering with schools and training centers across the region. Book a demo to talk about your school specifically."}}],
   }
 
   return (
@@ -50,7 +50,7 @@ function JsonLd() {
   )
 }
 
-export default function TunisiaPage() {
+export default function SaudiArabiaPage() {
   return (
     <>
       <JsonLd />
@@ -80,14 +80,14 @@ export default function TunisiaPage() {
             }}
           >
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#1FB8A6' }} />
-            Now serving families &amp; schools in Tunisia
+            Now serving families &amp; schools in Saudi Arabia
           </div>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 700, color: '#0D2B32', maxWidth: 760, margin: '0 auto 20px', lineHeight: 1.15 }}>
-            AI, Coding &amp; Entrepreneurship Classes for Kids in Tunisia
+            AI, Coding &amp; Entrepreneurship Classes for Kids in Saudi Arabia
           </h1>
           <p style={{ fontSize: 17, color: 'rgba(41,57,74,0.75)', maxWidth: 560, margin: '0 auto 32px', lineHeight: 1.7 }}>
-            15 minutes a day, taught in real Arabic or French — with an AI coach
-            built around how kids actually learn. Available online across Tunisia (Tunis, Sfax, Sousse), with
+            15 minutes a day, taught in real Arabic or English — with an AI coach
+            built around how kids actually learn. Available online across Saudi Arabia (Riyadh, Jeddah, Dammam), with
             in-person workshops available for schools on request.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -102,11 +102,11 @@ export default function TunisiaPage() {
         <div className="container">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
             <div style={{ background: '#fff', border: '1px solid #E4E9E7', borderRadius: 20, padding: '30px 28px' }}>
-              <span className="pill">For Families in Tunisia</span>
+              <span className="pill">For Families in Saudi Arabia</span>
               <h2 style={{ marginTop: 16, fontSize: 22, color: '#0D2B32' }}>Learning that fits your family&apos;s schedule</h2>
               <p style={{ color: 'rgba(41,57,74,0.7)', lineHeight: 1.65, margin: '10px 0 20px' }}>
                 No classroom, no fixed timetable — 15 minutes a day, self-paced, in
-                Arabic or French. A 14-day free trial, then $70/month (≈ 217 TND).
+                Arabic or English. A 14-day free trial, then $70/month (≈ 263 SAR).
               </p>
               <a href="/#audience"><button className="btn btn-dark">Start free trial &rarr;</button></a>
             </div>
@@ -115,7 +115,7 @@ export default function TunisiaPage() {
               <h2 style={{ marginTop: 16, fontSize: 22, color: '#F6F3EA' }}>A curriculum your teachers can run</h2>
               <p style={{ color: '#B7C9C5', lineHeight: 1.65, margin: '10px 0 20px' }}>
                 A dashboard that flags who&apos;s stuck before report cards do. Delivered
-                online or in person for schools in Tunisia — get in touch to check
+                online or in person for schools in Saudi Arabia — get in touch to check
                 availability in your city.
               </p>
               <a href="/schools"><button className="btn btn-cta">Book a demo &rarr;</button></a>
@@ -152,28 +152,28 @@ export default function TunisiaPage() {
         <div className="container" style={{ maxWidth: 760 }}>
           <p className="eyebrow" style={{ textAlign: 'center' }}>FAQ</p>
           <h2 style={{ textAlign: 'center', fontSize: 28, color: '#0D2B32', marginBottom: 36 }}>
-            Questions from families &amp; schools in Tunisia
+            Questions from families &amp; schools in Saudi Arabia
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <details style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', padding: '4px 20px' }}>
-              <summary style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0D2B32', cursor: 'pointer' }}>Is Plulai available in Tunis and across Tunisia?</summary>
-              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>Yes — Tunisia is our home market. The family plan is fully online, and we already partner with schools locally for in-person workshops.</p>
+              <summary style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0D2B32', cursor: 'pointer' }}>Is Plulai available in Riyadh and Jeddah?</summary>
+              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>Yes — the family plan is fully online, so it works anywhere in Saudi Arabia with an internet connection. For schools, we also offer in-person workshops on request.</p>
             </details>
             <details style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', padding: '4px 20px' }}>
               <summary style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0D2B32', cursor: 'pointer' }}>What languages are lessons taught in?</summary>
-              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>Arabic and French, taught natively — not machine-translated.</p>
+              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>Arabic and English, taught natively — not machine-translated.</p>
             </details>
             <details style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', padding: '4px 20px' }}>
               <summary style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0D2B32', cursor: 'pointer' }}>How much does it cost?</summary>
-              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>Families get a 14-day free trial, then $70/month (approximately 217 TND), billed in USD. School and training center pricing is scoped to seat count — book a demo for a quote.</p>
+              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>Families get a 14-day free trial, then $70/month (approximately 263 SAR), billed in USD. School and training center pricing is scoped to seat count — book a demo for a quote.</p>
             </details>
             <details style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', padding: '4px 20px' }}>
               <summary style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0D2B32', cursor: 'pointer' }}>What ages is Plulai for?</summary>
               <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>Ages 6 to 18, with the curriculum adapted per age group.</p>
             </details>
             <details style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', padding: '4px 20px' }}>
-              <summary style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0D2B32', cursor: 'pointer' }}>Do you already work with schools in Tunisia?</summary>
-              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>Yes — we have partner schools in Tunisia already using Plulai. Book a demo to talk about your school specifically.</p>
+              <summary style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0D2B32', cursor: 'pointer' }}>Do you work with schools and training centers in Saudi Arabia?</summary>
+              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>We&apos;re actively partnering with schools and training centers across the region. Book a demo to talk about your school specifically.</p>
             </details>
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function TunisiaPage() {
       {/* ================= FINAL CTA ================= */}
       <div style={{ background: '#0D2B32', padding: '64px 0', textAlign: 'center' }}>
         <div className="container">
-          <h2 style={{ color: '#F6F3EA', fontSize: 30, marginBottom: 14 }}>Ready to start in Tunisia?</h2>
+          <h2 style={{ color: '#F6F3EA', fontSize: 30, marginBottom: 14 }}>Ready to start in Saudi Arabia?</h2>
           <p style={{ color: '#B7C9C5', marginBottom: 28 }}>Free 14-day trial for families. Free demo for schools.</p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href="/#audience"><button className="btn btn-cta">Start free trial &rarr;</button></a>
@@ -199,7 +199,7 @@ export default function TunisiaPage() {
             <span style={{ color: 'rgba(41,57,74,0.5)' }}>Also serving:</span>
             <a href="/qatar" style={{ color: '#1FB8A6' }}>Qatar</a>
             <a href="/uae" style={{ color: '#1FB8A6' }}>the UAE</a>
-            <a href="/saudi-arabia" style={{ color: '#1FB8A6' }}>Saudi Arabia</a>
+            <a href="/tunisia" style={{ color: '#1FB8A6' }}>Tunisia</a>
             <a href="/?intl=1" style={{ color: '#1FB8A6' }}>Home</a>
             <a href="/ar" style={{ color: '#1FB8A6' }}>العربية</a>
           </div>

@@ -173,7 +173,7 @@ export default function QatarPage() {
             </details>
             <details style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', padding: '4px 20px' }}>
               <summary style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0D2B32', cursor: 'pointer' }}>Do you work with schools and training centers in Qatar?</summary>
-              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>We're actively partnering with schools and training centers across the region. Book a demo to talk about your school specifically.</p>
+              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>We&apos;re actively partnering with schools and training centers across the region. Book a demo to talk about your school specifically.</p>
             </details>
           </div>
         </div>

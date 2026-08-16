@@ -39,7 +39,7 @@ function JsonLd() {
   const faqData = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [{"@type": "Question", "name": "Is Plulai available in Tunis and across Tunisia?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — Tunisia is our home market. The family plan is fully online, and we already partner with schools locally for in-person workshops."}}, {"@type": "Question", "name": "What languages are lessons taught in?", "acceptedAnswer": {"@type": "Answer", "text": "Arabic and French, taught natively — not machine-translated."}}, {"@type": "Question", "name": "How much does it cost?", "acceptedAnswer": {"@type": "Answer", "text": "Families get a 14-day free trial, then $70/month, billed in USD. School and training center pricing is scoped to seat count — book a demo for a quote."}}, {"@type": "Question", "name": "What ages is Plulai for?", "acceptedAnswer": {"@type": "Answer", "text": "Ages 6 to 18, with the curriculum adapted per age group."}}, {"@type": "Question", "name": "Do you already work with schools in Tunisia?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — we have partner schools in Tunisia already using Plulai. Book a demo to talk about your school specifically."}}],
+    mainEntity: [{"@type": "Question", "name": "Is Plulai available in Tunis and across Tunisia?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — Tunisia is our home market. The family plan is fully online, and we already partner with schools locally for in-person workshops."}}, {"@type": "Question", "name": "What languages are lessons taught in?", "acceptedAnswer": {"@type": "Answer", "text": "Arabic and French, taught natively — not machine-translated."}}, {"@type": "Question", "name": "How much does it cost?", "acceptedAnswer": {"@type": "Answer", "text": "Families get a 14-day free trial, then $70/month (approximately 217 TND), billed in USD. School and training center pricing is scoped to seat count — book a demo for a quote."}}, {"@type": "Question", "name": "What ages is Plulai for?", "acceptedAnswer": {"@type": "Answer", "text": "Ages 6 to 18, with the curriculum adapted per age group."}}, {"@type": "Question", "name": "Do you already work with schools in Tunisia?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — we have partner schools in Tunisia already using Plulai. Book a demo to talk about your school specifically."}}],
   }
 
   return (
@@ -106,7 +106,7 @@ export default function TunisiaPage() {
               <h2 style={{ marginTop: 16, fontSize: 22, color: '#0D2B32' }}>Learning that fits your family&apos;s schedule</h2>
               <p style={{ color: 'rgba(41,57,74,0.7)', lineHeight: 1.65, margin: '10px 0 20px' }}>
                 No classroom, no fixed timetable — 15 minutes a day, self-paced, in
-                Arabic or French. A 14-day free trial, then $70/month.
+                Arabic or French. A 14-day free trial, then $70/month (≈ 217 TND).
               </p>
               <a href="/#audience"><button className="btn btn-dark">Start free trial &rarr;</button></a>
             </div>
@@ -165,7 +165,7 @@ export default function TunisiaPage() {
             </details>
             <details style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', padding: '4px 20px' }}>
               <summary style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0D2B32', cursor: 'pointer' }}>How much does it cost?</summary>
-              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>Families get a 14-day free trial, then $70/month, billed in USD. School and training center pricing is scoped to seat count — book a demo for a quote.</p>
+              <p style={{ margin: 0, padding: '0 0 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>Families get a 14-day free trial, then $70/month (approximately 217 TND), billed in USD. School and training center pricing is scoped to seat count — book a demo for a quote.</p>
             </details>
             <details style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', padding: '4px 20px' }}>
               <summary style={{ padding: '14px 0', fontSize: 15, fontWeight: 600, color: '#0D2B32', cursor: 'pointer' }}>What ages is Plulai for?</summary>
