@@ -2,47 +2,22 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-// ── Geo redirect config ────────────────────────────────────
-// Only redirect for countries we have a real landing page for. Everyone
-// else (including other GCC countries without a dedicated page, like
-// Kuwait, Bahrain, Oman) stays on the generic homepage.
+// ── Geo detection for the homepage banner (NOT a redirect) ─────────
+// We only detect + pass the country through as a response header now.
+// The homepage reads `x-visitor-country-slug` and can show a small,
+// dismissible "View Plulai in Qatar" banner — no forced redirect, no
+// gating. Only countries with a real landing page are mapped; everyone
+// else (including other GCC countries without a dedicated page) gets
+// no banner at all.
 const COUNTRY_TO_SLUG: Record<string, string> = {
   QA: 'qatar',
   AE: 'uae',
   SA: 'saudi-arabia',
   TN: 'tunisia',
 }
-const INTL_COOKIE = 'plulai_intl'
 
 export async function middleware(request: NextRequest) {
-  const { pathname, searchParams } = request.nextUrl
-
-  // ── Geo-based homepage redirect ────────────────────────────
-  // Runs first and returns early on redirect, before the Supabase client
-  // is created — no point spending an auth round-trip on a request that's
-  // about to be redirected anyway.
-  if (pathname === '/') {
-    // Opt-out: someone explicitly asked for the international homepage
-    // (the country pages' "Home" links use /?intl=1 for this reason —
-    // without it, clicking Home would just redirect them right back).
-    if (searchParams.get('intl') === '1') {
-      const res = NextResponse.next({ request })
-      res.cookies.set(INTL_COOKIE, '1', { maxAge: 60 * 60 * 24 * 30, path: '/' })
-      return res
-    }
-
-    if (!request.cookies.get(INTL_COOKIE)) {
-      // Vercel populates `request.geo` automatically at the edge.
-      // On Cloudflare instead, use: request.headers.get('cf-ipcountry')
-      const country = request.geo?.country
-      const slug = country ? COUNTRY_TO_SLUG[country] : undefined
-      if (slug) {
-        const url = request.nextUrl.clone()
-        url.pathname = `/${slug}`
-        return NextResponse.redirect(url)
-      }
-    }
-  }
+  const { pathname } = request.nextUrl
 
   let supabaseResponse = NextResponse.next({ request })
 
@@ -135,6 +110,26 @@ export async function middleware(request: NextRequest) {
   }
 
   supabaseResponse.headers.set('x-pathname', pathname)
+
+  // Detected country, passed as a cookie (not a header) so the homepage
+  // Server Component can read it via `cookies()` from next/headers and
+  // show a small dismissible banner ("View Plulai in Qatar →"). Response
+  // headers set here aren't reliably readable by the RSC render — cookies
+  // are, which is why this uses the same cookie mechanism as the Supabase
+  // session above rather than `.headers.set()`.
+  if (pathname === '/') {
+    // Vercel populates `request.geo` automatically at the edge.
+    // On Cloudflare instead, use: request.headers.get('cf-ipcountry')
+    const country = request.geo?.country
+    const slug = country ? COUNTRY_TO_SLUG[country] : undefined
+    if (slug) {
+      supabaseResponse.cookies.set('visitor_country_slug', slug, {
+        maxAge: 60 * 60 * 24, // 1 day — re-checked on next visit, not sticky forever
+        path: '/',
+      })
+    }
+  }
+
   return supabaseResponse
 }
 
