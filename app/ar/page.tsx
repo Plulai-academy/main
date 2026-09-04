@@ -221,8 +221,8 @@ export default function LandingPageAr() {
               <Image
                 src="/avatars/heroplulai.png"
                 alt="مرجان الجمل، تعويذة Plulai"
-                width={280}
-                height={280}
+                width={300}
+                height={300}
                 priority
               />
 
