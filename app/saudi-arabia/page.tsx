@@ -106,7 +106,7 @@ export default function SaudiArabiaPage() {
 
             <div className={styles.heroVisual}>
               <Image
-                src="/avatars/marjanthecamel.png"
+                src="/avatars/heroplulai.png"
                 alt="Marjan the camel, Plulai's mascot"
                 width={280}
                 height={280}

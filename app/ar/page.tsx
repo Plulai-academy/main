@@ -219,7 +219,7 @@ export default function LandingPageAr() {
 
             <div className={styles.heroVisual}>
               <Image
-                src="/avatars/marjanthecamel.png"
+                src="/avatars/heroplulai.png"
                 alt="مرجان الجمل، تعويذة Plulai"
                 width={280}
                 height={280}
