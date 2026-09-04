@@ -229,8 +229,8 @@ export default function LandingPage() {
               <Image
                 src="/avatars/heroplulai.png"
                 alt="Marjan the camel, Plulai's mascot"
-                width={280}
-                height={280}
+                width={336}
+                height={336}
                 priority
               />
 
