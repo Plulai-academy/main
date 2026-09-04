@@ -108,8 +108,8 @@ export default function UaePage() {
               <Image
                 src="/avatars/heroplulai.png"
                 alt="Marjan the camel, Plulai's mascot"
-                width={280}
-                height={280}
+                width={336}
+                height={336}
                 priority
               />
               <div className={styles.floatBadge} style={{ top: 0, left: -10 }}>
