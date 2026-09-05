@@ -764,89 +764,54 @@ export default function LandingPage() {
       </div>
 
       {/* ================= ALUMNI PROJECTS ================= */}
-<div className={styles.alumniSec}>
-  <style>{`
-    .project-card-simple {
-      transition: transform .2s ease, box-shadow .2s ease;
-    }
-    .project-card-simple:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 20px rgba(13,43,50,0.12);
-    }
-  `}</style>
+      <div className={styles.alumniSec}>
+        <style>{`
+          @keyframes plulai-project-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+          }
+          .project-marquee-track {
+            animation: plulai-project-scroll 45s linear infinite;
+          }
+          .project-marquee-wrap:hover .project-marquee-track {
+            animation-play-state: paused;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .project-marquee-track { animation: none; }
+          }
+        `}</style>
+        <div className="container">
+          <p className="eyebrow">Real work, not just quizzes</p>
+          <h2>What kids actually build</h2>
+          <p className={styles.alumniIntro}>
+            Every track ends in a real project, not a certificate for clicking through slides.
+          </p>
+        </div>
 
-  <div className="container">
-    <p className="eyebrow">Real work, not just quizzes</p>
-    <h2>What kids actually build</h2>
-    <p className={styles.alumniIntro}>
-      A few examples of finished projects, made by real students in our program.
-    </p>
-  </div>
-
-  <div className="container" style={{ marginTop: 40 }}>
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: 24,
-      }}
-    >
-      {projects.slice(0, 8).map((project) => {
-        const accent = project.tagColor === 'gold' ? '#D4A24C' : '#1FB8A6'
-        return (
+        <div className="project-marquee-wrap" style={{ overflow: 'hidden' }}>
           <div
-            key={project.file}
-            className="project-card-simple"
-            style={{
-              background: '#fff',
-              borderRadius: 16,
-              overflow: 'hidden',
-              border: '1px solid #E4E9E7',
-            }}
+            className={`${styles.projectCarousel} project-marquee-track`}
+            style={{ display: 'flex', overflow: 'visible', width: 'max-content' }}
           >
-            <div style={{ position: 'relative', aspectRatio: '4 / 3', background: '#F1F5F4' }}>
-              <Image
-                src={`/projects/${project.file}`}
-                alt={project.title}
-                fill
-                style={{ objectFit: 'cover' }}
-                sizes="(max-width: 640px) 90vw, 300px"
-              />
-            </div>
-            <div style={{ padding: '16px 18px' }}>
-              <span
-                style={{
-                  display: 'inline-block',
-                  fontSize: 12, fontWeight: 700,
-                  color: accent,
-                  background: project.tagColor === 'gold' ? '#FBF1DE' : '#EAF6F3',
-                  padding: '3px 10px', borderRadius: 999,
-                  marginBottom: 10,
-                }}
-              >
-                {project.track}
-              </span>
-              <p style={{ fontWeight: 700, fontSize: 16, color: '#0D2B32', margin: '0 0 4px' }}>
-                {project.title}
-              </p>
-              {project.student && (
-                <p style={{ fontSize: 13.5, color: 'rgba(41,57,74,0.6)', margin: 0 }}>
-                  by {project.student}
-                </p>
-              )}
-            </div>
+            {[...projects, ...projects].map((project, i) => (
+              <div key={`${project.file}-${i}`} className={styles.projectSlide}>
+                <div className={styles.projectShot}>
+                  <Image
+                    src={`/projects/${project.file}`}
+                    alt={project.title}
+                    fill
+                    className={styles.projectImg}
+                    sizes="(max-width: 640px) 80vw, 320px"
+                  />
+                </div>
+                <span className={`tag-mono tag-mono--${project.tagColor}`}>{project.track}</span>
+                <p className={styles.projectTitle}>{project.title}</p>
+                <p className={styles.projectStudent}>{project.student}</p>
+              </div>
+            ))}
           </div>
-        )
-      })}
-    </div>
-
-    {projects.length > 8 && (
-      <p style={{ textAlign: 'center', marginTop: 28, fontSize: 14, color: 'rgba(41,57,74,0.6)' }}>
-        +{projects.length - 8} more student projects
-      </p>
-    )}
-  </div>
-</div>
+        </div>
+      </div>
       {/* ================= PATH SECTION: before / after ================= */}
       <div className={styles.pathSec}>
         <style>{`
