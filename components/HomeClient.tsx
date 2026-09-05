@@ -764,7 +764,7 @@ export default function LandingPage() {
       </div>
 
       {/* ================= ALUMNI PROJECTS ================= */}
-<div className={styles.alumniSec} style={{ position: 'relative', overflow: 'hidden' }}>
+<div className={styles.alumniSec} style={{ overflow: 'hidden' }}>
   <style>{`
     @keyframes plulai-project-scroll {
       from { transform: translateX(0); }
@@ -780,53 +780,19 @@ export default function LandingPage() {
       .project-marquee-track { animation: none; }
     }
 
-    /* soft color blobs behind the glass, so the blur has something to catch */
-    .glass-blob {
-      position: absolute; border-radius: 50%; filter: blur(60px);
-      opacity: 0.35; pointer-events: none; z-index: 0;
-    }
-
-    /* the glass card itself */
-    .glass-card {
-      position: relative;
-      background: rgba(255, 255, 255, 0.45);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      backdrop-filter: blur(20px) saturate(180%);
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      box-shadow:
-        0 8px 24px rgba(13, 43, 50, 0.10),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    .sticker-card {
+      background: #fff;
+      border-radius: 18px;
       overflow: hidden;
-      transition: transform .3s ease, box-shadow .3s ease, background .3s ease;
+      transition: transform .2s ease, box-shadow .2s ease;
     }
-    .glass-card:hover {
-      transform: translateY(-6px);
-      background: rgba(255, 255, 255, 0.6);
-      box-shadow:
-        0 20px 40px rgba(13, 43, 50, 0.16),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    }
-    /* thin specular highlight along the top edge, classic glass tell */
-    .glass-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
-    }
-
-    .glass-pill {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255, 255, 255, 0.5);
-      -webkit-backdrop-filter: blur(14px) saturate(180%);
-      backdrop-filter: blur(14px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 2px 8px rgba(13,43,50,0.06);
-      padding: 7px 15px; border-radius: 999px;
-      color: #0D2B32; font-size: 13px; font-weight: 600;
+    .sticker-card:hover {
+      transform: translateY(-6px) rotate(0deg) !important;
+      box-shadow: 0 14px 0 var(--sticker-shadow, #0D2B32) !important;
     }
 
     .marquee-fade {
-      position: absolute; top: 0; bottom: 0; width: 110px; z-index: 3; pointer-events: none;
+      position: absolute; top: 0; bottom: 0; width: 110px; z-index: 2; pointer-events: none;
     }
     .marquee-fade-left { left: 0; background: linear-gradient(90deg, #F6F3EA 0%, transparent 100%); }
     .marquee-fade-right { right: 0; background: linear-gradient(270deg, #F6F3EA 0%, transparent 100%); }
@@ -835,24 +801,25 @@ export default function LandingPage() {
     }
   `}</style>
 
-  {/* decorative color blobs — glass needs something colorful behind it to bend/refract */}
-  <div className="glass-blob" style={{ width: 320, height: 320, top: -80, left: '8%', background: '#1FB8A6' }} />
-  <div className="glass-blob" style={{ width: 280, height: 280, top: 40, right: '10%', background: '#D4A24C' }} />
-  <div className="glass-blob" style={{ width: 240, height: 240, bottom: -60, left: '45%', background: '#053D35' }} />
-
-  <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+  <div className="container">
     <p className="eyebrow">Real work, not just quizzes</p>
     <h2>What kids actually build</h2>
     <p className={styles.alumniIntro}>
       Every track ends in a real project, not a certificate for clicking through slides.
     </p>
-    <span className="glass-pill" style={{ marginTop: 14 }}>
+    <span
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 14,
+        padding: '7px 15px', borderRadius: 999, background: '#EAF6F3',
+        color: '#0D2B32', fontSize: 13, fontWeight: 600,
+      }}
+    >
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1FB8A6' }} />
       {projects.length}+ student-built projects, shipped and shared
     </span>
   </div>
 
-  <div className="project-marquee-wrap" style={{ position: 'relative', overflow: 'hidden', zIndex: 1 }}>
+  <div className="project-marquee-wrap" style={{ position: 'relative', overflow: 'hidden' }}>
     <div className="marquee-fade marquee-fade-left" aria-hidden />
     <div className="marquee-fade marquee-fade-right" aria-hidden />
 
@@ -861,10 +828,29 @@ export default function LandingPage() {
       style={{ display: 'flex', overflow: 'visible', width: 'max-content' }}
     >
       {[...projects, ...projects].map((project, i) => {
-        const accent = project.tagColor === 'gold' ? '#D4A24C' : '#1FB8A6'
+        // alternate track colors, mirroring the border/shadow logic from the Tracks cards
+        const palette =
+          project.track === 'AI'
+            ? { border: '#402F12', shadow: '#D4A24C', tagBg: '#FBF1DE', tagColor: '#402F12' }
+            : project.track === 'Game'
+            ? { border: '#053D35', shadow: '#053D35', tagBg: '#EAF6F3', tagColor: '#053D35' }
+            : { border: '#0D2B32', shadow: '#0D2B32', tagBg: '#EAF6F3', tagColor: '#0D2B32' }
+
+        // gentle alternating tilt, like the trk-card set (-3deg / 2deg / -2deg)
+        const rotations = ['-2deg', '1.5deg', '-1deg']
+        const rotate = rotations[i % rotations.length]
+
         return (
           <div key={`${project.file}-${i}`} className={styles.projectSlide}>
-            <div className="glass-card">
+            <div
+              className="sticker-card"
+              style={{
+                border: `2px solid ${palette.border}`,
+                boxShadow: `0 8px 0 ${palette.shadow}`,
+                transform: `rotate(${rotate})`,
+                ['--sticker-shadow' as any]: palette.shadow,
+              }}
+            >
               <div className={styles.projectShot} style={{ position: 'relative' }}>
                 <Image
                   src={`/projects/${project.file}`}
@@ -876,10 +862,10 @@ export default function LandingPage() {
               </div>
               <div style={{ padding: '14px 16px 16px' }}>
                 <span
-                  className={`tag-mono tag-mono--${project.tagColor}`}
                   style={{
-                    background: `${accent}22`,
-                    color: accent,
+                    fontSize: 11.5, fontWeight: 600, letterSpacing: 0.3,
+                    color: palette.tagColor, background: palette.tagBg,
+                    padding: '4px 10px', borderRadius: 999,
                   }}
                 >
                   {project.track}
