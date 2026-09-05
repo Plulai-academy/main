@@ -10,11 +10,13 @@
 // reads e.g. `t.explore` still works unchanged).
 //
 // What actually changed, visually:
-//   - Header became a HUD strip: mascot avatar, streak flame count,
-//     XP "gems" badge, weekly-goal stars — instead of a plain text line.
-//   - Main lesson card reframed as a "Quest" card, with Marjan (the same
-//     mascot used on the marketing site, /avatars/marjanthecamel.png)
-//     bleeding off the card edge instead of sitting in a plain white box.
+//   - Header became a HUD strip: mascot avatar (marjanhi — small,
+//     welcoming pose), streak flame count, XP "gems" badge, weekly-goal
+//     stars — instead of a plain text line.
+//   - Main lesson card reframed as a "Quest" card, with Marjan in an
+//     excited pose (marjanexcited) bleeding off the card edge instead of
+//     sitting in a plain white box — matches the energy of "here's your
+//     next quest" rather than a neutral avatar repeated everywhere.
 //   - Level progress redesigned as a filled "treasure meter" (teal).
 //   - Streak shown as a row of flame icons (amber), not small dots.
 //   - Daily challenge redesigned as a tap-to-open treasure chest with a
