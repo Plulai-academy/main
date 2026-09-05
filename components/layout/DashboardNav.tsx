@@ -128,7 +128,7 @@ export default function DashboardNav({ profile, userId, balance }: Props) {
         <div className="mb-8 flex items-center justify-between px-1">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-white shadow-[0_2px_8px_rgba(22,50,58,0.08)] flex items-center justify-center overflow-hidden shrink-0">
-              <Image src="/avatars/marjanhi.png" alt="" width={24} height={24} className="object-contain" />
+              <Image src="/logo.png" alt="" width={24} height={24} className="object-contain" />
             </div>
             <span className="text-[#16323A] font-extrabold text-xl tracking-tight">Plulai</span>
           </div>

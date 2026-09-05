@@ -229,7 +229,7 @@ export default function DashboardClient({
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
             <div className="relative w-11 h-11 rounded-full bg-white shadow-[0_2px_10px_rgba(22,50,58,0.1)] flex items-center justify-center overflow-hidden shrink-0">
-              <Image src="/avatars/marjanthecamel.png" alt="" width={40} height={40} className="object-contain" />
+              <Image src="/avatars/marjanthinking.png" alt="" width={40} height={40} className="object-contain" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
