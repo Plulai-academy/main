@@ -764,40 +764,14 @@ export default function LandingPage() {
       </div>
 
       {/* ================= ALUMNI PROJECTS ================= */}
-<div className={styles.alumniSec} style={{ overflow: 'hidden' }}>
+<div className={styles.alumniSec}>
   <style>{`
-    @keyframes plulai-project-scroll {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
-    }
-    .project-marquee-track {
-      animation: plulai-project-scroll 55s linear infinite;
-    }
-    .project-marquee-wrap:hover .project-marquee-track {
-      animation-play-state: paused;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .project-marquee-track { animation: none; }
-    }
-
-    .sticker-card {
-      background: #fff;
-      border-radius: 18px;
-      overflow: hidden;
+    .project-card-simple {
       transition: transform .2s ease, box-shadow .2s ease;
     }
-    .sticker-card:hover {
-      transform: translateY(-6px) rotate(0deg) !important;
-      box-shadow: 0 14px 0 var(--sticker-shadow, #0D2B32) !important;
-    }
-
-    .marquee-fade {
-      position: absolute; top: 0; bottom: 0; width: 110px; z-index: 2; pointer-events: none;
-    }
-    .marquee-fade-left { left: 0; background: linear-gradient(90deg, #F6F3EA 0%, transparent 100%); }
-    .marquee-fade-right { right: 0; background: linear-gradient(270deg, #F6F3EA 0%, transparent 100%); }
-    @media (max-width: 640px) {
-      .marquee-fade { width: 50px; }
+    .project-card-simple:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 20px rgba(13,43,50,0.12);
     }
   `}</style>
 
@@ -805,81 +779,72 @@ export default function LandingPage() {
     <p className="eyebrow">Real work, not just quizzes</p>
     <h2>What kids actually build</h2>
     <p className={styles.alumniIntro}>
-      Every track ends in a real project, not a certificate for clicking through slides.
+      A few examples of finished projects, made by real students in our program.
     </p>
-    <span
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 14,
-        padding: '7px 15px', borderRadius: 999, background: '#EAF6F3',
-        color: '#0D2B32', fontSize: 13, fontWeight: 600,
-      }}
-    >
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1FB8A6' }} />
-      {projects.length}+ student-built projects, shipped and shared
-    </span>
   </div>
 
-  <div className="project-marquee-wrap" style={{ position: 'relative', overflow: 'hidden' }}>
-    <div className="marquee-fade marquee-fade-left" aria-hidden />
-    <div className="marquee-fade marquee-fade-right" aria-hidden />
-
+  <div className="container" style={{ marginTop: 40 }}>
     <div
-      className={`${styles.projectCarousel} project-marquee-track`}
-      style={{ display: 'flex', overflow: 'visible', width: 'max-content' }}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: 24,
+      }}
     >
-      {[...projects, ...projects].map((project, i) => {
-        // alternate track colors, mirroring the border/shadow logic from the Tracks cards
-        const palette =
-          project.track === 'AI'
-            ? { border: '#402F12', shadow: '#D4A24C', tagBg: '#FBF1DE', tagColor: '#402F12' }
-            : project.track === 'Game'
-            ? { border: '#053D35', shadow: '#053D35', tagBg: '#EAF6F3', tagColor: '#053D35' }
-            : { border: '#0D2B32', shadow: '#0D2B32', tagBg: '#EAF6F3', tagColor: '#0D2B32' }
-
-        // gentle alternating tilt, like the trk-card set (-3deg / 2deg / -2deg)
-        const rotations = ['-2deg', '1.5deg', '-1deg']
-        const rotate = rotations[i % rotations.length]
-
+      {projects.slice(0, 8).map((project) => {
+        const accent = project.tagColor === 'gold' ? '#D4A24C' : '#1FB8A6'
         return (
-          <div key={`${project.file}-${i}`} className={styles.projectSlide}>
-            <div
-              className="sticker-card"
-              style={{
-                border: `2px solid ${palette.border}`,
-                boxShadow: `0 8px 0 ${palette.shadow}`,
-                transform: `rotate(${rotate})`,
-                ['--sticker-shadow' as any]: palette.shadow,
-              }}
-            >
-              <div className={styles.projectShot} style={{ position: 'relative' }}>
-                <Image
-                  src={`/projects/${project.file}`}
-                  alt={project.title}
-                  fill
-                  className={styles.projectImg}
-                  sizes="(max-width: 640px) 80vw, 320px"
-                />
-              </div>
-              <div style={{ padding: '14px 16px 16px' }}>
-                <span
-                  style={{
-                    fontSize: 11.5, fontWeight: 600, letterSpacing: 0.3,
-                    color: palette.tagColor, background: palette.tagBg,
-                    padding: '4px 10px', borderRadius: 999,
-                  }}
-                >
-                  {project.track}
-                </span>
-                <p className={styles.projectTitle} style={{ marginTop: 8 }}>{project.title}</p>
-                {project.student && (
-                  <p className={styles.projectStudent}>{project.student}</p>
-                )}
-              </div>
+          <div
+            key={project.file}
+            className="project-card-simple"
+            style={{
+              background: '#fff',
+              borderRadius: 16,
+              overflow: 'hidden',
+              border: '1px solid #E4E9E7',
+            }}
+          >
+            <div style={{ position: 'relative', aspectRatio: '4 / 3', background: '#F1F5F4' }}>
+              <Image
+                src={`/projects/${project.file}`}
+                alt={project.title}
+                fill
+                style={{ objectFit: 'cover' }}
+                sizes="(max-width: 640px) 90vw, 300px"
+              />
+            </div>
+            <div style={{ padding: '16px 18px' }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  fontSize: 12, fontWeight: 700,
+                  color: accent,
+                  background: project.tagColor === 'gold' ? '#FBF1DE' : '#EAF6F3',
+                  padding: '3px 10px', borderRadius: 999,
+                  marginBottom: 10,
+                }}
+              >
+                {project.track}
+              </span>
+              <p style={{ fontWeight: 700, fontSize: 16, color: '#0D2B32', margin: '0 0 4px' }}>
+                {project.title}
+              </p>
+              {project.student && (
+                <p style={{ fontSize: 13.5, color: 'rgba(41,57,74,0.6)', margin: 0 }}>
+                  by {project.student}
+                </p>
+              )}
             </div>
           </div>
         )
       })}
     </div>
+
+    {projects.length > 8 && (
+      <p style={{ textAlign: 'center', marginTop: 28, fontSize: 14, color: 'rgba(41,57,74,0.6)' }}>
+        +{projects.length - 8} more student projects
+      </p>
+    )}
   </div>
 </div>
       {/* ================= PATH SECTION: before / after ================= */}
