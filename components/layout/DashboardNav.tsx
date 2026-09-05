@@ -1,23 +1,20 @@
 'use client'
 // components/layout/DashboardNav.tsx
 //
-// REDESIGN — same nav, same routes, same props, same active-path logic,
-// same language handling. Nothing functional changed. What changed:
-//   - Sidebar background moved from generic dark slate (#0F1E21) to the
-//     navy (#16323A) already used as the dashboard's text color — same
-//     brand navy, not a new invented value.
-//   - Logo: amber dot + wordmark → the same Marjan mascot used in
-//     DashboardClient, for one consistent character across the product.
-//   - Active state: a faint white/8% overlay → a solid coral pill
-//     (#FF6E52), matching the CTA color used everywhere else. A nav item
-//     should look like a place you're standing, not a slightly-lighter
-//     rectangle.
-//   - Desktop sidebar now shows icons too (previously icon-only on
-//     mobile, text-only on desktop — inconsistent between the two).
-//   - `balance` was a prop that was received but never rendered anywhere
-//     in the original file. Surfaced it as a gem-balance widget linking
-//     to /dashboard/shop (a real route per the project's build output),
-//     using the same gem visual language as the dashboard redesign.
+// REDESIGN v2 — same nav, same routes, same props, same logic. The
+// previous version kept a dark navy sidebar (#16323A) next to the light
+// mint dashboard content, which is why it "didn't feel like the
+// dashboard" — two different surfaces bolted together. This version
+// puts the sidebar on the SAME light surface as the dashboard itself:
+//   - Sidebar background: white, sitting on the app's mint page
+//     background (#EAF6F1) — no separate dark chrome.
+//   - Active state: a white rounded card with a coral left accent bar
+//     and coral icon, closer to "a place on the map you're standing"
+//     than a corporate selected-tab.
+//   - Trimmed back from v1: gem balance is now a small compact chip
+//     near the logo instead of its own full-width card; the bottom
+//     profile caption is simpler (avatar + name only, no separate
+//     bordered block).
 
 import Link from 'next/link'
 import Image from 'next/image'
@@ -33,8 +30,7 @@ const NAV_ITEMS = [
   { key:'profile',     href:'/dashboard/profile',     en:'Profile',     ar:'الملف الشخصي', fr:'Profil'       },
 ] as const
 
-// Minimal inline icons — unchanged from the original (same paths), now
-// also used in the desktop sidebar, not just the mobile bar.
+// Minimal inline icons — same paths as before.
 function NavIcon({ name, className }: { name: string; className?: string }) {
   const props = {
     className,
@@ -93,10 +89,10 @@ function NavIcon({ name, className }: { name: string; className?: string }) {
 
 function GemIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} width={16} height={16} viewBox="0 0 20 20" fill="none">
-      <path d="M4 8 L10 2 L16 8 L10 18 Z" fill="#9B90FF" />
-      <path d="M4 8 L16 8 L10 18 Z" fill="#B4ABFF" />
-      <path d="M10 2 L7 8 L13 8 Z" fill="#CFC8FF" />
+    <svg className={className} width={14} height={14} viewBox="0 0 20 20" fill="none">
+      <path d="M4 8 L10 2 L16 8 L10 18 Z" fill="#7C6FFF" />
+      <path d="M4 8 L16 8 L10 18 Z" fill="#9B90FF" />
+      <path d="M10 2 L7 8 L13 8 Z" fill="#B4ABFF" />
     </svg>
   )
 }
@@ -123,32 +119,29 @@ export default function DashboardNav({ profile, userId, balance }: Props) {
 
   return (
     <>
-      {/* Desktop sidebar (lg and up) */}
+      {/* Desktop sidebar (lg and up) — sits on the app's own mint background */}
       <aside
         dir={dir}
-        className="hidden lg:flex w-64 flex-shrink-0 fixed inset-y-0 left-0 z-40 flex-col bg-[#16323A] border-r border-white/[0.06] py-7 px-5"
+        className="hidden lg:flex w-64 flex-shrink-0 fixed inset-y-0 left-0 z-40 flex-col bg-[#EAF6F1] border-r border-[#D8E9E3] py-7 px-5"
       >
-        {/* Logo */}
-        <div className="mb-8 flex items-center gap-2.5 px-1">
-          <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center overflow-hidden shrink-0">
-            <Image src="/avatars/marjanthecamel.png" alt="" width={26} height={26} className="object-contain" />
+        {/* Logo + gem balance */}
+        <div className="mb-8 flex items-center justify-between px-1">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-white shadow-[0_2px_8px_rgba(22,50,58,0.08)] flex items-center justify-center overflow-hidden shrink-0">
+              <Image src="/avatars/marjanthecamel.png" alt="" width={24} height={24} className="object-contain" />
+            </div>
+            <span className="text-[#16323A] font-extrabold text-xl tracking-tight">Plulai</span>
           </div>
-          <span className="text-white font-extrabold text-xl tracking-tight">Plulai</span>
-        </div>
-
-        {/* Gem balance — links to the shop */}
-        {balance != null && (
-          <Link
-            href="/dashboard/shop"
-            className="mb-6 flex items-center justify-between px-4 py-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.09] transition-colors"
-          >
-            <span className="flex items-center gap-2">
+          {balance != null && (
+            <Link
+              href="/dashboard/shop"
+              className="flex items-center gap-1 bg-white rounded-full pl-1.5 pr-2 py-1 shadow-[0_2px_8px_rgba(22,50,58,0.08)]"
+            >
               <GemIcon />
-              <span className="text-white font-extrabold text-sm">{balance}</span>
-            </span>
-            <span className="text-[11px] font-semibold text-slate-400">Shop →</span>
-          </Link>
-        )}
+              <span className="text-[#16323A] text-[12px] font-extrabold">{balance}</span>
+            </Link>
+          )}
+        </div>
 
         {/* Nav items */}
         <nav className="flex flex-col gap-1.5 flex-1">
@@ -159,44 +152,49 @@ export default function DashboardNav({ profile, userId, balance }: Props) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-4 py-2.5 rounded-2xl font-bold text-[15px] transition-all',
+                  'relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl font-bold text-[15px] transition-all',
                   active
-                    ? 'text-white'
-                    : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200'
+                    ? 'bg-white text-[#16323A] shadow-[0_2px_10px_rgba(22,50,58,0.08)]'
+                    : 'text-[#5B7B78] hover:bg-white/60 hover:text-[#16323A]'
                 )}
-                style={active ? { background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.3)' } : undefined}
               >
-                <NavIcon name={item.key} className="w-[19px] h-[19px] shrink-0" />
+                {active && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-[#FF6E52]" />
+                )}
+                <NavIcon
+                  name={item.key}
+                  className={cn('w-[19px] h-[19px] shrink-0', active ? 'text-[#FF6E52]' : '')}
+                />
                 {getLabel(item)}
               </Link>
             )
           })}
         </nav>
 
-        {/* Bottom caption */}
+        {/* Bottom profile row */}
         {profile && (
-          <div className="pt-5 border-t border-white/[0.06] px-1 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-white/[0.08] flex items-center justify-center overflow-hidden shrink-0">
+          <div className="pt-4 border-t border-[#D8E9E3] px-1 flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-white shadow-[0_2px_8px_rgba(22,50,58,0.08)] flex items-center justify-center overflow-hidden shrink-0">
               {profile.avatar ? (
                 <Image src={profile.avatar} alt="" width={32} height={32} className="object-cover w-full h-full" />
               ) : (
-                <span className="text-white text-xs font-extrabold">
+                <span className="text-[#16323A] text-xs font-extrabold">
                   {profile.display_name?.[0]?.toUpperCase()}
                 </span>
               )}
             </div>
             <div className="min-w-0">
-              <div className="text-white text-[13px] font-bold truncate">{profile.display_name}</div>
-              <div className="text-[11px] font-medium text-slate-500">{gradeLabel}</div>
+              <div className="text-[#16323A] text-[13px] font-bold truncate">{profile.display_name}</div>
+              <div className="text-[11px] font-medium text-[#7C9995]">{gradeLabel}</div>
             </div>
           </div>
         )}
       </aside>
 
-      {/* Mobile bottom bar (below lg) */}
+      {/* Mobile bottom bar (below lg) — same light surface */}
       <nav
         dir={dir}
-        className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch justify-around bg-[#16323A] border-t border-white/[0.06] px-1 pt-1.5"
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch justify-around bg-white border-t border-[#E4EDE9] px-1 pt-1.5"
         style={{ paddingBottom: 'max(6px, env(safe-area-inset-bottom))' }}
       >
         {NAV_ITEMS.map(item => {
@@ -207,23 +205,21 @@ export default function DashboardNav({ profile, userId, balance }: Props) {
               href={item.href}
               className="relative flex-1 flex flex-col items-center justify-center gap-1 py-1.5"
             >
-              <span
-                className={cn(
-                  'flex items-center justify-center w-8 h-8 rounded-full transition-colors',
-                  active ? '' : 'text-slate-500'
-                )}
-                style={active ? { background: '#FF6E52' } : undefined}
-              >
-                <NavIcon name={item.key} className={cn('w-[18px] h-[18px]', active ? 'text-white' : 'text-slate-500')} />
-              </span>
+              <NavIcon
+                name={item.key}
+                className={cn('w-5 h-5', active ? 'text-[#FF6E52]' : 'text-[#9BB5B1]')}
+              />
               <span
                 className={cn(
                   'text-[10px] font-semibold leading-none',
-                  active ? 'text-white' : 'text-slate-500'
+                  active ? 'text-[#FF6E52]' : 'text-[#9BB5B1]'
                 )}
               >
                 {getLabel(item)}
               </span>
+              {active && (
+                <span className="absolute -top-0.5 w-8 h-[3px] rounded-full bg-[#FF6E52]" />
+              )}
             </Link>
           )
         })}
