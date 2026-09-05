@@ -263,63 +263,27 @@ export default function LandingPage() {
       </div>
 
       {/* ================= PARTNERS ================= */}
-<div className={styles.partnersSec}>
-  <style>{`
-    .partner-tile {
-      filter: grayscale(1);
-      opacity: 0.55;
-      transition: filter .25s ease, opacity .25s ease, transform .25s ease;
-    }
-    .partner-tile:hover {
-      filter: grayscale(0);
-      opacity: 1;
-      transform: translateY(-2px);
-    }
-    @media (max-width: 640px) {
-      .partner-row { gap: 28px !important; }
-      .partner-tile img { height: 28px !important; }
-    }
-  `}</style>
-  <div className="container">
-    <div style={{ textAlign: 'center', marginBottom: 36 }}>
-      <span
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 10,
-          fontSize: 12, fontWeight: 700, letterSpacing: 1.2,
-          color: '#5C7873',
-        }}
-      >
-        <span style={{ width: 24, height: 1, background: '#C9DAD5' }} />
-        USED IN REAL CLASSROOMS AND PROGRAMS
-        <span style={{ width: 24, height: 1, background: '#C9DAD5' }} />
-      </span>
-    </div>
-
-    <div
-      className="partner-row"
-      style={{
-        display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
-        gap: 44,
-      }}
-    >
-      {partners.map((partner) => (
-        <div key={partner.name} className="partner-tile" style={{ display: 'flex', alignItems: 'center' }}>
-          <Image
-            src={`/partners/${partner.file}`}
-            alt={partner.name}
-            width={120}
-            height={48}
-            style={{ height: 36, width: 'auto', objectFit: 'contain' }}
-          />
+      <div className={styles.partnersSec}>
+        <div className="container">
+          <p className={styles.partnersLabel}>USED IN REAL CLASSROOMS AND PROGRAMS</p>
+          <div className={styles.partnerRow}>
+            {partners.map((partner) => (
+              <div key={partner.name} className={styles.partnerTile}>
+                <Image
+                  src={`/partners/${partner.file}`}
+                  alt={partner.name}
+                  width={120}
+                  height={48}
+                  className={styles.partnerLogo}
+                />
+              </div>
+            ))}
+          </div>
+          <p className={styles.partnersSub}>
+            Schools · Scouts programs · Community and training centers
+          </p>
         </div>
-      ))}
-    </div>
-
-    <p className={styles.partnersSub} style={{ textAlign: 'center', marginTop: 30 }}>
-      Schools · Scouts programs · Community and training centers
-    </p>
-  </div>
-</div>
+      </div>
 
       {/* ================= AUDIENCE-SPECIFIC PITCH (Family / Schools) ================= */}
       <div id="audience" className={styles.schoolsSec} style={{ scrollMarginTop: 90 }}>
