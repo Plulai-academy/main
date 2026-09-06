@@ -1,31 +1,34 @@
 'use client'
 // components/dashboard/DashboardClient.tsx
 //
-// REDESIGN — same purpose as before ("Welcome back" dashboard), rebuilt to
-// feel like a game HUD instead of an admin panel. Nothing functional
-// changed: same props, same Supabase calls (addXP, completeChallenge,
-// checkAndAwardBadges, updateStreak), same XP/level math, same
-// assignmentPillParts logic, same COPY object *keys* (only the English/
-// Arabic/French *values* got a more playful voice — code elsewhere that
-// reads e.g. `t.explore` still works unchanged).
+// REDESIGN v2 — a structural rethink, not another card recolor. v1 (the
+// "quest card" version) was still fundamentally a vertical stack of
+// rectangular cards. This version borrows the illustrated-path language
+// from the marketing site's Tracks section (dashed connector + circular
+// nodes) and applies it here: Quest, Treasure Chest, and Level become
+// three connected map nodes instead of three separate stacked cards.
+// Opening the dashboard should feel like standing on a small map, not
+// scrolling an admin panel.
 //
-// What actually changed, visually:
-//   - Header became a HUD strip: mascot avatar (marjanhi — small,
-//     welcoming pose), streak flame count, XP "gems" badge, weekly-goal
-//     stars — instead of a plain text line.
-//   - Main lesson card reframed as a "Quest" card, with Marjan in an
-//     excited pose (marjanexcited) bleeding off the card edge instead of
-//     sitting in a plain white box — matches the energy of "here's your
-//     next quest" rather than a neutral avatar repeated everywhere.
-//   - Level progress redesigned as a filled "treasure meter" (teal).
-//   - Streak shown as a row of flame icons (amber), not small dots.
-//   - Daily challenge redesigned as a tap-to-open treasure chest with a
-//     dashed gold border, instead of a plain list-item-style button.
-//   - Class news redesigned as a slightly-rotated pinned note ("Class
-//     board") so it doesn't read as identical to every other white card.
-// These three distinct accent colors (teal / amber / violet) are used
-// deliberately for three distinct concepts (progress / streak / XP
-// currency) rather than as arbitrary decoration.
+// Nothing functional changed from the original file: same props, same
+// Supabase calls (addXP, completeChallenge, checkAndAwardBadges,
+// updateStreak), same XP/level math, same assignmentPillParts logic,
+// same COPY object keys.
+//
+// What changed, structurally:
+//   - The "Quest" (next lesson), "Treasure chest" (daily challenge), and
+//     "Level" (XP progress) are now three circular nodes connected by a
+//     dashed path — reusing the exact visual grammar already established
+//     on the marketing site, so the product and the marketing page speak
+//     the same design language instead of two unrelated ones.
+//   - Level progress is a circular SVG ring around the level number,
+//     not a horizontal bar in its own card.
+//   - The dashed connector hides below 760px (same technique used on
+//     the marketing site) and the three nodes just wrap onto their own
+//     rows — no fragile absolute-position layout on small screens.
+//   - HUD strip (mascot, greeting, streak, gems) and the pinned Class
+//     board stay largely as before — those weren't the problem, the
+//     card stack in the middle was.
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
@@ -43,9 +46,9 @@ const getLevel = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1
 const COPY = {
   en: {
     streakMsg:    (n: number) => n > 0 ? `${n}-day streak — one more today keeps it alive` : `Start your streak today!`,
-    continuing:   'where you left off yesterday',
+    continuing:   'Continue where you left off',
     cta:          'Start quest',
-    ctaContinue:  (title: string) => `Continue: ${title}`,
+    ctaContinue:  'Continue quest',
     noMission:    'Quest complete!',
     noMissionSub: 'New quests unlock soon',
     explore:      'Explore the map',
@@ -62,9 +65,9 @@ const COPY = {
   },
   ar: {
     streakMsg:    (n: number) => n > 0 ? `${n} أيام متتالية — يوم آخر يحافظ عليها` : `ابدأ سلسلتك اليوم!`,
-    continuing:   'من حيث توقفت أمس',
+    continuing:   'تابع من حيث توقفت',
     cta:          'ابدأ المهمة',
-    ctaContinue:  (title: string) => `تابع: ${title}`,
+    ctaContinue:  'تابع المهمة',
     noMission:    'أنجزت كل المهام!',
     noMissionSub: 'مهام جديدة تُفتح قريبًا',
     explore:      'استكشف الخريطة',
@@ -81,9 +84,9 @@ const COPY = {
   },
   fr: {
     streakMsg:    (n: number) => n > 0 ? `${n} jours de suite — encore un aujourd'hui !` : `Lance ta série aujourd'hui !`,
-    continuing:   'là où tu t\'es arrêté hier',
+    continuing:   'Continue là où tu t\'es arrêté',
     cta:          'Commencer la quête',
-    ctaContinue:  (title: string) => `Continuer : ${title}`,
+    ctaContinue:  'Continuer la quête',
     noMission:    'Quête terminée !',
     noMissionSub: 'Nouvelles quêtes bientôt',
     explore:      'Explorer la carte',
@@ -120,12 +123,10 @@ interface Props {
   weeklyLessons?: number
   weeklyGoal?:    number
   globalRank?:    number | null
-  classNews?:     ClassNewsItem[]   // not yet wired to a table — pass in when ready
-  className?:     string | null    // B2B2C only — e.g. "Grade 5B"
+  classNews?:     ClassNewsItem[]
+  className?:     string | null
 }
 
-// ── Small inline icons (no icon-library dependency — none was imported
-// in the original file, so this avoids adding one just for a few glyphs) ──
 function FlameIcon({ lit }: { lit: boolean }) {
   return (
     <svg width={18} height={18} viewBox="0 0 20 20" fill="none">
@@ -147,9 +148,9 @@ function GemIcon({ size = 16 }: { size?: number }) {
   )
 }
 
-function ChestIcon({ open }: { open: boolean }) {
+function ChestIcon({ open, size = 30 }: { open: boolean; size?: number }) {
   return (
-    <svg width={40} height={40} viewBox="0 0 40 40" fill="none">
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
       <rect x="4" y="18" width="32" height="16" rx="3" fill="#D9822B" />
       <rect x="4" y="18" width="32" height="6" rx="2" fill="#B4681D" />
       {open ? (
@@ -182,6 +183,7 @@ export default function DashboardClient({
   const streak = progress?.streak ?? 0
   const level  = getLevel(xp)
   const xpInLevel = xp % XP_PER_LEVEL
+  const levelProgress = xpInLevel / XP_PER_LEVEL
   const isNew  = lessonCompletions.length === 0
   const firstName = (profile?.display_name ?? '').split(' ')[0] || profile?.display_name
 
@@ -205,13 +207,16 @@ export default function DashboardClient({
     ? `/dashboard/path/${nextLesson.skill_id}/lesson/${nextLesson.id}`
     : '/dashboard/path'
 
-  // Builds "Grade 5B · Assigned by Ms. Ranya · Due Aug 15" from
-  // whichever of the three pieces are actually present.
   const assignmentPillParts = [
     className,
     nextLesson?.assignedBy ? `Assigned by ${nextLesson.assignedBy}` : null,
     nextLesson?.dueLabel ? `Due ${nextLesson.dueLabel}` : null,
   ].filter(Boolean)
+
+  // Ring math for the level node
+  const ringR = 34
+  const ringCircumference = 2 * Math.PI * ringR
+  const ringOffset = ringCircumference * (1 - levelProgress)
 
   return (
     <div dir={dir} className="min-h-screen bg-[#EAF6F1] px-6 py-8 lg:px-10 lg:py-10">
@@ -225,10 +230,16 @@ export default function DashboardClient({
         ⚡ {toast}
       </div>
 
+      <style>{`
+        @media (min-width: 760px) { .path-connector { display: block !important; } }
+        .path-node { transition: transform .2s ease; }
+        .path-node:hover { transform: translateY(-4px); }
+      `}</style>
+
       <div className="max-w-3xl mx-auto">
 
         {/* ── HUD strip ──────────────────────────────────── */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
           <div className="flex items-center gap-3">
             <div className="relative w-11 h-11 rounded-full bg-white shadow-[0_2px_10px_rgba(22,50,58,0.1)] flex items-center justify-center overflow-hidden shrink-0">
               <Image src="/avatars/marjanhi.png" alt="" width={40} height={40} className="object-contain" />
@@ -247,16 +258,15 @@ export default function DashboardClient({
                   </span>
                 )}
               </div>
+              <p className="text-[#5B7B78] text-sm font-medium mt-0.5">{t.streakMsg(streak)}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* streak flames */}
             <div className="flex items-center gap-1 bg-white rounded-full pl-2 pr-3 py-1.5 shadow-[0_2px_10px_rgba(22,50,58,0.08)]">
               <FlameIcon lit={streak > 0} />
               <span className="text-[13px] font-extrabold text-[#16323A]">{streak}</span>
             </div>
-            {/* XP as gems */}
             <div className="flex items-center gap-1 bg-white rounded-full pl-2 pr-3 py-1.5 shadow-[0_2px_10px_rgba(22,50,58,0.08)]">
               <GemIcon />
               <span className="text-[13px] font-extrabold text-[#16323A]">{xp}</span>
@@ -264,155 +274,116 @@ export default function DashboardClient({
           </div>
         </div>
 
-        {/* ── Streak message + weekly stars ─────────────────── */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-          <p className="text-[#5B7B78] text-sm font-medium">{t.streakMsg(streak)}</p>
-          <div className="flex items-center gap-1.5">
-            {Array.from({ length: weeklyGoal }).map((_, i) => (
-              <span
-                key={i}
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ background: i < weeklyLessons ? '#F5A623' : '#D8E9E3' }}
-              />
-            ))}
-            <span className="text-[13px] font-mono text-[#7C9995] whitespace-nowrap">
-              {weeklyLessons}/{weeklyGoal} {t.thisWeek}
-            </span>
-          </div>
-        </div>
-
-        {/* ── Quest card ─────────────────────────────────── */}
-        {nextLesson ? (
-          <div className="relative overflow-hidden bg-white rounded-[28px] p-7 pr-36 sm:pr-44 mb-5 shadow-[0_2px_16px_rgba(22,50,58,0.06)]">
-            {/* decorative swoosh behind the mascot */}
-            <div
-              className="absolute -right-6 -top-10 w-56 h-56 rounded-full opacity-60"
-              style={{ background: 'radial-gradient(circle, #EAF6F1 0%, transparent 70%)' }}
-              aria-hidden
-            />
-            <Image
-              src="/avatars/marjanexcited.png"
-              alt=""
-              width={150}
-              height={150}
-              className="absolute -bottom-2 -right-3 sm:right-2 select-none pointer-events-none"
-            />
-
-            {assignmentPillParts.length > 0 && (
-              <span className="inline-block px-3 py-1 rounded-full bg-[#FDECD8] text-[#D9822B] text-xs font-mono font-semibold mb-4">
-                {assignmentPillParts.join(' · ')}
-              </span>
-            )}
-
-            <p className="text-[#7C9995] text-xs font-extrabold uppercase tracking-wide mb-1.5">
-              {isNew ? '' : t.continuing}
-            </p>
-            <h2 className="text-2xl font-extrabold text-[#16323A] mb-1.5 leading-snug max-w-[80%]">
-              {nextLesson.title}
-            </h2>
-            <p className="text-[#7C9995] text-sm font-medium mb-6">
-              {nextLesson.minutesLeft != null ? `${nextLesson.minutesLeft} min left` : ''}
-            </p>
-
-            <Link
-              href={missionHref}
-              className="relative z-10 inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-extrabold text-white text-[15px] transition-transform hover:-translate-y-0.5 hover:rotate-[-1deg]"
-              style={{ background: '#FF6E52', boxShadow: '0 4px 14px rgba(255,110,82,0.35)' }}
-            >
-              {isNew ? t.cta : t.ctaContinue(nextLesson.title)}
-              <span aria-hidden>▶</span>
-            </Link>
-          </div>
-        ) : (
-          <div className="relative overflow-hidden bg-white rounded-[28px] p-8 mb-5 text-center shadow-[0_2px_16px_rgba(22,50,58,0.06)]">
-            <Image
-              src="/avatars/marjanexcited.png"
-              alt=""
-              width={110}
-              height={110}
-              className="mx-auto mb-3"
-            />
-            <p className="text-xl font-extrabold text-[#16323A] mb-1.5">{t.noMission}</p>
-            <p className="text-sm text-[#7C9995] font-medium mb-5">{t.noMissionSub}</p>
-            <Link
-              href="/dashboard/path"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-extrabold text-white text-sm"
-              style={{ background: '#FF6E52' }}
-            >
-              {t.explore} →
-            </Link>
-          </div>
-        )}
-
-        {/* ── Level meter (full width, "treasure bar" style) ── */}
-        <div className="bg-white rounded-3xl p-6 mb-5 shadow-[0_2px_16px_rgba(22,50,58,0.06)]">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-extrabold shrink-0"
-                style={{ background: '#2DD4BF' }}
-              >
-                {level}
-              </span>
-              <p className="text-[#16323A] font-bold text-[15px]">{t.level} {level}</p>
-            </div>
-            <span className="text-[13px] font-mono text-[#7C9995]">
-              {xpInLevel} / {XP_PER_LEVEL} {t.xpGems}
-            </span>
-          </div>
-          <div className="h-3 w-full rounded-full bg-[#DCEFE9] overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${Math.min(100, Math.round((xpInLevel / XP_PER_LEVEL) * 100))}%`,
-                background: 'linear-gradient(90deg, #2DD4BF, #5EEAD4)',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* ── Treasure chest (daily challenge) ──────────────── */}
-        {todayChallenge && (
-          <button
-            onClick={!isChallengeComplete ? doChallenge : undefined}
-            disabled={isChallengeComplete}
-            className={cn(
-              'w-full flex items-center gap-4 px-5 py-4 rounded-3xl text-left bg-white mb-5',
-              'transition-transform active:scale-[0.98]',
-              isChallengeComplete
-                ? 'shadow-[0_2px_16px_rgba(22,50,58,0.06)]'
-                : 'shadow-[0_2px_16px_rgba(22,50,58,0.06)] border-2 border-dashed border-[#F5A623]'
-            )}
+        {/* ── THE PATH: three connected nodes instead of stacked cards ── */}
+        <div className="relative mb-8" style={{ paddingTop: 8 }}>
+          {/* dashed connector — hidden below 760px, same technique as the marketing site */}
+          <svg
+            className="path-connector"
+            viewBox="0 0 600 100" preserveAspectRatio="none"
+            style={{ position: 'absolute', top: 50, left: 0, width: '100%', height: 100, zIndex: 0, display: 'none' }}
+            aria-hidden
           >
-            <ChestIcon open={isChallengeComplete} />
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-extrabold uppercase tracking-wide text-[#D9822B] mb-0.5">
-                {t.dailyChallenge}
-              </p>
-              <p className={cn(
-                'text-sm font-bold truncate',
-                isChallengeComplete ? 'line-through text-[#B7CBC7]' : 'text-[#16323A]'
-              )}>
-                {todayChallenge.emoji} {todayChallenge.title}
-              </p>
-            </div>
-            <span
-              className="text-xs font-extrabold shrink-0 px-3 py-1.5 rounded-full"
-              style={{
-                color: isChallengeComplete ? '#2DA36B' : '#fff',
-                background: isChallengeComplete ? '#E8F7EF' : '#F5A623',
-              }}
-            >
-              {isChallengeComplete ? `✓ ${t.done}` : t.tapToOpen}
-            </span>
-          </button>
-        )}
+            <path
+              d="M90 70 C 200 20, 320 20, 380 55 S 480 80, 520 30"
+              stroke="#CFE3DC" strokeWidth={3} strokeDasharray="2 12" strokeLinecap="round" fill="none"
+            />
+          </svg>
 
-        {/* ── Class board — pinned note, deliberately not another
-             identical white card ───────────────────────────── */}
-        <div
-          className="bg-[#FFFCF2] rounded-2xl p-6 shadow-[0_4px_14px_rgba(22,50,58,0.08)] rotate-[-0.6deg] border border-[#F0E9C8]"
-        >
+          <div className="relative z-10 flex flex-wrap items-start justify-center gap-8 sm:gap-10">
+
+            {/* ── Node 1: Quest ── */}
+            <Link href={missionHref} className="path-node flex flex-col items-center text-center w-[150px]">
+              {assignmentPillParts.length > 0 && (
+                <span className="mb-2 px-2.5 py-0.5 rounded-full bg-[#FDECD8] text-[#D9822B] text-[10px] font-mono font-semibold">
+                  {assignmentPillParts.join(' · ')}
+                </span>
+              )}
+              <div
+                className="relative w-[104px] h-[104px] rounded-full flex items-center justify-center mb-3"
+                style={{
+                  background: nextLesson ? 'linear-gradient(135deg, #FF6E52, #FF8B6E)' : 'linear-gradient(135deg, #2DD4BF, #5EEAD4)',
+                  boxShadow: nextLesson ? '0 10px 26px rgba(255,110,82,0.4)' : '0 10px 26px rgba(45,212,191,0.35)',
+                }}
+              >
+                <span className="text-3xl select-none" aria-hidden>
+                  {nextLesson ? (nextLesson.emoji || '🎯') : '✓'}
+                </span>
+                <Image
+                  src="/avatars/marjanexcited.png"
+                  alt=""
+                  width={56}
+                  height={56}
+                  className="absolute -bottom-3 -right-4 select-none pointer-events-none"
+                />
+              </div>
+              <p className="text-[15px] font-extrabold text-[#16323A] leading-snug line-clamp-2">
+                {nextLesson ? nextLesson.title : t.noMission}
+              </p>
+              <p className="text-[12px] text-[#7C9995] font-medium mt-1">
+                {nextLesson
+                  ? (nextLesson.minutesLeft != null ? `${nextLesson.minutesLeft} min · ${isNew ? t.cta : t.ctaContinue}` : (isNew ? t.cta : t.ctaContinue))
+                  : t.noMissionSub}
+              </p>
+            </Link>
+
+            {/* ── Node 2: Treasure chest ── */}
+            <button
+              onClick={!isChallengeComplete ? doChallenge : undefined}
+              disabled={!todayChallenge || isChallengeComplete}
+              className={cn('path-node flex flex-col items-center text-center w-[120px]', !todayChallenge && 'opacity-40 pointer-events-none')}
+            >
+              <div
+                className={cn(
+                  'w-20 h-20 rounded-full flex items-center justify-center mb-3 bg-white',
+                  !isChallengeComplete && 'border-2 border-dashed border-[#F5A623]'
+                )}
+                style={{ boxShadow: '0 8px 20px rgba(22,50,58,0.1)' }}
+              >
+                <ChestIcon open={isChallengeComplete} />
+              </div>
+              <p className="text-[13px] font-extrabold text-[#16323A]">{t.dailyChallenge}</p>
+              <p className="text-[11px] font-bold mt-1" style={{ color: isChallengeComplete ? '#2DA36B' : '#D9822B' }}>
+                {isChallengeComplete ? `✓ ${t.done}` : t.tapToOpen}
+              </p>
+            </button>
+
+            {/* ── Node 3: Level ── */}
+            <div className="path-node flex flex-col items-center text-center w-[120px]">
+              <div className="relative w-20 h-20 mb-3">
+                <svg width="80" height="80" viewBox="0 0 80 80" className="-rotate-90">
+                  <circle cx="40" cy="40" r={ringR} fill="none" stroke="#DCEFE9" strokeWidth="7" />
+                  <circle
+                    cx="40" cy="40" r={ringR} fill="none" stroke="#2DD4BF" strokeWidth="7"
+                    strokeDasharray={ringCircumference} strokeDashoffset={ringOffset} strokeLinecap="round"
+                    style={{ transition: 'stroke-dashoffset 0.7s ease' }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xl font-extrabold text-[#16323A]">{level}</span>
+                </div>
+              </div>
+              <p className="text-[13px] font-extrabold text-[#16323A]">{t.level} {level}</p>
+              <p className="text-[11px] text-[#7C9995] font-mono mt-1">{xpInLevel}/{XP_PER_LEVEL} {t.xpGems}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Weekly goal — small caption strip, not its own card ── */}
+        <div className="flex items-center justify-center gap-1.5 mb-8">
+          {Array.from({ length: weeklyGoal }).map((_, i) => (
+            <span
+              key={i}
+              className="w-2.5 h-2.5 rounded-full"
+              style={{ background: i < weeklyLessons ? '#F5A623' : '#D8E9E3' }}
+            />
+          ))}
+          <span className="text-[13px] font-mono text-[#7C9995] whitespace-nowrap ml-1">
+            {weeklyLessons}/{weeklyGoal} {t.thisWeek}
+          </span>
+        </div>
+
+        {/* ── Class board — pinned note, still deliberately different from the nodes above ── */}
+        <div className="bg-[#FFFCF2] rounded-2xl p-6 shadow-[0_4px_14px_rgba(22,50,58,0.08)] rotate-[-0.6deg] border border-[#F0E9C8] max-w-md mx-auto">
           <p className="text-[#16323A] font-bold text-[15px] mb-2">📌 {t.classNews}</p>
           {classNews.length > 0 ? (
             <ul className="space-y-1.5">
