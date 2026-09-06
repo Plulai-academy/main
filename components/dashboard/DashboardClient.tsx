@@ -234,7 +234,20 @@ export default function DashboardClient({
         @media (min-width: 760px) { .path-connector { display: block !important; } }
         .path-node { transition: transform .2s ease; }
         .path-node:hover { transform: translateY(-4px); }
+        @keyframes quest-pulse {
+          0%, 100% { box-shadow: 0 10px 26px rgba(255,110,82,0.4), 0 0 0 0 rgba(255,110,82,0.35); }
+          50% { box-shadow: 0 10px 26px rgba(255,110,82,0.4), 0 0 0 14px rgba(255,110,82,0); }
+        }
+        .quest-glow { animation: quest-pulse 2.4s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .quest-glow { animation: none; } }
       `}</style>
+
+      {/* Atmospheric background — soft blurred blobs instead of a flat void */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10" aria-hidden>
+        <div className="absolute -top-16 -left-10 w-72 h-72 rounded-full opacity-40" style={{ background: 'radial-gradient(circle, #FFE8D6 0%, transparent 70%)' }} />
+        <div className="absolute top-1/3 -right-16 w-80 h-80 rounded-full opacity-40" style={{ background: 'radial-gradient(circle, #D6F3EE 0%, transparent 70%)' }} />
+        <div className="absolute bottom-0 left-1/4 w-64 h-64 rounded-full opacity-30" style={{ background: 'radial-gradient(circle, #EDE4FF 0%, transparent 70%)' }} />
+      </div>
 
       <div className="max-w-3xl mx-auto">
 
@@ -285,8 +298,16 @@ export default function DashboardClient({
           >
             <path
               d="M90 70 C 200 20, 320 20, 380 55 S 480 80, 520 30"
-              stroke="#CFE3DC" strokeWidth={3} strokeDasharray="2 12" strokeLinecap="round" fill="none"
+              stroke="#E8D5B0" strokeWidth={4} strokeDasharray="1 16" strokeLinecap="round" fill="none"
             />
+          </svg>
+
+          {/* small doodle stars — same shape used on the marketing site's Tracks path */}
+          <svg width="16" height="16" viewBox="0 0 22 22" className="path-connector" style={{ position: 'absolute', top: 4, left: '28%', opacity: 0.55, display: 'none' }} aria-hidden>
+            <path d="M11 0 L13 9 L22 11 L13 13 L11 22 L9 13 L0 11 L9 9 Z" fill="#F5A623" />
+          </svg>
+          <svg width="12" height="12" viewBox="0 0 22 22" className="path-connector" style={{ position: 'absolute', top: 70, right: '22%', opacity: 0.45, display: 'none' }} aria-hidden>
+            <path d="M11 0 L13 9 L22 11 L13 13 L11 22 L9 13 L0 11 L9 9 Z" fill="#7C6FFF" />
           </svg>
 
           <div className="relative z-10 flex flex-wrap items-start justify-center gap-8 sm:gap-10">
@@ -299,9 +320,11 @@ export default function DashboardClient({
                 </span>
               )}
               <div
-                className="relative w-[104px] h-[104px] rounded-full flex items-center justify-center mb-3"
+                className={cn('relative w-[104px] h-[104px] rounded-full flex items-center justify-center mb-3', nextLesson && 'quest-glow')}
                 style={{
-                  background: nextLesson ? 'linear-gradient(135deg, #FF6E52, #FF8B6E)' : 'linear-gradient(135deg, #2DD4BF, #5EEAD4)',
+                  background: nextLesson
+                    ? 'radial-gradient(circle at 35% 30%, #FF9478, #FF6E52 55%, #E8532F 100%)'
+                    : 'radial-gradient(circle at 35% 30%, #5EEAD4, #2DD4BF 55%, #1CB8A3 100%)',
                   boxShadow: nextLesson ? '0 10px 26px rgba(255,110,82,0.4)' : '0 10px 26px rgba(45,212,191,0.35)',
                 }}
               >
@@ -334,10 +357,13 @@ export default function DashboardClient({
             >
               <div
                 className={cn(
-                  'w-20 h-20 rounded-full flex items-center justify-center mb-3 bg-white',
+                  'w-20 h-20 rounded-full flex items-center justify-center mb-3',
                   !isChallengeComplete && 'border-2 border-dashed border-[#F5A623]'
                 )}
-                style={{ boxShadow: '0 8px 20px rgba(22,50,58,0.1)' }}
+                style={{
+                  background: 'linear-gradient(150deg, #ffffff, #FBF7EE)',
+                  boxShadow: '0 8px 20px rgba(22,50,58,0.1)',
+                }}
               >
                 <ChestIcon open={isChallengeComplete} />
               </div>
@@ -349,7 +375,7 @@ export default function DashboardClient({
 
             {/* ── Node 3: Level ── */}
             <div className="path-node flex flex-col items-center text-center w-[120px]">
-              <div className="relative w-20 h-20 mb-3">
+              <div className="relative w-20 h-20 mb-3 rounded-full" style={{ boxShadow: '0 8px 20px rgba(45,212,191,0.18)' }}>
                 <svg width="80" height="80" viewBox="0 0 80 80" className="-rotate-90">
                   <circle cx="40" cy="40" r={ringR} fill="none" stroke="#DCEFE9" strokeWidth="7" />
                   <circle
