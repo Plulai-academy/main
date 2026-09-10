@@ -1,20 +1,17 @@
 'use client'
 // components/dashboard/SkillsClient.tsx
 //
-// REDESIGN v3
-// ────────────
-// Changes from v2:
-//  - Fully responsive: grid columns scale with viewport (2 → 3 → 2 once the
-//    sidebar reappears at lg), the sidebar widgets now also render inline
-//    below the grid on mobile/tablet instead of disappearing, and text/
-//    spacing scale down cleanly on narrow screens.
-//  - The 4 generic /icons/*.png node icons are gone. Every Skill already
-//    carries its own `emoji` — that's what each tile shows now, as a big
-//    sticker on a colored blob, tilted slightly like a game badge. No
-//    dependency on image assets that may not exist.
-//  - `xp_reward` (previously unused) is now surfaced as a small coin badge
-//    on tiles and on the continue card, so progress visibly pays out.
+// REDESIGN v4 — layout change
+// ────────────────────────────
+// v3 used a static grid of tiles, which meant juggling column counts per
+// breakpoint. This version replaces that with horizontally snap-scrolling
+// "level rows" — one row per unit, cards sized for a thumb swipe, closer to
+// how mobile games present a level-select screen (and it sidesteps the
+// column-count problem entirely: a horizontal strip just works at any
+// viewport width without breakpoint math).
 //
+// Everything else (palette, skill emoji as the tile art, xp coin badges,
+// streak/coins header, continue card, sidebar widgets) carries over from v3.
 // All props, hooks, and routing logic are unchanged from the original.
 import { useMemo, useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -31,7 +28,7 @@ const UI: Record<string, Record<string, string>> = {
     leaderboard: 'Leaderboard', viewAll: 'See all', you: 'You',
     dailyQuests: 'Weekly quest', dailyChallenges: 'Daily challenge',
     challengeDone: 'Claimed 🎉', challengeCheck: 'Claim reward',
-    unit: 'Unit', curriculum: 'levels',
+    unit: 'Unit', of_x_done: 'done',
   },
   ar: {
     play: 'العب', continuePlaying: 'كمّل من وين وقفت', jumpTag: 'العب',
@@ -42,7 +39,7 @@ const UI: Record<string, Record<string, string>> = {
     leaderboard: 'لوحة الصدارة', viewAll: 'عرض الكل', you: 'أنت',
     dailyQuests: 'تحدي الأسبوع', dailyChallenges: 'تحدي اليوم',
     challengeDone: 'تم التحصيل 🎉', challengeCheck: 'تحصيل المكافأة',
-    unit: 'الوحدة', curriculum: 'مستوى',
+    unit: 'الوحدة', of_x_done: 'مكتملة',
   },
   fr: {
     play: 'Jouer', continuePlaying: 'Continuer', jumpTag: 'JOUER',
@@ -53,7 +50,7 @@ const UI: Record<string, Record<string, string>> = {
     leaderboard: 'Classement', viewAll: 'Tout voir', you: 'Toi',
     dailyQuests: 'Défi de la semaine', dailyChallenges: 'Défi du jour',
     challengeDone: 'Réclamé 🎉', challengeCheck: 'Réclamer',
-    unit: 'Unité', curriculum: 'niveaux',
+    unit: 'Unité', of_x_done: 'faits',
   },
 }
 
@@ -126,9 +123,8 @@ const TILE_COLORS = [
 ]
 
 function colorForIndex(i: number) { return TILE_COLORS[i % TILE_COLORS.length] }
-function tiltForIndex(i: number) { return i % 2 === 0 ? '-3deg' : '3deg' }
 
-type IconKind = 'lock' | 'check' | 'flame' | 'gem' | 'play' | 'coin'
+type IconKind = 'lock' | 'check' | 'flame' | 'gem' | 'play' | 'coin' | 'chevronR' | 'chevronL'
 
 function Icon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
   const common = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const }
@@ -145,12 +141,16 @@ function Icon({ kind, className, style }: { kind: IconKind; className?: string; 
       return <svg {...common}><path d="M8 5v14l11-7L8 5Z"/></svg>
     case 'coin':
       return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1 1-1.7 3-1.7s3 .7 3 1.6-1 1.4-3 1.6-3 .7-3 1.7 1 1.8 3 1.8 3-.6 3-1.6" stroke="#fff" strokeWidth="1.3" fill="none" strokeLinecap="round"/></svg>
+    case 'chevronR':
+      return <svg {...common}><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    case 'chevronL':
+      return <svg {...common}><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
   }
 }
 
 function ProgressBar({ pct, track = PAL.lagoonFill, fill }: { pct: number; track?: string; fill: string }) {
   return (
-    <div className="h-2 rounded-full overflow-hidden w-full" style={{ backgroundColor: track }}>
+    <div className="h-1.5 sm:h-2 rounded-full overflow-hidden w-full" style={{ backgroundColor: track }}>
       <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(4, pct)}%`, backgroundColor: fill }} />
     </div>
   )
@@ -160,10 +160,7 @@ function XpBadge({ xp, tone = 'light' }: { xp: number; tone?: 'light' | 'dark' }
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black shrink-0"
-      style={{
-        backgroundColor: tone === 'light' ? 'rgba(255,255,255,0.9)' : PAL.lagoon,
-        color: PAL.goldDeep,
-      }}
+      style={{ backgroundColor: tone === 'light' ? 'rgba(255,255,255,0.9)' : PAL.lagoon, color: PAL.goldDeep }}
     >
       <Icon kind="coin" className="w-3 h-3" style={{ color: PAL.gold }} />
       +{xp}
@@ -220,7 +217,7 @@ function ContinueCard({
   t: Record<string, string>
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-5 mb-6" style={{ backgroundColor: PAL.reef }}>
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-5 mb-7" style={{ backgroundColor: PAL.reef }}>
       <div aria-hidden className="absolute rounded-full pointer-events-none" style={{ width: 160, height: 160, top: -60, insetInlineEnd: -50, background: 'rgba(255,255,255,0.08)' }} />
 
       <button onClick={onBack} className="relative flex items-center gap-1.5 mb-3 -ms-1 opacity-90 hover:opacity-100 transition-opacity">
@@ -257,8 +254,9 @@ function ContinueCard({
   )
 }
 
-function SkillTile({
-  skill, idx, state, lessonCount, pct, onClick, label, t,
+// A card sized for a horizontal swipe row rather than a grid cell.
+function LevelCard({
+  skill, idx, state, lessonCount, pct, onClick, label, t, cardRef,
 }: {
   skill: Skill
   idx: number
@@ -268,81 +266,105 @@ function SkillTile({
   onClick: () => void
   label: string
   t: Record<string, string>
+  cardRef?: (el: HTMLButtonElement | null) => void
 }) {
   const color = colorForIndex(idx)
   const locked = state === 'locked'
 
   return (
     <button
+      ref={cardRef}
       type="button"
       onClick={onClick}
       disabled={locked}
       aria-label={label}
       className={cn(
-        'relative text-start rounded-2xl sm:rounded-3xl overflow-hidden bg-white transition-transform w-full',
+        'relative text-start rounded-2xl sm:rounded-3xl overflow-hidden bg-white shrink-0 snap-center transition-transform',
         !locked && 'hover:-translate-y-0.5 active:translate-y-[1px]',
         locked && 'opacity-60 cursor-default',
       )}
       style={{
+        width: 'clamp(132px, 34vw, 168px)',
         boxShadow: state === 'current' ? `0 0 0 3px ${PAL.gold}, 0 4px 0 ${PAL.goldDeep}` : `0 1px 0 rgba(41,57,74,0.08)`,
         border: state === 'current' ? 'none' : '1px solid rgba(41,57,74,0.08)',
       }}
     >
       {state === 'current' && (
         <span
-          className="absolute top-2 inset-inline-start-2 z-10 rounded-full px-2 sm:px-2.5 py-1 text-[9px] sm:text-[10px] font-black tracking-wide text-white flex items-center gap-1"
+          className="absolute top-2 inset-inline-start-2 z-10 rounded-full px-2 py-1 text-[9px] font-black tracking-wide text-white flex items-center gap-1"
           style={{ backgroundColor: PAL.goldDeep }}
         >
           <Icon kind="play" className="w-2.5 h-2.5" />{label}
         </span>
       )}
 
-      <div className="h-16 sm:h-20 flex items-center justify-center relative" style={{ backgroundColor: locked ? PAL.lagoonFill : color.top }}>
+      <div className="h-20 sm:h-24 flex items-center justify-center relative" style={{ backgroundColor: locked ? PAL.lagoonFill : color.top }}>
         {locked && (
-          <span className="absolute z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(41,57,74,0.75)' }}>
-            <Icon kind="lock" className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: PAL.white }} />
+          <span className="absolute z-10 w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(41,57,74,0.75)' }}>
+            <Icon kind="lock" className="w-4 h-4" style={{ color: PAL.white }} />
           </span>
         )}
         <span
-          className="text-3xl sm:text-4xl select-none"
-          style={{
-            transform: `rotate(${tiltForIndex(idx)})`,
-            filter: locked ? 'grayscale(1) opacity(0.5)' : 'drop-shadow(0 2px 2px rgba(0,0,0,0.12))',
-          }}
+          className="text-4xl sm:text-5xl select-none"
+          style={{ filter: locked ? 'grayscale(1) opacity(0.5)' : 'drop-shadow(0 2px 2px rgba(0,0,0,0.12))' }}
         >
           {skill.emoji || '⭐'}
         </span>
 
         {state === 'done' && (
-          <span className="absolute top-2 inset-inline-end-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: PAL.white }}>
-            <Icon kind="check" className="w-3 h-3 sm:w-3.5 sm:h-3.5" style={{ color: color.deep }} />
+          <span className="absolute top-2 inset-inline-end-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: PAL.white }}>
+            <Icon kind="check" className="w-3.5 h-3.5" style={{ color: color.deep }} />
           </span>
         )}
       </div>
 
-      <div className="p-2.5 sm:p-3">
-        <p className="font-black text-xs sm:text-sm leading-tight truncate" style={{ color: PAL.ink }}>{skill.title}</p>
+      <div className="p-3">
+        <p className="font-black text-sm leading-tight truncate" style={{ color: PAL.ink }}>{skill.title}</p>
         <div className="flex items-center justify-between gap-1.5 mt-0.5 mb-2">
-          <p className="text-[10px] sm:text-[11px] font-bold truncate" style={{ color: PAL.inkSoft }}>
+          <p className="text-[10px] font-bold truncate" style={{ color: PAL.inkSoft }}>
             {locked ? label : `${lessonCount} ${lessonCount === 1 ? t.lesson : t.lessons}`}
           </p>
-          {!locked && <XpBadge xp={skill.xp_reward} tone="dark" />}
         </div>
         <ProgressBar pct={locked ? 0 : pct} fill={locked ? PAL.lagoonFill : color.top} />
+        {!locked && (
+          <div className="mt-2">
+            <XpBadge xp={skill.xp_reward} tone="dark" />
+          </div>
+        )}
       </div>
     </button>
   )
 }
 
-function UnitDivider({ unitNumber, title, t }: { unitNumber: number; title?: string; t: Record<string, string> }) {
+function UnitRow({
+  unitNumber, title, doneCount, total, children, scrollerRef,
+}: {
+  unitNumber: number
+  title?: string
+  doneCount: number
+  total: number
+  children: React.ReactNode
+  scrollerRef: (el: HTMLDivElement | null) => void
+}) {
   return (
-    <div className="flex items-center gap-2.5 mb-3 mt-2">
-      <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white shrink-0" style={{ backgroundColor: PAL.ink }}>
-        {unitNumber}
-      </span>
-      <p className="text-xs font-black tracking-wide uppercase truncate" style={{ color: PAL.inkSoft }}>
-        {t.unit} {unitNumber}{title ? ` · ${title}` : ''}
-      </p>
+    <div className="mb-7">
+      <div className="flex items-center gap-2.5 mb-3 px-0.5">
+        <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white shrink-0" style={{ backgroundColor: PAL.ink }}>
+          {unitNumber}
+        </span>
+        <p className="text-xs font-black tracking-wide uppercase truncate flex-1 min-w-0" style={{ color: PAL.inkSoft }}>
+          {title}
+        </p>
+        <span className="text-[11px] font-black shrink-0" style={{ color: PAL.reefDeep }}>{doneCount}/{total}</span>
+      </div>
+
+      <div
+        ref={scrollerRef}
+        className="no-scrollbar flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1 -mx-3 px-3 sm:mx-0 sm:px-0"
+        style={{ scrollbarWidth: 'none' }}
+      >
+        {children}
+      </div>
     </div>
   )
 }
@@ -477,7 +499,8 @@ export default function SkillsClient({
   const [showPicker, setShowPicker] = useState(false)
   const [switching, setSwitching] = useState(false)
 
-  const currentTileRef = useRef<HTMLDivElement | null>(null)
+  const currentCardRef = useRef<HTMLButtonElement | null>(null)
+  const currentScrollerRef = useRef<HTMLDivElement | null>(null)
   const pickerRef = useRef<HTMLDivElement | null>(null)
 
   const progressMap = useMemo(
@@ -512,7 +535,9 @@ export default function SkillsClient({
   }, [showPicker])
 
   useEffect(() => {
-    currentTileRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    // scroll the unit's carousel so the current level is in view, and bring
+    // that section into the vertical viewport too
+    currentCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
   }, [activeTrackId])
 
   const handleTrackSelect = async (trackId: string) => {
@@ -549,7 +574,7 @@ export default function SkillsClient({
     else router.push(`/dashboard/path/${currentSkill.id}`)
   }
 
-  const handleTileTap = (skill: Skill, unlocked: boolean) => {
+  const handleCardTap = (skill: Skill, unlocked: boolean) => {
     if (!unlocked) return
     if (skill.id === currentSkillId) goToCurrentLesson()
     else router.push(`/dashboard/path/${skill.id}`)
@@ -573,7 +598,10 @@ export default function SkillsClient({
 
   return (
     <div dir={dir} className="min-h-screen w-full overflow-x-hidden font-[Baloo_2,Cairo,sans-serif]" style={{ backgroundColor: PAL.lagoon, color: PAL.ink }}>
-      <style dangerouslySetInnerHTML={{ __html: `@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Cairo:wght@600;700;800;900&display=swap');` }} />
+      <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Cairo:wght@600;700;800;900&display=swap');
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+      ` }} />
 
       {/* ── Header ── */}
       <div className="px-3 sm:px-6 lg:px-8 pt-4 sm:pt-7 pb-4 max-w-[1100px] mx-auto w-full">
@@ -659,37 +687,42 @@ export default function SkillsClient({
                 if (!startsNewUnit) return null
                 const unitNumber = Math.floor(idx / UNIT_SIZE) + 1
                 const unitSkills = orderedSkills.slice(idx, idx + UNIT_SIZE)
+                const unitDoneCount = unitSkills.filter(s => isComplete(s.id)).length
 
                 return (
-                  <div key={`unit-${unitNumber}`}>
-                    <UnitDivider unitNumber={unitNumber} title={unitSkills[0]?.title} t={t} />
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-3 mb-6">
-                      {unitSkills.map((s, i) => {
-                        const globalIdx = idx + i
-                        const unlocked  = isUnlocked(s)
-                        const complete  = isComplete(s.id)
-                        const isCurrent = s.id === currentSkillId
-                        const state: 'done' | 'current' | 'locked' =
-                          complete ? 'done' : isCurrent ? 'current' : unlocked ? 'done' : 'locked'
-                        const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.jumpTag : t.current
+                  <UnitRow
+                    key={`unit-${unitNumber}`}
+                    unitNumber={unitNumber}
+                    title={unitSkills[0]?.title}
+                    doneCount={unitDoneCount}
+                    total={unitSkills.length}
+                    scrollerRef={(el) => { if (unitNumber === currentUnitNumber) currentScrollerRef.current = el }}
+                  >
+                    {unitSkills.map((s, i) => {
+                      const globalIdx = idx + i
+                      const unlocked  = isUnlocked(s)
+                      const complete  = isComplete(s.id)
+                      const isCurrent = s.id === currentSkillId
+                      const state: 'done' | 'current' | 'locked' =
+                        complete ? 'done' : isCurrent ? 'current' : unlocked ? 'done' : 'locked'
+                      const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.jumpTag : t.current
 
-                        return (
-                          <div key={s.id} ref={isCurrent ? currentTileRef : undefined}>
-                            <SkillTile
-                              skill={s}
-                              idx={globalIdx}
-                              state={state}
-                              lessonCount={lessonCountMap[s.id] ?? 0}
-                              pct={progressMap[s.id] ?? 0}
-                              onClick={() => handleTileTap(s, unlocked)}
-                              label={label}
-                              t={t}
-                            />
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
+                      return (
+                        <LevelCard
+                          key={s.id}
+                          skill={s}
+                          idx={globalIdx}
+                          state={state}
+                          lessonCount={lessonCountMap[s.id] ?? 0}
+                          pct={progressMap[s.id] ?? 0}
+                          onClick={() => handleCardTap(s, unlocked)}
+                          label={label}
+                          t={t}
+                          cardRef={isCurrent ? (el) => { currentCardRef.current = el } : undefined}
+                        />
+                      )
+                    })}
+                  </UnitRow>
                 )
               })}
             </>
