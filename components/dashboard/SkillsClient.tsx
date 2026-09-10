@@ -29,6 +29,8 @@ const UI: Record<string, Record<string, string>> = {
     dailyQuests: 'Weekly quest', dailyChallenges: 'Daily challenge',
     challengeDone: 'Claimed 🎉', challengeCheck: 'Claim reward',
     unit: 'Unit', of_x_done: 'done',
+    pearls: 'Pearls', levelsToNext: 'more levels to', maxRank: "You've reached the top rank!",
+    unitComplete: 'Unit complete!',
   },
   ar: {
     play: 'العب', continuePlaying: 'كمّل من وين وقفت', jumpTag: 'العب',
@@ -40,6 +42,8 @@ const UI: Record<string, Record<string, string>> = {
     dailyQuests: 'تحدي الأسبوع', dailyChallenges: 'تحدي اليوم',
     challengeDone: 'تم التحصيل 🎉', challengeCheck: 'تحصيل المكافأة',
     unit: 'الوحدة', of_x_done: 'مكتملة',
+    pearls: 'اللآلئ', levelsToNext: 'مستويات أخرى للوصول إلى', maxRank: 'وصلت لأعلى رتبة! 👑',
+    unitComplete: 'أنهيت الوحدة!',
   },
   fr: {
     play: 'Jouer', continuePlaying: 'Continuer', jumpTag: 'JOUER',
@@ -51,10 +55,22 @@ const UI: Record<string, Record<string, string>> = {
     dailyQuests: 'Défi de la semaine', dailyChallenges: 'Défi du jour',
     challengeDone: 'Réclamé 🎉', challengeCheck: 'Réclamer',
     unit: 'Unité', of_x_done: 'faits',
+    pearls: 'Perles', levelsToNext: 'niveaux de plus pour atteindre', maxRank: 'Tu as atteint le rang suprême ! 👑',
+    unitComplete: 'Unité terminée !',
   },
 }
 
 const UNIT_SIZE = 4
+
+// Rank titles for the reef, one per tier (0 = just started, 4 = maxed out),
+// driven purely by how many levels in the current track are complete —
+// no new data needed, it's all already in `skillProgress`.
+const RANKS: Record<string, string[]> = {
+  en: ['Tide Pool Explorer', 'Shallow Reef Starter', 'Coral Garden Keeper', 'Reef Kingdom Guardian', 'Ocean Legend'],
+  ar: ['مستكشف البرك الساحلية', 'بادئ الشعاب الضحلة', 'حارس حديقة المرجان', 'حامي مملكة الشعاب', 'أسطورة المحيط'],
+  fr: ['Explorateur de flaques', 'Débutant du lagon', 'Gardien du jardin corallien', 'Gardien du récif', "Légende de l'océan"],
+}
+const TIER_BOUNDARIES = [20, 40, 60, 80] // % complete needed to reach tier 1,2,3,4
 
 interface Track    { id: string; name: string; emoji: string; color: string }
 interface Skill    { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
@@ -124,7 +140,7 @@ const TILE_COLORS = [
 
 function colorForIndex(i: number) { return TILE_COLORS[i % TILE_COLORS.length] }
 
-type IconKind = 'lock' | 'check' | 'flame' | 'gem' | 'play' | 'coin' | 'chevronR' | 'chevronL'
+type IconKind = 'lock' | 'check' | 'flame' | 'gem' | 'play' | 'coin' | 'chevronR' | 'chevronL' | 'pearl'
 
 function Icon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
   const common = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const }
@@ -145,6 +161,13 @@ function Icon({ kind, className, style }: { kind: IconKind; className?: string; 
       return <svg {...common}><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
     case 'chevronL':
       return <svg {...common}><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    case 'pearl':
+      return (
+        <svg className={className} style={style} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" fill="currentColor"/>
+          <ellipse cx="9" cy="9" rx="2.6" ry="1.6" fill="#FFFFFF" opacity="0.75" transform="rotate(-30 9 9)"/>
+        </svg>
+      )
   }
 }
 
@@ -168,39 +191,112 @@ function XpBadge({ xp, tone = 'light' }: { xp: number; tone?: 'light' | 'dark' }
   )
 }
 
-function StreakCard({ streak, t }: { streak: number; t: Record<string, string> }) {
+function StreakPill({ streak, t }: { streak: number; t: Record<string, string> }) {
   return (
-    <div className="flex-1 min-w-0 rounded-2xl sm:rounded-3xl p-3 sm:p-4" style={{ backgroundColor: PAL.coral }}>
-      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-2.5">
-        <Icon kind="flame" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" style={{ color: PAL.white }} />
-        <span className="font-black text-white text-xl sm:text-2xl leading-none">{streak}</span>
-        <span className="text-white/85 font-bold text-[11px] sm:text-xs truncate">{t.streakDays}</span>
-      </div>
-      <div className="flex items-center gap-1 flex-wrap">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <span
-            key={i}
-            className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center shrink-0"
-            style={{ backgroundColor: i < Math.min(streak, 7) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.22)' }}
-          >
-            {i < Math.min(streak, 7) && <Icon kind="flame" className="w-2 h-2 sm:w-2.5 sm:h-2.5" style={{ color: PAL.coralDeep }} />}
-          </span>
-        ))}
+    <div className="flex-1 min-w-0 rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5" style={{ backgroundColor: PAL.coral }}>
+      <Icon kind="flame" className="w-5 h-5 shrink-0" style={{ color: PAL.white }} />
+      <div className="min-w-0 leading-none">
+        <span className="font-black text-white text-lg sm:text-xl">{streak}</span>
+        <span className="text-white/85 font-bold text-[10px] sm:text-[11px] block truncate">{t.streakDays}</span>
       </div>
     </div>
   )
 }
 
-function CoinsCard({ gems, t }: { gems: number; t: Record<string, string> }) {
+function PearlsPill({ gems, t }: { gems: number; t: Record<string, string> }) {
   return (
-    <div className="flex-1 min-w-0 rounded-2xl sm:rounded-3xl p-3 sm:p-4" style={{ backgroundColor: PAL.ink }}>
-      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-2.5">
-        <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.gold }}>
-          <Icon kind="gem" className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" style={{ color: PAL.white }} />
-        </span>
-        <span className="font-black text-white text-xl sm:text-2xl leading-none">{gems}</span>
+    <div className="flex-1 min-w-0 rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5" style={{ backgroundColor: PAL.ink }}>
+      <Icon kind="pearl" className="w-5 h-5 shrink-0" style={{ color: PAL.gold }} />
+      <div className="min-w-0 leading-none">
+        <span className="font-black text-white text-lg sm:text-xl">{gems}</span>
+        <span className="text-white/70 font-bold text-[10px] sm:text-[11px] block truncate">{t.pearls}</span>
       </div>
-      <p className="text-white/70 font-bold text-[11px] sm:text-xs">{t.coins}</p>
+    </div>
+  )
+}
+
+// ── The Reef ─────────────────────────────────────────────────────────────
+// A living scene that fills in with coral and fish as the student clears
+// levels in this track. Five visual tiers, purely a function of % complete
+// — no extra data needed. This replaces a countdown-style mechanic (which
+// creates pressure) with a growth-style one (which creates pride and an
+// urge to check back in and see how much bigger it's gotten).
+function ReefScene({ tier }: { tier: number }) {
+  // cumulative coral clusters — each tier adds to, never replaces, the last
+  const corals: { x: number; y: number; r: number; c: string }[] = [
+    { x: 100, y: 128, r: 17, c: PAL.lagoonFill },
+    ...(tier >= 1 ? [{ x: 62, y: 124, r: 13, c: PAL.reef }, { x: 142, y: 126, r: 12, c: PAL.reef }] : []),
+    ...(tier >= 2 ? [{ x: 40, y: 116, r: 15, c: PAL.gold }, { x: 168, y: 118, r: 13, c: PAL.gold }] : []),
+    ...(tier >= 3 ? [{ x: 84, y: 106, r: 19, c: PAL.coral }, { x: 122, y: 108, r: 15, c: PAL.coral }] : []),
+    ...(tier >= 4 ? [{ x: 18, y: 112, r: 11, c: PAL.reefDeep }, { x: 190, y: 110, r: 11, c: PAL.goldDeep }] : []),
+  ]
+  const fishCount = tier >= 4 ? 2 : tier >= 2 ? 1 : 0
+
+  return (
+    <svg viewBox="0 0 220 150" className="w-full h-[128px] sm:h-[150px]" preserveAspectRatio="xMidYMax meet" aria-hidden>
+      <defs>
+        <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={PAL.reef} stopOpacity="0.9" />
+          <stop offset="100%" stopColor={PAL.reefDeep} stopOpacity="0.95" />
+        </linearGradient>
+      </defs>
+      <rect width="220" height="150" fill="url(#water)" />
+
+      {/* bubbles */}
+      <circle cx="30" cy="40" r="3" fill="white" opacity="0.35" />
+      <circle cx="182" cy="60" r="2.5" fill="white" opacity="0.3" />
+      {tier >= 2 && <circle cx="110" cy="30" r="2" fill="white" opacity="0.3" />}
+
+      {/* sandy seabed */}
+      <path d="M0 138 Q60 128 110 136 T220 132 V150 H0 Z" fill={PAL.lagoon} opacity="0.9" />
+
+      {/* corals */}
+      {corals.map((c, i) => (
+        <circle key={i} cx={c.x} cy={c.y} r={c.r} fill={c.c} />
+      ))}
+
+      {/* fish */}
+      {fishCount >= 1 && (
+        <g transform="translate(150,95)">
+          <ellipse rx="9" ry="5.5" fill={PAL.gold} />
+          <path d="M8 0 L16 -5 L16 5 Z" fill={PAL.gold} />
+          <circle cx="-4" cy="-1" r="1.1" fill={PAL.ink} />
+        </g>
+      )}
+      {fishCount >= 2 && (
+        <g transform="translate(55,90) scale(-1,1)">
+          <ellipse rx="7" ry="4.5" fill={PAL.white} />
+          <path d="M6.5 0 L13 -4 L13 4 Z" fill={PAL.white} />
+          <circle cx="-3" cy="-1" r="1" fill={PAL.ink} />
+        </g>
+      )}
+    </svg>
+  )
+}
+
+function ReefCard({
+  tier, rankTitle, nextRankTitle, levelsToNext, maxed, t,
+}: {
+  tier: number
+  rankTitle: string
+  nextRankTitle: string | null
+  levelsToNext: number
+  maxed: boolean
+  t: Record<string, string>
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-4" style={{ backgroundColor: PAL.reefDeep }}>
+      <ReefScene tier={tier} />
+      <div className="px-4 py-3 sm:px-5 sm:py-3.5" style={{ backgroundColor: PAL.white }}>
+        <p className="font-black text-sm sm:text-base truncate" style={{ color: PAL.ink }}>{rankTitle}</p>
+        {maxed ? (
+          <p className="text-xs sm:text-sm font-bold mt-0.5" style={{ color: PAL.goldDeep }}>{t.maxRank}</p>
+        ) : (
+          <p className="text-xs sm:text-sm font-bold mt-0.5" style={{ color: PAL.inkSoft }}>
+            {levelsToNext} {t.levelsToNext} <span style={{ color: PAL.reefDeep }}>{nextRankTitle}</span>
+          </p>
+        )}
+      </div>
     </div>
   )
 }
@@ -337,7 +433,7 @@ function LevelCard({
 }
 
 function UnitRow({
-  unitNumber, title, doneCount, total, children, scrollerRef,
+  unitNumber, title, doneCount, total, children, scrollerRef, t,
 }: {
   unitNumber: number
   title?: string
@@ -345,17 +441,25 @@ function UnitRow({
   total: number
   children: React.ReactNode
   scrollerRef: (el: HTMLDivElement | null) => void
+  t: Record<string, string>
 }) {
+  const complete = total > 0 && doneCount === total
   return (
     <div className="mb-7">
       <div className="flex items-center gap-2.5 mb-3 px-0.5">
-        <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white shrink-0" style={{ backgroundColor: PAL.ink }}>
-          {unitNumber}
+        <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white shrink-0" style={{ backgroundColor: complete ? PAL.reefDeep : PAL.ink }}>
+          {complete ? <Icon kind="check" className="w-3 h-3" style={{ color: PAL.white }} /> : unitNumber}
         </span>
         <p className="text-xs font-black tracking-wide uppercase truncate flex-1 min-w-0" style={{ color: PAL.inkSoft }}>
           {title}
         </p>
-        <span className="text-[11px] font-black shrink-0" style={{ color: PAL.reefDeep }}>{doneCount}/{total}</span>
+        {complete ? (
+          <span className="text-[11px] font-black shrink-0 px-2 py-0.5 rounded-full" style={{ color: PAL.white, backgroundColor: PAL.reef }}>
+            {t.unitComplete}
+          </span>
+        ) : (
+          <span className="text-[11px] font-black shrink-0" style={{ color: PAL.reefDeep }}>{doneCount}/{total}</span>
+        )}
       </div>
 
       <div
@@ -525,6 +629,17 @@ export default function SkillsClient({
   const currentUnitNumber = currentSkillIdx >= 0 ? Math.floor(currentSkillIdx / UNIT_SIZE) + 1 : 1
   const totalUnits = orderedSkills.length > 0 ? Math.ceil(orderedSkills.length / UNIT_SIZE) : 1
 
+  // reef tier: purely a function of how many levels in this track are done
+  const doneInTrack = orderedSkills.filter(s => isComplete(s.id)).length
+  const pctInTrack = orderedSkills.length > 0 ? (doneInTrack / orderedSkills.length) * 100 : 0
+  const reefTier = TIER_BOUNDARIES.filter(b => pctInTrack >= b).length
+  const ranks = RANKS[lang] ?? RANKS.en
+  const reefMaxed = reefTier >= 4
+  const nextBoundaryPct = TIER_BOUNDARIES[reefTier] ?? 100
+  const levelsToNextRank = reefMaxed
+    ? 0
+    : Math.max(1, Math.ceil((nextBoundaryPct / 100) * orderedSkills.length) - doneInTrack)
+
   useEffect(() => {
     if (!showPicker) return
     const handler = (e: MouseEvent) => {
@@ -651,10 +766,22 @@ export default function SkillsClient({
           )}
         </div>
 
-        {/* streak + coins */}
-        <div className="flex gap-2.5 sm:gap-3 mt-3 sm:mt-4">
-          <StreakCard streak={streak} t={t} />
-          <CoinsCard gems={gems} t={t} />
+        {/* the reef: grows with real progress in this track */}
+        {orderedSkills.length > 0 && (
+          <ReefCard
+            tier={reefTier}
+            rankTitle={ranks[reefTier]}
+            nextRankTitle={reefMaxed ? null : ranks[reefTier + 1]}
+            levelsToNext={levelsToNextRank}
+            maxed={reefMaxed}
+            t={t}
+          />
+        )}
+
+        {/* streak + pearls */}
+        <div className="flex gap-2.5 sm:gap-3">
+          <StreakPill streak={streak} t={t} />
+          <PearlsPill gems={gems} t={t} />
         </div>
       </div>
 
@@ -697,6 +824,7 @@ export default function SkillsClient({
                     doneCount={unitDoneCount}
                     total={unitSkills.length}
                     scrollerRef={(el) => { if (unitNumber === currentUnitNumber) currentScrollerRef.current = el }}
+                    t={t}
                   >
                     {unitSkills.map((s, i) => {
                       const globalIdx = idx + i
