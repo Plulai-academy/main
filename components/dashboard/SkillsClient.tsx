@@ -115,6 +115,12 @@ const TILE_COLORS = [
 ]
 function colorForIndex(i: number) { return TILE_COLORS[i % TILE_COLORS.length] }
 
+// strips internal content-ops labels like "S3 — " or "S12 - " from a title
+// before it ever reaches a kid's screen — that's a CMS artifact, not content.
+function cleanTitle(title: string) {
+  return title.replace(/^\s*S\d+\s*[—-]\s*/i, '').trim() || title
+}
+
 type IconKind = 'lock' | 'check' | 'flame' | 'gem' | 'play'
 
 function Icon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
@@ -213,7 +219,7 @@ function ContinueCard({
           <div className="flex items-center gap-2 flex-wrap mb-1">
             <h2 className="font-black text-lg leading-tight flex items-center gap-2 min-w-0" style={{ color: PAL.ink }}>
               <span className="text-xl shrink-0">{skill.emoji}</span>
-              <span className="truncate">{skill.title}</span>
+              <span className="truncate">{cleanTitle(skill.title)}</span>
             </h2>
             <XpBadge xp={skill.xp_reward} />
           </div>
@@ -292,7 +298,12 @@ function LevelCard({
       </div>
 
       <div className="p-3">
-        <p className="font-black text-sm leading-tight truncate" style={{ color: PAL.ink }}>{skill.title}</p>
+        <p
+          className="font-black text-sm leading-tight min-h-[2.2em]"
+          style={{ color: PAL.ink, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+        >
+          {cleanTitle(skill.title)}
+        </p>
         <p className="text-[10px] font-bold mt-0.5 mb-2" style={{ color: PAL.inkSoft }}>
           {locked ? label : `${lessonCount} ${lessonCount === 1 ? t.lesson : t.lessons}`}
         </p>
@@ -302,7 +313,56 @@ function LevelCard({
   )
 }
 
-function UnitRow({
+// finished and locked units collapse to one quiet line — only the unit
+// you're actually working through gets the full colorful card treatment.
+function CompactUnitRow({
+  unitNumber, title, doneCount, total, mode, expanded, onToggle,
+}: {
+  unitNumber: number
+  title?: string
+  doneCount: number
+  total: number
+  mode: 'done' | 'locked'
+  expanded: boolean
+  onToggle: () => void
+}) {
+  const locked = mode === 'locked'
+  const [shake, setShake] = useState(false)
+  const handleClick = () => {
+    if (locked) { setShake(true); window.setTimeout(() => setShake(false), 400); return }
+    onToggle()
+  }
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      aria-disabled={locked}
+      className={cn('w-full flex items-center gap-3 px-3 py-2.5 mb-2 rounded-2xl text-start transition-colors', !locked && 'hover:bg-white')}
+      style={{ opacity: locked ? 0.55 : 1, animation: shake ? 'shakeX 0.4s ease' : undefined }}
+    >
+      <span
+        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+        style={{ backgroundColor: locked ? PAL.lagoonFill : PAL.reef }}
+      >
+        {locked ? <Icon kind="lock" className="w-3.5 h-3.5" style={{ color: PAL.inkSoft }} /> : <Icon kind="check" className="w-3.5 h-3.5" style={{ color: PAL.white }} />}
+      </span>
+      <span className="text-sm font-bold truncate flex-1 min-w-0" style={{ color: PAL.inkSoft }}>
+        {t_unit_label(unitNumber, title)}
+      </span>
+      {!locked && (
+        <>
+          <span className="text-xs font-black shrink-0" style={{ color: PAL.reefDeep }}>{doneCount}/{total}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" className="shrink-0 transition-transform" style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}>
+            <path d="M6 9l6 6 6-6" fill="none" stroke={PAL.inkSoft} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </>
+      )}
+    </button>
+  )
+}
+function t_unit_label(unitNumber: number, title?: string) {
+  return title ? `${cleanTitle(title)}` : `Unit ${unitNumber}`
+}
   unitNumber, title, doneCount, total, children, scrollerRef,
 }: {
   unitNumber: number
@@ -316,7 +376,7 @@ function UnitRow({
     <div className="mb-7">
       <div className="flex items-center gap-2.5 mb-3 px-0.5">
         <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white shrink-0" style={{ backgroundColor: PAL.ink }}>{unitNumber}</span>
-        <p className="text-xs font-black tracking-wide uppercase truncate flex-1 min-w-0" style={{ color: PAL.inkSoft }}>{title}</p>
+        <p className="text-xs font-black tracking-wide uppercase truncate flex-1 min-w-0" style={{ color: PAL.inkSoft }}>{title ? cleanTitle(title) : ''}</p>
         <span className="text-[11px] font-black shrink-0" style={{ color: PAL.reefDeep }}>{doneCount}/{total}</span>
       </div>
       <div ref={scrollerRef} className="no-scrollbar flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1 -mx-3 px-3 sm:mx-0 sm:px-0">
@@ -435,6 +495,7 @@ export default function SkillsClient({
   const [firstIncompleteLessonId, setFirstIncompleteLessonId] = useState<string | null>(initialFirstIncompleteLessonId)
   const [showPicker, setShowPicker] = useState(false)
   const [switching, setSwitching] = useState(false)
+  const [expandedUnits, setExpandedUnits] = useState<Set<number>>(new Set())
 
   const currentCardRef = useRef<HTMLButtonElement | null>(null)
   const pickerRef = useRef<HTMLDivElement | null>(null)
@@ -614,6 +675,32 @@ export default function SkillsClient({
                 const unitNumber = Math.floor(idx / UNIT_SIZE) + 1
                 const unitSkills = orderedSkills.slice(idx, idx + UNIT_SIZE)
                 const unitDoneCount = unitSkills.filter(s => isComplete(s.id)).length
+                const isCurrentUnit = unitNumber === currentUnitNumber
+                const isFinishedUnit = !isCurrentUnit && unitDoneCount === unitSkills.length
+                const isFutureUnit = !isCurrentUnit && !isFinishedUnit && unitDoneCount === 0 && unitNumber > currentUnitNumber
+                const expanded = expandedUnits.has(unitNumber)
+                const showCards = isCurrentUnit || (isFinishedUnit && expanded)
+
+                if (!showCards) {
+                  return (
+                    <CompactUnitRow
+                      key={`unit-${unitNumber}`}
+                      unitNumber={unitNumber}
+                      title={unitSkills[0]?.title}
+                      doneCount={unitDoneCount}
+                      total={unitSkills.length}
+                      mode={isFutureUnit ? 'locked' : 'done'}
+                      expanded={expanded}
+                      onToggle={() => {
+                        setExpandedUnits(prev => {
+                          const next = new Set(prev)
+                          next.has(unitNumber) ? next.delete(unitNumber) : next.add(unitNumber)
+                          return next
+                        })
+                      }}
+                    />
+                  )
+                }
 
                 return (
                   <UnitRow
