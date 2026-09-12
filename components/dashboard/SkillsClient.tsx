@@ -58,7 +58,6 @@ const UI: Record<string, Record<string, string>> = {
   },
 }
 
-const UNIT_SIZE = 4
 
 interface Track    { id: string; name: string; emoji: string; color: string }
 interface Skill    { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
@@ -236,14 +235,7 @@ function ContinueCard({
   )
 }
 
-// builds a simple connected path through each node's normalized (0-100) position
-function buildIslandPath(points: { x: number; y: number }[]) {
-  if (points.length < 2) return ''
-  return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
-}
-
-// fixed zigzag layout for up to 4 nodes per island — matches the reference:
-// top-right, mid-left, mid-right, bottom-left
+// fixed scatter layout for up to 4 nodes per island
 const ISLAND_POSITIONS = [
   { x: 66, y: 16 },
   { x: 28, y: 40 },
@@ -251,21 +243,6 @@ const ISLAND_POSITIONS = [
   { x: 30, y: 88 },
 ]
 
-function IslandBubble({ text }: { text: string }) {
-  return (
-    <div className="absolute left-1/2 -translate-x-1/2 z-20 select-none pointer-events-none" style={{ top: -38 }}>
-      <div className="relative rounded-full px-3 py-1" style={{ backgroundColor: PAL.reefDeep }}>
-        <span className="text-[10px] font-black tracking-wide text-white whitespace-nowrap">{text}</span>
-        <span className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2.5 h-2.5 rotate-45" style={{ backgroundColor: PAL.reefDeep }} />
-      </div>
-    </div>
-  )
-}
-
-// one unit's map: a soft island shape holding up to 4 stops connected by a
-// dotted trail. Only the unit the kid is currently in (plus a locked peek at
-// the next one) gets this treatment — this is the whole fix for "the list
-// looks endless": a kid only ever sees one small island at a time.
 // an actual irregular island outline (not a stretched CSS border-radius
 // oval, which flattens into an egg once it's inside a wide short box)
 const ISLAND_OUTLINE =
@@ -273,8 +250,11 @@ const ISLAND_OUTLINE =
   'C 145,25 148,45 140,60 C 133,74 138,88 120,93 C 100,99 80,90 65,94 ' +
   'C 45,99 25,92 15,78 C 6,68 12,62 8,55 Z'
 
+// the "neighborhood": the one or two lessons just finished, the current
+// lesson, and what's coming right after — shown as a few scattered stops
+// on an island. No connecting line, no label bubble — just where you are.
 function IslandMap({
-  skills, currentSkillId, progressMap, isUnlockedFn, isCompleteFn, onTap, t, dir, previewLocked = false,
+  skills, currentSkillId, progressMap, isUnlockedFn, isCompleteFn, onTap, t, dir,
 }: {
   skills: Skill[]
   currentSkillId: string | null
@@ -284,34 +264,26 @@ function IslandMap({
   onTap: (s: Skill, unlocked: boolean) => void
   t: Record<string, string>
   dir: 'ltr' | 'rtl'
-  previewLocked?: boolean
 }) {
   const pts = skills.map((_, i) => ISLAND_POSITIONS[i % ISLAND_POSITIONS.length])
-  // node positions are in 0–100 % of the container; convert to the 150×100
-  // viewBox the island outline is drawn in, so the connector line lines up
-  // with the actual node positions exactly (both share one coordinate math).
-  const toViewBox = (p: { x: number; y: number }) => ({ x: (p.x / 100) * 150, y: p.y })
-  const pathD = buildIslandPath(pts.slice(0, skills.length).map(toViewBox))
 
   return (
     <div className="relative w-full mb-6 max-w-[460px] mx-auto" style={{ aspectRatio: '3 / 2' }}>
       <svg viewBox="0 0 150 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
-        <path d={ISLAND_OUTLINE} fill={previewLocked ? PAL.lagoonFill : '#DCEFFB'} />
-        <path d={pathD} fill="none" stroke={PAL.reefDeep} strokeOpacity={previewLocked ? 0.18 : 0.35} strokeWidth={1.4} strokeDasharray="0.5 3" strokeLinecap="round" />
+        <path d={ISLAND_OUTLINE} fill="#DCEFFB" />
       </svg>
 
       {skills.map((s, i) => {
         const pos = pts[i]
         const px = dir === 'rtl' ? 100 - pos.x : pos.x
-        const unlocked = previewLocked ? false : isUnlockedFn(s)
-        const complete = previewLocked ? false : isCompleteFn(s.id)
-        const isCurrent = !previewLocked && s.id === currentSkillId
+        const unlocked = isUnlockedFn(s)
+        const complete = isCompleteFn(s.id)
+        const isCurrent = s.id === currentSkillId
         const bg = complete || (unlocked && !isCurrent) ? PAL.reef : isCurrent ? PAL.gold : PAL.white
         const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.current : cleanTitle(s.title)
 
         return (
           <div key={s.id} className="absolute" style={{ left: `${px}%`, top: `${pos.y}%`, transform: 'translate(-50%,-50%)' }}>
-            {isCurrent && <IslandBubble text={t.jumpTag} />}
             <IslandNode
               locked={!unlocked}
               bg={bg}
@@ -367,55 +339,23 @@ function IslandNode({ locked, bg, isCurrent, complete, label, onClick }: {
   )
 }
 
-// finished and locked units collapse to one quiet line — only the unit
-// you're actually working through gets the full island-map treatment.
-function CompactUnitRow({
-  unitNumber, title, doneCount, total, mode, expanded, onToggle,
-}: {
-  unitNumber: number
-  title?: string
-  doneCount: number
-  total: number
-  mode: 'done' | 'locked'
-  expanded: boolean
-  onToggle: () => void
-}) {
-  const locked = mode === 'locked'
-  const [shake, setShake] = useState(false)
-  const handleClick = () => {
-    if (locked) { setShake(true); window.setTimeout(() => setShake(false), 400); return }
-    onToggle()
-  }
+// one row per finished lesson — its own real title, nothing borrowed or
+// grouped. Tapping it reopens that lesson for review.
+function CompletedRow({ skill, onClick }: { skill: Skill; onClick: () => void }) {
   return (
     <button
       type="button"
-      onClick={handleClick}
-      aria-disabled={locked}
-      className={cn('w-full flex items-center gap-3 px-3 py-2.5 mb-2 rounded-2xl text-start transition-colors', !locked && 'hover:bg-white')}
-      style={{ opacity: locked ? 0.55 : 1, animation: shake ? 'shakeX 0.4s ease' : undefined }}
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-2xl text-start transition-colors hover:bg-white"
     >
-      <span
-        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-        style={{ backgroundColor: locked ? PAL.lagoonFill : PAL.reef }}
-      >
-        {locked ? <Icon kind="lock" className="w-3.5 h-3.5" style={{ color: PAL.inkSoft }} /> : <Icon kind="check" className="w-3.5 h-3.5" style={{ color: PAL.white }} />}
+      <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.reef }}>
+        <Icon kind="check" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
       </span>
       <span className="text-sm font-bold truncate flex-1 min-w-0" style={{ color: PAL.inkSoft }}>
-        {t_unit_label(unitNumber, title)}
+        {cleanTitle(skill.title)}
       </span>
-      {!locked && (
-        <>
-          <span className="text-xs font-black shrink-0" style={{ color: PAL.reefDeep }}>{doneCount}/{total}</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" className="shrink-0 transition-transform" style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}>
-            <path d="M6 9l6 6 6-6" fill="none" stroke={PAL.inkSoft} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </>
-      )}
     </button>
   )
-}
-function t_unit_label(unitNumber: number, title?: string) {
-  return title ? `${cleanTitle(title)}` : `Unit ${unitNumber}`
 }
 
 function SideCard({ children }: { children: React.ReactNode }) {
@@ -527,9 +467,7 @@ export default function SkillsClient({
   const [firstIncompleteLessonId, setFirstIncompleteLessonId] = useState<string | null>(initialFirstIncompleteLessonId)
   const [showPicker, setShowPicker] = useState(false)
   const [switching, setSwitching] = useState(false)
-  const [expandedUnits, setExpandedUnits] = useState<Set<number>>(new Set())
 
-  const currentCardRef = useRef<HTMLButtonElement | null>(null)
   const pickerRef = useRef<HTMLDivElement | null>(null)
 
   const progressMap = useMemo(
@@ -551,8 +489,13 @@ export default function SkillsClient({
   const allDone = orderedSkills.length > 0 && orderedSkills.every(s => isComplete(s.id))
 
   const currentSkillIdx = currentSkill ? orderedSkills.findIndex(s => s.id === currentSkill.id) : -1
-  const currentUnitNumber = currentSkillIdx >= 0 ? Math.floor(currentSkillIdx / UNIT_SIZE) + 1 : 1
-  const totalUnits = orderedSkills.length > 0 ? Math.ceil(orderedSkills.length / UNIT_SIZE) : 1
+  const doneCountTotal = orderedSkills.filter(s => isComplete(s.id)).length
+  // the "neighborhood" shown on the island: the lesson just before the
+  // current one (for continuity) plus the current one and what follows —
+  // nothing about this is a fake "unit", it's just nearby stops.
+  const islandStart = currentSkillIdx >= 0 ? Math.max(0, currentSkillIdx - 1) : 0
+  const islandSkills = orderedSkills.slice(islandStart, islandStart + 4)
+  const completedBefore = orderedSkills.slice(0, islandStart).filter(s => isComplete(s.id))
 
   useEffect(() => {
     if (!showPicker) return
@@ -562,10 +505,6 @@ export default function SkillsClient({
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [showPicker])
-
-  useEffect(() => {
-    currentCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-  }, [activeTrackId])
 
   const handleTrackSelect = async (trackId: string) => {
     if (trackId === activeTrackId) { setShowPicker(false); return }
@@ -636,7 +575,7 @@ export default function SkillsClient({
               </h1>
             )}
             <p className="text-xs sm:text-sm font-bold truncate" style={{ color: PAL.inkSoft }}>
-              {t.unit} {currentUnitNumber} {t.of} {totalUnits}
+              {doneCountTotal} {t.of} {orderedSkills.length} {orderedSkills.length === 1 ? t.lesson : t.lessons}
             </p>
           </div>
 
@@ -701,64 +640,20 @@ export default function SkillsClient({
                 t={t}
               />
 
-              {orderedSkills.map((skill, idx) => {
-                const startsNewUnit = idx % UNIT_SIZE === 0
-                if (!startsNewUnit) return null
-                const unitNumber = Math.floor(idx / UNIT_SIZE) + 1
-                const unitSkills = orderedSkills.slice(idx, idx + UNIT_SIZE)
-                const unitDoneCount = unitSkills.filter(s => isComplete(s.id)).length
-                const isCurrentUnit = unitNumber === currentUnitNumber
-                const isFinishedUnit = !isCurrentUnit && unitDoneCount === unitSkills.length
-                const isNextPeekUnit = !isCurrentUnit && !isFinishedUnit && unitNumber === currentUnitNumber + 1
-                const isFutureUnit = !isCurrentUnit && !isFinishedUnit && !isNextPeekUnit
-                const expanded = expandedUnits.has(unitNumber)
-                const showIsland = isCurrentUnit || isNextPeekUnit || (isFinishedUnit && expanded)
+              {completedBefore.map(skill => (
+                <CompletedRow key={skill.id} skill={skill} onClick={() => handleCardTap(skill, true)} />
+              ))}
 
-                if (!showIsland) {
-                  return (
-                    <CompactUnitRow
-                      key={`unit-${unitNumber}`}
-                      unitNumber={unitNumber}
-                      title={unitSkills[0]?.title}
-                      doneCount={unitDoneCount}
-                      total={unitSkills.length}
-                      mode={isFutureUnit ? 'locked' : 'done'}
-                      expanded={expanded}
-                      onToggle={() => {
-                        setExpandedUnits(prev => {
-                          const next = new Set(prev)
-                          next.has(unitNumber) ? next.delete(unitNumber) : next.add(unitNumber)
-                          return next
-                        })
-                      }}
-                    />
-                  )
-                }
-
-                return (
-                  <div key={`unit-${unitNumber}`}>
-                    <div className="flex items-center gap-3 px-3 py-2.5 mb-1">
-                      <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] font-black text-white" style={{ backgroundColor: isNextPeekUnit ? PAL.lagoonFill : PAL.reef }}>
-                        {isNextPeekUnit ? <Icon kind="lock" className="w-3.5 h-3.5" style={{ color: PAL.inkSoft }} /> : unitNumber}
-                      </span>
-                      <span className="text-sm font-bold truncate" style={{ color: PAL.inkSoft, opacity: isNextPeekUnit ? 0.6 : 1 }}>
-                        {unitSkills[0] ? cleanTitle(unitSkills[0].title) : ''}
-                      </span>
-                    </div>
-                    <IslandMap
-                      skills={unitSkills}
-                      currentSkillId={currentSkillId}
-                      progressMap={progressMap}
-                      isUnlockedFn={isUnlocked}
-                      isCompleteFn={isComplete}
-                      onTap={handleCardTap}
-                      t={t}
-                      dir={dir}
-                      previewLocked={isNextPeekUnit}
-                    />
-                  </div>
-                )
-              })}
+              <IslandMap
+                skills={islandSkills}
+                currentSkillId={currentSkillId}
+                progressMap={progressMap}
+                isUnlockedFn={isUnlocked}
+                isCompleteFn={isComplete}
+                onTap={handleCardTap}
+                t={t}
+                dir={dir}
+              />
             </>
           ) : null}
 
