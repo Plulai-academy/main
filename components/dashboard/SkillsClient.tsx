@@ -235,12 +235,15 @@ function ContinueCard({
   )
 }
 
-// fixed scatter layout for up to 4 nodes per island
+// a natural winding layout for up to 5 stops (in the same 0–100 % space
+// used for node positioning; converted to the island's 150×100 viewBox
+// separately so the trail lines up with the nodes exactly)
 const ISLAND_POSITIONS = [
-  { x: 66, y: 16 },
-  { x: 28, y: 40 },
-  { x: 66, y: 64 },
-  { x: 30, y: 88 },
+  { x: 15, y: 62 },
+  { x: 40, y: 22 },
+  { x: 72, y: 38 },
+  { x: 58, y: 74 },
+  { x: 88, y: 58 },
 ]
 
 // an actual irregular island outline (not a stretched CSS border-radius
@@ -250,9 +253,27 @@ const ISLAND_OUTLINE =
   'C 145,25 148,45 140,60 C 133,74 138,88 120,93 C 100,99 80,90 65,94 ' +
   'C 45,99 25,92 15,78 C 6,68 12,62 8,55 Z'
 
+// smooth curve through each stop (Catmull-Rom → cubic Bezier) so the trail
+// reads as a winding path, not a ruler-straight line between dots
+function buildSmoothPath(points: { x: number; y: number }[]) {
+  if (points.length < 2) return ''
+  if (points.length === 2) return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`
+  let d = `M ${points[0].x} ${points[0].y}`
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] ?? points[i]
+    const p1 = points[i]
+    const p2 = points[i + 1]
+    const p3 = points[i + 2] ?? p2
+    const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6
+    const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`
+  }
+  return d
+}
+
 // the "neighborhood": the one or two lessons just finished, the current
-// lesson, and what's coming right after — shown as a few scattered stops
-// on an island. No connecting line, no label bubble — just where you are.
+// lesson, and what's coming right after — shown as a handful of stops
+// on a winding trail across one small island.
 function IslandMap({
   skills, currentSkillId, progressMap, isUnlockedFn, isCompleteFn, onTap, t, dir,
 }: {
@@ -266,11 +287,14 @@ function IslandMap({
   dir: 'ltr' | 'rtl'
 }) {
   const pts = skills.map((_, i) => ISLAND_POSITIONS[i % ISLAND_POSITIONS.length])
+  const toViewBox = (p: { x: number; y: number }) => ({ x: (p.x / 100) * 150, y: p.y })
+  const trailD = buildSmoothPath(pts.map(toViewBox))
 
   return (
     <div className="relative w-full mb-6 max-w-[460px] mx-auto" style={{ aspectRatio: '3 / 2' }}>
       <svg viewBox="0 0 150 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
         <path d={ISLAND_OUTLINE} fill="#DCEFFB" />
+        <path d={trailD} fill="none" stroke={PAL.reefDeep} strokeOpacity={0.4} strokeWidth={1.6} strokeDasharray="0.5 3.2" strokeLinecap="round" />
       </svg>
 
       {skills.map((s, i) => {
@@ -324,7 +348,8 @@ function IslandNode({ locked, bg, isCurrent, complete, label, onClick }: {
         height: isCurrent ? 60 : 52,
         borderRadius: '9999px',
         backgroundColor: bg,
-        boxShadow: isCurrent ? `0 0 0 4px ${PAL.gold}44, 0 3px 0 ${PAL.goldDeep}` : '0 2px 0 rgba(41,57,74,0.12)',
+        border: '3px solid white',
+        boxShadow: isCurrent ? `0 0 0 4px ${PAL.gold}33, 0 6px 14px rgba(41,57,74,0.25)` : '0 4px 10px rgba(41,57,74,0.18)',
         animation: shake ? 'shakeX 0.4s ease' : undefined,
       }}
     >
@@ -355,6 +380,41 @@ function CompletedRow({ skill, onClick }: { skill: Skill; onClick: () => void })
         {cleanTitle(skill.title)}
       </span>
     </button>
+  )
+}
+
+// finished lessons collapse into ONE line by default — this is the actual
+// fix for "too much scrolling": a kid never has to scroll past a list of
+// everything they've already done just to reach today's stop. Tapping it
+// opens the full list for anyone who wants to revisit something.
+function CompletedSummary({ skills, t, onTapSkill }: { skills: Skill[]; t: Record<string, string>; onTapSkill: (s: Skill) => void }) {
+  const [open, setOpen] = useState(false)
+  if (skills.length === 0) return null
+  return (
+    <div className="mb-3">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-colors hover:bg-white"
+      >
+        <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.reef }}>
+          <Icon kind="check" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
+        </span>
+        <span className="text-sm font-bold flex-1 min-w-0 text-start" style={{ color: PAL.inkSoft }}>
+          {skills.length} {skills.length === 1 ? t.lesson : t.lessons} {t.completed.toLowerCase()}
+        </span>
+        <svg width="14" height="14" viewBox="0 0 24 24" className="shrink-0 transition-transform" style={{ transform: open ? 'rotate(180deg)' : 'none' }}>
+          <path d="M6 9l6 6 6-6" fill="none" stroke={PAL.inkSoft} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div className="mt-1 ps-2">
+          {skills.map(skill => (
+            <CompletedRow key={skill.id} skill={skill} onClick={() => onTapSkill(skill)} />
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -494,7 +554,7 @@ export default function SkillsClient({
   // current one (for continuity) plus the current one and what follows —
   // nothing about this is a fake "unit", it's just nearby stops.
   const islandStart = currentSkillIdx >= 0 ? Math.max(0, currentSkillIdx - 1) : 0
-  const islandSkills = orderedSkills.slice(islandStart, islandStart + 4)
+  const islandSkills = orderedSkills.slice(islandStart, islandStart + 5)
   const completedBefore = orderedSkills.slice(0, islandStart).filter(s => isComplete(s.id))
 
   useEffect(() => {
@@ -640,9 +700,7 @@ export default function SkillsClient({
                 t={t}
               />
 
-              {completedBefore.map(skill => (
-                <CompletedRow key={skill.id} skill={skill} onClick={() => handleCardTap(skill, true)} />
-              ))}
+              <CompletedSummary skills={completedBefore} t={t} onTapSkill={(skill) => handleCardTap(skill, true)} />
 
               <IslandMap
                 skills={islandSkills}
