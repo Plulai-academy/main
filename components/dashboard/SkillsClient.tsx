@@ -1,22 +1,23 @@
 'use client'
 // components/dashboard/SkillsClient.tsx
 //
-// REDESIGN v7 — back to the actual reference screenshots
-// ─────────────────────────────────────────────────────────
-// This drops every experimental concept (reef growth, single-focus play
-// screen, voxel/pearl-diver) and rebuilds the same visual grammar as the
-// screenshots originally provided:
-//   - a solid-color streak card with a row of flame pips (Monfy)
-//   - a white "weekly challenge" card: title + progress bar + a solid
-//     colored claim/play pill button (Monfy)
-//   - colorful course-style cards with a progress bar per lesson,
-//     grouped in rows per unit (Weraq's "recently played courses")
-//   - a plain ranked list for the leaderboard (Weraq's list style)
+// REDESIGN v9 — "an adventure, not a course list"
+// ───────────────────────────────────────────────
+// Adds the piece every prior version was missing: a voice. A hero banner
+// greets the kid by name, a companion character delivers a rotating
+// encouraging message in a speech bubble, and the learning path is now a
+// wide illustrated landscape (sky, clouds, soft mountain silhouettes)
+// instead of a small isolated blob — closer to "opening a world" than
+// "opening a lesson list."
 //
-// Palette = the Energetic-mode brief: Lagoon / Reef bright / Sun gold /
-// Coral / Lagoon fill / Ink.
+// `characterImageUrl` is a real prop — plug in your own character art here.
+// If it's not provided, the banner still works (sky + greeting + stats),
+// it just won't have a character illustration.
 //
-// All props, hooks, and routing logic are unchanged from the original.
+// Everything from the last round is preserved: no fake unit grouping,
+// finished lessons collapse into one line by default, the current
+// neighborhood is a handful of stops on a curved trail, not a wall of
+// content.
 import { useMemo, useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -24,40 +25,68 @@ import { setCurrentTrack } from '@/app/dashboard/path/actions'
 
 const UI: Record<string, Record<string, string>> = {
   en: {
-    play: 'Play', continuePlaying: 'Continue playing', jumpTag: 'PLAY',
-    lessonOf: 'Lesson', of: 'of', streakDays: 'day streak', coins: 'Coins',
-    locked: 'Locked', completed: 'Completed', current: 'Up next', lesson: 'lesson', lessons: 'lessons',
+    play: 'Play', continuePlaying: 'Continue playing',
+    lessonOf: 'Lesson', of: 'of', streakDays: 'day streak',
+    locked: 'Locked', completed: 'Completed', current: 'Up next', now: 'Now',
+    lesson: 'lesson', lessons: 'lessons', mission: 'mission', missions: 'missions',
     allDone: 'World complete!', allDoneSub: "You've cleared every level here.",
     switching: 'Loading…', back: 'Back',
     leaderboard: 'Leaderboard', viewAll: 'See all', you: 'You',
     dailyQuests: 'Weekly quest', dailyChallenges: 'Daily challenge',
     challengeDone: 'Claimed 🎉', challengeCheck: 'Claim reward',
-    unit: 'Unit',
+    heroSubtitle: 'Big ideas start with small steps.',
+    pathHeading: 'Your Learning Path', pathSubtitle: 'Complete missions, unlock new skills.',
+    level: 'Level', totalXp: 'Total XP',
   },
   ar: {
-    play: 'العب', continuePlaying: 'كمّل من وين وقفت', jumpTag: 'العب',
-    lessonOf: 'الدرس', of: 'من', streakDays: 'أيام متتالية', coins: 'رصيدك',
-    locked: 'مقفل', completed: 'مكتمل', current: 'التالي', lesson: 'درس', lessons: 'دروس',
+    play: 'العب', continuePlaying: 'كمّل من وين وقفت',
+    lessonOf: 'الدرس', of: 'من', streakDays: 'أيام متتالية',
+    locked: 'مقفل', completed: 'مكتمل', current: 'التالي', now: 'الآن',
+    lesson: 'درس', lessons: 'دروس', mission: 'مهمة', missions: 'مهام',
     allDone: 'أنهيت هذا العالم! 🏆', allDoneSub: 'أكملت كل المستويات هنا.',
     switching: 'جارٍ التحميل…', back: 'رجوع',
     leaderboard: 'لوحة الصدارة', viewAll: 'عرض الكل', you: 'أنت',
     dailyQuests: 'تحدي الأسبوع', dailyChallenges: 'تحدي اليوم',
     challengeDone: 'تم التحصيل 🎉', challengeCheck: 'تحصيل المكافأة',
-    unit: 'الوحدة',
+    heroSubtitle: 'الأفكار الكبيرة تبدأ بخطوات صغيرة.',
+    pathHeading: 'خريطة رحلتك', pathSubtitle: 'أكمل المهام وافتح مهارات جديدة.',
+    level: 'المستوى', totalXp: 'مجموع النقاط',
   },
   fr: {
-    play: 'Jouer', continuePlaying: 'Continuer', jumpTag: 'JOUER',
-    lessonOf: 'Leçon', of: 'sur', streakDays: 'jours de suite', coins: 'Pièces',
-    locked: 'Verrouillé', completed: 'Terminé', current: 'À suivre', lesson: 'leçon', lessons: 'leçons',
+    play: 'Jouer', continuePlaying: 'Continuer',
+    lessonOf: 'Leçon', of: 'sur', streakDays: 'jours de suite',
+    locked: 'Verrouillé', completed: 'Terminé', current: 'À suivre', now: 'Maintenant',
+    lesson: 'leçon', lessons: 'leçons', mission: 'mission', missions: 'missions',
     allDone: 'Monde terminé !', allDoneSub: 'Tu as fini tous les niveaux ici.',
     switching: 'Chargement…', back: 'Retour',
     leaderboard: 'Classement', viewAll: 'Tout voir', you: 'Toi',
     dailyQuests: 'Défi de la semaine', dailyChallenges: 'Défi du jour',
     challengeDone: 'Réclamé 🎉', challengeCheck: 'Réclamer',
-    unit: 'Unité',
+    heroSubtitle: 'Les grandes idées commencent par de petits pas.',
+    pathHeading: 'Ton parcours', pathSubtitle: 'Termine des missions, débloque de nouvelles compétences.',
+    level: 'Niveau', totalXp: 'XP total',
   },
 }
 
+// rotating companion messages — one picked per day so it feels alive
+// without needing any backend support
+const MASCOT_MSGS: Record<string, string[]> = {
+  en: [
+    "You're doing great! Every line of code, every idea, makes you stronger.",
+    'One more step, one more win — keep going!',
+    "Mistakes mean you're learning. Proud of you!",
+  ],
+  ar: [
+    'أنت رائع! كل سطر كود وكل فكرة تجعلك أقوى.',
+    'خطوة كمان، وانتصار كمان — كمّل!',
+    'الأخطاء معناها إنك بتتعلم. إحنا فخورين فيك!',
+  ],
+  fr: [
+    'Tu assures ! Chaque ligne de code, chaque idée te rend plus fort.',
+    'Encore un pas, encore une victoire — continue !',
+    "Se tromper, c'est apprendre. On est fiers de toi !",
+  ],
+}
 
 interface Track    { id: string; name: string; emoji: string; color: string }
 interface Skill    { id: string; track_id: string; title: string; emoji: string; description: string; xp_reward: number; sort_order: number; required_nodes: string[] }
@@ -91,6 +120,12 @@ interface Props {
   dailyQuest?: DailyQuest
   dailyChallenge?: DailyChallenge | null
   totalTimeMins?: number
+  /** kid's display name for the hero greeting; greeting is generic if omitted */
+  userName?: string
+  /** your own character illustration — rendered in the hero banner if provided */
+  characterImageUrl?: string
+  /** shown as the signature under the mascot's speech-bubble message */
+  mascotName?: string
 }
 
 const PAL = {
@@ -105,6 +140,9 @@ const PAL = {
   ink: '#29394A',
   inkSoft: '#5C7080',
   white: '#FFFFFF',
+  sky: '#BEE7F5',
+  mountainFar: '#A9C9E8',
+  mountainNear: '#7FA9D6',
 }
 
 // strips internal content-ops labels like "S3 — " or "S12 - " from a title
@@ -113,7 +151,7 @@ function cleanTitle(title: string) {
   return title.replace(/^\s*S\d+\s*[—-]\s*/i, '').trim() || title
 }
 
-type IconKind = 'lock' | 'check' | 'flame' | 'gem' | 'play'
+type IconKind = 'lock' | 'check' | 'flame' | 'gem' | 'play' | 'chevronR'
 
 function Icon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
   const common = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const }
@@ -128,6 +166,8 @@ function Icon({ kind, className, style }: { kind: IconKind; className?: string; 
       return <svg {...common}><path d="M6 4h12l3 5-9 11L3 9l3-5Zm1.8 2L5.5 9h4.9L7.8 6Zm3.4 0-2.4 3h6.4l-2.4-3h-1.6Zm3.4 0-2.3 3h4.9L14.6 6ZM6.2 11l4.9 7-4-7h-.9Zm11.6 0h-.9l-4 7 4.9-7ZM9.4 11l2.6 6.5L14.6 11H9.4Z"/></svg>
     case 'play':
       return <svg {...common}><path d="M8 5v14l11-7L8 5Z"/></svg>
+    case 'chevronR':
+      return <svg {...common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
   }
 }
 
@@ -147,47 +187,139 @@ function XpBadge({ xp }: { xp: number }) {
   )
 }
 
-// ── streak card: solid color, flame count + row of 7 flame pips (Monfy) ──
-function StreakCard({ streak, t }: { streak: number; t: Record<string, string> }) {
+// ── Hero banner: greeting, character slot, mascot speech bubble, stats ──
+function HeroBanner({
+  userName, characterImageUrl, mascotName, mascotMsg, streak, level, totalXp, t,
+  activeTrack, tracks, showPicker, setShowPicker, pickerRef, onSelectTrack, activeTrackId,
+}: {
+  userName?: string
+  characterImageUrl?: string
+  mascotName?: string
+  mascotMsg: string
+  streak: number
+  level: number
+  totalXp: number
+  t: Record<string, string>
+  activeTrack: Track | null
+  tracks: Track[]
+  showPicker: boolean
+  setShowPicker: (v: boolean | ((p: boolean) => boolean)) => void
+  pickerRef: React.RefObject<HTMLDivElement>
+  onSelectTrack: (id: string) => void
+  activeTrackId: string | null
+}) {
   return (
-    <div className="flex-1 min-w-0 rounded-2xl sm:rounded-3xl p-3 sm:p-4" style={{ backgroundColor: PAL.coral }}>
-      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-2.5">
-        <Icon kind="flame" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" style={{ color: PAL.white }} />
-        <span className="font-black text-white text-xl sm:text-2xl leading-none">{streak}</span>
-        <span className="text-white/85 font-bold text-[11px] sm:text-xs truncate">{t.streakDays}</span>
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-4" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.lagoon} 100%)` }}>
+      {/* ambient sky decoration */}
+      <div aria-hidden className="absolute inset-0 pointer-events-none">
+        <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 90, height: 40, top: 18, left: '8%' }} />
+        <span className="absolute rounded-full bg-white/50 blur-md" style={{ width: 60, height: 28, top: 40, left: '22%' }} />
+        <span className="absolute rounded-full bg-white/45 blur-md" style={{ width: 70, height: 30, top: 14, right: '30%' }} />
       </div>
-      <div className="flex items-center gap-1 flex-wrap">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <span
-            key={i}
-            className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center shrink-0"
-            style={{ backgroundColor: i < Math.min(streak, 7) ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.22)' }}
-          >
-            {i < Math.min(streak, 7) && <Icon kind="flame" className="w-2 h-2 sm:w-2.5 sm:h-2.5" style={{ color: PAL.coralDeep }} />}
-          </span>
-        ))}
+
+      <div className="relative flex items-start justify-between gap-3 px-4 sm:px-6 pt-4 sm:pt-5">
+        <div className="min-w-0">
+          <h1 className="font-black text-xl sm:text-2xl md:text-3xl leading-tight truncate" style={{ color: PAL.ink }}>
+            {userName ? `Hello ${userName} 👋` : 'Welcome back 👋'}
+          </h1>
+          <p className="text-xs sm:text-sm font-bold mt-0.5" style={{ color: PAL.inkSoft }}>{t.heroSubtitle}</p>
+        </div>
+
+        {activeTrack && (
+          <div className="relative shrink-0" ref={pickerRef}>
+            <button
+              onClick={() => setShowPicker(v => !v)}
+              aria-label="Switch track"
+              className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 bg-white/80 rounded-2xl transition-transform hover:-translate-y-0.5"
+              style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)' }}
+            >
+              <span className="text-base">{activeTrack.emoji}</span>
+            </button>
+            {showPicker && (
+              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white rounded-2xl overflow-hidden z-30" style={{ boxShadow: '0 8px 24px rgba(41,57,74,0.14)' }}>
+                {tracks.map(tr => (
+                  <button
+                    key={tr.id}
+                    onClick={() => onSelectTrack(tr.id)}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
+                    style={{ backgroundColor: tr.id === activeTrackId ? PAL.lagoon : 'transparent' }}
+                  >
+                    <span>{tr.emoji}</span>
+                    <span className="flex-1 font-bold truncate">{tr.name}</span>
+                    {tr.id === activeTrackId && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PAL.reef }} />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* stat chips */}
+      <div className="relative flex flex-wrap gap-2 px-4 sm:px-6 mt-3">
+        <div className="flex items-center gap-1.5 bg-white/85 rounded-full px-3 py-1.5">
+          <Icon kind="flame" className="w-3.5 h-3.5" style={{ color: PAL.coral }} />
+          <span className="text-xs font-black" style={{ color: PAL.ink }}>{streak} {t.streakDays}</span>
+        </div>
+        <div className="flex items-center gap-1.5 bg-white/85 rounded-full px-3 py-1.5">
+          <Icon kind="gem" className="w-3.5 h-3.5" style={{ color: PAL.gold }} />
+          <span className="text-xs font-black" style={{ color: PAL.ink }}>{totalXp} {t.totalXp}</span>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5" style={{ backgroundColor: PAL.ink }}>
+          <span className="text-xs font-black text-white">{t.level} {level}</span>
+        </div>
+      </div>
+
+      {/* character + mascot bubble */}
+      <div className="relative flex items-end justify-end gap-3 px-4 sm:px-6 pb-3" style={{ minHeight: characterImageUrl ? 120 : 0 }}>
+        <div className="flex-1 min-w-0 mb-4 flex justify-end">
+          <div className="relative bg-white rounded-2xl px-3.5 py-2.5 max-w-[240px]" style={{ boxShadow: '0 2px 8px rgba(41,57,74,0.12)' }}>
+            <p className="text-[11px] sm:text-xs font-bold leading-snug" style={{ color: PAL.ink }}>{mascotMsg}</p>
+            {mascotName && <p className="text-[10px] font-black mt-1" style={{ color: PAL.reefDeep }}>— {mascotName}</p>}
+            <span className="absolute -bottom-1.5 right-6 w-3 h-3 rotate-45 bg-white" />
+          </div>
+        </div>
+        {characterImageUrl && (
+          <img src={characterImageUrl} alt="" className="h-24 sm:h-32 w-auto object-contain object-bottom shrink-0" />
+        )}
       </div>
     </div>
   )
 }
 
-// ── balance card: solid color, big number (Monfy's "current balance") ───
-function CoinsCard({ gems, t }: { gems: number; t: Record<string, string> }) {
+// ── quick topic chip: a shortcut into a nearby lesson ──
+function TopicChip({ skill, locked, tint, onClick, label }: {
+  skill: Skill
+  locked: boolean
+  tint: { bg: string; icon: string }
+  onClick: () => void
+  label: string
+}) {
   return (
-    <div className="flex-1 min-w-0 rounded-2xl sm:rounded-3xl p-3 sm:p-4" style={{ backgroundColor: PAL.ink }}>
-      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-2.5">
-        <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.gold }}>
-          <Icon kind="gem" className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" style={{ color: PAL.white }} />
-        </span>
-        <span className="font-black text-white text-xl sm:text-2xl leading-none">{gems}</span>
-      </div>
-      <p className="text-white/70 font-bold text-[11px] sm:text-xs">{t.coins}</p>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-disabled={locked}
+      aria-label={label}
+      className={cn('flex items-center gap-2 rounded-2xl pl-2 pr-3 py-2 shrink-0 transition-transform', !locked && 'hover:-translate-y-0.5')}
+      style={{ backgroundColor: locked ? PAL.lagoonFill : tint.bg, opacity: locked ? 0.7 : 1 }}
+    >
+      <span className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-base" style={{ backgroundColor: locked ? PAL.white : tint.icon }}>
+        {locked ? <Icon kind="lock" className="w-3.5 h-3.5" style={{ color: PAL.inkSoft }} /> : (skill.emoji || '⭐')}
+      </span>
+      <span className="text-xs font-bold truncate max-w-[110px]" style={{ color: PAL.ink }}>{cleanTitle(skill.title)}</span>
+      <Icon kind="chevronR" className="w-3 h-3 shrink-0" style={{ color: PAL.inkSoft }} />
+    </button>
   )
 }
+
+const CHIP_TINTS = [
+  { bg: '#E8FBF7', icon: PAL.reef },
+  { bg: '#FFF6E3', icon: PAL.gold },
+  { bg: '#FFECEA', icon: PAL.coral },
+]
 
 // ── continue card: WHITE card, progress bar, solid claim/play button ────
-// (this mirrors Monfy's weekly-challenge card structure directly)
 function ContinueCard({
   skill, lessonIdx, lessonCount, pct, onPlay, onBack, t,
 }: {
@@ -235,26 +367,16 @@ function ContinueCard({
   )
 }
 
-// a natural winding layout for up to 5 stops (in the same 0–100 % space
-// used for node positioning; converted to the island's 150×100 viewBox
-// separately so the trail lines up with the nodes exactly)
-const ISLAND_POSITIONS = [
-  { x: 15, y: 62 },
-  { x: 40, y: 22 },
-  { x: 72, y: 38 },
-  { x: 58, y: 74 },
-  { x: 88, y: 58 },
+// a natural winding layout for up to 5 stops, spread left-to-right across
+// a wide landscape banner (0–100 % of the container in both axes)
+const PATH_POSITIONS = [
+  { x: 9, y: 58 },
+  { x: 27, y: 24 },
+  { x: 45, y: 62 },
+  { x: 63, y: 26 },
+  { x: 81, y: 54 },
 ]
 
-// an actual irregular island outline (not a stretched CSS border-radius
-// oval, which flattens into an egg once it's inside a wide short box)
-const ISLAND_OUTLINE =
-  'M 8,55 C 2,38 10,20 30,14 C 45,9 58,18 70,12 C 88,4 110,2 128,14 ' +
-  'C 145,25 148,45 140,60 C 133,74 138,88 120,93 C 100,99 80,90 65,94 ' +
-  'C 45,99 25,92 15,78 C 6,68 12,62 8,55 Z'
-
-// smooth curve through each stop (Catmull-Rom → cubic Bezier) so the trail
-// reads as a winding path, not a ruler-straight line between dots
 function buildSmoothPath(points: { x: number; y: number }[]) {
   if (points.length < 2) return ''
   if (points.length === 2) return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`
@@ -271,65 +393,12 @@ function buildSmoothPath(points: { x: number; y: number }[]) {
   return d
 }
 
-// the "neighborhood": the one or two lessons just finished, the current
-// lesson, and what's coming right after — shown as a handful of stops
-// on a winding trail across one small island.
-function IslandMap({
-  skills, currentSkillId, progressMap, isUnlockedFn, isCompleteFn, onTap, t, dir,
-}: {
-  skills: Skill[]
-  currentSkillId: string | null
-  progressMap: Record<string, number>
-  isUnlockedFn: (s: Skill) => boolean
-  isCompleteFn: (id: string) => boolean
-  onTap: (s: Skill, unlocked: boolean) => void
-  t: Record<string, string>
-  dir: 'ltr' | 'rtl'
-}) {
-  const pts = skills.map((_, i) => ISLAND_POSITIONS[i % ISLAND_POSITIONS.length])
-  const toViewBox = (p: { x: number; y: number }) => ({ x: (p.x / 100) * 150, y: p.y })
-  const trailD = buildSmoothPath(pts.map(toViewBox))
-
-  return (
-    <div className="relative w-full mb-6 max-w-[460px] mx-auto" style={{ aspectRatio: '3 / 2' }}>
-      <svg viewBox="0 0 150 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
-        <path d={ISLAND_OUTLINE} fill="#DCEFFB" />
-        <path d={trailD} fill="none" stroke={PAL.reefDeep} strokeOpacity={0.4} strokeWidth={1.6} strokeDasharray="0.5 3.2" strokeLinecap="round" />
-      </svg>
-
-      {skills.map((s, i) => {
-        const pos = pts[i]
-        const px = dir === 'rtl' ? 100 - pos.x : pos.x
-        const unlocked = isUnlockedFn(s)
-        const complete = isCompleteFn(s.id)
-        const isCurrent = s.id === currentSkillId
-        const bg = complete || (unlocked && !isCurrent) ? PAL.reef : isCurrent ? PAL.gold : PAL.white
-        const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.current : cleanTitle(s.title)
-
-        return (
-          <div key={s.id} className="absolute" style={{ left: `${px}%`, top: `${pos.y}%`, transform: 'translate(-50%,-50%)' }}>
-            <IslandNode
-              locked={!unlocked}
-              bg={bg}
-              isCurrent={isCurrent}
-              complete={complete}
-              label={label}
-              onClick={() => onTap(s, unlocked)}
-            />
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function IslandNode({ locked, bg, isCurrent, complete, label, onClick }: {
+function PathNode({ locked, bg, isCurrent, onClick, label }: {
   locked: boolean
   bg: string
   isCurrent: boolean
-  complete: boolean
-  label: string
   onClick: () => void
+  label: string
 }) {
   const [shake, setShake] = useState(false)
   const handleClick = () => {
@@ -342,10 +411,10 @@ function IslandNode({ locked, bg, isCurrent, complete, label, onClick }: {
       onClick={handleClick}
       aria-disabled={locked}
       aria-label={label}
-      className={cn('flex items-center justify-center transition-transform', !locked && 'active:scale-90')}
+      className={cn('flex items-center justify-center transition-transform shrink-0', !locked && 'active:scale-90')}
       style={{
-        width: isCurrent ? 60 : 52,
-        height: isCurrent ? 60 : 52,
+        width: isCurrent ? 56 : 48,
+        height: isCurrent ? 56 : 48,
         borderRadius: '9999px',
         backgroundColor: bg,
         border: '3px solid white',
@@ -356,11 +425,90 @@ function IslandNode({ locked, bg, isCurrent, complete, label, onClick }: {
       {locked ? (
         <Icon kind="lock" className="w-4 h-4" style={{ color: PAL.inkSoft }} />
       ) : isCurrent ? (
-        <svg viewBox="0 0 24 24" className="w-6 h-6" fill={PAL.white}><path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.4 6.5L12 17.3l-6 3.1 1.4-6.5L2.5 9.3l6.6-.7L12 2.5Z"/></svg>
+        <svg viewBox="0 0 24 24" className="w-5 h-5" fill={PAL.white}><path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.4 6.5L12 17.3l-6 3.1 1.4-6.5L2.5 9.3l6.6-.7L12 2.5Z"/></svg>
       ) : (
-        <Icon kind="check" className="w-5 h-5" style={{ color: PAL.white }} />
+        <Icon kind="check" className="w-4 h-4" style={{ color: PAL.white }} />
       )}
     </button>
+  )
+}
+
+// the wide landscape path: sky, clouds, soft mountain silhouettes, and a
+// handful of labeled stops on a curved trail — the "neighborhood" around
+// where the kid actually is, not the whole curriculum at once.
+function PathBanner({
+  skills, currentSkillId, isUnlockedFn, isCompleteFn, onTap, t, dir,
+}: {
+  skills: Skill[]
+  currentSkillId: string | null
+  isUnlockedFn: (s: Skill) => boolean
+  isCompleteFn: (id: string) => boolean
+  onTap: (s: Skill, unlocked: boolean) => void
+  t: Record<string, string>
+  dir: 'ltr' | 'rtl'
+}) {
+  const pts = skills.map((_, i) => PATH_POSITIONS[i % PATH_POSITIONS.length])
+  const trailD = buildSmoothPath(pts)
+  const doneCount = skills.filter(s => isCompleteFn(s.id)).length
+
+  return (
+    <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 mb-6 bg-white" style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)', border: '1px solid rgba(41,57,74,0.06)' }}>
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="min-w-0">
+          <h3 className="font-black text-base flex items-center gap-2" style={{ color: PAL.ink }}>
+            🧭 {t.pathHeading}
+          </h3>
+          <p className="text-xs font-bold" style={{ color: PAL.inkSoft }}>{t.pathSubtitle}</p>
+        </div>
+        <span className="text-xs font-black shrink-0" style={{ color: PAL.reefDeep }}>
+          {doneCount}/{skills.length} {skills.length === 1 ? t.mission : t.missions}
+        </span>
+      </div>
+
+      <div className="no-scrollbar overflow-x-auto -mx-1 px-1">
+        <div className="relative min-w-[560px] h-[230px] rounded-2xl overflow-hidden" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.lagoon} 75%)` }}>
+          {/* ambient sky + mountains, purely decorative */}
+          <div aria-hidden className="absolute inset-0 pointer-events-none">
+            <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 70, height: 30, top: 16, left: '10%' }} />
+            <span className="absolute rounded-full bg-white/50 blur-md" style={{ width: 55, height: 24, top: 32, left: '55%' }} />
+            <span className="absolute rounded-full bg-white/50 blur-md" style={{ width: 60, height: 26, top: 10, left: '78%' }} />
+            <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute bottom-0 left-0 w-full h-[90px]">
+              <path d="M0 40 L0 26 L15 12 L28 24 L42 8 L58 22 L72 6 L88 20 L100 10 L100 40 Z" fill={PAL.mountainFar} opacity="0.5" />
+              <path d="M0 40 L0 32 L18 20 L34 30 L50 16 L66 28 L82 14 L100 26 L100 40 Z" fill={PAL.mountainNear} opacity="0.55" />
+            </svg>
+          </div>
+
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
+            <path d={trailD} fill="none" stroke={PAL.reefDeep} strokeOpacity={0.45} strokeWidth={0.9} strokeDasharray="0.5 2.4" strokeLinecap="round" />
+          </svg>
+
+          {skills.map((s, i) => {
+            const pos = pts[i]
+            const px = dir === 'rtl' ? 100 - pos.x : pos.x
+            const unlocked = isUnlockedFn(s)
+            const complete = isCompleteFn(s.id)
+            const isCurrent = s.id === currentSkillId
+            const bg = complete || (unlocked && !isCurrent) ? PAL.reef : isCurrent ? PAL.gold : PAL.white
+            const statusText = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.now : ''
+            const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.current : cleanTitle(s.title)
+
+            return (
+              <div
+                key={s.id}
+                className="absolute flex flex-col items-center"
+                style={{ left: `${px}%`, top: `${pos.y}%`, transform: 'translate(-50%,-50%)', width: 92 }}
+              >
+                <PathNode locked={!unlocked} bg={bg} isCurrent={isCurrent} onClick={() => onTap(s, unlocked)} label={label} />
+                <div className="mt-1 text-center">
+                  <p className="text-[10px] font-bold leading-tight truncate" style={{ color: PAL.ink, maxWidth: 90 }}>{cleanTitle(s.title)}</p>
+                  <p className="text-[9px] font-black" style={{ color: complete ? PAL.reefDeep : isCurrent ? PAL.goldDeep : PAL.inkSoft }}>{statusText}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -383,10 +531,8 @@ function CompletedRow({ skill, onClick }: { skill: Skill; onClick: () => void })
   )
 }
 
-// finished lessons collapse into ONE line by default — this is the actual
-// fix for "too much scrolling": a kid never has to scroll past a list of
-// everything they've already done just to reach today's stop. Tapping it
-// opens the full list for anyone who wants to revisit something.
+// finished lessons collapse into ONE line by default — a kid never has to
+// scroll past everything they've already done just to reach today's stop.
 function CompletedSummary({ skills, t, onTapSkill }: { skills: Skill[]; t: Record<string, string>; onTapSkill: (s: Skill) => void }) {
   const [open, setOpen] = useState(false)
   if (skills.length === 0) return null
@@ -516,6 +662,7 @@ export default function SkillsClient({
   userId, tracks = [], initialTrackId, skills = [], skillProgress = [], lessonCountMap = {},
   language, streak = 0, gems = 0, initialCurrentSkillId, initialFirstIncompleteLessonId,
   leaderboard = [], dailyQuest, dailyChallenge, totalTimeMins = 0,
+  userName, characterImageUrl, mascotName,
 }: Props) {
   const router = useRouter()
   const lang = (language || 'en') as 'en' | 'ar' | 'fr'
@@ -549,13 +696,24 @@ export default function SkillsClient({
   const allDone = orderedSkills.length > 0 && orderedSkills.every(s => isComplete(s.id))
 
   const currentSkillIdx = currentSkill ? orderedSkills.findIndex(s => s.id === currentSkill.id) : -1
-  const doneCountTotal = orderedSkills.filter(s => isComplete(s.id)).length
-  // the "neighborhood" shown on the island: the lesson just before the
-  // current one (for continuity) plus the current one and what follows —
-  // nothing about this is a fake "unit", it's just nearby stops.
   const islandStart = currentSkillIdx >= 0 ? Math.max(0, currentSkillIdx - 1) : 0
   const islandSkills = orderedSkills.slice(islandStart, islandStart + 5)
   const completedBefore = orderedSkills.slice(0, islandStart).filter(s => isComplete(s.id))
+
+  // global-ish stats for the hero banner, computed from real data (not fabricated):
+  // total XP earned across every completed skill, and a simple level heuristic
+  // derived from it. Tune the divisor server-side once you have a real leveling
+  // curve — this is a placeholder that's at least grounded in real numbers.
+  const totalXp = useMemo(
+    () => skills.reduce((sum, s) => (isComplete(s.id) ? sum + (s.xp_reward || 0) : sum), 0),
+    [skills, progressMap],
+  )
+  const level = 1 + Math.floor(totalXp / 500)
+
+  const mascotMsg = useMemo(() => {
+    const msgs = MASCOT_MSGS[lang] ?? MASCOT_MSGS.en
+    return msgs[new Date().getDate() % msgs.length]
+  }, [lang])
 
   useEffect(() => {
     if (!showPicker) return
@@ -623,57 +781,27 @@ export default function SkillsClient({
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Cairo:wght@600;700;800;900&display=swap');
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes shakeX { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
       ` }} />
 
-      {/* ── Header ── */}
-      <div className="px-3 sm:px-6 lg:px-8 pt-4 sm:pt-7 pb-4 max-w-[1100px] mx-auto w-full">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            {activeTrack && (
-              <h1 className="font-black text-xl sm:text-2xl md:text-3xl leading-tight truncate flex items-center gap-2">
-                <span>{activeTrack.emoji}</span>{activeTrack.name}
-              </h1>
-            )}
-            <p className="text-xs sm:text-sm font-bold truncate" style={{ color: PAL.inkSoft }}>
-              {doneCountTotal} {t.of} {orderedSkills.length} {orderedSkills.length === 1 ? t.lesson : t.lessons}
-            </p>
-          </div>
-
-          {activeTrack && (
-            <div className="relative shrink-0" ref={pickerRef}>
-              <button
-                onClick={() => setShowPicker(v => !v)}
-                aria-label="Switch track"
-                className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 bg-white rounded-2xl transition-transform hover:-translate-y-0.5"
-                style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)', border: '1px solid rgba(41,57,74,0.08)' }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill={PAL.inkSoft}><path d="M7 10l5 5 5-5z"/></svg>
-              </button>
-              {showPicker && (
-                <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 sm:w-64 bg-white rounded-2xl overflow-hidden z-30" style={{ boxShadow: '0 8px 24px rgba(41,57,74,0.14)' }}>
-                  {tracks.map(tr => (
-                    <button
-                      key={tr.id}
-                      onClick={() => handleTrackSelect(tr.id)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
-                      style={{ backgroundColor: tr.id === activeTrackId ? PAL.lagoon : 'transparent' }}
-                    >
-                      <span>{tr.emoji}</span>
-                      <span className="flex-1 font-bold truncate">{tr.name}</span>
-                      {tr.id === activeTrackId && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PAL.reef }} />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* streak + coins — solid color stat cards, straight from Monfy */}
-        <div className="flex gap-2.5 sm:gap-3 mt-3 sm:mt-4">
-          <StreakCard streak={streak} t={t} />
-          <CoinsCard gems={gems} t={t} />
-        </div>
+      <div className="px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 max-w-[1100px] mx-auto w-full">
+        <HeroBanner
+          userName={userName}
+          characterImageUrl={characterImageUrl}
+          mascotName={mascotName}
+          mascotMsg={mascotMsg}
+          streak={streak}
+          level={level}
+          totalXp={totalXp}
+          t={t}
+          activeTrack={activeTrack}
+          tracks={tracks}
+          showPicker={showPicker}
+          setShowPicker={setShowPicker}
+          pickerRef={pickerRef}
+          onSelectTrack={handleTrackSelect}
+          activeTrackId={activeTrackId}
+        />
       </div>
 
       <div className="flex flex-col lg:flex-row justify-center gap-6 px-3 sm:px-4 pb-12 max-w-[1100px] mx-auto w-full">
@@ -700,12 +828,29 @@ export default function SkillsClient({
                 t={t}
               />
 
+              <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1 mb-6">
+                {islandSkills.map(s => {
+                  const unlocked = isUnlocked(s)
+                  const isCurrent = s.id === currentSkillId
+                  const label = !unlocked ? t.locked : isComplete(s.id) ? t.completed : isCurrent ? t.current : cleanTitle(s.title)
+                  return (
+                    <TopicChip
+                      key={s.id}
+                      skill={s}
+                      locked={!unlocked}
+                      tint={CHIP_TINTS[orderedSkills.indexOf(s) % CHIP_TINTS.length]}
+                      onClick={() => handleCardTap(s, unlocked)}
+                      label={label}
+                    />
+                  )
+                })}
+              </div>
+
               <CompletedSummary skills={completedBefore} t={t} onTapSkill={(skill) => handleCardTap(skill, true)} />
 
-              <IslandMap
+              <PathBanner
                 skills={islandSkills}
                 currentSkillId={currentSkillId}
-                progressMap={progressMap}
                 isUnlockedFn={isUnlocked}
                 isCompleteFn={isComplete}
                 onTap={handleCardTap}
