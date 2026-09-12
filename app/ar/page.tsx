@@ -195,7 +195,7 @@ export default function LandingPageAr() {
                     لفصل دراسي.
                   </p>
                   <div className={styles.ctaRow}>
-                    <a href="/ar/auth/signup"><button className="btn btn-cta">ابدأ التجربة المجانية &larr;</button></a>
+                    <a href="/auth/signup"><button className="btn btn-cta">ابدأ التجربة المجانية &larr;</button></a>
                     <a href="#plans"><button className="btn btn-outline">شاهد باقة العائلة &larr;</button></a>
                   </div>
                 </>
