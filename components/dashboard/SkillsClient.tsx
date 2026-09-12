@@ -363,6 +363,7 @@ function CompactUnitRow({
 function t_unit_label(unitNumber: number, title?: string) {
   return title ? `${cleanTitle(title)}` : `Unit ${unitNumber}`
 }
+function UnitRow({
   unitNumber, title, doneCount, total, children, scrollerRef,
 }: {
   unitNumber: number
@@ -749,4 +750,4 @@ export default function SkillsClient({
       </div>
     </div>
   )
-}
+} 
