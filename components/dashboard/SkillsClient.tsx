@@ -266,6 +266,13 @@ function IslandBubble({ text }: { text: string }) {
 // dotted trail. Only the unit the kid is currently in (plus a locked peek at
 // the next one) gets this treatment — this is the whole fix for "the list
 // looks endless": a kid only ever sees one small island at a time.
+// an actual irregular island outline (not a stretched CSS border-radius
+// oval, which flattens into an egg once it's inside a wide short box)
+const ISLAND_OUTLINE =
+  'M 8,55 C 2,38 10,20 30,14 C 45,9 58,18 70,12 C 88,4 110,2 128,14 ' +
+  'C 145,25 148,45 140,60 C 133,74 138,88 120,93 C 100,99 80,90 65,94 ' +
+  'C 45,99 25,92 15,78 C 6,68 12,62 8,55 Z'
+
 function IslandMap({
   skills, currentSkillId, progressMap, isUnlockedFn, isCompleteFn, onTap, t, dir, previewLocked = false,
 }: {
@@ -280,20 +287,17 @@ function IslandMap({
   previewLocked?: boolean
 }) {
   const pts = skills.map((_, i) => ISLAND_POSITIONS[i % ISLAND_POSITIONS.length])
-  const pathD = buildIslandPath(pts)
+  // node positions are in 0–100 % of the container; convert to the 150×100
+  // viewBox the island outline is drawn in, so the connector line lines up
+  // with the actual node positions exactly (both share one coordinate math).
+  const toViewBox = (p: { x: number; y: number }) => ({ x: (p.x / 100) * 150, y: p.y })
+  const pathD = buildIslandPath(pts.slice(0, skills.length).map(toViewBox))
 
   return (
-    <div
-      className="relative w-full mb-6"
-      style={{
-        height: 280,
-        borderRadius: '58% 42% 51% 49% / 54% 44% 56% 46%',
-        backgroundColor: previewLocked ? PAL.lagoonFill : '#DCEFFB',
-        opacity: previewLocked ? 0.7 : 1,
-      }}
-    >
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
-        <path d={pathD} fill="none" stroke={PAL.reefDeep} strokeOpacity={previewLocked ? 0.15 : 0.35} strokeWidth={1.4} strokeDasharray="0.5 3" strokeLinecap="round" />
+    <div className="relative w-full mb-6 max-w-[460px] mx-auto" style={{ aspectRatio: '3 / 2' }}>
+      <svg viewBox="0 0 150 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
+        <path d={ISLAND_OUTLINE} fill={previewLocked ? PAL.lagoonFill : '#DCEFFB'} />
+        <path d={pathD} fill="none" stroke={PAL.reefDeep} strokeOpacity={previewLocked ? 0.18 : 0.35} strokeWidth={1.4} strokeDasharray="0.5 3" strokeLinecap="round" />
       </svg>
 
       {skills.map((s, i) => {
@@ -733,12 +737,14 @@ export default function SkillsClient({
 
                 return (
                   <div key={`unit-${unitNumber}`}>
-                    <p className="text-xs font-black tracking-wide uppercase truncate mb-1" style={{ color: PAL.inkSoft }}>
-                      {t.unit} {unitNumber}
-                    </p>
-                    <p className="font-black text-base mb-2" style={{ color: PAL.ink }}>
-                      {unitSkills[0] ? cleanTitle(unitSkills[0].title) : ''}
-                    </p>
+                    <div className="flex items-center gap-3 px-3 py-2.5 mb-1">
+                      <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] font-black text-white" style={{ backgroundColor: isNextPeekUnit ? PAL.lagoonFill : PAL.reef }}>
+                        {isNextPeekUnit ? <Icon kind="lock" className="w-3.5 h-3.5" style={{ color: PAL.inkSoft }} /> : unitNumber}
+                      </span>
+                      <span className="text-sm font-bold truncate" style={{ color: PAL.inkSoft, opacity: isNextPeekUnit ? 0.6 : 1 }}>
+                        {unitSkills[0] ? cleanTitle(unitSkills[0].title) : ''}
+                      </span>
+                    </div>
                     <IslandMap
                       skills={unitSkills}
                       currentSkillId={currentSkillId}
