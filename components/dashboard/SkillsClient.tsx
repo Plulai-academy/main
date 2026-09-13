@@ -625,7 +625,7 @@ function PathNode({
           ? PAL.reef
           : current
             ? PAL.white
-            : PAL.pearlWhite,
+            : PAL.lagoonFill,
         border: current
           ? `2.5px solid ${PAL.gold}`
           : `1.5px solid ${PAL.hairline}`,
