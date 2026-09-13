@@ -140,9 +140,10 @@ const PAL = {
   ink: '#29394A',
   inkSoft: '#5C7080',
   white: '#FFFFFF',
-  sky: '#BEE7F5',
-  mountainFar: '#A9C9E8',
-  mountainNear: '#7FA9D6',
+  sky: '#7FD4F2',
+  skyDeep: '#4FB9E8',
+  mountainFar: '#8FBBEE',
+  mountainNear: '#5C93DD',
 }
 
 // strips internal content-ops labels like "S3 — " or "S12 - " from a title
@@ -209,20 +210,28 @@ function HeroBanner({
   activeTrackId: string | null
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-4" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.lagoon} 100%)` }}>
-      {/* ambient sky decoration */}
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-4" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.skyDeep} 55%, ${PAL.lagoon} 100%)` }}>
+      {/* ambient sky decoration: clouds + a sun glow so the banner has life
+          even before any character art is added */}
       <div aria-hidden className="absolute inset-0 pointer-events-none">
-        <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 90, height: 40, top: 18, left: '8%' }} />
-        <span className="absolute rounded-full bg-white/50 blur-md" style={{ width: 60, height: 28, top: 40, left: '22%' }} />
-        <span className="absolute rounded-full bg-white/45 blur-md" style={{ width: 70, height: 30, top: 14, right: '30%' }} />
+        <span className="absolute rounded-full" style={{ width: 140, height: 140, top: -50, right: -30, background: `radial-gradient(circle, ${PAL.gold}55, transparent 70%)` }} />
+        <span className="absolute rounded-full bg-white/70 blur-md" style={{ width: 90, height: 40, top: 18, left: '8%' }} />
+        <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 60, height: 28, top: 44, left: '24%' }} />
+        <span className="absolute rounded-full bg-white/55 blur-md" style={{ width: 70, height: 30, top: 16, right: '34%' }} />
+        {!characterImageUrl && (
+          <svg viewBox="0 0 200 60" preserveAspectRatio="none" className="absolute bottom-0 right-0 w-1/2 h-16 sm:h-20 opacity-90">
+            <path d="M0 60 L0 40 L30 22 L55 34 L85 14 L115 30 L150 12 L180 28 L200 20 L200 60 Z" fill={PAL.mountainFar} opacity="0.5" />
+            <path d="M0 60 L0 46 L40 32 L70 42 L100 24 L130 38 L165 20 L200 34 L200 60 Z" fill={PAL.mountainNear} opacity="0.55" />
+          </svg>
+        )}
       </div>
 
       <div className="relative flex items-start justify-between gap-3 px-4 sm:px-6 pt-4 sm:pt-5">
         <div className="min-w-0">
-          <h1 className="font-black text-xl sm:text-2xl md:text-3xl leading-tight truncate" style={{ color: PAL.ink }}>
+          <h1 className="font-black text-2xl sm:text-3xl md:text-4xl leading-tight truncate" style={{ color: PAL.ink }}>
             {userName ? `Hello ${userName} 👋` : 'Welcome back 👋'}
           </h1>
-          <p className="text-xs sm:text-sm font-bold mt-0.5" style={{ color: PAL.inkSoft }}>{t.heroSubtitle}</p>
+          <p className="text-sm sm:text-base font-bold mt-0.5" style={{ color: PAL.inkSoft }}>{t.heroSubtitle}</p>
         </div>
 
         {activeTrack && (
@@ -230,10 +239,10 @@ function HeroBanner({
             <button
               onClick={() => setShowPicker(v => !v)}
               aria-label="Switch track"
-              className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 bg-white/80 rounded-2xl transition-transform hover:-translate-y-0.5"
-              style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)' }}
+              className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-white rounded-2xl transition-transform hover:-translate-y-0.5"
+              style={{ boxShadow: '0 3px 0 rgba(41,57,74,0.12)' }}
             >
-              <span className="text-base">{activeTrack.emoji}</span>
+              <span className="text-lg">{activeTrack.emoji}</span>
             </button>
             {showPicker && (
               <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white rounded-2xl overflow-hidden z-30" style={{ boxShadow: '0 8px 24px rgba(41,57,74,0.14)' }}>
@@ -255,25 +264,32 @@ function HeroBanner({
         )}
       </div>
 
-      {/* stat chips */}
-      <div className="relative flex flex-wrap gap-2 px-4 sm:px-6 mt-3">
-        <div className="flex items-center gap-1.5 bg-white/85 rounded-full px-3 py-1.5">
-          <Icon kind="flame" className="w-3.5 h-3.5" style={{ color: PAL.coral }} />
-          <span className="text-xs font-black" style={{ color: PAL.ink }}>{streak} {t.streakDays}</span>
+      {/* stat badges: chunky colored icon circles, not tiny inline glyphs */}
+      <div className="relative flex flex-wrap gap-2.5 px-4 sm:px-6 mt-4">
+        <div className="flex items-center gap-2 bg-white rounded-full pl-1.5 pr-3.5 py-1.5" style={{ boxShadow: '0 2px 0 rgba(41,57,74,0.1)' }}>
+          <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.coral }}>
+            <Icon kind="flame" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
+          </span>
+          <span className="text-sm font-black" style={{ color: PAL.ink }}>{streak} {t.streakDays}</span>
         </div>
-        <div className="flex items-center gap-1.5 bg-white/85 rounded-full px-3 py-1.5">
-          <Icon kind="gem" className="w-3.5 h-3.5" style={{ color: PAL.gold }} />
-          <span className="text-xs font-black" style={{ color: PAL.ink }}>{totalXp} {t.totalXp}</span>
+        <div className="flex items-center gap-2 bg-white rounded-full pl-1.5 pr-3.5 py-1.5" style={{ boxShadow: '0 2px 0 rgba(41,57,74,0.1)' }}>
+          <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.gold }}>
+            <Icon kind="gem" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
+          </span>
+          <span className="text-sm font-black" style={{ color: PAL.ink }}>{totalXp} {t.totalXp}</span>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5" style={{ backgroundColor: PAL.ink }}>
-          <span className="text-xs font-black text-white">{t.level} {level}</span>
+        <div className="flex items-center gap-2 rounded-full pl-1.5 pr-3.5 py-1.5" style={{ backgroundColor: PAL.ink, boxShadow: '0 2px 0 rgba(0,0,0,0.2)' }}>
+          <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.reef }}>
+            <span className="text-[11px] font-black" style={{ color: PAL.ink }}>★</span>
+          </span>
+          <span className="text-sm font-black text-white">{t.level} {level}</span>
         </div>
       </div>
 
       {/* character + mascot bubble — stacked on phones, side-by-side from sm up */}
-      <div className="relative flex flex-col sm:flex-row sm:items-end justify-center sm:justify-end gap-2 sm:gap-3 px-4 sm:px-6 pb-3 pt-1">
+      <div className="relative flex flex-col sm:flex-row sm:items-end justify-center sm:justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-4">
         <div className="min-w-0 flex justify-center sm:flex-1 sm:justify-end sm:mb-4">
-          <div className="relative bg-white rounded-2xl px-3.5 py-2.5 max-w-[280px] sm:max-w-[240px]" style={{ boxShadow: '0 2px 8px rgba(41,57,74,0.12)' }}>
+          <div className="relative bg-white rounded-2xl px-3.5 py-2.5 max-w-[280px] sm:max-w-[240px]" style={{ boxShadow: '0 3px 0 rgba(41,57,74,0.1)' }}>
             <p className="text-[11px] sm:text-xs font-bold leading-snug" style={{ color: PAL.ink }}>{mascotMsg}</p>
             {mascotName && <p className="text-[10px] font-black mt-1" style={{ color: PAL.reefDeep }}>— {mascotName}</p>}
             <span className="absolute -bottom-1.5 right-6 rtl:right-auto rtl:left-6 w-3 h-3 rotate-45 bg-white" />
@@ -314,9 +330,9 @@ function TopicChip({ skill, locked, tint, onClick, label }: {
 }
 
 const CHIP_TINTS = [
-  { bg: '#E8FBF7', icon: PAL.reef },
-  { bg: '#FFF6E3', icon: PAL.gold },
-  { bg: '#FFECEA', icon: PAL.coral },
+  { bg: '#D3F6EE', icon: PAL.reef },
+  { bg: '#FFECC2', icon: PAL.gold },
+  { bg: '#FFDAD4', icon: PAL.coral },
 ]
 
 // ── continue card: WHITE card, progress bar, solid claim/play button ────
@@ -474,7 +490,7 @@ function PathBanner({
       </div>
 
       <div className="no-scrollbar overflow-x-auto -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="relative min-w-[500px] sm:min-w-[560px] h-[230px] rounded-2xl overflow-hidden" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.lagoon} 75%)` }}>
+        <div className="relative min-w-[500px] sm:min-w-[560px] h-[230px] rounded-2xl overflow-hidden" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.skyDeep} 45%, ${PAL.lagoon} 85%)` }}>
           {/* ambient sky + mountains, purely decorative */}
           <div aria-hidden className="absolute inset-0 pointer-events-none">
             <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 70, height: 30, top: 16, left: '10%' }} />
@@ -786,7 +802,7 @@ export default function SkillsClient({
   )
 
   return (
-    <div dir={dir} className="min-h-screen w-full overflow-x-hidden font-[Baloo_2,Cairo,sans-serif]" style={{ backgroundColor: PAL.lagoon, color: PAL.ink }}>
+    <div dir={dir} className="min-h-screen w-full overflow-x-hidden" style={{ backgroundColor: PAL.lagoon, color: PAL.ink, fontFamily: "'Baloo 2', Cairo, sans-serif" }}>
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Cairo:wght@600;700;800;900&display=swap');
         .no-scrollbar::-webkit-scrollbar { display: none; }
