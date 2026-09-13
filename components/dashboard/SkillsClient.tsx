@@ -126,6 +126,10 @@ interface Props {
   characterImageUrl?: string
   /** shown as the signature under the mascot's speech-bubble message */
   mascotName?: string
+  /** the real total-XP figure from your backend — always prefer this over letting the component guess */
+  userTotalXp?: number
+  /** background image for the hero banner, replacing the gradient sky. See sizing notes on HeroBanner. */
+  heroBackgroundImageUrl?: string
 }
 
 const PAL = {
@@ -189,12 +193,29 @@ function XpBadge({ xp }: { xp: number }) {
 }
 
 // ── Hero banner: greeting, character slot, mascot speech bubble, stats ──
+//
+// RECOMMENDED IMAGE SIZE for `backgroundImageUrl`:
+//   - Aspect ratio ~3.2:1 (wide and short, like a banner) — the box itself
+//     is fluid-height (it grows with its content), so there's no single
+//     "correct" height, but designing for roughly this ratio avoids visible
+//     cropping on both very wide desktop screens and narrow phones.
+//   - Base size: 1600×500px. For crisp rendering on retina/high-DPI
+//     screens, export at 2x: 3200×1000px.
+//   - Format: JPG or WEBP for a photo/painted scene (smaller file size);
+//     PNG only if you need transparency.
+//   - Keep the most important visual content (character, focal point)
+//     centered — `background-position: center` is used, and edges may crop
+//     on unusual viewport widths.
+//   - Design it readable under a light wash: a semi-transparent white
+//     overlay sits on top of the image so the dark greeting text stays
+//     legible regardless of the image's own colors.
 function HeroBanner({
-  userName, characterImageUrl, mascotName, mascotMsg, streak, level, totalXp, t,
+  userName, characterImageUrl, backgroundImageUrl, mascotName, mascotMsg, streak, level, totalXp, t,
   activeTrack, tracks, showPicker, setShowPicker, pickerRef, onSelectTrack, activeTrackId,
 }: {
   userName?: string
   characterImageUrl?: string
+  backgroundImageUrl?: string
   mascotName?: string
   mascotMsg: string
   streak: number
@@ -210,15 +231,28 @@ function HeroBanner({
   activeTrackId: string | null
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-4" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.skyDeep} 55%, ${PAL.lagoon} 100%)` }}>
-      {/* ambient sky decoration: clouds + a sun glow — kept simple, the
-          mountain motif belongs to the path map below, not duplicated here */}
-      <div aria-hidden className="absolute inset-0 pointer-events-none">
-        <span className="absolute rounded-full" style={{ width: 140, height: 140, top: -50, right: -30, background: `radial-gradient(circle, ${PAL.gold}55, transparent 70%)` }} />
-        <span className="absolute rounded-full bg-white/70 blur-md" style={{ width: 90, height: 40, top: 18, left: '8%' }} />
-        <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 60, height: 28, top: 44, left: '24%' }} />
-        <span className="absolute rounded-full bg-white/55 blur-md" style={{ width: 70, height: 30, top: 16, right: '34%' }} />
-      </div>
+    <div
+      className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-4"
+      style={
+        backgroundImageUrl
+          ? { backgroundImage: `url(${backgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+          : { background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.skyDeep} 55%, ${PAL.lagoon} 100%)` }
+      }
+    >
+      {backgroundImageUrl && (
+        <div aria-hidden className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.25) 45%, rgba(255,255,255,0.55) 100%)' }} />
+      )}
+      {/* ambient sky decoration: clouds + a sun glow — only shown over the
+          plain gradient; skip it over a real background image so it
+          doesn't compete with the art */}
+      {!backgroundImageUrl && (
+        <div aria-hidden className="absolute inset-0 pointer-events-none">
+          <span className="absolute rounded-full" style={{ width: 140, height: 140, top: -50, right: -30, background: `radial-gradient(circle, ${PAL.gold}55, transparent 70%)` }} />
+          <span className="absolute rounded-full bg-white/70 blur-md" style={{ width: 90, height: 40, top: 18, left: '8%' }} />
+          <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 60, height: 28, top: 44, left: '24%' }} />
+          <span className="absolute rounded-full bg-white/55 blur-md" style={{ width: 70, height: 30, top: 16, right: '34%' }} />
+        </div>
+      )}
 
       <div className="relative flex items-start justify-between gap-3 px-4 sm:px-6 pt-4 sm:pt-5">
         <div className="min-w-0">
@@ -597,7 +631,7 @@ export default function SkillsClient({
   userId, tracks = [], initialTrackId, skills = [], skillProgress = [], lessonCountMap = {},
   language, streak = 0, gems = 0, initialCurrentSkillId, initialFirstIncompleteLessonId,
   leaderboard = [], dailyQuest, dailyChallenge, totalTimeMins = 0,
-  userName, characterImageUrl, mascotName,
+  userName, characterImageUrl, mascotName, userTotalXp, heroBackgroundImageUrl,
 }: Props) {
   const router = useRouter()
   const lang = (language || 'en') as 'en' | 'ar' | 'fr'
@@ -634,14 +668,21 @@ export default function SkillsClient({
   const islandStart = currentSkillIdx >= 0 ? Math.max(0, currentSkillIdx - 1) : 0
   const islandSkills = orderedSkills.slice(islandStart, islandStart + 5)
 
-  // global-ish stats for the hero banner, computed from real data (not fabricated):
-  // total XP earned across every completed skill, and a simple level heuristic
-  // derived from it. Tune the divisor server-side once you have a real leveling
-  // curve — this is a placeholder that's at least grounded in real numbers.
-  const totalXp = useMemo(
+  // Total XP shown in the hero banner MUST match the leaderboard, since
+  // they're the same stat shown twice. Priority order:
+  //   1. an explicit `userTotalXp` prop (the real number from your backend —
+  //      always prefer this if you have it)
+  //   2. the current user's own row in the leaderboard you're already
+  //      passing in (guaranteed consistent with what's shown there)
+  //   3. only as a last resort, a rough guess summing completed skills'
+  //      xp_reward — this WILL drift from the real total and shouldn't be
+  //      relied on once (1) or (2) is available
+  const leaderboardMe = leaderboard.find(e => e.is_current_user)
+  const fallbackXp = useMemo(
     () => skills.reduce((sum, s) => (isComplete(s.id) ? sum + (s.xp_reward || 0) : sum), 0),
     [skills, progressMap],
   )
+  const totalXp = userTotalXp ?? leaderboardMe?.xp ?? fallbackXp
   const level = 1 + Math.floor(totalXp / 500)
 
   const mascotMsg = useMemo(() => {
@@ -722,6 +763,7 @@ export default function SkillsClient({
         <HeroBanner
           userName={userName}
           characterImageUrl={characterImageUrl}
+          backgroundImageUrl={heroBackgroundImageUrl}
           mascotName={mascotName}
           mascotMsg={mascotMsg}
           streak={streak}
