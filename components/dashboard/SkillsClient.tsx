@@ -456,7 +456,7 @@ function PageHeader({
                   style={{
                     backgroundColor:
                       tr.id === activeTrackId
-                        ? PAL.pearlWhite
+                        ? PAL.lagoonFill
                         : 'transparent',
                   }}
                 >
