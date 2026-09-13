@@ -942,7 +942,7 @@ function QuestTeaser({
       <div className="flex items-center gap-3 mb-3">
         <span
           className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-          style={{ backgroundColor: PAL.pearlWhite }}
+          style={{ backgroundColor: PAL.lagoonFill }}
         >
           <Icon
             kind="gift"
@@ -971,7 +971,7 @@ function QuestTeaser({
       <div className="flex items-center gap-2">
         <div
           className="h-1.5 rounded-full overflow-hidden flex-1"
-          style={{ backgroundColor: PAL.pearlWhite }}
+          style={{ backgroundColor: PAL.lagoonFill }}
         >
           <div
             className="h-full rounded-full"
@@ -1265,7 +1265,7 @@ export default function SkillsClient({
       dir={dir}
       className="w-full min-h-screen"
       style={{
-        backgroundColor: PAL.pearlWhite,
+        backgroundColor: PAL.lagoonFill,
         color: PAL.ink,
         fontFamily,
       }}
