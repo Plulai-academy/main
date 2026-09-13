@@ -270,17 +270,17 @@ function HeroBanner({
         </div>
       </div>
 
-      {/* character + mascot bubble */}
-      <div className="relative flex items-end justify-end gap-3 px-4 sm:px-6 pb-3" style={{ minHeight: characterImageUrl ? 120 : 0 }}>
-        <div className="flex-1 min-w-0 mb-4 flex justify-end">
-          <div className="relative bg-white rounded-2xl px-3.5 py-2.5 max-w-[240px]" style={{ boxShadow: '0 2px 8px rgba(41,57,74,0.12)' }}>
+      {/* character + mascot bubble — stacked on phones, side-by-side from sm up */}
+      <div className="relative flex flex-col sm:flex-row sm:items-end justify-center sm:justify-end gap-2 sm:gap-3 px-4 sm:px-6 pb-3 pt-1">
+        <div className="min-w-0 flex justify-center sm:flex-1 sm:justify-end sm:mb-4">
+          <div className="relative bg-white rounded-2xl px-3.5 py-2.5 max-w-[280px] sm:max-w-[240px]" style={{ boxShadow: '0 2px 8px rgba(41,57,74,0.12)' }}>
             <p className="text-[11px] sm:text-xs font-bold leading-snug" style={{ color: PAL.ink }}>{mascotMsg}</p>
             {mascotName && <p className="text-[10px] font-black mt-1" style={{ color: PAL.reefDeep }}>— {mascotName}</p>}
-            <span className="absolute -bottom-1.5 right-6 w-3 h-3 rotate-45 bg-white" />
+            <span className="absolute -bottom-1.5 right-6 rtl:right-auto rtl:left-6 w-3 h-3 rotate-45 bg-white" />
           </div>
         </div>
         {characterImageUrl && (
-          <img src={characterImageUrl} alt="" className="h-24 sm:h-32 w-auto object-contain object-bottom shrink-0" />
+          <img src={characterImageUrl} alt="" className="h-20 sm:h-28 md:h-32 w-auto object-contain object-bottom shrink-0 mx-auto sm:mx-0" />
         )}
       </div>
     </div>
@@ -450,6 +450,14 @@ function PathBanner({
   const pts = skills.map((_, i) => PATH_POSITIONS[i % PATH_POSITIONS.length])
   const trailD = buildSmoothPath(pts)
   const doneCount = skills.filter(s => isCompleteFn(s.id)).length
+  const currentNodeRef = useRef<HTMLDivElement | null>(null)
+
+  // on phones the path is wider than the screen and scrolls horizontally —
+  // without this, a kid could land on the page and see only the far edge
+  // of the trail with no idea the current stop is off-screen.
+  useEffect(() => {
+    currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+  }, [currentSkillId])
 
   return (
     <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 mb-6 bg-white" style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)', border: '1px solid rgba(41,57,74,0.06)' }}>
@@ -465,8 +473,8 @@ function PathBanner({
         </span>
       </div>
 
-      <div className="no-scrollbar overflow-x-auto -mx-1 px-1">
-        <div className="relative min-w-[560px] h-[230px] rounded-2xl overflow-hidden" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.lagoon} 75%)` }}>
+      <div className="no-scrollbar overflow-x-auto -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="relative min-w-[500px] sm:min-w-[560px] h-[230px] rounded-2xl overflow-hidden" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.lagoon} 75%)` }}>
           {/* ambient sky + mountains, purely decorative */}
           <div aria-hidden className="absolute inset-0 pointer-events-none">
             <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 70, height: 30, top: 16, left: '10%' }} />
@@ -495,13 +503,14 @@ function PathBanner({
             return (
               <div
                 key={s.id}
+                ref={isCurrent ? currentNodeRef : undefined}
                 className="absolute flex flex-col items-center"
                 style={{ left: `${px}%`, top: `${pos.y}%`, transform: 'translate(-50%,-50%)', width: 92 }}
               >
                 <PathNode locked={!unlocked} bg={bg} isCurrent={isCurrent} onClick={() => onTap(s, unlocked)} label={label} />
-                <div className="mt-1 text-center">
-                  <p className="text-[10px] font-bold leading-tight truncate" style={{ color: PAL.ink, maxWidth: 90 }}>{cleanTitle(s.title)}</p>
-                  <p className="text-[9px] font-black" style={{ color: complete ? PAL.reefDeep : isCurrent ? PAL.goldDeep : PAL.inkSoft }}>{statusText}</p>
+                <div className="mt-1.5 text-center">
+                  <p className="text-[11px] font-bold leading-tight truncate" style={{ color: PAL.ink, maxWidth: 90 }}>{cleanTitle(s.title)}</p>
+                  <p className="text-[10px] font-black" style={{ color: complete ? PAL.reefDeep : isCurrent ? PAL.goldDeep : PAL.inkSoft }}>{statusText}</p>
                 </div>
               </div>
             )
@@ -828,7 +837,7 @@ export default function SkillsClient({
                 t={t}
               />
 
-              <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1 mb-6">
+              <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1 mb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {islandSkills.map(s => {
                   const unlocked = isUnlocked(s)
                   const isCurrent = s.id === currentSkillId
