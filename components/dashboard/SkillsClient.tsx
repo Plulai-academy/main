@@ -211,19 +211,13 @@ function HeroBanner({
 }) {
   return (
     <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-4" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.skyDeep} 55%, ${PAL.lagoon} 100%)` }}>
-      {/* ambient sky decoration: clouds + a sun glow so the banner has life
-          even before any character art is added */}
+      {/* ambient sky decoration: clouds + a sun glow — kept simple, the
+          mountain motif belongs to the path map below, not duplicated here */}
       <div aria-hidden className="absolute inset-0 pointer-events-none">
         <span className="absolute rounded-full" style={{ width: 140, height: 140, top: -50, right: -30, background: `radial-gradient(circle, ${PAL.gold}55, transparent 70%)` }} />
         <span className="absolute rounded-full bg-white/70 blur-md" style={{ width: 90, height: 40, top: 18, left: '8%' }} />
         <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 60, height: 28, top: 44, left: '24%' }} />
         <span className="absolute rounded-full bg-white/55 blur-md" style={{ width: 70, height: 30, top: 16, right: '34%' }} />
-        {!characterImageUrl && (
-          <svg viewBox="0 0 200 60" preserveAspectRatio="none" className="absolute bottom-0 right-0 w-1/2 h-16 sm:h-20 opacity-90">
-            <path d="M0 60 L0 40 L30 22 L55 34 L85 14 L115 30 L150 12 L180 28 L200 20 L200 60 Z" fill={PAL.mountainFar} opacity="0.5" />
-            <path d="M0 60 L0 46 L40 32 L70 42 L100 24 L130 38 L165 20 L200 34 L200 60 Z" fill={PAL.mountainNear} opacity="0.55" />
-          </svg>
-        )}
       </div>
 
       <div className="relative flex items-start justify-between gap-3 px-4 sm:px-6 pt-4 sm:pt-5">
@@ -302,38 +296,6 @@ function HeroBanner({
     </div>
   )
 }
-
-// ── quick topic chip: a shortcut into a nearby lesson ──
-function TopicChip({ skill, locked, tint, onClick, label }: {
-  skill: Skill
-  locked: boolean
-  tint: { bg: string; icon: string }
-  onClick: () => void
-  label: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-disabled={locked}
-      aria-label={label}
-      className={cn('flex items-center gap-2 rounded-2xl pl-2 pr-3 py-2 shrink-0 transition-transform', !locked && 'hover:-translate-y-0.5')}
-      style={{ backgroundColor: locked ? PAL.lagoonFill : tint.bg, opacity: locked ? 0.7 : 1 }}
-    >
-      <span className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-base" style={{ backgroundColor: locked ? PAL.white : tint.icon }}>
-        {locked ? <Icon kind="lock" className="w-3.5 h-3.5" style={{ color: PAL.inkSoft }} /> : (skill.emoji || '⭐')}
-      </span>
-      <span className="text-xs font-bold truncate max-w-[110px]" style={{ color: PAL.ink }}>{cleanTitle(skill.title)}</span>
-      <Icon kind="chevronR" className="w-3 h-3 shrink-0" style={{ color: PAL.inkSoft }} />
-    </button>
-  )
-}
-
-const CHIP_TINTS = [
-  { bg: '#D3F6EE', icon: PAL.reef },
-  { bg: '#FFECC2', icon: PAL.gold },
-  { bg: '#FFDAD4', icon: PAL.coral },
-]
 
 // ── continue card: WHITE card, progress bar, solid claim/play button ────
 function ContinueCard({
@@ -537,58 +499,6 @@ function PathBanner({
   )
 }
 
-// one row per finished lesson — its own real title, nothing borrowed or
-// grouped. Tapping it reopens that lesson for review.
-function CompletedRow({ skill, onClick }: { skill: Skill; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-2xl text-start transition-colors hover:bg-white"
-    >
-      <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.reef }}>
-        <Icon kind="check" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
-      </span>
-      <span className="text-sm font-bold truncate flex-1 min-w-0" style={{ color: PAL.inkSoft }}>
-        {cleanTitle(skill.title)}
-      </span>
-    </button>
-  )
-}
-
-// finished lessons collapse into ONE line by default — a kid never has to
-// scroll past everything they've already done just to reach today's stop.
-function CompletedSummary({ skills, t, onTapSkill }: { skills: Skill[]; t: Record<string, string>; onTapSkill: (s: Skill) => void }) {
-  const [open, setOpen] = useState(false)
-  if (skills.length === 0) return null
-  return (
-    <div className="mb-3">
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-colors hover:bg-white"
-      >
-        <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.reef }}>
-          <Icon kind="check" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
-        </span>
-        <span className="text-sm font-bold flex-1 min-w-0 text-start" style={{ color: PAL.inkSoft }}>
-          {skills.length} {skills.length === 1 ? t.lesson : t.lessons} {t.completed.toLowerCase()}
-        </span>
-        <svg width="14" height="14" viewBox="0 0 24 24" className="shrink-0 transition-transform" style={{ transform: open ? 'rotate(180deg)' : 'none' }}>
-          <path d="M6 9l6 6 6-6" fill="none" stroke={PAL.inkSoft} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      {open && (
-        <div className="mt-1 ps-2">
-          {skills.map(skill => (
-            <CompletedRow key={skill.id} skill={skill} onClick={() => onTapSkill(skill)} />
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
 function SideCard({ children }: { children: React.ReactNode }) {
   return <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5" style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)', border: '1px solid rgba(41,57,74,0.06)' }}>{children}</div>
 }
@@ -723,7 +633,6 @@ export default function SkillsClient({
   const currentSkillIdx = currentSkill ? orderedSkills.findIndex(s => s.id === currentSkill.id) : -1
   const islandStart = currentSkillIdx >= 0 ? Math.max(0, currentSkillIdx - 1) : 0
   const islandSkills = orderedSkills.slice(islandStart, islandStart + 5)
-  const completedBefore = orderedSkills.slice(0, islandStart).filter(s => isComplete(s.id))
 
   // global-ish stats for the hero banner, computed from real data (not fabricated):
   // total XP earned across every completed skill, and a simple level heuristic
@@ -852,26 +761,6 @@ export default function SkillsClient({
                 onBack={() => router.back()}
                 t={t}
               />
-
-              <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1 mb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
-                {islandSkills.map(s => {
-                  const unlocked = isUnlocked(s)
-                  const isCurrent = s.id === currentSkillId
-                  const label = !unlocked ? t.locked : isComplete(s.id) ? t.completed : isCurrent ? t.current : cleanTitle(s.title)
-                  return (
-                    <TopicChip
-                      key={s.id}
-                      skill={s}
-                      locked={!unlocked}
-                      tint={CHIP_TINTS[orderedSkills.indexOf(s) % CHIP_TINTS.length]}
-                      onClick={() => handleCardTap(s, unlocked)}
-                      label={label}
-                    />
-                  )
-                })}
-              </div>
-
-              <CompletedSummary skills={completedBefore} t={t} onTapSkill={(skill) => handleCardTap(skill, true)} />
 
               <PathBanner
                 skills={islandSkills}
