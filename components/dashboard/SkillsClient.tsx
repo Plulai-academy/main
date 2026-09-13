@@ -1,24 +1,23 @@
 'use client'
 // components/dashboard/SkillsClient.tsx
 //
-// REDESIGN v10 — "on-brand and grounded"
-// ───────────────────────────────────────
-// Same structure and behavior as v9, with a visual pass:
-//   1. Colors now come straight from the brand system (energetic/B2C
-//      palette for the app chrome, with the luxury palette's Depth /
-//      Pearl Gold used sparingly as a "premium" accent on Level, since a
-//      level number is the one stat that should feel a little special).
-//   2. The hero banner's mascot bubble no longer floats alone in a corner —
-//      if no `characterImageUrl` is given, a simple built-in mascot fills
-//      that seat so the speech bubble always has someone to point at.
-//   3. The path banner reads as an actual place: a ground band with a
-//      texture, a warmer sky, and a coral trail instead of a thin dashed
-//      line on a flat gradient.
-//   4. The continue card gets a coral edge + a small "current mission"
-//      marker so it doesn't read as a generic white rectangle.
+// REDESIGN v9 — "an adventure, not a course list"
+// ───────────────────────────────────────────────
+// Adds the piece every prior version was missing: a voice. A hero banner
+// greets the kid by name, a companion character delivers a rotating
+// encouraging message in a speech bubble, and the learning path is now a
+// wide illustrated landscape (sky, clouds, soft mountain silhouettes)
+// instead of a small isolated blob — closer to "opening a world" than
+// "opening a lesson list."
 //
-// `characterImageUrl` is still a real prop — plug in your own character
-// art here and it replaces the built-in mascot everywhere it appears.
+// `characterImageUrl` is a real prop — plug in your own character art here.
+// If it's not provided, the banner still works (sky + greeting + stats),
+// it just won't have a character illustration.
+//
+// Everything from the last round is preserved: no fake unit grouping,
+// finished lessons collapse into one line by default, the current
+// neighborhood is a handful of stops on a curved trail, not a wall of
+// content.
 import { useMemo, useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -123,7 +122,7 @@ interface Props {
   totalTimeMins?: number
   /** kid's display name for the hero greeting; greeting is generic if omitted */
   userName?: string
-  /** your own character illustration — rendered in the hero banner if provided. If omitted, a built-in mascot is used instead so the greeting never feels empty. */
+  /** your own character illustration — rendered in the hero banner if provided */
   characterImageUrl?: string
   /** shown as the signature under the mascot's speech-bubble message */
   mascotName?: string
@@ -133,35 +132,22 @@ interface Props {
   heroBackgroundImageUrl?: string
 }
 
-// ── Brand tokens ──────────────────────────────────────────────────────
-// Energetic / B2C palette drives the app chrome. The Luxury palette's
-// Depth + Pearl Gold are borrowed only for the Level badge — one small
-// "this stat is special" accent, not a second theme.
 const PAL = {
-  // energetic (kid-facing) palette
   lagoon: '#EAF7F4',
   lagoonFill: '#D9F1EC',
   reef: '#17D9C0',
-  reefDeep: '#0EA294',
+  reefDeep: '#0FA893',
   gold: '#FFB930',
-  goldDeep: '#C97D0C',
+  goldDeep: '#DB9410',
   coral: '#FF6B57',
   coralDeep: '#E24E3C',
-  error: '#E15B71',
   ink: '#29394A',
   inkSoft: '#5C7080',
   white: '#FFFFFF',
-  // luxury accents, used only for the Level badge + premium touches
-  depth: '#0D2B32',
-  pearlGold: '#D4A24C',
-  pearlWhite: '#F6F3EA',
-  // sky + landscape (kept in the reef/lagoon family so the banner and the
-  // path feel like the same world)
-  sky: '#6FCBEF',
-  skyDeep: '#2E9FD8',
-  mountainFar: '#8AC9E6',
-  mountainNear: '#3FA6D9',
-  groundNear: '#C9EEE6',
+  sky: '#7FD4F2',
+  skyDeep: '#4FB9E8',
+  mountainFar: '#8FBBEE',
+  mountainNear: '#5C93DD',
 }
 
 // strips internal content-ops labels like "S3 — " or "S12 - " from a title
@@ -170,7 +156,7 @@ function cleanTitle(title: string) {
   return title.replace(/^\s*S\d+\s*[—-]\s*/i, '').trim() || title
 }
 
-type IconKind = 'lock' | 'check' | 'flame' | 'gem' | 'play' | 'chevronR' | 'star'
+type IconKind = 'lock' | 'check' | 'flame' | 'gem' | 'play' | 'chevronR'
 
 function Icon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
   const common = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const }
@@ -185,32 +171,9 @@ function Icon({ kind, className, style }: { kind: IconKind; className?: string; 
       return <svg {...common}><path d="M6 4h12l3 5-9 11L3 9l3-5Zm1.8 2L5.5 9h4.9L7.8 6Zm3.4 0-2.4 3h6.4l-2.4-3h-1.6Zm3.4 0-2.3 3h4.9L14.6 6ZM6.2 11l4.9 7-4-7h-.9Zm11.6 0h-.9l-4 7 4.9-7ZM9.4 11l2.6 6.5L14.6 11H9.4Z"/></svg>
     case 'play':
       return <svg {...common}><path d="M8 5v14l11-7L8 5Z"/></svg>
-    case 'star':
-      return <svg {...common}><path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.4 6.5L12 17.3l-6 3.1 1.4-6.5L2.5 9.3l6.6-.7L12 2.5Z"/></svg>
     case 'chevronR':
       return <svg {...common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
   }
-}
-
-// built-in mascot, used whenever the caller doesn't supply their own
-// character art. Keeps the hero banner from ever feeling like the
-// speech bubble is talking to nobody.
-function DefaultMascot({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 120 130" className={className} aria-hidden>
-      <ellipse cx="60" cy="118" rx="30" ry="7" fill={PAL.ink} opacity="0.08" />
-      <path d="M60 12c26 0 44 19 44 46 0 24-13 45-44 60-31-15-44-36-44-60 0-27 18-46 44-46Z" fill={PAL.reef} />
-      <path d="M60 12c26 0 44 19 44 46 0 24-13 45-44 60V12Z" fill={PAL.reefDeep} opacity="0.35" />
-      <circle cx="42" cy="60" r="9" fill={PAL.white} />
-      <circle cx="78" cy="60" r="9" fill={PAL.white} />
-      <circle cx="44" cy="61" r="4.2" fill={PAL.ink} />
-      <circle cx="80" cy="61" r="4.2" fill={PAL.ink} />
-      <path d="M46 82c6 7 22 7 28 0" stroke={PAL.ink} strokeWidth="4" strokeLinecap="round" fill="none" />
-      <circle cx="30" cy="72" r="6" fill={PAL.coral} opacity="0.55" />
-      <circle cx="90" cy="72" r="6" fill={PAL.coral} opacity="0.55" />
-      <path d="M60 12c4-7 12-9 18-6-2 7-9 11-18 10Z" fill={PAL.gold} />
-    </svg>
-  )
 }
 
 function ProgressBar({ pct, track = PAL.lagoonFill, fill }: { pct: number; track?: string; fill: string }) {
@@ -273,7 +236,7 @@ function HeroBanner({
       style={
         backgroundImageUrl
           ? { backgroundImage: `url(${backgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-          : { background: `linear-gradient(165deg, ${PAL.sky} 0%, ${PAL.skyDeep} 60%, ${PAL.reef} 130%)` }
+          : { background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.skyDeep} 55%, ${PAL.lagoon} 100%)` }
       }
     >
       {backgroundImageUrl && (
@@ -284,19 +247,19 @@ function HeroBanner({
           doesn't compete with the art */}
       {!backgroundImageUrl && (
         <div aria-hidden className="absolute inset-0 pointer-events-none">
-          <span className="absolute rounded-full" style={{ width: 160, height: 160, top: -60, right: -30, background: `radial-gradient(circle, ${PAL.gold}66, transparent 70%)` }} />
+          <span className="absolute rounded-full" style={{ width: 140, height: 140, top: -50, right: -30, background: `radial-gradient(circle, ${PAL.gold}55, transparent 70%)` }} />
           <span className="absolute rounded-full bg-white/70 blur-md" style={{ width: 90, height: 40, top: 18, left: '8%' }} />
           <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 60, height: 28, top: 44, left: '24%' }} />
-          <span className="absolute rounded-full bg-white/55 blur-md" style={{ width: 70, height: 30, top: 16, right: '38%' }} />
+          <span className="absolute rounded-full bg-white/55 blur-md" style={{ width: 70, height: 30, top: 16, right: '34%' }} />
         </div>
       )}
 
       <div className="relative flex items-start justify-between gap-3 px-4 sm:px-6 pt-4 sm:pt-5">
         <div className="min-w-0">
-          <h1 className="font-black text-2xl sm:text-3xl md:text-4xl leading-tight truncate" style={{ color: PAL.depth }}>
+          <h1 className="font-black text-2xl sm:text-3xl md:text-4xl leading-tight truncate" style={{ color: PAL.ink }}>
             {userName ? `Hello ${userName} 👋` : 'Welcome back 👋'}
           </h1>
-          <p className="text-sm sm:text-base font-bold mt-0.5" style={{ color: PAL.ink, opacity: 0.75 }}>{t.heroSubtitle}</p>
+          <p className="text-sm sm:text-base font-bold mt-0.5" style={{ color: PAL.inkSoft }}>{t.heroSubtitle}</p>
         </div>
 
         {activeTrack && (
@@ -305,12 +268,12 @@ function HeroBanner({
               onClick={() => setShowPicker(v => !v)}
               aria-label="Switch track"
               className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-white rounded-2xl transition-transform hover:-translate-y-0.5"
-              style={{ boxShadow: '0 3px 0 rgba(13,43,50,0.18)' }}
+              style={{ boxShadow: '0 3px 0 rgba(41,57,74,0.12)' }}
             >
               <span className="text-lg">{activeTrack.emoji}</span>
             </button>
             {showPicker && (
-              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white rounded-2xl overflow-hidden z-30" style={{ boxShadow: '0 8px 24px rgba(13,43,50,0.22)' }}>
+              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white rounded-2xl overflow-hidden z-30" style={{ boxShadow: '0 8px 24px rgba(41,57,74,0.14)' }}>
                 {tracks.map(tr => (
                   <button
                     key={tr.id}
@@ -319,7 +282,7 @@ function HeroBanner({
                     style={{ backgroundColor: tr.id === activeTrackId ? PAL.lagoon : 'transparent' }}
                   >
                     <span>{tr.emoji}</span>
-                    <span className="flex-1 font-bold truncate" style={{ color: PAL.ink }}>{tr.name}</span>
+                    <span className="flex-1 font-bold truncate">{tr.name}</span>
                     {tr.id === activeTrackId && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PAL.reef }} />}
                   </button>
                 ))}
@@ -329,51 +292,46 @@ function HeroBanner({
         )}
       </div>
 
-      {/* stat badges: chunky colored icon circles. Level borrows the
-          luxury Depth + Pearl Gold pairing so it reads as the "premium"
-          stat among the three. */}
+      {/* stat badges: chunky colored icon circles, not tiny inline glyphs */}
       <div className="relative flex flex-wrap gap-2.5 px-4 sm:px-6 mt-4">
-        <div className="flex items-center gap-2 bg-white rounded-full pl-1.5 pr-3.5 py-1.5" style={{ boxShadow: '0 2px 0 rgba(13,43,50,0.16)' }}>
+        <div className="flex items-center gap-2 bg-white rounded-full pl-1.5 pr-3.5 py-1.5" style={{ boxShadow: '0 2px 0 rgba(41,57,74,0.1)' }}>
           <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.coral }}>
             <Icon kind="flame" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
           </span>
           <span className="text-sm font-black" style={{ color: PAL.ink }}>{streak} {t.streakDays}</span>
         </div>
-        <div className="flex items-center gap-2 bg-white rounded-full pl-1.5 pr-3.5 py-1.5" style={{ boxShadow: '0 2px 0 rgba(13,43,50,0.16)' }}>
+        <div className="flex items-center gap-2 bg-white rounded-full pl-1.5 pr-3.5 py-1.5" style={{ boxShadow: '0 2px 0 rgba(41,57,74,0.1)' }}>
           <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.gold }}>
             <Icon kind="gem" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
           </span>
-          <span className="text-sm font-black" style={{ color: PAL.ink }}>{totalXp.toLocaleString()} {t.totalXp}</span>
+          <span className="text-sm font-black" style={{ color: PAL.ink }}>{totalXp} {t.totalXp}</span>
         </div>
-        <div className="flex items-center gap-2 rounded-full pl-1.5 pr-3.5 py-1.5" style={{ backgroundColor: PAL.depth, boxShadow: '0 2px 0 rgba(0,0,0,0.25)' }}>
-          <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.pearlGold }}>
-            <Icon kind="star" className="w-3.5 h-3.5" style={{ color: PAL.depth }} />
+        <div className="flex items-center gap-2 rounded-full pl-1.5 pr-3.5 py-1.5" style={{ backgroundColor: PAL.ink, boxShadow: '0 2px 0 rgba(0,0,0,0.2)' }}>
+          <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.reef }}>
+            <span className="text-[11px] font-black" style={{ color: PAL.ink }}>★</span>
           </span>
-          <span className="text-sm font-black" style={{ color: PAL.pearlWhite }}>{t.level} {level}</span>
+          <span className="text-sm font-black text-white">{t.level} {level}</span>
         </div>
       </div>
 
-      {/* character + mascot bubble — always paired, even without custom
-          art, so the greeting never feels like it's talking to no one */}
+      {/* character + mascot bubble — stacked on phones, side-by-side from sm up */}
       <div className="relative flex flex-col sm:flex-row sm:items-end justify-center sm:justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-4">
-        <div className="min-w-0 flex justify-center sm:flex-1 sm:justify-end sm:mb-5">
-          <div className="relative bg-white rounded-2xl px-3.5 py-2.5 max-w-[280px] sm:max-w-[240px]" style={{ boxShadow: '0 3px 0 rgba(13,43,50,0.16)' }}>
+        <div className="min-w-0 flex justify-center sm:flex-1 sm:justify-end sm:mb-4">
+          <div className="relative bg-white rounded-2xl px-3.5 py-2.5 max-w-[280px] sm:max-w-[240px]" style={{ boxShadow: '0 3px 0 rgba(41,57,74,0.1)' }}>
             <p className="text-[11px] sm:text-xs font-bold leading-snug" style={{ color: PAL.ink }}>{mascotMsg}</p>
             {mascotName && <p className="text-[10px] font-black mt-1" style={{ color: PAL.reefDeep }}>— {mascotName}</p>}
             <span className="absolute -bottom-1.5 right-6 rtl:right-auto rtl:left-6 w-3 h-3 rotate-45 bg-white" />
           </div>
         </div>
-        {characterImageUrl ? (
+        {characterImageUrl && (
           <img src={characterImageUrl} alt="" className="h-20 sm:h-28 md:h-32 w-auto object-contain object-bottom shrink-0 mx-auto sm:mx-0" />
-        ) : (
-          <DefaultMascot className="h-20 sm:h-28 md:h-32 w-auto shrink-0 mx-auto sm:mx-0 drop-shadow-[0_6px_0_rgba(13,43,50,0.12)]" />
         )}
       </div>
     </div>
   )
 }
 
-// ── continue card: WHITE card with a coral edge, progress bar, play button
+// ── continue card: WHITE card, progress bar, solid claim/play button ────
 function ContinueCard({
   skill, lessonIdx, lessonCount, pct, onPlay, onBack, t,
 }: {
@@ -386,23 +344,18 @@ function ContinueCard({
   t: Record<string, string>
 }) {
   return (
-    <div
-      className="relative rounded-2xl sm:rounded-3xl p-4 sm:p-5 mb-6 bg-white overflow-hidden"
-      style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)', border: '1px solid rgba(41,57,74,0.06)' }}
-    >
-      <span aria-hidden className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 w-1.5" style={{ backgroundColor: PAL.coral }} />
-
+    <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 mb-6 bg-white" style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)', border: '1px solid rgba(41,57,74,0.06)' }}>
       <button onClick={onBack} className="flex items-center gap-1.5 mb-3 -ms-1 opacity-70 hover:opacity-100 transition-opacity">
         <svg width="15" height="15" viewBox="0 0 24 24" fill={PAL.inkSoft}><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
-        <span className="text-[11px] font-black tracking-wide" style={{ color: PAL.inkSoft }}>{t.continuePlaying}</span>
+        <span className="text-[11px] font-black tracking-wide uppercase" style={{ color: PAL.inkSoft }}>{t.continuePlaying}</span>
       </button>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="w-7 h-7 rounded-full flex items-center justify-center text-sm shrink-0" style={{ backgroundColor: PAL.lagoon }}>{skill.emoji}</span>
-            <h2 className="font-black text-lg leading-tight truncate min-w-0" style={{ color: PAL.ink }}>
-              {cleanTitle(skill.title)}
+            <h2 className="font-black text-lg leading-tight flex items-center gap-2 min-w-0" style={{ color: PAL.ink }}>
+              <span className="text-xl shrink-0">{skill.emoji}</span>
+              <span className="truncate">{cleanTitle(skill.title)}</span>
             </h2>
             <XpBadge xp={skill.xp_reward} />
           </div>
@@ -416,7 +369,7 @@ function ContinueCard({
           type="button"
           onClick={onPlay}
           className="shrink-0 w-full sm:w-auto rounded-2xl px-5 py-3 font-black text-sm flex items-center justify-center gap-1.5 text-white transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
-          style={{ backgroundColor: PAL.coral, boxShadow: `0 3px 0 ${PAL.coralDeep}` }}
+          style={{ backgroundColor: PAL.coral }}
         >
           <Icon kind="play" className="w-4 h-4" />
           {t.play}
@@ -477,14 +430,14 @@ function PathNode({ locked, bg, isCurrent, onClick, label }: {
         borderRadius: '9999px',
         backgroundColor: bg,
         border: '3px solid white',
-        boxShadow: isCurrent ? `0 0 0 4px ${PAL.gold}40, 0 6px 14px rgba(13,43,50,0.3)` : '0 4px 10px rgba(13,43,50,0.22)',
+        boxShadow: isCurrent ? `0 0 0 4px ${PAL.gold}33, 0 6px 14px rgba(41,57,74,0.25)` : '0 4px 10px rgba(41,57,74,0.18)',
         animation: shake ? 'shakeX 0.4s ease' : undefined,
       }}
     >
       {locked ? (
         <Icon kind="lock" className="w-4 h-4" style={{ color: PAL.inkSoft }} />
       ) : isCurrent ? (
-        <Icon kind="star" className="w-5 h-5" style={{ color: PAL.white }} />
+        <svg viewBox="0 0 24 24" className="w-5 h-5" fill={PAL.white}><path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.4 6.5L12 17.3l-6 3.1 1.4-6.5L2.5 9.3l6.6-.7L12 2.5Z"/></svg>
       ) : (
         <Icon kind="check" className="w-4 h-4" style={{ color: PAL.white }} />
       )}
@@ -492,10 +445,9 @@ function PathNode({ locked, bg, isCurrent, onClick, label }: {
   )
 }
 
-// the wide landscape path: sky, clouds, mountain silhouettes, a textured
-// ground band, and a handful of labeled stops on a curved trail — the
-// "neighborhood" around where the kid actually is, not the whole
-// curriculum at once.
+// the wide landscape path: sky, clouds, soft mountain silhouettes, and a
+// handful of labeled stops on a curved trail — the "neighborhood" around
+// where the kid actually is, not the whole curriculum at once.
 function PathBanner({
   skills, currentSkillId, isUnlockedFn, isCompleteFn, onTap, t, dir,
 }: {
@@ -528,39 +480,26 @@ function PathBanner({
           </h3>
           <p className="text-xs font-bold" style={{ color: PAL.inkSoft }}>{t.pathSubtitle}</p>
         </div>
-        <span className="text-xs font-black shrink-0 rounded-full px-2.5 py-1" style={{ color: PAL.reefDeep, backgroundColor: PAL.lagoon }}>
+        <span className="text-xs font-black shrink-0" style={{ color: PAL.reefDeep }}>
           {doneCount}/{skills.length} {skills.length === 1 ? t.mission : t.missions}
         </span>
       </div>
 
       <div className="no-scrollbar overflow-x-auto -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="relative min-w-[500px] sm:min-w-[560px] h-[230px] rounded-2xl overflow-hidden" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.skyDeep} 42%, ${PAL.groundNear} 82%)` }}>
-          {/* ambient sky + mountains + ground, purely decorative */}
+        <div className="relative min-w-[500px] sm:min-w-[560px] h-[230px] rounded-2xl overflow-hidden" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.skyDeep} 45%, ${PAL.lagoon} 85%)` }}>
+          {/* ambient sky + mountains, purely decorative */}
           <div aria-hidden className="absolute inset-0 pointer-events-none">
-            <span className="absolute rounded-full" style={{ width: 70, height: 70, top: -10, right: 24, background: `radial-gradient(circle, ${PAL.gold}77, transparent 70%)` }} />
             <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 70, height: 30, top: 16, left: '10%' }} />
             <span className="absolute rounded-full bg-white/50 blur-md" style={{ width: 55, height: 24, top: 32, left: '55%' }} />
             <span className="absolute rounded-full bg-white/50 blur-md" style={{ width: 60, height: 26, top: 10, left: '78%' }} />
-            <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute bottom-0 left-0 w-full h-[95px]">
-              <path d="M0 40 L0 26 L15 12 L28 24 L42 8 L58 22 L72 6 L88 20 L100 10 L100 40 Z" fill={PAL.mountainFar} opacity="0.55" />
-              <path d="M0 40 L0 32 L18 20 L34 30 L50 16 L66 28 L82 14 L100 26 L100 40 Z" fill={PAL.mountainNear} opacity="0.6" />
-            </svg>
-            {/* ground band with a soft dotted texture so the bottom edge
-                reads as grass/sand rather than a flat color fill */}
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
-              <circle cx="6" cy="94" r="1.1" fill={PAL.reef} opacity="0.35" />
-              <circle cx="18" cy="97" r="1.1" fill={PAL.reef} opacity="0.3" />
-              <circle cx="34" cy="93" r="1" fill={PAL.reef} opacity="0.3" />
-              <circle cx="52" cy="96" r="1.2" fill={PAL.reef} opacity="0.35" />
-              <circle cx="68" cy="93" r="1" fill={PAL.reef} opacity="0.3" />
-              <circle cx="84" cy="97" r="1.1" fill={PAL.reef} opacity="0.32" />
-              <circle cx="94" cy="93" r="1" fill={PAL.reef} opacity="0.3" />
+            <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute bottom-0 left-0 w-full h-[90px]">
+              <path d="M0 40 L0 26 L15 12 L28 24 L42 8 L58 22 L72 6 L88 20 L100 10 L100 40 Z" fill={PAL.mountainFar} opacity="0.5" />
+              <path d="M0 40 L0 32 L18 20 L34 30 L50 16 L66 28 L82 14 L100 26 L100 40 Z" fill={PAL.mountainNear} opacity="0.55" />
             </svg>
           </div>
 
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
-            <path d={trailD} fill="none" stroke={PAL.white} strokeOpacity={0.9} strokeWidth={1.3} strokeDasharray="0.2 3" strokeLinecap="round" />
-            <path d={trailD} fill="none" stroke={PAL.coral} strokeOpacity={0.55} strokeWidth={0.7} strokeDasharray="0.2 3" strokeLinecap="round" />
+            <path d={trailD} fill="none" stroke={PAL.reefDeep} strokeOpacity={0.45} strokeWidth={0.9} strokeDasharray="0.5 2.4" strokeLinecap="round" />
           </svg>
 
           {skills.map((s, i) => {
@@ -569,7 +508,7 @@ function PathBanner({
             const unlocked = isUnlockedFn(s)
             const complete = isCompleteFn(s.id)
             const isCurrent = s.id === currentSkillId
-            const bg = complete || (unlocked && !isCurrent) ? PAL.reef : isCurrent ? PAL.gold : PAL.lagoonFill
+            const bg = complete || (unlocked && !isCurrent) ? PAL.reef : isCurrent ? PAL.gold : PAL.white
             const statusText = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.now : ''
             const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.current : cleanTitle(s.title)
 
@@ -581,8 +520,8 @@ function PathBanner({
                 style={{ left: `${px}%`, top: `${pos.y}%`, transform: 'translate(-50%,-50%)', width: 92 }}
               >
                 <PathNode locked={!unlocked} bg={bg} isCurrent={isCurrent} onClick={() => onTap(s, unlocked)} label={label} />
-                <div className="mt-1.5 text-center rounded-lg px-1.5 py-0.5" style={{ backgroundColor: 'rgba(255,255,255,0.82)' }}>
-                  <p className="text-[11px] font-bold leading-tight truncate" style={{ color: PAL.ink, maxWidth: 88 }}>{cleanTitle(s.title)}</p>
+                <div className="mt-1.5 text-center">
+                  <p className="text-[11px] font-bold leading-tight truncate" style={{ color: PAL.ink, maxWidth: 90 }}>{cleanTitle(s.title)}</p>
                   <p className="text-[10px] font-black" style={{ color: complete ? PAL.reefDeep : isCurrent ? PAL.goldDeep : PAL.inkSoft }}>{statusText}</p>
                 </div>
               </div>
@@ -602,23 +541,14 @@ function SideHeader({ title, onViewAll, t }: { title: string; onViewAll?: () => 
   return (
     <div className="flex items-center justify-between mb-4">
       <h3 className="font-black text-base" style={{ color: PAL.ink }}>{title}</h3>
-      {onViewAll && <button onClick={onViewAll} className="text-xs font-black" style={{ color: PAL.coralDeep }}>{t.viewAll}</button>}
+      {onViewAll && <button onClick={onViewAll} className="text-xs font-black tracking-wide uppercase" style={{ color: PAL.coralDeep }}>{t.viewAll}</button>}
     </div>
   )
 }
 
-const MEDAL_COLORS: Record<number, string> = { 1: '#F0C36B', 2: '#C9D2DA', 3: '#D9A272' }
-
 function RankBadge({ rank }: { rank: number }) {
-  const medalColor = MEDAL_COLORS[rank]
-  return (
-    <div
-      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0"
-      style={medalColor ? { backgroundColor: medalColor, color: PAL.depth } : { backgroundColor: PAL.lagoonFill, color: PAL.inkSoft }}
-    >
-      {rank}
-    </div>
-  )
+  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
+  return <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-black shrink-0" style={{ backgroundColor: PAL.lagoonFill, color: PAL.inkSoft }}>{medal ?? rank}</div>
 }
 
 function LeaderboardAvatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
@@ -637,17 +567,13 @@ function LeaderboardCard({ entries, t, onViewAll }: { entries: LeaderboardEntry[
       <SideHeader title={t.leaderboard} onViewAll={onViewAll} t={t} />
       <div className="flex flex-col gap-1">
         {top.map(entry => (
-          <div
-            key={entry.id}
-            className="flex items-center gap-3 px-2 py-2 rounded-2xl"
-            style={entry.is_current_user ? { backgroundColor: PAL.lagoon, boxShadow: `inset 0 0 0 1.5px ${PAL.reef}55` } : undefined}
-          >
+          <div key={entry.id} className="flex items-center gap-3 px-2 py-2 rounded-2xl" style={entry.is_current_user ? { backgroundColor: PAL.lagoon } : undefined}>
             {entry.rank_global != null ? <RankBadge rank={entry.rank_global} /> : <div className="w-7 h-7 shrink-0" />}
             <LeaderboardAvatar name={entry.name} avatarUrl={entry.avatar_url} />
             <span className={cn('flex-1 min-w-0 truncate text-sm', entry.is_current_user ? 'font-black' : 'font-bold')} style={{ color: PAL.ink }}>
               {entry.is_current_user ? t.you : entry.name}
             </span>
-            <span className="text-xs font-black shrink-0" style={{ color: PAL.coralDeep }}>{entry.xp.toLocaleString()} XP</span>
+            <span className="text-xs font-black shrink-0" style={{ color: PAL.coralDeep }}>{entry.xp} XP</span>
           </div>
         ))}
       </div>
@@ -668,7 +594,7 @@ function QuestCard({ quest, t }: { quest: DailyQuest; t: Record<string, string> 
       <button
         type="button"
         disabled={pct < 100}
-        className="w-full rounded-2xl py-2.5 font-black text-sm transition-opacity"
+        className="w-full rounded-2xl py-2.5 font-black text-sm text-white transition-opacity"
         style={{ backgroundColor: pct >= 100 ? PAL.coral : PAL.lagoonFill, color: pct >= 100 ? PAL.white : PAL.inkSoft }}
       >
         {t.challengeCheck}
