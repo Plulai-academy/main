@@ -1,23 +1,23 @@
 'use client'
 // components/dashboard/SkillsClient.tsx
 //
-// REDESIGN v9 — "an adventure, not a course list"
-// ───────────────────────────────────────────────
-// Adds the piece every prior version was missing: a voice. A hero banner
-// greets the kid by name, a companion character delivers a rotating
-// encouraging message in a speech bubble, and the learning path is now a
-// wide illustrated landscape (sky, clouds, soft mountain silhouettes)
-// instead of a small isolated blob — closer to "opening a world" than
-// "opening a lesson list."
+// REDESIGN v15 — five islands, one quiet rail card
+// ────────────────────────────────────────────────
+// Two fixes from feedback:
 //
-// `characterImageUrl` is a real prop — plug in your own character art here.
-// If it's not provided, the banner still works (sky + greeting + stats),
-// it just won't have a character illustration.
+//   1. Every unit was rendering the exact same blob silhouette — fine
+//      once, boring by unit three. There are now 5 distinct island
+//      shapes (different silhouette, different scatter of stops,
+//      different soft color wash) that cycle by unit index, so a kid
+//      scrolling through several units actually sees different islands
+//      instead of the same shape re-skinned.
 //
-// Everything from the last round is preserved: no fake unit grouping,
-// finished lessons collapse into one line by default, the current
-// neighborhood is a handful of stops on a curved trail, not a wall of
-// content.
+//   2. The rail had three cards competing for attention (level/streak,
+//      weekly quest, leaderboard). Cut to just the one — level + streak
+//      + XP in a single badge, still tied visually to the hero. Quest
+//      and leaderboard are gone from this screen entirely; they can
+//      live on their own page/tab when you're ready to build it, this
+//      component just doesn't render them anymore.
 import { useMemo, useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -25,122 +25,29 @@ import { setCurrentTrack } from '@/app/dashboard/path/actions'
 
 const UI: Record<string, Record<string, string>> = {
   en: {
-    play: 'Play', continuePlaying: 'Continue playing',
-    lessonOf: 'Lesson', of: 'of', streakDays: 'day streak',
+    play: 'Play', lessonOf: 'Lesson', of: 'of', missions: 'missions', unit: 'Unit',
     locked: 'Locked', completed: 'Completed', current: 'Up next', now: 'Now',
-    lesson: 'lesson', lessons: 'lessons', mission: 'mission', missions: 'missions',
-    allDone: 'World complete!', allDoneSub: "You've cleared every level here.", tryNextTrack: 'Try',
-    switching: 'Loading…', back: 'Back',
-    leaderboard: 'Leaderboard', viewAll: 'See all', you: 'You',
-    dailyQuests: 'Weekly quest', dailyChallenges: 'Daily challenge',
-    challengeDone: 'Claimed 🎉', challengeCheck: 'Claim reward',
-    heroSubtitle: 'Big ideas start with small steps.',
-    pathHeading: 'Your Learning Path', pathSubtitle: 'Complete missions, unlock new skills.',
-    level: 'Level', totalXp: 'Total XP',
+    allDone: 'World complete!', allDoneSub: "You've cleared every level here.",
+    switching: 'Loading…',
+    hello: 'Hello', subtitle: "Let's pick up where you left off.",
+    streak: 'day streak', level: 'Level', totalXp: 'Total XP',
   },
   ar: {
-    play: 'العب', continuePlaying: 'كمّل من وين وقفت',
-    lessonOf: 'الدرس', of: 'من', streakDays: 'أيام متتالية',
+    play: 'العب', lessonOf: 'الدرس', of: 'من', missions: 'مهام', unit: 'الوحدة',
     locked: 'مقفل', completed: 'مكتمل', current: 'التالي', now: 'الآن',
-    lesson: 'درس', lessons: 'دروس', mission: 'مهمة', missions: 'مهام',
-    allDone: 'أنهيت هذا العالم! 🏆', allDoneSub: 'أكملت كل المستويات هنا.', tryNextTrack: 'جرّب',
-    switching: 'جارٍ التحميل…', back: 'رجوع',
-    leaderboard: 'لوحة الصدارة', viewAll: 'عرض الكل', you: 'أنت',
-    dailyQuests: 'تحدي الأسبوع', dailyChallenges: 'تحدي اليوم',
-    challengeDone: 'تم التحصيل 🎉', challengeCheck: 'تحصيل المكافأة',
-    heroSubtitle: 'الأفكار الكبيرة تبدأ بخطوات صغيرة.',
-    pathHeading: 'خريطة رحلتك', pathSubtitle: 'أكمل المهام وافتح مهارات جديدة.',
-    level: 'المستوى', totalXp: 'مجموع النقاط',
+    allDone: 'أنهيت هذا العالم! 🏆', allDoneSub: 'أكملت كل المستويات هنا.',
+    switching: 'جارٍ التحميل…',
+    hello: 'أهلاً', subtitle: 'يلا نكمل من وين وقفت.',
+    streak: 'أيام متتالية', level: 'المستوى', totalXp: 'مجموع النقاط',
   },
   fr: {
-    play: 'Jouer', continuePlaying: 'Continuer',
-    lessonOf: 'Leçon', of: 'sur', streakDays: 'jours de suite',
+    play: 'Jouer', lessonOf: 'Leçon', of: 'sur', missions: 'missions', unit: 'Unité',
     locked: 'Verrouillé', completed: 'Terminé', current: 'À suivre', now: 'Maintenant',
-    lesson: 'leçon', lessons: 'leçons', mission: 'mission', missions: 'missions',
-    allDone: 'Monde terminé !', allDoneSub: 'Tu as fini tous les niveaux ici.', tryNextTrack: 'Essayer',
-    switching: 'Chargement…', back: 'Retour',
-    leaderboard: 'Classement', viewAll: 'Tout voir', you: 'Toi',
-    dailyQuests: 'Défi de la semaine', dailyChallenges: 'Défi du jour',
-    challengeDone: 'Réclamé 🎉', challengeCheck: 'Réclamer',
-    heroSubtitle: 'Les grandes idées commencent par de petits pas.',
-    pathHeading: 'Ton parcours', pathSubtitle: 'Termine des missions, débloque de nouvelles compétences.',
-    level: 'Niveau', totalXp: 'XP total',
+    allDone: 'Monde terminé !', allDoneSub: 'Tu as fini tous les niveaux ici.',
+    switching: 'Chargement…',
+    hello: 'Bonjour', subtitle: 'On continue où tu t\u2019es arrêté.',
+    streak: 'jours de suite', level: 'Niveau', totalXp: 'XP total',
   },
-}
-
-// rotating companion messages — one picked per day so it feels alive
-// without needing any backend support
-// The companion now reacts to how the kid is actually doing, not just a
-// random daily pick. Categories, checked in this order:
-//   justStarted → no lessons finished in this track yet
-//   coldStreak  → streak is 0 (hasn't played today/recently)
-//   hotStreak   → streak of 5+ (worth celebrating specifically)
-//   default     → everything else, still rotates day to day for variety
-const MASCOT_MSGS: Record<string, { default: string[]; coldStreak: string[]; hotStreak: string[]; justStarted: string[] }> = {
-  en: {
-    default: [
-      "You're doing great! Every line of code, every idea, makes you stronger.",
-      'One more step, one more win — keep going!',
-      "Mistakes mean you're learning. Proud of you!",
-    ],
-    coldStreak: [
-      "Ready when you are — let's start today's streak!",
-      'A new day, a new adventure. Come on!',
-    ],
-    hotStreak: [
-      '{streak} days in a row?! You are on fire! 🔥',
-      'Look at that streak — do not stop now!',
-    ],
-    justStarted: [
-      'Welcome to a brand new adventure!',
-      'Every expert started right here. Let\u2019s begin!',
-    ],
-  },
-  ar: {
-    default: [
-      'أنت رائع! كل سطر كود وكل فكرة تجعلك أقوى.',
-      'خطوة كمان، وانتصار كمان — كمّل!',
-      'الأخطاء معناها إنك بتتعلم. إحنا فخورين فيك!',
-    ],
-    coldStreak: [
-      'جاهز نبدأ؟ خلّنا نفتح تتابع جديد اليوم!',
-      'يوم جديد، مغامرة جديدة. يلا بينا!',
-    ],
-    hotStreak: [
-      '{streak} أيام متتالية؟! أنت مشتعل! 🔥',
-      'شايف التتابع ده؟ ما توقفش دلوقتي!',
-    ],
-    justStarted: [
-      'أهلاً بيك في مغامرة جديدة!',
-      'كل خبير بدأ بالظبط من هنا. يلا نبدأ!',
-    ],
-  },
-  fr: {
-    default: [
-      'Tu assures ! Chaque ligne de code, chaque idée te rend plus fort.',
-      'Encore un pas, encore une victoire — continue !',
-      "Se tromper, c'est apprendre. On est fiers de toi !",
-    ],
-    coldStreak: [
-      'Prêt quand tu veux — lançons la série du jour !',
-      'Un nouveau jour, une nouvelle aventure. Allez !',
-    ],
-    hotStreak: [
-      '{streak} jours de suite ?! Tu es en feu ! 🔥',
-      'Regarde cette série — ne t\u2019arrête pas !',
-    ],
-    justStarted: [
-      'Bienvenue dans une toute nouvelle aventure !',
-      'Chaque expert a commencé ici. On y va !',
-    ],
-  },
-}
-
-function pickMascotMsg(lang: string, streak: number, justStarted: boolean) {
-  const pool = MASCOT_MSGS[lang] ?? MASCOT_MSGS.en
-  const category = justStarted ? pool.justStarted : streak === 0 ? pool.coldStreak : streak >= 5 ? pool.hotStreak : pool.default
-  const idx = new Date().getDate() % category.length
-  return category[idx].replace('{streak}', String(streak))
 }
 
 interface Track    { id: string; name: string; emoji: string; color: string }
@@ -171,111 +78,100 @@ interface Props {
   gems: number
   initialCurrentSkillId: string | null
   initialFirstIncompleteLessonId: string | null
+  // still accepted for backward compatibility / a future leaderboard page —
+  // not rendered on this screen anymore.
   leaderboard?: LeaderboardEntry[]
   dailyQuest?: DailyQuest
   dailyChallenge?: DailyChallenge | null
   totalTimeMins?: number
-  /** kid's display name for the hero greeting; greeting is generic if omitted */
   userName?: string
-  /** your own character illustration — rendered in the hero banner if provided */
   characterImageUrl?: string
-  /** shown as the signature under the mascot's speech-bubble message */
   mascotName?: string
-  /** the real total-XP figure from your backend — always prefer this over letting the component guess */
   userTotalXp?: number
-  /** background image for the hero banner, replacing the gradient sky. See sizing notes on HeroBanner. */
   heroBackgroundImageUrl?: string
+  /** real chapter/unit names, indexed 0, 1, 2… — falls back to the first
+   * skill's own title per island if not provided. */
+  unitTitles?: string[]
 }
 
+// ── Brand tokens — premium set drives the shell; energetic set is
+// reserved for progress/interactive moments (and now, island washes).
 const PAL = {
-  lagoon: '#EAF7F4',
-  lagoonFill: '#D9F1EC',
-  reef: '#17D9C0',
-  reefDeep: '#0FA893',
-  gold: '#FFB930',
-  goldDeep: '#DB9410',
-  coral: '#FF6B57',
-  coralDeep: '#E24E3C',
+  depth: '#0D2B32',
+  depthSoft: '#153B44',
+  pearlWhite: '#F6F3EA',
+  pearlGold: '#D4A24C',
+  pearlGoldSoft: '#E9CE9A',
+  goldDeep: '#B9791A',
   ink: '#29394A',
   inkSoft: '#5C7080',
+  inkFaint: '#98A6B2',
   white: '#FFFFFF',
-  sky: '#7FD4F2',
-  skyDeep: '#4FB9E8',
-  mountainFar: '#8FBBEE',
-  mountainNear: '#5C93DD',
+  reef: '#17D9C0',
+  reefDeep: '#0EA294',
+  gold: '#FFB930',
+  coral: '#FF6B57',
+  coralDeep: '#E24E3C',
+  islandLockFrom: '#F0EEE6',
+  islandLockTo: '#E6E3D8',
 }
+const SOFT_SHADOW = '0 2px 14px rgba(13,43,50,0.06)'
 
-// strips internal content-ops labels like "S3 — " or "S12 - " from a title
-// before it ever reaches a kid's screen — that's a CMS artifact, not content.
 function cleanTitle(title: string) {
   return title.replace(/^\s*S\d+\s*[—-]\s*/i, '').trim() || title
 }
 
-type IconKind = 'lock' | 'check' | 'flame' | 'gem' | 'play' | 'chevronR'
+type IconKind = 'lock' | 'check' | 'flame' | 'play' | 'chevronR' | 'star' | 'gem'
 
-function Icon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
-  const common = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const }
+function Icon({ kind, className, style, strokeWidth = 2 }: { kind: IconKind; className?: string; style?: React.CSSProperties; strokeWidth?: number }) {
+  const filled = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const }
+  const lined = { className, style, fill: 'none', stroke: 'currentColor', strokeWidth, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, viewBox: '0 0 24 24' as const }
   switch (kind) {
     case 'lock':
-      return <svg {...common}><path d="M7 10V8a5 5 0 0 1 10 0v2h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1Zm2 0h6V8a3 3 0 0 0-6 0v2Z"/></svg>
+      return <svg {...lined}><rect x="6" y="10.5" width="12" height="9" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>
     case 'check':
-      return <svg {...common}><path d="M9.5 16.6 4.9 12l-1.4 1.4 6 6L21 7.9l-1.4-1.4z"/></svg>
+      return <svg {...filled}><path d="M9.5 16.6 4.9 12l-1.4 1.4 6 6L21 7.9l-1.4-1.4z"/></svg>
     case 'flame':
-      return <svg {...common}><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 2.8 2 4.3A5.3 5.3 0 0 1 11.7 22 5.5 5.5 0 0 1 6 16.6C6 11.8 10 9 12 2Z"/></svg>
-    case 'gem':
-      return <svg {...common}><path d="M6 4h12l3 5-9 11L3 9l3-5Zm1.8 2L5.5 9h4.9L7.8 6Zm3.4 0-2.4 3h6.4l-2.4-3h-1.6Zm3.4 0-2.3 3h4.9L14.6 6ZM6.2 11l4.9 7-4-7h-.9Zm11.6 0h-.9l-4 7 4.9-7ZM9.4 11l2.6 6.5L14.6 11H9.4Z"/></svg>
+      return <svg {...filled}><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 2.8 2 4.3A5.3 5.3 0 0 1 11.7 22 5.5 5.5 0 0 1 6 16.6C6 11.8 10 9 12 2Z"/></svg>
     case 'play':
-      return <svg {...common}><path d="M8 5v14l11-7L8 5Z"/></svg>
+      return <svg {...filled}><path d="M8 5v14l11-7L8 5Z"/></svg>
+    case 'star':
+      return <svg {...filled}><path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.4 6.5L12 17.3l-6 3.1 1.4-6.5L2.5 9.3l6.6-.7L12 2.5Z"/></svg>
+    case 'gem':
+      return <svg {...filled}><path d="M6 4h12l3 5-9 11L3 9l3-5Zm1.8 2L5.5 9h4.9L7.8 6Zm3.4 0-2.4 3h6.4l-2.4-3h-1.6Zm3.4 0-2.3 3h4.9L14.6 6ZM6.2 11l4.9 7-4-7h-.9Zm11.6 0h-.9l-4 7 4.9-7ZM9.4 11l2.6 6.5L14.6 11H9.4Z"/></svg>
     case 'chevronR':
-      return <svg {...common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      return <svg {...lined}><path d="M9 6l6 6-6 6"/></svg>
   }
 }
 
-function ProgressBar({ pct, track = PAL.lagoonFill, fill }: { pct: number; track?: string; fill: string }) {
+// ── Progress ring — the one interactive/playful shape reused (without
+// an emoji) as the level badge's frame in the rail.
+function ProgressRing({ pct, size = 96, stroke = 8, emoji, trackColor = 'rgba(255,255,255,0.14)' }: {
+  pct: number; size?: number; stroke?: number; emoji?: string; trackColor?: string
+}) {
+  const r = (size - stroke) / 2
+  const c = 2 * Math.PI * r
+  const offset = c - (Math.max(0, Math.min(100, pct)) / 100) * c
   return (
-    <div className="h-2 rounded-full overflow-hidden w-full" style={{ backgroundColor: track }}>
-      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(4, pct)}%`, backgroundColor: fill }} />
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={trackColor} strokeWidth={stroke} />
+        <circle
+          cx={size / 2} cy={size / 2} r={r} fill="none" stroke={PAL.gold} strokeWidth={stroke}
+          strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+        />
+      </svg>
+      {emoji && <span className="absolute inset-0 flex items-center justify-center text-4xl">{emoji}</span>}
     </div>
   )
 }
 
-function XpBadge({ xp }: { xp: number }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black shrink-0" style={{ backgroundColor: PAL.lagoon, color: PAL.goldDeep }}>
-      +{xp} XP
-    </span>
-  )
-}
-
-// ── Hero banner: greeting, character slot, mascot speech bubble, stats ──
-//
-// RECOMMENDED IMAGE SIZE for `backgroundImageUrl`:
-//   - Aspect ratio ~3.2:1 (wide and short, like a banner) — the box itself
-//     is fluid-height (it grows with its content), so there's no single
-//     "correct" height, but designing for roughly this ratio avoids visible
-//     cropping on both very wide desktop screens and narrow phones.
-//   - Base size: 1600×500px. For crisp rendering on retina/high-DPI
-//     screens, export at 2x: 3200×1000px.
-//   - Format: JPG or WEBP for a photo/painted scene (smaller file size);
-//     PNG only if you need transparency.
-//   - Keep the most important visual content (character, focal point)
-//     centered — `background-position: center` is used, and edges may crop
-//     on unusual viewport widths.
-//   - Design it readable under a light wash: a semi-transparent white
-//     overlay sits on top of the image so the dark greeting text stays
-//     legible regardless of the image's own colors.
-function HeroBanner({
-  userName, characterImageUrl, backgroundImageUrl, mascotName, mascotMsg, streak, level, totalXp, t,
-  activeTrack, tracks, showPicker, setShowPicker, pickerRef, onSelectTrack, activeTrackId,
+// ── Page header — calm, spacious, one quiet track switcher.
+function PageHeader({
+  userName, t, activeTrack, tracks, showPicker, setShowPicker, pickerRef, onSelectTrack, activeTrackId,
 }: {
   userName?: string
-  characterImageUrl?: string
-  backgroundImageUrl?: string
-  mascotName?: string
-  mascotMsg: string
-  streak: number
-  level: number
-  totalXp: number
   t: Record<string, string>
   activeTrack: Track | null
   tracks: Track[]
@@ -286,156 +182,84 @@ function HeroBanner({
   activeTrackId: string | null
 }) {
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-4"
-      style={
-        backgroundImageUrl
-          ? { backgroundImage: `url(${backgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-          : { background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.skyDeep} 55%, ${PAL.lagoon} 100%)` }
-      }
-    >
-      {backgroundImageUrl && (
-        <div aria-hidden className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.25) 45%, rgba(255,255,255,0.55) 100%)' }} />
+    <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <h1 className="font-extrabold text-2xl sm:text-[28px] leading-tight" style={{ color: PAL.ink }}>
+          {t.hello}{userName ? `, ${userName}` : ''}.
+        </h1>
+        <p className="text-sm font-medium mt-1" style={{ color: PAL.inkSoft }}>{t.subtitle}</p>
+      </div>
+
+      {activeTrack && (
+        <div className="relative" ref={pickerRef}>
+          <button
+            onClick={() => setShowPicker(v => !v)}
+            aria-label="Switch track"
+            className="flex items-center gap-2 rounded-xl px-3.5 py-2.5 bg-white transition-transform hover:-translate-y-0.5"
+            style={{ boxShadow: SOFT_SHADOW }}
+          >
+            <span className="text-base">{activeTrack.emoji}</span>
+            <span className="text-sm font-bold" style={{ color: PAL.ink }}>{activeTrack.name}</span>
+            <Icon kind="chevronR" className="w-3.5 h-3.5 rotate-90" style={{ color: PAL.inkFaint }} />
+          </button>
+          {showPicker && (
+            <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white rounded-2xl overflow-hidden z-30" style={{ boxShadow: '0 12px 32px rgba(13,43,50,0.16)' }}>
+              {tracks.map(tr => (
+                <button
+                  key={tr.id}
+                  onClick={() => onSelectTrack(tr.id)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
+                  style={{ backgroundColor: tr.id === activeTrackId ? PAL.pearlWhite : 'transparent' }}
+                >
+                  <span>{tr.emoji}</span>
+                  <span className="flex-1 font-bold truncate text-sm" style={{ color: PAL.ink }}>{tr.name}</span>
+                  {tr.id === activeTrackId && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: PAL.pearlGold }} />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       )}
-      {/* ambient sky decoration: clouds + a sun glow — only shown over the
-          plain gradient; skip it over a real background image so it
-          doesn't compete with the art */}
-      {!backgroundImageUrl && (
-        <div aria-hidden className="absolute inset-0 pointer-events-none">
-          <span className="absolute rounded-full" style={{ width: 140, height: 140, top: -50, right: -30, background: `radial-gradient(circle, ${PAL.gold}55, transparent 70%)` }} />
-          <span className="absolute rounded-full bg-white/70 blur-md" style={{ width: 90, height: 40, top: 18, left: '8%' }} />
-          <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 60, height: 28, top: 44, left: '24%' }} />
-          <span className="absolute rounded-full bg-white/55 blur-md" style={{ width: 70, height: 30, top: 16, right: '34%' }} />
-        </div>
-      )}
-
-      <div className="relative flex items-start justify-between gap-3 px-4 sm:px-6 pt-4 sm:pt-5">
-        <div className="min-w-0">
-          <h1 className="font-black text-2xl sm:text-3xl md:text-4xl leading-tight truncate" style={{ color: PAL.ink }}>
-            {userName ? `Hello ${userName} 👋` : 'Welcome back 👋'}
-          </h1>
-          <p className="text-sm sm:text-base font-bold mt-0.5" style={{ color: PAL.inkSoft }}>{t.heroSubtitle}</p>
-        </div>
-
-        {activeTrack && (
-          <div className="relative shrink-0" ref={pickerRef}>
-            {tracks.length > 1 ? (
-              <button
-                onClick={() => setShowPicker(v => !v)}
-                aria-label="Switch track"
-                className="flex items-center gap-1 justify-center pl-2.5 pr-1.5 h-10 sm:h-11 bg-white rounded-2xl transition-transform hover:-translate-y-0.5"
-                style={{ boxShadow: '0 3px 0 rgba(41,57,74,0.12)' }}
-              >
-                <span className="text-lg">{activeTrack.emoji}</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" className="shrink-0 transition-transform" style={{ transform: showPicker ? 'rotate(180deg)' : 'none' }}>
-                  <path d="M6 9l6 6 6-6" fill="none" stroke={PAL.inkSoft} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            ) : (
-              <div className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-white rounded-2xl" style={{ boxShadow: '0 3px 0 rgba(41,57,74,0.12)' }}>
-                <span className="text-lg">{activeTrack.emoji}</span>
-              </div>
-            )}
-            {showPicker && (
-              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white rounded-2xl overflow-hidden z-30" style={{ boxShadow: '0 8px 24px rgba(41,57,74,0.14)' }}>
-                {tracks.map(tr => (
-                  <button
-                    key={tr.id}
-                    onClick={() => onSelectTrack(tr.id)}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
-                    style={{ backgroundColor: tr.id === activeTrackId ? PAL.lagoon : 'transparent' }}
-                  >
-                    <span>{tr.emoji}</span>
-                    <span className="flex-1 font-bold truncate">{tr.name}</span>
-                    {tr.id === activeTrackId && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PAL.reef }} />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* stat badges: chunky colored icon circles, not tiny inline glyphs */}
-      <div className="relative flex flex-wrap gap-2.5 px-4 sm:px-6 mt-4">
-        <div className="flex items-center gap-2 bg-white rounded-full pl-1.5 pr-3.5 py-1.5" style={{ boxShadow: '0 2px 0 rgba(41,57,74,0.1)' }}>
-          <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.coral }}>
-            <Icon kind="flame" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
-          </span>
-          <span className="text-sm font-black" style={{ color: PAL.ink }}>{streak} {t.streakDays}</span>
-        </div>
-        <div className="flex items-center gap-2 bg-white rounded-full pl-1.5 pr-3.5 py-1.5" style={{ boxShadow: '0 2px 0 rgba(41,57,74,0.1)' }}>
-          <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.gold }}>
-            <Icon kind="gem" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
-          </span>
-          <span className="text-sm font-black" style={{ color: PAL.ink }}>{totalXp} {t.totalXp}</span>
-        </div>
-        <div className="flex items-center gap-2 rounded-full pl-1.5 pr-3.5 py-1.5" style={{ backgroundColor: PAL.ink, boxShadow: '0 2px 0 rgba(0,0,0,0.2)' }}>
-          <span className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: PAL.reef }}>
-            <span className="text-[11px] font-black" style={{ color: PAL.ink }}>★</span>
-          </span>
-          <span className="text-sm font-black text-white">{t.level} {level}</span>
-        </div>
-      </div>
-
-      {/* character + mascot bubble — stacked on phones, side-by-side from sm up */}
-      <div className="relative flex flex-col sm:flex-row sm:items-end justify-center sm:justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-4">
-        <div className="min-w-0 flex justify-center sm:flex-1 sm:justify-end sm:mb-4">
-          <div className="relative bg-white rounded-2xl px-3.5 py-2.5 max-w-[280px] sm:max-w-[240px]" style={{ boxShadow: '0 3px 0 rgba(41,57,74,0.1)' }}>
-            <p className="text-[11px] sm:text-xs font-bold leading-snug" style={{ color: PAL.ink }}>{mascotMsg}</p>
-            {mascotName && <p className="text-[10px] font-black mt-1" style={{ color: PAL.reefDeep }}>— {mascotName}</p>}
-            <span className="absolute -bottom-1.5 right-6 rtl:right-auto rtl:left-6 w-3 h-3 rotate-45 bg-white" />
-          </div>
-        </div>
-        {characterImageUrl && (
-          <img src={characterImageUrl} alt="" className="h-20 sm:h-28 md:h-32 w-auto object-contain object-bottom shrink-0 mx-auto sm:mx-0" />
-        )}
-      </div>
     </div>
   )
 }
 
-// ── continue card: WHITE card, progress bar, solid claim/play button ────
-function ContinueCard({
-  skill, lessonIdx, lessonCount, pct, onPlay, onBack, t,
-}: {
-  skill: Skill
-  lessonIdx: number
-  lessonCount: number
-  pct: number
-  onPlay: () => void
-  onBack: () => void
-  t: Record<string, string>
+// ── Hero mission panel — unchanged.
+function MissionHero({ skill, lessonIdx, lessonCount, pct, onPlay, t }: {
+  skill: Skill; lessonIdx: number; lessonCount: number; pct: number; onPlay: () => void; t: Record<string, string>
 }) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 mb-6 bg-white" style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)', border: '1px solid rgba(41,57,74,0.06)' }}>
-      <button onClick={onBack} className="flex items-center gap-1.5 mb-3 -ms-1 opacity-70 hover:opacity-100 transition-opacity">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill={PAL.inkSoft}><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
-        <span className="text-[11px] font-black tracking-wide uppercase" style={{ color: PAL.inkSoft }}>{t.continuePlaying}</span>
-      </button>
+    <div
+      className="relative overflow-hidden rounded-[28px] p-6 sm:p-8"
+      style={{ background: `linear-gradient(135deg, ${PAL.depth} 0%, ${PAL.depthSoft} 100%)` }}
+    >
+      <div aria-hidden className="absolute inset-0 pointer-events-none">
+        <span className="absolute rounded-full" style={{ width: 320, height: 320, top: -140, right: -100, background: `radial-gradient(circle, ${PAL.pearlGold}22, transparent 70%)` }} />
+        <span className="absolute inset-0 rounded-[28px]" style={{ boxShadow: `inset 0 0 0 1px ${PAL.pearlGold}33` }} />
+      </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="relative flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8">
+        <ProgressRing pct={pct} emoji={skill.emoji} />
+
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <h2 className="font-black text-lg leading-tight flex items-center gap-2 min-w-0" style={{ color: PAL.ink }}>
-              <span className="text-xl shrink-0">{skill.emoji}</span>
-              <span className="truncate">{cleanTitle(skill.title)}</span>
-            </h2>
-            <XpBadge xp={skill.xp_reward} />
-          </div>
-          <p className="text-xs font-bold mb-2.5" style={{ color: PAL.inkSoft }}>
+          <p className="text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: PAL.pearlGoldSoft, letterSpacing: '0.08em' }}>
             {t.lessonOf} {lessonIdx} {t.of} {lessonCount || 1}
           </p>
-          <ProgressBar pct={pct} fill={PAL.gold} />
+          <h2 className="font-extrabold text-2xl sm:text-3xl leading-tight" style={{ color: PAL.pearlWhite }}>
+            {cleanTitle(skill.title)}
+          </h2>
+          <span className="inline-flex items-center gap-1 mt-3 rounded-full px-2.5 py-1 text-xs font-bold" style={{ backgroundColor: 'rgba(212,162,76,0.16)', color: PAL.pearlGoldSoft }}>
+            +{skill.xp_reward} XP
+          </span>
         </div>
 
         <button
           type="button"
           onClick={onPlay}
-          className="shrink-0 w-full sm:w-auto rounded-2xl px-5 py-3 font-black text-sm flex items-center justify-center gap-1.5 text-white transition-transform hover:-translate-y-0.5 active:translate-y-[1px]"
-          style={{ backgroundColor: PAL.coral }}
+          className="sm:shrink-0 w-full sm:w-auto h-16 sm:px-9 rounded-2xl flex items-center justify-center gap-2.5 font-extrabold text-lg text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
+          style={{ backgroundColor: PAL.coral, boxShadow: `0 10px 24px rgba(255,107,87,0.35)` }}
         >
-          <Icon kind="play" className="w-4 h-4" />
+          <Icon kind="play" className="w-5 h-5" />
           {t.play}
         </button>
       </div>
@@ -443,19 +267,43 @@ function ContinueCard({
   )
 }
 
-// a natural winding layout for up to 5 stops, spread left-to-right across
-// a wide landscape banner (0–100 % of the container in both axes)
-const PATH_POSITIONS = [
-  { x: 9, y: 58 },
-  { x: 27, y: 24 },
-  { x: 45, y: 62 },
-  { x: 63, y: 26 },
-  { x: 81, y: 54 },
+// ── Island path ──────────────────────────────────────────────────────
+const ISLAND_SIZE = 4
+
+// 5 distinct silhouettes, each with its own scatter of up to 4 stops and
+// its own soft color wash — cycled by unit index so units 1, 2, 3, 4, 5
+// all look different, and unit 6 repeats unit 1's shape rather than
+// every unit repeating the same one.
+const ISLAND_SHAPES: { blob: string; points: { x: number; y: number }[]; from: string; to: string }[] = [
+  { // rounded organic blob, path winds bottom-left → top-mid → right → bottom
+    blob: 'M40,20 C90,-10 180,0 220,30 C270,55 292,108 260,150 C230,190 150,202 100,180 C40,155 8,112 20,70 C25,45 20,35 40,20 Z',
+    points: [{ x: 75, y: 140 }, { x: 140, y: 68 }, { x: 205, y: 118 }, { x: 165, y: 172 }],
+    from: '#EAF7F4', to: '#D9F1EC', // reef wash
+  },
+  { // long horizontal atoll, path drifts left → right in a shallow wave
+    blob: 'M20,90 C15,45 70,15 140,18 C215,21 280,40 285,88 C289,132 240,168 168,178 C98,187 40,168 22,132 C13,115 17,102 20,90 Z',
+    points: [{ x: 55, y: 105 }, { x: 120, y: 62 }, { x: 190, y: 105 }, { x: 245, y: 70 }],
+    from: '#FBF3E6', to: '#F3E1C4', // sandy-gold wash
+  },
+  { // round island, path spirals inward
+    blob: 'M150,10 C212,10 268,52 271,108 C274,162 218,196 153,196 C88,196 33,164 24,110 C15,54 92,10 150,10 Z',
+    points: [{ x: 80, y: 140 }, { x: 150, y: 48 }, { x: 220, y: 140 }, { x: 150, y: 168 }],
+    from: '#EAF4FB', to: '#D3E9F7', // pale lagoon-blue wash
+  },
+  { // tall narrow island, path runs top to bottom
+    blob: 'M92,15 C142,-2 194,20 208,62 C222,104 212,152 190,182 C168,208 118,207 88,186 C58,165 36,128 42,88 C48,50 60,26 92,15 Z',
+    points: [{ x: 128, y: 42 }, { x: 96, y: 92 }, { x: 152, y: 138 }, { x: 108, y: 178 }],
+    from: '#F2F8EA', to: '#E1EFCE', // soft palm-green wash
+  },
+  { // archipelago with a bay, path curls around the notch
+    blob: 'M30,62 C42,20 104,4 152,20 C188,32 178,58 220,54 C262,50 288,82 276,122 C264,162 208,192 148,180 C108,172 90,150 58,155 C22,160 4,120 15,90 C20,76 25,68 30,62 Z',
+    points: [{ x: 52, y: 92 }, { x: 122, y: 42 }, { x: 195, y: 90 }, { x: 242, y: 140 }],
+    from: '#FFF1EE', to: '#FFD9D1', // warm coral wash
+  },
 ]
 
 function buildSmoothPath(points: { x: number; y: number }[]) {
   if (points.length < 2) return ''
-  if (points.length === 2) return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`
   let d = `M ${points[0].x} ${points[0].y}`
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[i - 1] ?? points[i]
@@ -469,238 +317,196 @@ function buildSmoothPath(points: { x: number; y: number }[]) {
   return d
 }
 
-function PathNode({ locked, bg, isCurrent, onClick, label }: {
-  locked: boolean
-  bg: string
-  isCurrent: boolean
-  onClick: () => void
-  label: string
+function IslandNode({ locked, complete, current, isLast, onClick, label, x, y }: {
+  locked: boolean; complete: boolean; current: boolean; isLast: boolean
+  onClick: () => void; label: string; x: number; y: number
 }) {
   const [shake, setShake] = useState(false)
   const handleClick = () => {
     if (locked) { setShake(true); window.setTimeout(() => setShake(false), 400); return }
     onClick()
   }
+  const size = current ? 56 : 46
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      aria-disabled={locked}
-      aria-label={label}
-      className={cn('flex items-center justify-center transition-transform shrink-0', !locked && 'active:scale-90')}
-      style={{
-        width: isCurrent ? 56 : 48,
-        height: isCurrent ? 56 : 48,
-        borderRadius: '9999px',
-        backgroundColor: bg,
-        border: '3px solid white',
-        boxShadow: isCurrent ? `0 0 0 4px ${PAL.gold}33, 0 6px 14px rgba(41,57,74,0.25)` : '0 4px 10px rgba(41,57,74,0.18)',
-        animation: shake ? 'shakeX 0.4s ease' : undefined,
-      }}
+    <div
+      className="absolute flex flex-col items-center"
+      style={{ left: `${(x / 300) * 100}%`, top: `${(y / 200) * 100}%`, transform: 'translate(-50%,-50%)' }}
     >
-      {locked ? (
-        <Icon kind="lock" className="w-4 h-4" style={{ color: PAL.inkSoft }} />
-      ) : isCurrent ? (
-        <svg viewBox="0 0 24 24" className="w-5 h-5" fill={PAL.white}><path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.4 6.5L12 17.3l-6 3.1 1.4-6.5L2.5 9.3l6.6-.7L12 2.5Z"/></svg>
-      ) : (
-        <Icon kind="check" className="w-4 h-4" style={{ color: PAL.white }} />
-      )}
-    </button>
-  )
-}
-
-// the wide landscape path: sky, clouds, soft mountain silhouettes, and a
-// handful of labeled stops on a curved trail — the "neighborhood" around
-// where the kid actually is, not the whole curriculum at once.
-function PathBanner({
-  skills, currentSkillId, isUnlockedFn, isCompleteFn, onTap, t, dir,
-}: {
-  skills: Skill[]
-  currentSkillId: string | null
-  isUnlockedFn: (s: Skill) => boolean
-  isCompleteFn: (id: string) => boolean
-  onTap: (s: Skill, unlocked: boolean) => void
-  t: Record<string, string>
-  dir: 'ltr' | 'rtl'
-}) {
-  const pts = skills.map((_, i) => PATH_POSITIONS[i % PATH_POSITIONS.length])
-  const trailD = buildSmoothPath(pts)
-  const doneCount = skills.filter(s => isCompleteFn(s.id)).length
-  const currentNodeRef = useRef<HTMLDivElement | null>(null)
-
-  // on phones the path is wider than the screen and scrolls horizontally —
-  // without this, a kid could land on the page and see only the far edge
-  // of the trail with no idea the current stop is off-screen.
-  useEffect(() => {
-    currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
-  }, [currentSkillId])
-
-  return (
-    <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 mb-6 bg-white" style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)', border: '1px solid rgba(41,57,74,0.06)' }}>
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="min-w-0">
-          <h3 className="font-black text-base flex items-center gap-2" style={{ color: PAL.ink }}>
-            🧭 {t.pathHeading}
-          </h3>
-          <p className="text-xs font-bold" style={{ color: PAL.inkSoft }}>{t.pathSubtitle}</p>
-        </div>
-        <span className="text-xs font-black shrink-0" style={{ color: PAL.reefDeep }}>
-          {doneCount}/{skills.length} {skills.length === 1 ? t.mission : t.missions}
+      {current && (
+        <span className="mb-1.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold text-white relative" style={{ backgroundColor: PAL.gold }}>
+          {label}
+          <span className="absolute left-1/2 -bottom-1 w-2 h-2 -translate-x-1/2 rotate-45" style={{ backgroundColor: PAL.gold }} />
         </span>
-      </div>
+      )}
+      <button
+        type="button"
+        onClick={handleClick}
+        aria-disabled={locked}
+        aria-label={label}
+        className={cn('flex items-center justify-center transition-transform', !locked && 'hover:-translate-y-0.5 active:translate-y-0')}
+        style={{
+          width: size, height: size, borderRadius: '9999px',
+          backgroundColor: complete ? PAL.reef : PAL.white,
+          border: current ? `2.5px solid ${PAL.gold}` : locked ? '1.5px solid rgba(41,57,74,0.10)' : 'none',
+          boxShadow: current
+            ? `0 0 0 5px rgba(255,185,48,0.18), 0 6px 14px rgba(13,43,50,0.18)`
+            : '0 3px 8px rgba(13,43,50,0.14)',
+          animation: shake ? 'shakeX 0.4s ease' : undefined,
+        }}
+      >
+        {locked ? (
+          <Icon kind="lock" className="w-4 h-4" style={{ color: PAL.inkFaint }} strokeWidth={1.8} />
+        ) : current ? (
+          <Icon kind="star" className="w-5 h-5" style={{ color: PAL.gold }} />
+        ) : complete && isLast ? (
+          <Icon kind="gem" className="w-4.5 h-4.5" style={{ color: PAL.goldDeep }} />
+        ) : complete ? (
+          <Icon kind="check" className="w-4 h-4" style={{ color: PAL.white }} />
+        ) : null}
+      </button>
+    </div>
+  )
+}
 
-      <div className="no-scrollbar overflow-x-auto -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="relative min-w-[500px] sm:min-w-[560px] h-[230px] rounded-2xl overflow-hidden" style={{ background: `linear-gradient(180deg, ${PAL.sky} 0%, ${PAL.skyDeep} 45%, ${PAL.lagoon} 85%)` }}>
-          {/* ambient sky + mountains, purely decorative */}
-          <div aria-hidden className="absolute inset-0 pointer-events-none">
-            <span className="absolute rounded-full bg-white/60 blur-md" style={{ width: 70, height: 30, top: 16, left: '10%' }} />
-            <span className="absolute rounded-full bg-white/50 blur-md" style={{ width: 55, height: 24, top: 32, left: '55%' }} />
-            <span className="absolute rounded-full bg-white/50 blur-md" style={{ width: 60, height: 26, top: 10, left: '78%' }} />
-            <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute bottom-0 left-0 w-full h-[90px]">
-              <path d="M0 40 L0 26 L15 12 L28 24 L42 8 L58 22 L72 6 L88 20 L100 10 L100 40 Z" fill={PAL.mountainFar} opacity="0.5" />
-              <path d="M0 40 L0 32 L18 20 L34 30 L50 16 L66 28 L82 14 L100 26 L100 40 Z" fill={PAL.mountainNear} opacity="0.55" />
-            </svg>
-          </div>
+// one illustrated island: a unit label, a curved dashed trail, and a
+// handful of stops scattered across it. Shape/wash rotate by index so
+// consecutive units don't look identical. `locked` mutes the whole
+// thing to a grey-pearl palette regardless of which shape it drew.
+function IslandUnit({ title, index, skills, currentSkillId, isUnlockedFn, isCompleteFn, onTap, locked, t }: {
+  title: string; index: number; skills: Skill[]; currentSkillId: string | null
+  isUnlockedFn: (s: Skill) => boolean; isCompleteFn: (id: string) => boolean
+  onTap: (s: Skill, unlocked: boolean) => void; locked: boolean; t: Record<string, string>
+}) {
+  const shape = ISLAND_SHAPES[index % ISLAND_SHAPES.length]
+  const pts = skills.map((_, i) => shape.points[i % shape.points.length])
+  const pathD = buildSmoothPath(pts)
+  const gradId = `island-grad-${index}-${locked ? 'lock' : 'live'}`
 
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
-            <path d={trailD} fill="none" stroke={PAL.reefDeep} strokeOpacity={0.45} strokeWidth={0.9} strokeDasharray="0.5 2.4" strokeLinecap="round" />
-          </svg>
+  return (
+    <div className={cn(index > 0 && 'mt-2')}>
+      <p className="text-[11px] font-extrabold uppercase tracking-wider mb-0.5" style={{ color: locked ? PAL.inkFaint : PAL.goldDeep }}>
+        {t.unit} {index + 1}
+      </p>
+      <h3 className="text-base sm:text-lg font-extrabold mb-3" style={{ color: locked ? PAL.inkFaint : PAL.ink }}>
+        {title}
+      </h3>
 
-          {skills.map((s, i) => {
-            const pos = pts[i]
-            const px = dir === 'rtl' ? 100 - pos.x : pos.x
-            const unlocked = isUnlockedFn(s)
-            const complete = isCompleteFn(s.id)
-            const isCurrent = s.id === currentSkillId
-            const bg = complete || (unlocked && !isCurrent) ? PAL.reef : isCurrent ? PAL.gold : PAL.white
-            const statusText = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.now : ''
-            const label = !unlocked ? t.locked : complete ? t.completed : isCurrent ? t.current : cleanTitle(s.title)
+      <div className="relative w-full" style={{ aspectRatio: '300 / 200' }}>
+        <svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid meet" className="absolute inset-0 w-full h-full">
+          <defs>
+            <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor={locked ? PAL.islandLockFrom : shape.from} />
+              <stop offset="100%" stopColor={locked ? PAL.islandLockTo : shape.to} />
+            </linearGradient>
+          </defs>
+          <path d={shape.blob} fill={`url(#${gradId})`} />
+          <path
+            d={pathD} fill="none" stroke={locked ? '#C9C6BA' : PAL.reef}
+            strokeOpacity={locked ? 0.5 : 0.55} strokeWidth={2} strokeDasharray="1 7" strokeLinecap="round"
+          />
+        </svg>
 
-            return (
-              <div
-                key={s.id}
-                ref={isCurrent ? currentNodeRef : undefined}
-                className="absolute flex flex-col items-center"
-                style={{ left: `${px}%`, top: `${pos.y}%`, transform: 'translate(-50%,-50%)', width: 92 }}
-              >
-                <PathNode locked={!unlocked} bg={bg} isCurrent={isCurrent} onClick={() => onTap(s, unlocked)} label={label} />
-                <div className="mt-1.5 text-center">
-                  <p className="text-[11px] font-bold leading-tight truncate" style={{ color: PAL.ink, maxWidth: 90 }}>{cleanTitle(s.title)}</p>
-                  <p className="text-[10px] font-black" style={{ color: complete ? PAL.reefDeep : isCurrent ? PAL.goldDeep : PAL.inkSoft }}>{statusText}</p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        {skills.map((s, i) => {
+          const unlocked = !locked && isUnlockedFn(s)
+          const complete = !locked && isCompleteFn(s.id)
+          const isCurrent = !locked && s.id === currentSkillId
+          const pos = pts[i]
+          return (
+            <IslandNode
+              key={s.id}
+              x={pos.x} y={pos.y}
+              locked={!unlocked} complete={complete} current={isCurrent} isLast={i === skills.length - 1}
+              onClick={() => onTap(s, unlocked)}
+              label={!unlocked ? t.locked : complete ? t.completed : isCurrent ? t.now : cleanTitle(s.title)}
+            />
+          )
+        })}
       </div>
     </div>
   )
 }
 
-function SideCard({ children }: { children: React.ReactNode }) {
-  return <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5" style={{ boxShadow: '0 1px 0 rgba(41,57,74,0.08)', border: '1px solid rgba(41,57,74,0.06)' }}>{children}</div>
-}
+function IslandPath({ skills, currentSkillId, isUnlockedFn, isCompleteFn, onTap, t, unitTitles }: {
+  skills: Skill[]; currentSkillId: string | null
+  isUnlockedFn: (s: Skill) => boolean; isCompleteFn: (id: string) => boolean
+  onTap: (s: Skill, unlocked: boolean) => void; t: Record<string, string>; unitTitles?: string[]
+}) {
+  const islands = useMemo(() => {
+    const chunks: Skill[][] = []
+    for (let i = 0; i < skills.length; i += ISLAND_SIZE) chunks.push(skills.slice(i, i + ISLAND_SIZE))
+    return chunks
+  }, [skills])
 
-function SideHeader({ title, onViewAll, t }: { title: string; onViewAll?: () => void; t: Record<string, string> }) {
+  const currentIslandIdx = Math.max(0, islands.findIndex(chunk => chunk.some(s => s.id === currentSkillId)))
+  const doneCount = skills.filter(s => isCompleteFn(s.id)).length
+  const visibleIslands = islands.slice(currentIslandIdx, currentIslandIdx + 2)
+
   return (
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="font-black text-base" style={{ color: PAL.ink }}>{title}</h3>
-      {onViewAll && <button onClick={onViewAll} className="text-xs font-black tracking-wide uppercase" style={{ color: PAL.coralDeep }}>{t.viewAll}</button>}
+    <div className="rounded-[28px] bg-white p-5 sm:p-7 mt-5" style={{ boxShadow: SOFT_SHADOW }}>
+      <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold mb-5" style={{ backgroundColor: 'rgba(212,162,76,0.14)', color: PAL.goldDeep }}>
+        {doneCount}/{skills.length} {t.missions}
+      </span>
+
+      {visibleIslands.map((chunk, i) => {
+        const islandIdx = currentIslandIdx + i
+        const isLocked = i > 0
+        const title = unitTitles?.[islandIdx] ?? cleanTitle(chunk[0]?.title ?? '')
+        return (
+          <IslandUnit
+            key={islandIdx}
+            title={title}
+            index={islandIdx}
+            skills={chunk}
+            currentSkillId={currentSkillId}
+            isUnlockedFn={isUnlockedFn}
+            isCompleteFn={isCompleteFn}
+            onTap={onTap}
+            locked={isLocked}
+            t={t}
+          />
+        )
+      })}
     </div>
   )
 }
 
-function RankBadge({ rank }: { rank: number }) {
-  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null
-  return <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-black shrink-0" style={{ backgroundColor: PAL.lagoonFill, color: PAL.inkSoft }}>{medal ?? rank}</div>
-}
-
-function LeaderboardAvatar({ name, avatarUrl }: { name: string; avatarUrl: string | null }) {
-  const [errored, setErrored] = useState(false)
-  const initial = name.trim().charAt(0).toUpperCase() || '?'
-  if (avatarUrl && !errored) {
-    return <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" style={{ backgroundColor: PAL.lagoonFill }} onError={() => setErrored(true)} />
-  }
-  return <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0" style={{ backgroundColor: PAL.lagoonFill, color: PAL.inkSoft }}>{initial}</div>
-}
-
-function LeaderboardCard({ entries, t, onViewAll }: { entries: LeaderboardEntry[]; t: Record<string, string>; onViewAll: () => void }) {
-  const top = entries.slice(0, 5)
+// ── Level + streak badge — the one rail card left. Tied visually to the
+// hero (same dark/gold surface) instead of a plain white KPI row.
+function LevelBadgeCard({ streak, level, totalXp, xpIntoLevel, xpForLevel, t }: {
+  streak: number; level: number; totalXp: number; xpIntoLevel: number; xpForLevel: number; t: Record<string, string>
+}) {
+  const pct = Math.round((xpIntoLevel / xpForLevel) * 100)
   return (
-    <SideCard>
-      <SideHeader title={t.leaderboard} onViewAll={onViewAll} t={t} />
-      <div className="flex flex-col gap-1">
-        {top.map(entry => (
-          <div key={entry.id} className="flex items-center gap-3 px-2 py-2 rounded-2xl" style={entry.is_current_user ? { backgroundColor: PAL.lagoon } : undefined}>
-            {entry.rank_global != null ? <RankBadge rank={entry.rank_global} /> : <div className="w-7 h-7 shrink-0" />}
-            <LeaderboardAvatar name={entry.name} avatarUrl={entry.avatar_url} />
-            <span className={cn('flex-1 min-w-0 truncate text-sm', entry.is_current_user ? 'font-black' : 'font-bold')} style={{ color: PAL.ink }}>
-              {entry.is_current_user ? t.you : entry.name}
-            </span>
-            <span className="text-xs font-black shrink-0" style={{ color: PAL.coralDeep }}>{entry.xp} XP</span>
+    <div className="rounded-2xl p-5 relative overflow-hidden" style={{ background: `linear-gradient(160deg, ${PAL.depth} 0%, ${PAL.depthSoft} 100%)` }}>
+      <div aria-hidden className="absolute rounded-full pointer-events-none" style={{ width: 180, height: 180, top: -80, right: -70, background: `radial-gradient(circle, ${PAL.pearlGold}1f, transparent 70%)` }} />
+      <div className="relative flex flex-col items-center text-center">
+        <div className="relative w-20 h-20 mb-3">
+          <ProgressRing pct={pct} size={80} stroke={6} />
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: PAL.pearlGoldSoft }}>{t.level}</span>
+            <span className="text-2xl font-extrabold" style={{ color: PAL.pearlWhite }}>{level}</span>
           </div>
-        ))}
-      </div>
-    </SideCard>
-  )
-}
-
-function QuestCard({ quest, t }: { quest: DailyQuest; t: Record<string, string> }) {
-  const pct = quest.target > 0 ? Math.min(100, Math.round((quest.current / quest.target) * 100)) : 0
-  return (
-    <SideCard>
-      <SideHeader title={t.dailyQuests} t={t} />
-      <p className="text-sm font-bold mb-3" style={{ color: PAL.ink }}>{quest.label}</p>
-      <div className="flex items-center gap-2 mb-3">
-        <ProgressBar pct={pct} fill={PAL.gold} />
-        <span className="text-xs font-black shrink-0" style={{ color: PAL.inkSoft }}>{quest.current}/{quest.target}</span>
-      </div>
-      <button
-        type="button"
-        disabled={pct < 100}
-        className="w-full rounded-2xl py-2.5 font-black text-sm text-white transition-opacity"
-        style={{ backgroundColor: pct >= 100 ? PAL.coral : PAL.lagoonFill, color: pct >= 100 ? PAL.white : PAL.inkSoft }}
-      >
-        {t.challengeCheck}
-      </button>
-    </SideCard>
-  )
-}
-
-function ChallengeCard({ challenge, t, onOpen }: { challenge: DailyChallenge; t: Record<string, string>; onOpen?: () => void }) {
-  return (
-    <SideCard>
-      <SideHeader title={t.dailyChallenges} t={t} />
-      <div className="flex items-center gap-3 mb-3">
-        <span className="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 text-lg" style={{ backgroundColor: PAL.lagoon }}>{challenge.emoji}</span>
-        <div className="min-w-0 flex-1">
-          <p className={cn('text-sm font-bold truncate', challenge.completed && 'line-through')} style={{ color: challenge.completed ? PAL.inkSoft : PAL.ink }}>{challenge.title}</p>
-          <p className="text-xs font-black" style={{ color: PAL.goldDeep }}>+{challenge.xp_reward} XP</p>
+          <span className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: PAL.coral, border: `2.5px solid ${PAL.depth}` }}>
+            <Icon kind="flame" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
+          </span>
         </div>
+        <p className="text-xs font-extrabold" style={{ color: PAL.pearlGoldSoft }}>{streak} {t.streak}</p>
+        <p className="text-[11px] font-semibold mt-1" style={{ color: 'rgba(246,243,234,0.55)' }}>{totalXp.toLocaleString()} {t.totalXp}</p>
       </div>
-      <button
-        type="button"
-        onClick={onOpen}
-        disabled={challenge.completed}
-        className="w-full rounded-2xl py-2.5 font-black text-sm transition-opacity"
-        style={{ backgroundColor: challenge.completed ? PAL.lagoonFill : PAL.coral, color: challenge.completed ? PAL.reefDeep : PAL.white }}
-      >
-        {challenge.completed ? t.challengeDone : t.challengeCheck}
-      </button>
-    </SideCard>
+    </div>
   )
 }
 
 export default function SkillsClient({
-  userId, tracks = [], initialTrackId, skills = [], skillProgress = [], lessonCountMap = {},
-  language, streak = 0, gems = 0, initialCurrentSkillId, initialFirstIncompleteLessonId,
-  leaderboard = [], dailyQuest, dailyChallenge, totalTimeMins = 0,
-  userName, characterImageUrl, mascotName, userTotalXp, heroBackgroundImageUrl,
+  tracks = [], initialTrackId, skills = [], skillProgress = [], lessonCountMap = {},
+  language, streak = 0, initialCurrentSkillId, initialFirstIncompleteLessonId,
+  leaderboard = [], userName, userTotalXp, unitTitles,
 }: Props) {
   const router = useRouter()
   const lang = (language || 'en') as 'en' | 'ar' | 'fr'
   const t    = UI[lang] ?? UI.en
   const dir  = lang === 'ar' ? 'rtl' : 'ltr'
+  const fontFamily = lang === 'ar' ? "'Almarai', sans-serif" : "'Plus Jakarta Sans', sans-serif"
 
   const [activeTrackId, setActiveTrackId] = useState<string | null>(initialTrackId)
   const [currentSkillId, setCurrentSkillId] = useState<string | null>(initialCurrentSkillId)
@@ -728,32 +534,15 @@ export default function SkillsClient({
   const currentSkill = orderedSkills.find(s => s.id === currentSkillId) ?? null
   const allDone = orderedSkills.length > 0 && orderedSkills.every(s => isComplete(s.id))
 
-  const currentSkillIdx = currentSkill ? orderedSkills.findIndex(s => s.id === currentSkill.id) : -1
-  const islandStart = currentSkillIdx >= 0 ? Math.max(0, currentSkillIdx - 1) : 0
-  const islandSkills = orderedSkills.slice(islandStart, islandStart + 5)
-
-  // Total XP shown in the hero banner MUST match the leaderboard, since
-  // they're the same stat shown twice. Priority order:
-  //   1. an explicit `userTotalXp` prop (the real number from your backend —
-  //      always prefer this if you have it)
-  //   2. the current user's own row in the leaderboard you're already
-  //      passing in (guaranteed consistent with what's shown there)
-  //   3. only as a last resort, a rough guess summing completed skills'
-  //      xp_reward — this WILL drift from the real total and shouldn't be
-  //      relied on once (1) or (2) is available
   const leaderboardMe = leaderboard.find(e => e.is_current_user)
   const fallbackXp = useMemo(
     () => skills.reduce((sum, s) => (isComplete(s.id) ? sum + (s.xp_reward || 0) : sum), 0),
     [skills, progressMap],
   )
   const totalXp = userTotalXp ?? leaderboardMe?.xp ?? fallbackXp
-  const level = 1 + Math.floor(totalXp / 500)
-
-  const doneInTrack = orderedSkills.filter(s => isComplete(s.id)).length
-  const mascotMsg = useMemo(
-    () => pickMascotMsg(lang, streak, doneInTrack === 0),
-    [lang, streak, doneInTrack],
-  )
+  const XP_PER_LEVEL = 500
+  const level = 1 + Math.floor(totalXp / XP_PER_LEVEL)
+  const xpIntoLevel = totalXp % XP_PER_LEVEL
 
   useEffect(() => {
     if (!showPicker) return
@@ -808,32 +597,17 @@ export default function SkillsClient({
     ? Math.min(Math.round((currentProgressPct / 100) * currentLessonCount) + 1, currentLessonCount)
     : 1
 
-  const sidebarWidgets = (
-    <>
-      <LeaderboardCard entries={leaderboard} t={t} onViewAll={() => router.push('/dashboard/leaderboard')} />
-      {dailyQuest && <QuestCard quest={dailyQuest} t={t} />}
-      {dailyChallenge && <ChallengeCard challenge={dailyChallenge} t={t} onOpen={() => router.push(`/dashboard/challenges/${dailyChallenge.id}`)} />}
-    </>
-  )
-
   return (
-    <div dir={dir} className="min-h-screen w-full overflow-x-hidden" style={{ backgroundColor: PAL.lagoon, color: PAL.ink, fontFamily: "'Baloo 2', Cairo, sans-serif" }}>
+    <div dir={dir} className="w-full min-h-screen" style={{ backgroundColor: PAL.pearlWhite, color: PAL.ink, fontFamily }}>
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Cairo:wght@600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Almarai:wght@400;700;800&display=swap');
         .no-scrollbar::-webkit-scrollbar { display: none; }
         @keyframes shakeX { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
       ` }} />
 
-      <div className="px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 max-w-[1100px] mx-auto w-full">
-        <HeroBanner
+      <div className="max-w-[1180px] mx-auto px-5 sm:px-8 py-6 sm:py-9">
+        <PageHeader
           userName={userName}
-          characterImageUrl={characterImageUrl}
-          backgroundImageUrl={heroBackgroundImageUrl}
-          mascotName={mascotName}
-          mascotMsg={mascotMsg}
-          streak={streak}
-          level={level}
-          totalXp={totalXp}
           t={t}
           activeTrack={activeTrack}
           tracks={tracks}
@@ -843,75 +617,46 @@ export default function SkillsClient({
           onSelectTrack={handleTrackSelect}
           activeTrackId={activeTrackId}
         />
-      </div>
 
-      <div className="flex flex-col lg:flex-row justify-center gap-6 px-3 sm:px-4 pb-12 max-w-[1100px] mx-auto w-full">
-        <div className="flex-1 min-w-0 w-full lg:max-w-[680px]">
-          {switching ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-20">
-              <div
-                className="w-10 h-10 rounded-full animate-spin"
-                style={{ border: `4px solid ${PAL.lagoonFill}`, borderTopColor: PAL.reef }}
-                aria-hidden
-              />
-              <p className="font-bold text-sm" style={{ color: PAL.inkSoft }}>{t.switching}</p>
-            </div>
-          ) : allDone ? (
-            <div className="relative overflow-hidden text-center py-16 sm:py-20 rounded-2xl sm:rounded-3xl" style={{ background: `linear-gradient(180deg, ${PAL.gold}22, ${PAL.white})` }}>
-              <div aria-hidden className="absolute inset-0 pointer-events-none">
-                <span className="absolute text-2xl" style={{ top: '12%', left: '15%' }}>✨</span>
-                <span className="absolute text-2xl" style={{ top: '20%', right: '18%' }}>🎉</span>
-                <span className="absolute text-xl" style={{ bottom: '18%', left: '22%' }}>⭐</span>
-                <span className="absolute text-xl" style={{ bottom: '15%', right: '15%' }}>✨</span>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 mt-6 sm:mt-8">
+          <main className="min-w-0">
+            {switching ? (
+              <div className="flex items-center justify-center py-24 rounded-[28px] bg-white" style={{ boxShadow: SOFT_SHADOW }}>
+                <p className="font-bold" style={{ color: PAL.inkSoft }}>{t.switching}</p>
               </div>
-              <p className="relative text-5xl sm:text-6xl mb-3">🏆</p>
-              <p className="relative text-lg sm:text-xl font-black">{t.allDone}</p>
-              <p className="relative mt-2 font-bold text-sm sm:text-base" style={{ color: PAL.inkSoft }}>{t.allDoneSub}</p>
-              {(() => {
-                const nextTrack = tracks.find(tr => tr.id !== activeTrackId)
-                if (!nextTrack) return null
-                return (
-                  <button
-                    type="button"
-                    onClick={() => handleTrackSelect(nextTrack.id)}
-                    className="relative mt-5 inline-flex items-center gap-2 rounded-2xl px-5 py-3 font-black text-sm text-white transition-transform hover:-translate-y-0.5"
-                    style={{ backgroundColor: PAL.coral }}
-                  >
-                    <span>{nextTrack.emoji}</span>{t.tryNextTrack} {nextTrack.name}
-                  </button>
-                )
-              })()}
-            </div>
-          ) : currentSkill ? (
-            <>
-              <ContinueCard
-                skill={currentSkill}
-                lessonIdx={currentLessonIdx}
-                lessonCount={currentLessonCount}
-                pct={currentProgressPct}
-                onPlay={goToCurrentLesson}
-                onBack={() => router.back()}
-                t={t}
-              />
+            ) : allDone ? (
+              <div className="text-center py-20 rounded-[28px]" style={{ background: `linear-gradient(135deg, ${PAL.depth} 0%, ${PAL.depthSoft} 100%)` }}>
+                <p className="text-5xl sm:text-6xl mb-3">🏆</p>
+                <p className="text-lg sm:text-xl font-extrabold" style={{ color: PAL.pearlWhite }}>{t.allDone}</p>
+                <p className="mt-2 font-semibold text-sm sm:text-base" style={{ color: PAL.pearlGoldSoft }}>{t.allDoneSub}</p>
+              </div>
+            ) : currentSkill ? (
+              <>
+                <MissionHero
+                  skill={currentSkill}
+                  lessonIdx={currentLessonIdx}
+                  lessonCount={currentLessonCount}
+                  pct={currentProgressPct}
+                  onPlay={goToCurrentLesson}
+                  t={t}
+                />
+                <IslandPath
+                  skills={orderedSkills}
+                  currentSkillId={currentSkillId}
+                  isUnlockedFn={isUnlocked}
+                  isCompleteFn={isComplete}
+                  onTap={handleCardTap}
+                  t={t}
+                  unitTitles={unitTitles}
+                />
+              </>
+            ) : null}
+          </main>
 
-              <PathBanner
-                skills={islandSkills}
-                currentSkillId={currentSkillId}
-                isUnlockedFn={isUnlocked}
-                isCompleteFn={isComplete}
-                onTap={handleCardTap}
-                t={t}
-                dir={dir}
-              />
-            </>
-          ) : null}
-
-          <div className="lg:hidden flex flex-col gap-4 mt-2">{sidebarWidgets}</div>
+          <aside>
+            <LevelBadgeCard streak={streak} level={level} totalXp={totalXp} xpIntoLevel={xpIntoLevel} xpForLevel={XP_PER_LEVEL} t={t} />
+          </aside>
         </div>
-
-        <aside className="hidden lg:flex flex-col gap-4 w-[320px] shrink-0 self-start sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto pt-1">
-          {sidebarWidgets}
-        </aside>
       </div>
     </div>
   )
