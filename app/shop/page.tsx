@@ -46,34 +46,47 @@ const BOOK = {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Palette = Plulai "Luxury mode" (marketing / purchase-flow pages):
-//   Depth #0D2B32 · Reef #1FB8A6 · Pearl gold #D4A24C ·
-//   Coral #FF6B57 · Pearl white #F6F3EA · Ink #29394A
-// CSS variable NAMES below are kept from the previous version so nothing
-// else in this file needs to change — only the VALUES were swapped to the
-// real brand colors. `--surface`/`--surface-2` are Depth lightened slightly
-// (a standard need for card-based dark UI, not a new brand color); the two
-// "*-deep" shadow tones are darkened variants of Reef/Pearl gold used only
-// for the pressed-button depth effect, not separate brand colors.
+// REBUILD NOTE — why this changed:
+// The previous version used a dark "SaaS checkout" theme (near-black #0D2B32
+// page background, glowing card surfaces, a gold primary button) that exists
+// nowhere else on plulai.com. The homepage runs light, Pearl-White-based, and
+// treats Reef/Reef Bright teal as the one consistent "primary action" color
+// across every CTA (nav, hero, final CTA, package cards) — gold and coral are
+// reserved for badges and urgency accents, never the main button. This is a
+// consumer purchase page for a kids' book, i.e. the same audience as the
+// homepage's "For Families" (Energetic) mode — so it now uses that mode:
+// light Pearl White background, Lagoon-tinted surfaces, Reef Bright as the
+// primary CTA color, Sun Gold for the "new" badge, Coral for the discount
+// ribbon and savings line, and Error red reserved strictly for form
+// validation (per the brand spec: "Error — forms only"), never reused for
+// promotional urgency the way the old version reused red for both.
+//
+// Plulai "Energetic mode" palette (B2C, kid-facing — matches the homepage):
+//   Pearl white #F6F3EA · Lagoon #EAF7F4 · Lagoon fill #D9F1EC ·
+//   Depth #0D2B32 · Ink #29394A · Reef bright #17D9C0 ·
+//   Sun gold #FFB930 · Coral #FF6B57 · Error (forms only) #E15B71
+// The two "-deep" tones are darkened variants of Reef Bright / Sun Gold used
+// only for the pressed-button shadow effect — not separate brand colors.
 const inlineStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
 
   :root {
-    --background: #0D2B32;
-    --foreground: #F6F3EA;
-    --surface: #12333D;
-    --surface-2: #163C47;
-    --border: rgba(246,243,234,0.10);
-    --muted-foreground: rgba(246,243,234,0.62);
-    --brand-blue: #1FB8A6;   /* Reef */
-    --brand-cyan: #1FB8A6;   /* Reef */
-    --brand-deep: #158F82;   /* darker Reef, for the teal button's shadow */
-    --brand-gold: #D4A24C;   /* Pearl gold */
-    --brand-red: #FF6B57;    /* Coral */
-    --brand-green: #1FB8A6;  /* Reef — no separate brand green in the palette */
-    --shadow-blue: 0 4px 0 #158F82;
-    --shadow-gold: 0 4px 0 #A97D2E;
-    --shadow-dark: 0 4px 0 rgba(0,0,0,0.4);
+    --background: #F6F3EA;        /* Pearl white */
+    --foreground: #0D2B32;        /* Depth */
+    --surface: #FFFFFF;
+    --surface-2: #EAF7F4;         /* Lagoon, for input/track backgrounds */
+    --surface-tint: #D9F1EC;      /* Lagoon fill */
+    --border: rgba(13,43,50,0.10);
+    --border-strong: rgba(13,43,50,0.16);
+    --muted-foreground: rgba(41,57,74,0.62); /* Ink, faded */
+    --brand-teal: #17D9C0;        /* Reef bright — primary action color, matches every CTA on plulai.com */
+    --brand-teal-deep: #119E8E;   /* darker Reef bright, for the button's pressed shadow */
+    --brand-gold: #FFB930;        /* Sun gold — badges only, not buttons */
+    --brand-gold-deep: #C98B00;   /* darker Sun gold, for badge shadow */
+    --brand-coral: #FF6B57;       /* Coral — promotional/urgency accents only */
+    --brand-error: #E15B71;       /* Error red — form validation ONLY, never reused for promo */
+    --shadow-teal: 0 4px 0 var(--brand-teal-deep);
+    --shadow-dark: 0 4px 0 rgba(13,43,50,0.25);
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -85,25 +98,25 @@ const inlineStyles = `
     direction: rtl;
   }
 
-  .shelf-gold {
-    background: var(--brand-gold); color: #29394A;
-    box-shadow: var(--shadow-gold);
+  .btn-primary {
+    background: var(--brand-teal); color: #0D2B32;
+    box-shadow: var(--shadow-teal);
     transition: transform .1s ease, box-shadow .1s ease;
     cursor: pointer; border: none;
   }
-  .shelf-gold:active { box-shadow: 0 0 0 #A97D2E; transform: translateY(4px); }
-  .shelf-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .btn-primary:active { box-shadow: 0 0 0 var(--brand-teal-deep); transform: translateY(4px); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
   .btn-back {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 8px 16px; border-radius: 10px;
-    background: var(--surface-2); border: 1px solid var(--border);
+    background: transparent; border: 1px solid var(--border-strong);
     color: var(--muted-foreground); font-size: 13px; font-weight: 700;
     cursor: pointer; text-decoration: none;
-    transition: color .15s, border-color .15s;
+    transition: color .15s, border-color .15s, background .15s;
     font-family: 'Cairo', sans-serif;
   }
-  .btn-back:hover { color: var(--foreground); border-color: var(--brand-blue); }
+  .btn-back:hover { color: var(--foreground); border-color: var(--brand-teal); background: var(--surface-2); }
 
   @keyframes bob {
     0%, 100% { transform: translateY(0); }
@@ -112,6 +125,9 @@ const inlineStyles = `
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-bob { animation: none; }
   }
 
   .animate-bob  { animation: bob 4s cubic-bezier(0.34,1.56,0.64,1) infinite; }
@@ -122,7 +138,7 @@ const inlineStyles = `
     font-size: 1rem; direction: rtl; text-align: right;
   }
   input:focus, select:focus, textarea:focus {
-    outline: 2px solid var(--brand-blue); outline-offset: 2px;
+    outline: 2px solid var(--brand-teal); outline-offset: 2px;
   }
 
   .qty-btn {
@@ -130,24 +146,28 @@ const inlineStyles = `
     background: var(--surface-2); border: 1px solid var(--border);
     color: var(--foreground); font-size: 1.2rem; font-weight: 700;
     cursor: pointer; display: grid; place-items: center;
-    transition: background .15s;
+    transition: background .15s, color .15s;
   }
-  .qty-btn:hover { background: var(--brand-blue); }
+  .qty-btn:hover:not(:disabled) { background: var(--brand-teal); }
+  .qty-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .ver-btn {
     flex: 1; padding: 10px 0; border-radius: 14px;
     font-weight: 800; font-size: 15px; border: none;
     cursor: pointer; transition: all .15s ease;
     display: flex; align-items: center; justify-content: center; gap: 7px;
+    font-family: 'Cairo', sans-serif;
   }
-  .ver-btn-active   { background: var(--brand-blue); color: white; box-shadow: 0 4px 0 var(--brand-deep); }
+  /* Same "dark pill on light track" pattern as the homepage's audience toggle,
+     so the interaction language matches across pages. */
+  .ver-btn-active   { background: var(--foreground); color: var(--background); }
   .ver-btn-inactive { background: transparent; color: var(--muted-foreground); }
   .ver-btn-inactive:hover { color: var(--foreground); }
 
   .discount-badge {
     display: inline-flex; align-items: center;
-    background: rgba(255,107,87,0.15); color: var(--brand-red);
-    border: 1px solid rgba(255,107,87,0.35);
+    background: rgba(255,107,87,0.12); color: var(--brand-coral);
+    border: 1px solid rgba(255,107,87,0.3);
     border-radius: 999px; padding: 2px 10px;
     font-size: 12px; font-weight: 900;
   }
@@ -169,9 +189,9 @@ type Status   = "idle" | "loading" | "success" | "error";
 // ── Success screen ────────────────────────────────────────────────────────────
 function SuccessScreen({ name }: { name: string }) {
   return (
-    <div className="animate-in" style={{ textAlign: "center", padding: "48px 24px" }}>
+    <div className="animate-in" role="status" style={{ textAlign: "center", padding: "48px 24px" }}>
       <div style={{ fontSize: 72, marginBottom: 24 }}>🎉</div>
-      <h2 style={{ fontFamily: "Cairo", fontWeight: 900, fontSize: 28, marginBottom: 12 }}>
+      <h2 style={{ fontFamily: "Cairo", fontWeight: 900, fontSize: 28, marginBottom: 12, color: "var(--foreground)" }}>
         يعيشك {name}، وصلنا الطلب!
       </h2>
       <p style={{ color: "var(--muted-foreground)", fontSize: 16, lineHeight: 1.9, fontFamily: "Tajawal, sans-serif", marginBottom: 32 }}>
@@ -181,12 +201,12 @@ function SuccessScreen({ name }: { name: string }) {
       <div style={{
         display: "inline-flex", alignItems: "center", gap: 12,
         padding: "16px 28px", borderRadius: 16,
-        background: "var(--surface)", border: "1px solid var(--border)",
+        background: "var(--surface-2)", border: "1px solid var(--border)",
       }}>
         <span style={{ fontSize: 28 }}>📦</span>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontWeight: 800, fontSize: 15 }}>وقت التوصيل المتوقّع</div>
-          <div style={{ color: "var(--brand-gold)", fontWeight: 700 }}>{BOOK.delivery}</div>
+          <div style={{ fontWeight: 800, fontSize: 15, color: "var(--foreground)" }}>وقت التوصيل المتوقّع</div>
+          <div style={{ color: "var(--brand-teal-deep)", fontWeight: 700 }}>{BOOK.delivery}</div>
         </div>
       </div>
     </div>
@@ -252,31 +272,38 @@ export default function ShopPage() {
     label: string,
     placeholder: string,
     type = "text",
-  ) => (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <label style={{ fontWeight: 700, fontSize: 14 }}>{label}</label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={form[key]}
-        onChange={(e) => {
-          setForm((f) => ({ ...f, [key]: e.target.value }));
-          setErrors((er) => ({ ...er, [key]: undefined }));
-        }}
-        style={{
-          padding: "12px 16px", borderRadius: 12,
-          background: "var(--surface-2)",
-          border: errors[key] ? "1.5px solid var(--brand-red)" : "1.5px solid var(--border)",
-          color: "var(--foreground)", width: "100%",
-        }}
-      />
-      {errors[key] && (
-        <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>
-          {errors[key]}
-        </span>
-      )}
-    </div>
-  );
+  ) => {
+    const id = `field-${key}`;
+    const errId = `error-${key}`;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <label htmlFor={id} style={{ fontWeight: 700, fontSize: 14, color: "var(--foreground)" }}>{label}</label>
+        <input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          value={form[key]}
+          aria-invalid={!!errors[key]}
+          aria-describedby={errors[key] ? errId : undefined}
+          onChange={(e) => {
+            setForm((f) => ({ ...f, [key]: e.target.value }));
+            setErrors((er) => ({ ...er, [key]: undefined }));
+          }}
+          style={{
+            padding: "12px 16px", borderRadius: 12,
+            background: "var(--surface-2)",
+            border: errors[key] ? "1.5px solid var(--brand-error)" : "1.5px solid var(--border)",
+            color: "var(--foreground)", width: "100%",
+          }}
+        />
+        {errors[key] && (
+          <span id={errId} role="alert" style={{ color: "var(--brand-error)", fontSize: 12, fontWeight: 600 }}>
+            {errors[key]}
+          </span>
+        )}
+      </div>
+    );
+  };
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -284,11 +311,11 @@ export default function ShopPage() {
       <style dangerouslySetInnerHTML={{ __html: inlineStyles }} />
       <div style={{ minHeight: "100vh", background: "var(--background)", direction: "rtl" }}>
 
-        {/* NAV */}
+        {/* NAV — same light nav treatment as the rest of plulai.com */}
         <nav style={{
           position: "sticky", top: 0, zIndex: 50,
           backdropFilter: "blur(12px)",
-          background: "rgba(13,43,50,0.85)",
+          background: "rgba(246,243,234,0.9)",
           borderBottom: "1px solid var(--border)",
         }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -303,9 +330,9 @@ export default function ShopPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 13, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>الدفع عند الاستلام</span>
               <span style={{
-                background: "rgba(31,184,166,0.15)", color: "var(--brand-blue)",
+                background: "var(--surface-tint)", color: "var(--brand-teal-deep)",
                 borderRadius: 999, padding: "3px 10px", fontSize: 12, fontWeight: 800,
-                border: "1px solid rgba(31,184,166,0.3)",
+                border: "1px solid rgba(23,217,192,0.35)",
               }}>🔒 آمن</span>
             </div>
           </div>
@@ -313,11 +340,11 @@ export default function ShopPage() {
 
         {/* TRUST BAND */}
         <div style={{
-          background: "linear-gradient(180deg, rgba(31,184,166,0.1) 0%, transparent 100%)",
+          background: "var(--surface-2)",
           borderBottom: "1px solid var(--border)",
           padding: "12px 24px", textAlign: "center",
         }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--brand-cyan)", fontFamily: "Tajawal, sans-serif" }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--brand-teal-deep)", fontFamily: "Tajawal, sans-serif" }}>
             🚚 التوصيل لجميع ولايات تونس &nbsp;·&nbsp; الدفع عند الاستلام &nbsp;·&nbsp; ضمان استرجاع 7 أيام
           </span>
         </div>
@@ -338,11 +365,11 @@ export default function ShopPage() {
                 <div style={{ position: "relative", width: "100%", maxWidth: 300, margin: "0 auto" }}>
                   <div style={{
                     position: "absolute", top: -12, left: -12, zIndex: 10,
-                    background: "var(--brand-red)", color: "white",
+                    background: "var(--brand-coral)", color: "white",
                     borderRadius: 999, width: 64, height: 64,
                     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                     fontFamily: "Cairo", fontWeight: 900, lineHeight: 1.1,
-                    boxShadow: "0 4px 12px rgba(255,107,87,0.5)",
+                    boxShadow: "0 4px 12px rgba(255,107,87,0.4)",
                   }}>
                     <span style={{ fontSize: 10 }}>خصم</span>
                     <span style={{ fontSize: 18 }}>44%</span>
@@ -356,14 +383,14 @@ export default function ShopPage() {
                       height={400}
                       style={{
                         width: "100%", height: "auto", borderRadius: 16, display: "block",
-                        boxShadow: "0 30px 60px -10px rgba(31,184,166,0.35), 0 0 0 1px rgba(255,255,255,0.08)",
+                        boxShadow: "0 30px 60px -10px rgba(23,217,192,0.28), 0 0 0 1px rgba(13,43,50,0.06)",
                       }}
                     />
                   </div>
 
                   <div style={{
                     position: "absolute", top: 14, right: 14,
-                    background: "var(--brand-gold)", color: "#29394A",
+                    background: "var(--brand-gold)", color: "#0D2B32",
                     borderRadius: 10, padding: "4px 10px", fontSize: 12, fontWeight: 900,
                   }}>جديد</div>
                 </div>
@@ -372,9 +399,10 @@ export default function ShopPage() {
                 <div style={{
                   background: "var(--surface)", borderRadius: 20,
                   border: "1px solid var(--border)", padding: 24,
+                  boxShadow: "0 1px 2px rgba(13,43,50,0.04)",
                   display: "flex", flexDirection: "column", gap: 16,
                 }}>
-                  <h1 style={{ fontFamily: "Cairo", fontWeight: 900, fontSize: 24, lineHeight: 1.3 }}>{v.title}</h1>
+                  <h1 style={{ fontFamily: "Cairo", fontWeight: 900, fontSize: 24, lineHeight: 1.3, color: "var(--foreground)" }}>{v.title}</h1>
                   <p style={{ color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif", lineHeight: 1.9, fontSize: 15 }}>
                     {v.subtitle}
                   </p>
@@ -389,19 +417,19 @@ export default function ShopPage() {
                         display: "inline-flex", alignItems: "center", gap: 5,
                         padding: "5px 12px", borderRadius: 999,
                         background: "var(--surface-2)", border: "1px solid var(--border)",
-                        fontSize: 13, fontWeight: 700,
+                        fontSize: 13, fontWeight: 700, color: "var(--foreground)",
                       }}>{m.icon} {m.label}</span>
                     ))}
                   </div>
 
                   <ul style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {v.features.map((f) => (
-                      <li key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontFamily: "Tajawal, sans-serif" }}>
+                      <li key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontFamily: "Tajawal, sans-serif", color: "var(--foreground)" }}>
                         <span style={{
                           width: 22, height: 22, borderRadius: 8, flexShrink: 0,
-                          background: "rgba(31,184,166,0.2)", display: "grid", placeItems: "center",
+                          background: "var(--surface-tint)", display: "grid", placeItems: "center",
                         }}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1FB8A6" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#119E8E" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 13l4 4L19 7" />
                           </svg>
                         </span>
@@ -415,21 +443,28 @@ export default function ShopPage() {
               {/* RIGHT: order form */}
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-                {/* VERSION TOGGLE */}
+                {/* VERSION TOGGLE — same "dark pill on light track" tabs pattern as the homepage */}
                 <div style={{
                   background: "var(--surface)", borderRadius: 20,
                   border: "1px solid var(--border)", padding: 20,
+                  boxShadow: "0 1px 2px rgba(13,43,50,0.04)",
                   display: "flex", flexDirection: "column", gap: 12,
                 }}>
-                  <span style={{ fontWeight: 800, fontSize: 15 }}>اختر نسخة الكتاب</span>
-                  <div style={{
-                    display: "flex", gap: 8, padding: 6,
-                    background: "var(--surface-2)", borderRadius: 16,
-                    border: "1px solid var(--border)",
-                  }}>
+                  <span style={{ fontWeight: 800, fontSize: 15, color: "var(--foreground)" }}>اختر نسخة الكتاب</span>
+                  <div
+                    role="tablist"
+                    aria-label="اختر نسخة الكتاب"
+                    style={{
+                      display: "flex", gap: 8, padding: 6,
+                      background: "var(--surface-2)", borderRadius: 16,
+                      border: "1px solid var(--border)",
+                    }}
+                  >
                     {(["fr", "en"] as Version[]).map((vk) => (
                       <button
                         key={vk}
+                        role="tab"
+                        aria-selected={version === vk}
                         onClick={() => setVersion(vk)}
                         className={`ver-btn ${version === vk ? "ver-btn-active" : "ver-btn-inactive"}`}
                       >
@@ -442,17 +477,17 @@ export default function ShopPage() {
                   <div style={{
                     display: "flex", alignItems: "center", gap: 10,
                     padding: "10px 14px", borderRadius: 12,
-                    background: "rgba(31,184,166,0.08)", border: "1px solid rgba(31,184,166,0.2)",
+                    background: "var(--surface-tint)", border: "1px solid rgba(23,217,192,0.25)",
                   }}>
                     <span style={{ fontSize: 20 }}>{v.flag}</span>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: 13 }}>{v.title}</div>
+                      <div style={{ fontWeight: 800, fontSize: 13, color: "var(--foreground)" }}>{v.title}</div>
                       <div style={{ fontSize: 12, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>
                         {v.language} · 6–18 سنة
                       </div>
                     </div>
                     <div style={{ marginRight: "auto", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                      <span style={{ fontWeight: 900, color: "var(--brand-blue)", fontSize: 18 }}>
+                      <span style={{ fontWeight: 900, color: "var(--brand-teal-deep)", fontSize: 18 }}>
                         {v.price} {BOOK.currency}
                       </span>
                       <span style={{ fontSize: 12, color: "var(--muted-foreground)", textDecoration: "line-through" }}>
@@ -466,12 +501,13 @@ export default function ShopPage() {
                 <div style={{
                   background: "var(--surface)", borderRadius: 20,
                   border: "1px solid var(--border)", padding: 24,
+                  boxShadow: "0 1px 2px rgba(13,43,50,0.04)",
                   display: "flex", flexDirection: "column", gap: 16,
                 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
                     <div>
                       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                        <span style={{ fontSize: 36, fontWeight: 900, color: "var(--brand-blue)", fontFamily: "Cairo" }}>
+                        <span style={{ fontSize: 36, fontWeight: 900, color: "var(--brand-teal-deep)", fontFamily: "Cairo" }}>
                           {v.price}
                         </span>
                         <span style={{ fontSize: 18, color: "var(--muted-foreground)" }}>{BOOK.currency}</span>
@@ -479,17 +515,29 @@ export default function ShopPage() {
                           {v.originalPrice} {BOOK.currency}
                         </span>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
                         <span className="discount-badge">تخفيض 44% 🔥</span>
                         <span style={{ fontSize: 12, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>
                           تدفع عند ما يوصلك الكتاب
                         </span>
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <button className="qty-btn" onClick={() => setQty((q) => Math.max(1, q - 1))}>−</button>
-                      <span style={{ fontWeight: 900, fontSize: 20, minWidth: 24, textAlign: "center" }}>{qty}</span>
-                      <button className="qty-btn" onClick={() => setQty((q) => Math.min(10, q + 1))}>+</button>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }} role="group" aria-label="الكمية">
+                      <button
+                        type="button"
+                        className="qty-btn"
+                        onClick={() => setQty((q) => Math.max(1, q - 1))}
+                        disabled={qty <= 1}
+                        aria-label="إنقاص الكمية"
+                      >−</button>
+                      <span style={{ fontWeight: 900, fontSize: 20, minWidth: 24, textAlign: "center", color: "var(--foreground)" }} aria-live="polite">{qty}</span>
+                      <button
+                        type="button"
+                        className="qty-btn"
+                        onClick={() => setQty((q) => Math.min(10, q + 1))}
+                        disabled={qty >= 10}
+                        aria-label="زيادة الكمية"
+                      >+</button>
                     </div>
                   </div>
                 </div>
@@ -498,15 +546,16 @@ export default function ShopPage() {
                 <div style={{
                   background: "var(--surface)", borderRadius: 20,
                   border: "1px solid var(--border)", padding: 24,
+                  boxShadow: "0 1px 2px rgba(13,43,50,0.04)",
                   display: "flex", flexDirection: "column", gap: 16,
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                     <span style={{
-                      background: "var(--brand-blue)", color: "white",
+                      background: "var(--brand-teal)", color: "#0D2B32",
                       borderRadius: 8, width: 28, height: 28, display: "grid", placeItems: "center",
                       fontWeight: 900, fontSize: 14, flexShrink: 0,
                     }}>1</span>
-                    <span style={{ fontWeight: 800, fontSize: 17 }}>بيانات التوصيل</span>
+                    <span style={{ fontWeight: 800, fontSize: 17, color: "var(--foreground)" }}>بيانات التوصيل</span>
                   </div>
 
                   {inputField("name",  "الاسم الكامل", "محمد علي")}
@@ -514,9 +563,12 @@ export default function ShopPage() {
 
                   {/* Governorate */}
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <label style={{ fontWeight: 700, fontSize: 14 }}>الولاية</label>
+                    <label htmlFor="field-governorate" style={{ fontWeight: 700, fontSize: 14, color: "var(--foreground)" }}>الولاية</label>
                     <select
+                      id="field-governorate"
                       value={form.governorate}
+                      aria-invalid={!!errors.governorate}
+                      aria-describedby={errors.governorate ? "error-governorate" : undefined}
                       onChange={(e) => {
                         setForm((f) => ({ ...f, governorate: e.target.value }));
                         setErrors((er) => ({ ...er, governorate: undefined }));
@@ -524,7 +576,7 @@ export default function ShopPage() {
                       style={{
                         padding: "12px 16px", borderRadius: 12,
                         background: "var(--surface-2)",
-                        border: errors.governorate ? "1.5px solid var(--brand-red)" : "1.5px solid var(--border)",
+                        border: errors.governorate ? "1.5px solid var(--brand-error)" : "1.5px solid var(--border)",
                         color: form.governorate ? "var(--foreground)" : "var(--muted-foreground)",
                         width: "100%", appearance: "none",
                       }}
@@ -533,7 +585,7 @@ export default function ShopPage() {
                       {GOVERNORATES.map((g) => <option key={g} value={g}>{g}</option>)}
                     </select>
                     {errors.governorate && (
-                      <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>
+                      <span id="error-governorate" role="alert" style={{ color: "var(--brand-error)", fontSize: 12, fontWeight: 600 }}>
                         {errors.governorate}
                       </span>
                     )}
@@ -541,11 +593,14 @@ export default function ShopPage() {
 
                   {/* Address */}
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <label style={{ fontWeight: 700, fontSize: 14 }}>العنوان التفصيلي</label>
+                    <label htmlFor="field-address" style={{ fontWeight: 700, fontSize: 14, color: "var(--foreground)" }}>العنوان التفصيلي</label>
                     <textarea
+                      id="field-address"
                       placeholder="الحي، الشارع، رقم المنزل أو الشقة..."
                       value={form.address}
                       rows={3}
+                      aria-invalid={!!errors.address}
+                      aria-describedby={errors.address ? "error-address" : undefined}
                       onChange={(e) => {
                         setForm((f) => ({ ...f, address: e.target.value }));
                         setErrors((er) => ({ ...er, address: undefined }));
@@ -553,13 +608,13 @@ export default function ShopPage() {
                       style={{
                         padding: "12px 16px", borderRadius: 12,
                         background: "var(--surface-2)",
-                        border: errors.address ? "1.5px solid var(--brand-red)" : "1.5px solid var(--border)",
+                        border: errors.address ? "1.5px solid var(--brand-error)" : "1.5px solid var(--border)",
                         color: "var(--foreground)", width: "100%", resize: "vertical",
                         fontFamily: "Tajawal, sans-serif", direction: "rtl", textAlign: "right",
                       }}
                     />
                     {errors.address && (
-                      <span style={{ color: "var(--brand-red)", fontSize: 12, fontWeight: 600 }}>
+                      <span id="error-address" role="alert" style={{ color: "var(--brand-error)", fontSize: 12, fontWeight: 600 }}>
                         {errors.address}
                       </span>
                     )}
@@ -568,40 +623,42 @@ export default function ShopPage() {
 
                 {/* ORDER SUMMARY */}
                 <div style={{
-                  background: "rgba(31,184,166,0.06)", borderRadius: 16,
-                  border: "1px solid rgba(31,184,166,0.2)", padding: "16px 20px",
+                  background: "linear-gradient(135deg, rgba(23,217,192,0.10), rgba(255,185,48,0.06))",
+                  borderRadius: 16,
+                  border: "1px solid rgba(23,217,192,0.25)", padding: "16px 20px",
                   display: "flex", flexDirection: "column", gap: 8,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
                     <span style={{ color: "var(--muted-foreground)" }}>{v.flag} {v.title} × {qty}</span>
-                    <span style={{ fontWeight: 700 }}>{subtotal} {BOOK.currency}</span>
+                    <span style={{ fontWeight: 700, color: "var(--foreground)" }}>{subtotal} {BOOK.currency}</span>
                   </div>
 
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
                     <span style={{ color: "var(--muted-foreground)" }}>التوصيل 🚚</span>
-                    <span style={{ fontWeight: 700 }}>{BOOK.deliveryCost} {BOOK.currency}</span>
+                    <span style={{ fontWeight: 700, color: "var(--foreground)" }}>{BOOK.deliveryCost} {BOOK.currency}</span>
                   </div>
 
                   <div style={{
                     display: "flex", justifyContent: "space-between", fontSize: 13,
                     padding: "8px 12px", borderRadius: 10,
-                    background: "rgba(31,184,166,0.08)", border: "1px solid rgba(31,184,166,0.2)",
+                    background: "rgba(255,107,87,0.08)", border: "1px solid rgba(255,107,87,0.2)",
                   }}>
-                    <span style={{ color: "var(--brand-green)", fontWeight: 700 }}>💰 وفّرت</span>
-                    <span style={{ color: "var(--brand-green)", fontWeight: 800 }}>
+                    <span style={{ color: "var(--brand-coral)", fontWeight: 700 }}>💰 وفّرت</span>
+                    <span style={{ color: "var(--brand-coral)", fontWeight: 800 }}>
                       {qty * (v.originalPrice - v.price)} {BOOK.currency}
                     </span>
                   </div>
 
                   <div style={{ borderTop: "1px solid var(--border)", marginTop: 4, paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontWeight: 800 }}>الجملة</span>
-                    <span style={{ fontWeight: 900, fontSize: 18, color: "var(--brand-blue)" }}>{total} {BOOK.currency}</span>
+                    <span style={{ fontWeight: 800, color: "var(--foreground)" }}>الجملة</span>
+                    <span style={{ fontWeight: 900, fontSize: 18, color: "var(--brand-teal-deep)" }} aria-live="polite">{total} {BOOK.currency}</span>
                   </div>
                 </div>
 
                 {/* SUBMIT */}
                 <button
-                  className="shelf-gold"
+                  type="button"
+                  className="btn-primary"
                   onClick={handleSubmit}
                   disabled={status === "loading"}
                   style={{ padding: "16px 24px", borderRadius: 16, fontSize: 18, fontWeight: 900, fontFamily: "Cairo", width: "100%" }}
@@ -610,9 +667,9 @@ export default function ShopPage() {
                 </button>
 
                 {status === "error" && (
-                  <div style={{
-                    background: "rgba(255,107,87,0.1)", border: "1px solid rgba(255,107,87,0.3)",
-                    borderRadius: 12, padding: "12px 16px", fontSize: 14, color: "var(--brand-red)", fontWeight: 700,
+                  <div role="alert" style={{
+                    background: "rgba(225,91,113,0.08)", border: "1px solid rgba(225,91,113,0.3)",
+                    borderRadius: 12, padding: "12px 16px", fontSize: 14, color: "var(--brand-error)", fontWeight: 700,
                   }}>
                     صرا مشكل. تحقّق من النت ولّا تواصل معنا مباشرةً.
                   </div>
