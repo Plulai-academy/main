@@ -46,24 +46,33 @@ const BOOK = {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Palette = Plulai "Luxury mode" (marketing / purchase-flow pages):
+//   Depth #0D2B32 · Reef #1FB8A6 · Pearl gold #D4A24C ·
+//   Coral #FF6B57 · Pearl white #F6F3EA · Ink #29394A
+// CSS variable NAMES below are kept from the previous version so nothing
+// else in this file needs to change — only the VALUES were swapped to the
+// real brand colors. `--surface`/`--surface-2` are Depth lightened slightly
+// (a standard need for card-based dark UI, not a new brand color); the two
+// "*-deep" shadow tones are darkened variants of Reef/Pearl gold used only
+// for the pressed-button depth effect, not separate brand colors.
 const inlineStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
 
   :root {
-    --background: oklch(0.18 0.04 265);
-    --foreground: oklch(0.97 0.01 250);
-    --surface: oklch(0.23 0.045 265);
-    --surface-2: oklch(0.27 0.05 265);
-    --border: oklch(1 0 0 / 10%);
-    --muted-foreground: oklch(0.7 0.02 260);
-    --brand-blue: #1CB0F6;
-    --brand-cyan: #14D4F4;
-    --brand-deep: #2B70C9;
-    --brand-gold: #FAA918;
-    --brand-red: #D33131;
-    --brand-green: #2ECC71;
-    --shadow-blue: 0 4px 0 #2B70C9;
-    --shadow-gold: 0 4px 0 #C47D00;
+    --background: #0D2B32;
+    --foreground: #F6F3EA;
+    --surface: #12333D;
+    --surface-2: #163C47;
+    --border: rgba(246,243,234,0.10);
+    --muted-foreground: rgba(246,243,234,0.62);
+    --brand-blue: #1FB8A6;   /* Reef */
+    --brand-cyan: #1FB8A6;   /* Reef */
+    --brand-deep: #158F82;   /* darker Reef, for the teal button's shadow */
+    --brand-gold: #D4A24C;   /* Pearl gold */
+    --brand-red: #FF6B57;    /* Coral */
+    --brand-green: #1FB8A6;  /* Reef — no separate brand green in the palette */
+    --shadow-blue: 0 4px 0 #158F82;
+    --shadow-gold: 0 4px 0 #A97D2E;
     --shadow-dark: 0 4px 0 rgba(0,0,0,0.4);
   }
 
@@ -77,12 +86,12 @@ const inlineStyles = `
   }
 
   .shelf-gold {
-    background: var(--brand-gold); color: #1A1A2E;
-    box-shadow: 0 4px 0 #C47D00;
+    background: var(--brand-gold); color: #29394A;
+    box-shadow: var(--shadow-gold);
     transition: transform .1s ease, box-shadow .1s ease;
     cursor: pointer; border: none;
   }
-  .shelf-gold:active { box-shadow: 0 0 0 #C47D00; transform: translateY(4px); }
+  .shelf-gold:active { box-shadow: 0 0 0 #A97D2E; transform: translateY(4px); }
   .shelf-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
   .btn-back {
@@ -137,8 +146,8 @@ const inlineStyles = `
 
   .discount-badge {
     display: inline-flex; align-items: center;
-    background: rgba(211,49,49,0.15); color: var(--brand-red);
-    border: 1px solid rgba(211,49,49,0.35);
+    background: rgba(255,107,87,0.15); color: var(--brand-red);
+    border: 1px solid rgba(255,107,87,0.35);
     border-radius: 999px; padding: 2px 10px;
     font-size: 12px; font-weight: 900;
   }
@@ -279,7 +288,7 @@ export default function ShopPage() {
         <nav style={{
           position: "sticky", top: 0, zIndex: 50,
           backdropFilter: "blur(12px)",
-          background: "oklch(0.18 0.04 265 / 85%)",
+          background: "rgba(13,43,50,0.85)",
           borderBottom: "1px solid var(--border)",
         }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -294,9 +303,9 @@ export default function ShopPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 13, color: "var(--muted-foreground)", fontFamily: "Tajawal, sans-serif" }}>الدفع عند الاستلام</span>
               <span style={{
-                background: "rgba(28,176,246,0.15)", color: "var(--brand-blue)",
+                background: "rgba(31,184,166,0.15)", color: "var(--brand-blue)",
                 borderRadius: 999, padding: "3px 10px", fontSize: 12, fontWeight: 800,
-                border: "1px solid rgba(28,176,246,0.3)",
+                border: "1px solid rgba(31,184,166,0.3)",
               }}>🔒 آمن</span>
             </div>
           </div>
@@ -304,7 +313,7 @@ export default function ShopPage() {
 
         {/* TRUST BAND */}
         <div style={{
-          background: "linear-gradient(180deg, rgba(28,176,246,0.1) 0%, transparent 100%)",
+          background: "linear-gradient(180deg, rgba(31,184,166,0.1) 0%, transparent 100%)",
           borderBottom: "1px solid var(--border)",
           padding: "12px 24px", textAlign: "center",
         }}>
@@ -333,7 +342,7 @@ export default function ShopPage() {
                     borderRadius: 999, width: 64, height: 64,
                     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                     fontFamily: "Cairo", fontWeight: 900, lineHeight: 1.1,
-                    boxShadow: "0 4px 12px rgba(211,49,49,0.5)",
+                    boxShadow: "0 4px 12px rgba(255,107,87,0.5)",
                   }}>
                     <span style={{ fontSize: 10 }}>خصم</span>
                     <span style={{ fontSize: 18 }}>44%</span>
@@ -347,14 +356,14 @@ export default function ShopPage() {
                       height={400}
                       style={{
                         width: "100%", height: "auto", borderRadius: 16, display: "block",
-                        boxShadow: "0 30px 60px -10px rgba(28,176,246,0.35), 0 0 0 1px rgba(255,255,255,0.08)",
+                        boxShadow: "0 30px 60px -10px rgba(31,184,166,0.35), 0 0 0 1px rgba(255,255,255,0.08)",
                       }}
                     />
                   </div>
 
                   <div style={{
                     position: "absolute", top: 14, right: 14,
-                    background: "var(--brand-gold)", color: "#1A1A2E",
+                    background: "var(--brand-gold)", color: "#29394A",
                     borderRadius: 10, padding: "4px 10px", fontSize: 12, fontWeight: 900,
                   }}>جديد</div>
                 </div>
@@ -390,9 +399,9 @@ export default function ShopPage() {
                       <li key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontFamily: "Tajawal, sans-serif" }}>
                         <span style={{
                           width: 22, height: 22, borderRadius: 8, flexShrink: 0,
-                          background: "rgba(28,176,246,0.2)", display: "grid", placeItems: "center",
+                          background: "rgba(31,184,166,0.2)", display: "grid", placeItems: "center",
                         }}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1CB0F6" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1FB8A6" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 13l4 4L19 7" />
                           </svg>
                         </span>
@@ -433,7 +442,7 @@ export default function ShopPage() {
                   <div style={{
                     display: "flex", alignItems: "center", gap: 10,
                     padding: "10px 14px", borderRadius: 12,
-                    background: "rgba(28,176,246,0.08)", border: "1px solid rgba(28,176,246,0.2)",
+                    background: "rgba(31,184,166,0.08)", border: "1px solid rgba(31,184,166,0.2)",
                   }}>
                     <span style={{ fontSize: 20 }}>{v.flag}</span>
                     <div>
@@ -559,8 +568,8 @@ export default function ShopPage() {
 
                 {/* ORDER SUMMARY */}
                 <div style={{
-                  background: "rgba(28,176,246,0.06)", borderRadius: 16,
-                  border: "1px solid rgba(28,176,246,0.2)", padding: "16px 20px",
+                  background: "rgba(31,184,166,0.06)", borderRadius: 16,
+                  border: "1px solid rgba(31,184,166,0.2)", padding: "16px 20px",
                   display: "flex", flexDirection: "column", gap: 8,
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
@@ -576,7 +585,7 @@ export default function ShopPage() {
                   <div style={{
                     display: "flex", justifyContent: "space-between", fontSize: 13,
                     padding: "8px 12px", borderRadius: 10,
-                    background: "rgba(46,204,113,0.08)", border: "1px solid rgba(46,204,113,0.2)",
+                    background: "rgba(31,184,166,0.08)", border: "1px solid rgba(31,184,166,0.2)",
                   }}>
                     <span style={{ color: "var(--brand-green)", fontWeight: 700 }}>💰 وفّرت</span>
                     <span style={{ color: "var(--brand-green)", fontWeight: 800 }}>
@@ -602,7 +611,7 @@ export default function ShopPage() {
 
                 {status === "error" && (
                   <div style={{
-                    background: "rgba(211,49,49,0.1)", border: "1px solid rgba(211,49,49,0.3)",
+                    background: "rgba(255,107,87,0.1)", border: "1px solid rgba(255,107,87,0.3)",
                     borderRadius: 12, padding: "12px 16px", fontSize: 14, color: "var(--brand-red)", fontWeight: 700,
                   }}>
                     صرا مشكل. تحقّق من النت ولّا تواصل معنا مباشرةً.
