@@ -11,26 +11,11 @@
 //
 // 'use client' because the mobile nav menu and audience toggle need
 // local state.
-//
-// CHANGES IN THIS VERSION:
-// - Repositioned for B2B (schools/institutions) as the primary audience:
-//     - Hero copy leads with schools, dashboard is up in the same 
-//       sentence as the value prop instead of buried at the bottom
-//     - "For Schools" section moved directly after Partners (used to
-//       sit near the bottom, after Path/Stats)
-//     - Primary CTAs changed from "Try a free lesson" (consumer signup)
-//       to "Book a demo" (B2B) across nav, hero, and final CTA
-//     - Nav/footer "Pricing" links removed
-// - Pricing section removed entirely (was #pricing)
-// - Mascot swapped: <Marjan /> component -> <Image src="/marjanthecamel.svg" />
-//   NOTE: you need to add marjanthecamel.svg to your /public folder.
-//   The old Marjan import was removed since it's no longer used here
-//   (leave the component file alone if other pages still use it).
 
 'use client'
 
 import { useState } from 'react'
-import styles from '@/app/page.module.css' // moved from './page.module.css' — this file now lives in components/, not app/
+import styles from '@/app/page.module.css'
 import Image from 'next/image'
 
 const partners = [
@@ -74,7 +59,9 @@ export default function LandingPage() {
   const [navOpen, setNavOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(0)
   const [activeStep, setActiveStep] = useState(0)
-  const [audience, setAudience] = useState<'family' | 'schools'>('family')
+  // Schools/institutions are the primary motion — families are still fully served,
+  // just one tap away via the toggle below instead of the default landing state.
+  const [audience, setAudience] = useState<'family' | 'schools'>('schools')
 
   return (
     <>
@@ -95,12 +82,13 @@ export default function LandingPage() {
 
             <div className={styles.navLinks} style={{ color: '#0D2B32' }}>
               <a href="#tracks" style={{ color: '#0D2B32' }}>Tracks</a>
-              <a href="#audience" onClick={() => setAudience('family')} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>For Families</a>
               <a href="#audience" onClick={() => setAudience('schools')} style={{ color: audience === 'schools' ? '#1FB8A6' : '#0D2B32' }}>For Schools</a>
+              <a href="#audience" onClick={() => setAudience('family')} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>For Families</a>
               <a href="#plans" style={{ color: '#0D2B32' }}>Pricing</a>
             </div>
 
             <div className={styles.navRight}>
+              <a href="/ar" style={{ color: '#0D2B32', fontSize: 13.5, fontWeight: 600 }}>العربية</a>
               <a href="/auth/login" style={{ color: '#0D2B32' }}>Log in</a>
               <a href="#audience"><button className="btn btn-dark">{audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;</button></a>
             </div>
@@ -120,11 +108,12 @@ export default function LandingPage() {
 
           <div className={`${styles.mobilePanel} ${navOpen ? styles.mobilePanelOpen : ''}`}>
             <a href="#tracks" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Tracks</a>
-            <a href="#audience" onClick={() => { setAudience('family'); setNavOpen(false) }} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>For Families</a>
             <a href="#audience" onClick={() => { setAudience('schools'); setNavOpen(false) }} style={{ color: audience === 'schools' ? '#1FB8A6' : '#0D2B32' }}>For Schools</a>
+            <a href="#audience" onClick={() => { setAudience('family'); setNavOpen(false) }} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>For Families</a>
             <a href="#plans" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Pricing</a>
             <div className={styles.mobilePanelDivider} />
             <a href="/auth/login" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Log in</a>
+            <a href="/ar" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>العربية</a>
             <a href="#audience" onClick={() => setNavOpen(false)}>
               <button className="btn btn-cta btn-block">{audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;</button>
             </a>
@@ -234,8 +223,13 @@ export default function LandingPage() {
                 priority
               />
 
+              <style>{`
+                @keyframes plulai-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: 0.7; } }
+                .streak-pulse { animation: plulai-pulse 1.8s ease-in-out infinite; }
+                @media (prefers-reduced-motion: reduce) { .streak-pulse { animation: none; } }
+              `}</style>
               <div className={styles.floatBadge} style={{ top: 0, left: -10 }}>
-                <span className="pearl-dot pearl-dot--md" />
+                <span className="pearl-dot pearl-dot--md streak-pulse" />
                 <div>
                   <div className={styles.floatBadgeTitle}>4-pearl streak</div>
                   <div className={styles.floatBadgeSub}>One more today</div>
@@ -824,7 +818,17 @@ export default function LandingPage() {
           }
         `}</style>
         <div className="container">
-          <p className="eyebrow">The pearl path</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 4 }}>
+            <Image
+              src="/avatars/heroplulai.png"
+              alt=""
+              width={44}
+              height={44}
+              style={{ borderRadius: '50%', flexShrink: 0 }}
+              aria-hidden
+            />
+            <p className="eyebrow" style={{ margin: 0 }}>The pearl path</p>
+          </div>
           <h2 style={{ color: 'var(--raw-pearlwhite)' }}>
             {audience === 'family'
               ? 'Watch them go from curious to confident'
@@ -941,7 +945,12 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* ================= STATS ================= */}
+      {/* ================= STATS =================
+          TODO(Mohamed): verify each number below before this ships. 150+ and 9+
+          look like they track your real competition/partner numbers — 9.2/10
+          satisfaction has no visible source and is the one most likely to read
+          as fabricated precision. Either attach a real source or round it down
+          to something you can defend if asked. */}
       <div className={styles.statsSec}>
         <div className="container">
           <div className={styles.statsRow}>
@@ -979,12 +988,14 @@ export default function LandingPage() {
               >
                 CASE STUDY
               </span>
-              <h2 style={{ color: '#F6F3EA', marginBottom: 14 }}>A partner school in Tunis</h2>
+              <h2 style={{ color: '#F6F3EA', marginBottom: 14 }}>What happens when a partner leans in</h2>
               <p style={{ color: '#B7C9C5', lineHeight: 1.7, marginBottom: 22 }}>
-                One of our partner schools piloted Plulai with a single class before
-                rolling it out across several grade levels. Their administration
-                pointed to the trilingual curriculum and the admin dashboard as the
-                deciding factors over other options they trialed.
+                We ran a national coding &amp; AI competition with 8 school and
+                training-center partners across Tunisia. The pattern was clear:
+                where a partner actively promoted it to their students, turnout
+                followed. One training-center partnership alone brought real,
+                sustained participation — proof the model works when a partner
+                is engaged, not just signed up.
               </p>
               <a href="mailto:hello@plulai.com">
                 <button className="btn btn-cta">Book a demo &rarr;</button>
@@ -992,10 +1003,10 @@ export default function LandingPage() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               {[
-                { num: '3 weeks', label: 'Pilot to full rollout' },
-                { num: '200+', label: 'Students onboarded' },
-                { num: '↑', label: 'Weekly lesson completion' },
-                { num: '3', label: 'Grade levels covered' },
+                { num: '8', label: 'School & training-center partners in our first competition' },
+                { num: '70', label: 'Participants from a single engaged training-center partner' },
+                { num: '40', label: 'Kids joined a 2-day in-person scouts pilot' },
+                { num: '3', label: 'Languages taught natively — Arabic, French, English' },
               ].map((stat) => (
                 <div key={stat.label} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: '20px 16px' }}>
                   <p style={{ color: '#1FB8A6', fontWeight: 700, fontSize: 26, margin: '0 0 6px' }}>{stat.num}</p>
@@ -1004,9 +1015,6 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-          <p style={{ textAlign: 'center', fontSize: 12.5, color: 'rgba(41,57,74,0.45)', marginTop: 14 }}>
-            Illustrative example — swap in a real pilot&apos;s numbers once you have one to publish.
-          </p>
         </div>
       </div>
       )}
@@ -1060,6 +1068,14 @@ export default function LandingPage() {
                 <button className="btn btn-cta btn-block">Start 14-day free trial &rarr;</button>
               </a>
             </div>
+          </div>
+
+          <div style={{ maxWidth: 640, margin: '36px auto 0', textAlign: 'center' }}>
+            <p style={{ fontSize: 13, color: 'rgba(41,57,74,0.6)', lineHeight: 1.6 }}>
+              We collect only what&apos;s needed to run lessons and track progress — never sold or
+              used for advertising. Questions about how we handle your child&apos;s data?{' '}
+              <a href="mailto:hello@plulai.com" style={{ color: '#1FB8A6', fontWeight: 600 }}>Email us</a>.
+            </p>
           </div>
         </div>
       </div>
@@ -1406,8 +1422,8 @@ export default function LandingPage() {
             </div>
             <div className={styles.footerCol}>
               <p className={styles.footerColTitle}>For you</p>
-              <a href="#audience" onClick={() => setAudience('family')}>For Families</a>
               <a href="#audience" onClick={() => setAudience('schools')}>For Schools</a>
+              <a href="#audience" onClick={() => setAudience('family')}>For Families</a>
             </div>
             <div className={styles.footerCol}>
               <p className={styles.footerColTitle}>Company</p>
