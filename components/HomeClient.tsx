@@ -257,25 +257,91 @@ export default function LandingPage() {
       </div>
 
       {/* ================= PARTNERS ================= */}
-      <div className={styles.partnersSec}>
+      {/* Redesigned as a self-contained band (inline-styled, same pattern as
+          the Tracks/How-it-works/Case-study sections below) rather than the
+          old styles.partnersSec/partnerRow/partnerTile module classes, so it
+          no longer depends on CSS you can't see here. It picks up the same
+          "#F6F3EA" pearl-white the divider above already hands off to, and
+          borrows the alumni section's proven infinite-marquee technique —
+          a static wrapped grid doesn't scale gracefully once you're past
+          ~8 logos, and this list is already at 11. Logos run desaturated by
+          default (a quiet, uniform trust signal) and bloom to full colour on
+          hover; the whole strip pauses on hover too so a name can actually
+          be read. */}
+      <div style={{ background: '#F6F3EA', padding: '52px 0 60px', overflow: 'hidden' }}>
+        <style>{`
+          @keyframes plulai-partner-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+          }
+          .partner-marquee-track { animation: plulai-partner-scroll 32s linear infinite; }
+          .partner-marquee-wrap:hover .partner-marquee-track { animation-play-state: paused; }
+          .partner-tile { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+          .partner-tile:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(13,43,50,0.10); border-color: rgba(31,184,166,0.35) !important; }
+          .partner-tile img { filter: grayscale(1); opacity: 0.5; transition: filter .25s ease, opacity .25s ease; }
+          .partner-tile:hover img { filter: grayscale(0); opacity: 1; }
+          @media (prefers-reduced-motion: reduce) { .partner-marquee-track { animation: none; } }
+        `}</style>
+
         <div className="container">
-          <p className={styles.partnersLabel}>USED IN REAL CLASSROOMS AND PROGRAMS</p>
-          <div className={styles.partnerRow}>
-            {partners.map((partner) => (
-              <div key={partner.name} className={styles.partnerTile}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <span
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 15px',
+                borderRadius: 999, background: '#EAF6F3', color: '#0D2B32', fontSize: 12.5,
+                fontWeight: 700, letterSpacing: 0.3, marginBottom: 12,
+              }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1FB8A6' }} />
+              Trusted across the region
+            </span>
+            <p style={{ margin: 0, fontSize: 14.5, fontWeight: 600, color: 'rgba(41,57,74,0.6)' }}>
+              Used in real classrooms and programs
+            </p>
+          </div>
+        </div>
+
+        <div className="partner-marquee-wrap" style={{ position: 'relative' }}>
+          {/* edge fades so the strip reads as endless, not cut off */}
+          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 100, background: 'linear-gradient(90deg, #F6F3EA, rgba(246,243,234,0))', zIndex: 2, pointerEvents: 'none' }} />
+          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: 100, background: 'linear-gradient(270deg, #F6F3EA, rgba(246,243,234,0))', zIndex: 2, pointerEvents: 'none' }} />
+
+          <div
+            className="partner-marquee-track"
+            style={{ display: 'flex', width: 'max-content', gap: 18, padding: '4px 0' }}
+          >
+            {[...partners, ...partners].map((partner, i) => (
+              <div
+                key={`${partner.file}-${i}`}
+                className="partner-tile"
+                style={{
+                  flex: '0 0 auto', width: 156, height: 82, borderRadius: 16,
+                  background: '#fff', border: '1px solid #E4E9E7',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '16px 22px',
+                }}
+              >
                 <Image
                   src={`/partners/${partner.file}`}
                   alt={partner.name}
                   width={120}
                   height={48}
-                  className={styles.partnerLogo}
+                  style={{ width: 'auto', height: '100%', maxWidth: '100%', objectFit: 'contain' }}
                 />
               </div>
             ))}
           </div>
-          <p className={styles.partnersSub}>
-            Schools · Scouts programs · Community and training centers
-          </p>
+        </div>
+
+        <div className="container">
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 30 }}>
+            {['Schools', 'Scouts programs', 'Community and training centers'].map((label, i, arr) => (
+              <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(41,57,74,0.55)' }}>{label}</span>
+                {i < arr.length - 1 && <span aria-hidden style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(41,57,74,0.25)' }} />}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
