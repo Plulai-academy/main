@@ -1,52 +1,70 @@
 'use client'
 // components/dashboard/SkillsClient.tsx
 //
-// REDESIGN v15 — five islands, one quiet rail card
-// ────────────────────────────────────────────────
-// Two fixes from feedback:
+// REDESIGN v16 — "The Pearl Diver's Route"
+// ─────────────────────────────────────────────────────────────────
+// A kid sails a dhow across the Arabian Gulf, island by island,
+// collecting pearls (XP) and opening a treasure chest at the end of
+// each voyage (unit). This replaces the generic "SaaS cards on a
+// white background" e‑learning look with a world that's grounded in
+// Gulf pearl-diving heritage — the same heritage your palette names
+// (Reef, Lagoon, Pearl gold, Depth) already point to.
 //
-//   1. Every unit was rendering the exact same blob silhouette — fine
-//      once, boring by unit three. There are now 5 distinct island
-//      shapes (different silhouette, different scatter of stops,
-//      different soft color wash) that cycle by unit index, so a kid
-//      scrolling through several units actually sees different islands
-//      instead of the same shape re-skinned.
+// Two problems this fixes directly:
 //
-//   2. The rail had three cards competing for attention (level/streak,
-//      weekly quest, leaderboard). Cut to just the one — level + streak
-//      + XP in a single badge, still tied visually to the hero. Quest
-//      and leaderboard are gone from this screen entirely; they can
-//      live on their own page/tab when you're ready to build it, this
-//      component just doesn't render them anymore.
-import { useMemo, useRef, useEffect, useState } from 'react'
+//   1. "Doesn't show past lessons completed" — the map used to only
+//      ever render the current island + one locked teaser. It now
+//      renders the FULL charted route: every conquered island stays
+//      on screen, in full colour, with a "Conquered" ribbon and an
+//      open treasure chest at its last stop. On top of that, a Pearl
+//      Necklace strip at the top of the page gives a permanent,
+//      tap-to-jump summary of literally every lesson ever finished —
+//      so history is never more than a glance (or one scroll) away.
+//
+//   2. "Feels like an e-learning platform, not a game" — swapped the
+//      generic padlock/checkmark/gem icon set for a small maritime
+//      icon set (dhow boat = you are here, closed shell = locked
+//      stop, mystery chest = the unopened reward waiting at the end
+//      of a voyage, open chest = reward claimed), added a dashed
+//      "sea route" between islands with anchor waypoints, alternated
+//      island placement left/right like a hand-charted map instead of
+//      a stack of identical cards, and swapped the corporate
+//      Jakarta Sans / Almarai pairing for Baloo 2 / Baloo Bhaijaan 2 —
+//      a rounded, playful sibling pairing built for exactly this kind
+//      of bilingual kids product.
+//
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { setCurrentTrack } from '@/app/dashboard/path/actions'
 
 const UI: Record<string, Record<string, string>> = {
   en: {
-    play: 'Play', lessonOf: 'Lesson', of: 'of', missions: 'missions', unit: 'Unit',
-    locked: 'Locked', completed: 'Completed', current: 'Up next', now: 'Now',
-    allDone: 'World complete!', allDoneSub: "You've cleared every level here.",
-    switching: 'Loading…',
-    hello: 'Hello', subtitle: "Let's pick up where you left off.",
-    streak: 'day streak', level: 'Level', totalXp: 'Total XP',
+    play: 'Set Sail', lessonOf: 'Stop', of: 'of', missions: 'pearls', unit: 'Voyage',
+    locked: 'Locked', completed: 'Conquered', current: 'current stop', now: "You're here",
+    allDone: 'World complete!', allDoneSub: "You've charted every island here.",
+    switching: 'Charting course…',
+    hello: 'Ahlan', subtitle: "Let's continue your voyage.",
+    streak: 'day streak', level: 'Rank', totalXp: 'total pearls',
+    worldName: 'Gulf of Discovery',
   },
   ar: {
-    play: 'العب', lessonOf: 'الدرس', of: 'من', missions: 'مهام', unit: 'الوحدة',
-    locked: 'مقفل', completed: 'مكتمل', current: 'التالي', now: 'الآن',
-    allDone: 'أنهيت هذا العالم! 🏆', allDoneSub: 'أكملت كل المستويات هنا.',
-    switching: 'جارٍ التحميل…',
-    hello: 'أهلاً', subtitle: 'يلا نكمل من وين وقفت.',
-    streak: 'أيام متتالية', level: 'المستوى', totalXp: 'مجموع النقاط',
+    play: 'أبحر', lessonOf: 'محطة', of: 'من', missions: 'لؤلؤة', unit: 'رحلة',
+    locked: 'مقفل', completed: 'مُنجزة', current: 'موقعك', now: 'أنت هنا',
+    allDone: 'أنهيت هذا العالم! 🏆', allDoneSub: 'اكتشفت كل جزيرة هنا.',
+    switching: 'نرسم المسار…',
+    hello: 'أهلاً', subtitle: 'يلا نكمل رحلتنا في الخليج!',
+    streak: 'أيام متتالية', level: 'الرتبة', totalXp: 'مجموع اللآلئ',
+    worldName: 'خليج الاكتشاف',
   },
   fr: {
-    play: 'Jouer', lessonOf: 'Leçon', of: 'sur', missions: 'missions', unit: 'Unité',
-    locked: 'Verrouillé', completed: 'Terminé', current: 'À suivre', now: 'Maintenant',
-    allDone: 'Monde terminé !', allDoneSub: 'Tu as fini tous les niveaux ici.',
-    switching: 'Chargement…',
-    hello: 'Bonjour', subtitle: 'On continue où tu t\u2019es arrêté.',
-    streak: 'jours de suite', level: 'Niveau', totalXp: 'XP total',
+    play: 'Embarquer', lessonOf: 'Étape', of: 'sur', missions: 'perles', unit: 'Voyage',
+    locked: 'Verrouillé', completed: 'Conquise', current: 'position actuelle', now: 'Tu es ici',
+    allDone: 'Monde terminé !', allDoneSub: 'Tu as exploré chaque île ici.',
+    switching: 'Traçage de la route…',
+    hello: 'Ahlan', subtitle: 'Continuons ton voyage dans le Golfe.',
+    streak: 'jours de suite', level: 'Rang', totalXp: 'perles au total',
+    worldName: 'Golfe de la Découverte',
   },
 }
 
@@ -78,8 +96,6 @@ interface Props {
   gems: number
   initialCurrentSkillId: string | null
   initialFirstIncompleteLessonId: string | null
-  // still accepted for backward compatibility / a future leaderboard page —
-  // not rendered on this screen anymore.
   leaderboard?: LeaderboardEntry[]
   dailyQuest?: DailyQuest
   dailyChallenge?: DailyChallenge | null
@@ -89,13 +105,13 @@ interface Props {
   mascotName?: string
   userTotalXp?: number
   heroBackgroundImageUrl?: string
-  /** real chapter/unit names, indexed 0, 1, 2… — falls back to the first
-   * skill's own title per island if not provided. */
   unitTitles?: string[]
 }
 
-// ── Brand tokens — premium set drives the shell; energetic set is
-// reserved for progress/interactive moments (and now, island washes).
+// ── Brand tokens ─────────────────────────────────────────────────
+// Luxury mode drives the chrome (header, hero, rail). Energetic mode
+// is reserved for the route itself — the one place a kid's finger
+// actually lands.
 const PAL = {
   depth: '#0D2B32',
   depthSoft: '#153B44',
@@ -107,21 +123,25 @@ const PAL = {
   inkSoft: '#5C7080',
   inkFaint: '#98A6B2',
   white: '#FFFFFF',
-  reef: '#17D9C0',
-  reefDeep: '#0EA294',
-  gold: '#FFB930',
+  reefLux: '#1FB8A6',
+  lagoon: '#EAF7F4',
+  lagoonFill: '#D9F1EC',
+  reefBright: '#17D9C0',
+  sunGold: '#FFB930',
   coral: '#FF6B57',
   coralDeep: '#E24E3C',
-  islandLockFrom: '#F0EEE6',
-  islandLockTo: '#E6E3D8',
+  shellLockFrom: '#F0EEE6',
+  shellLockTo: '#E6E3D8',
 }
 const SOFT_SHADOW = '0 2px 14px rgba(13,43,50,0.06)'
+const ISLAND_SIZE = 4
 
 function cleanTitle(title: string) {
   return title.replace(/^\s*S\d+\s*[—-]\s*/i, '').trim() || title
 }
 
-type IconKind = 'lock' | 'check' | 'flame' | 'play' | 'chevronR' | 'star' | 'gem'
+// ── Icon set ─────────────────────────────────────────────────────
+type IconKind = 'lock' | 'check' | 'flame' | 'chevronR'
 
 function Icon({ kind, className, style, strokeWidth = 2 }: { kind: IconKind; className?: string; style?: React.CSSProperties; strokeWidth?: number }) {
   const filled = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const }
@@ -133,19 +153,87 @@ function Icon({ kind, className, style, strokeWidth = 2 }: { kind: IconKind; cla
       return <svg {...filled}><path d="M9.5 16.6 4.9 12l-1.4 1.4 6 6L21 7.9l-1.4-1.4z"/></svg>
     case 'flame':
       return <svg {...filled}><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c1.5 1 2 2.8 2 4.3A5.3 5.3 0 0 1 11.7 22 5.5 5.5 0 0 1 6 16.6C6 11.8 10 9 12 2Z"/></svg>
-    case 'play':
-      return <svg {...filled}><path d="M8 5v14l11-7L8 5Z"/></svg>
-    case 'star':
-      return <svg {...filled}><path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.4 6.5L12 17.3l-6 3.1 1.4-6.5L2.5 9.3l6.6-.7L12 2.5Z"/></svg>
-    case 'gem':
-      return <svg {...filled}><path d="M6 4h12l3 5-9 11L3 9l3-5Zm1.8 2L5.5 9h4.9L7.8 6Zm3.4 0-2.4 3h6.4l-2.4-3h-1.6Zm3.4 0-2.3 3h4.9L14.6 6ZM6.2 11l4.9 7-4-7h-.9Zm11.6 0h-.9l-4 7 4.9-7ZM9.4 11l2.6 6.5L14.6 11H9.4Z"/></svg>
     case 'chevronR':
       return <svg {...lined}><path d="M9 6l6 6-6 6"/></svg>
   }
 }
 
-// ── Progress ring — the one interactive/playful shape reused (without
-// an emoji) as the level badge's frame in the rail.
+// small maritime marks, drawn separately from Icon() because they mix
+// fills and strokes in ways a single-path switch can't express.
+function Anchor({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="5" r="2" /><path d="M12 7v13" /><path d="M5 14a7 7 0 0 0 14 0" /><path d="M8 10h8" />
+    </svg>
+  )
+}
+function Wheel({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
+      <circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <path d="M12 5v3M12 16v3M5 12h3M16 12h3M7.05 7.05l2.1 2.1M14.85 14.85l2.1 2.1M7.05 16.95l2.1-2.1M14.85 9.15l2.1-2.1" />
+    </svg>
+  )
+}
+function BoatMarker({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 28 24">
+      <path d="M4 16 L24 16 L20 21 H8 Z" fill="currentColor" />
+      <path d="M14 16 V4" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" fill="none" />
+      <path d="M14 4 L20 14.5 L14 14.5 Z" fill="currentColor" opacity={0.6} />
+    </svg>
+  )
+}
+function ChestClosed({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="10.5" width="16" height="8" rx="1.6" />
+      <path d="M4 10.5c0-3.6 3.6-6.5 8-6.5s8 2.9 8 6.5" />
+      <circle cx="12" cy="14.3" r="1.1" fill="currentColor" stroke="none" />
+      <path d="M12 15.4v1.3" />
+    </svg>
+  )
+}
+function ChestOpen({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="12" width="16" height="7" rx="1.6" fill="currentColor" fillOpacity={0.16} />
+      <path d="M4.6 12C5.4 8.7 8.4 5 12 5" />
+      <path d="M19.4 12c-.8-3.3-3.8-7-7.4-7" />
+      <circle cx="12" cy="8.2" r="2" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+function CompassRose({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 120 120" fill="none" stroke="currentColor">
+      <circle cx="60" cy="60" r="52" strokeWidth={1} />
+      <circle cx="60" cy="60" r="2.5" fill="currentColor" stroke="none" />
+      <path d="M60 10 L66 58 L60 64 L54 58 Z" fill="currentColor" stroke="none" />
+      <path d="M60 110 L54 62 L60 56 L66 62 Z" fill="currentColor" stroke="none" opacity={0.4} />
+      <path d="M10 60 L58 54 L64 60 L58 66 Z" fill="currentColor" stroke="none" opacity={0.4} />
+      <path d="M110 60 L62 66 L56 60 L62 54 Z" fill="currentColor" stroke="none" opacity={0.4} />
+    </svg>
+  )
+}
+
+// faint mashrabiya-style lattice across the whole page — the one
+// place the design nods to Gulf ornament without shouting about it.
+function ArabesqueBackdrop() {
+  return (
+    <svg aria-hidden className="fixed inset-0 w-full h-full pointer-events-none -z-10" style={{ opacity: 0.05 }}>
+      <defs>
+        <pattern id="arabesque" width="48" height="48" patternUnits="userSpaceOnUse">
+          <path d="M24 4 L44 24 L24 44 L4 24 Z" fill="none" stroke={PAL.depth} strokeWidth={1} />
+          <circle cx="24" cy="24" r="6" fill="none" stroke={PAL.pearlGold} strokeWidth={1} />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#arabesque)" />
+    </svg>
+  )
+}
+
+// ── Progress ring ────────────────────────────────────────────────
 function ProgressRing({ pct, size = 96, stroke = 8, emoji, trackColor = 'rgba(255,255,255,0.14)' }: {
   pct: number; size?: number; stroke?: number; emoji?: string; trackColor?: string
 }) {
@@ -157,7 +245,7 @@ function ProgressRing({ pct, size = 96, stroke = 8, emoji, trackColor = 'rgba(25
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={trackColor} strokeWidth={stroke} />
         <circle
-          cx={size / 2} cy={size / 2} r={r} fill="none" stroke={PAL.gold} strokeWidth={stroke}
+          cx={size / 2} cy={size / 2} r={r} fill="none" stroke={PAL.sunGold} strokeWidth={stroke}
           strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset 0.6s ease' }}
         />
@@ -167,7 +255,7 @@ function ProgressRing({ pct, size = 96, stroke = 8, emoji, trackColor = 'rgba(25
   )
 }
 
-// ── Page header — calm, spacious, one quiet track switcher.
+// ── Page header ──────────────────────────────────────────────────
 function PageHeader({
   userName, t, activeTrack, tracks, showPicker, setShowPicker, pickerRef, onSelectTrack, activeTrackId,
 }: {
@@ -184,6 +272,9 @@ function PageHeader({
   return (
     <div className="flex items-start justify-between gap-4 flex-wrap">
       <div>
+        <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold mb-2" style={{ backgroundColor: PAL.lagoonFill, color: PAL.reefLux }}>
+          <Anchor className="w-3 h-3" /> {t.worldName}
+        </span>
         <h1 className="font-extrabold text-2xl sm:text-[28px] leading-tight" style={{ color: PAL.ink }}>
           {t.hello}{userName ? `, ${userName}` : ''}.
         </h1>
@@ -224,7 +315,49 @@ function PageHeader({
   )
 }
 
-// ── Hero mission panel — unchanged.
+// ── Pearl necklace — the permanent, tappable record of every lesson
+// finished. This is the direct fix for "you can't see past progress":
+// nothing ever drops off this strip, no matter how far the map below
+// has scrolled or how many islands are still fogged in.
+function PearlNecklace({ skills, isCompleteFn, currentSkillId, onJump, t }: {
+  skills: Skill[]; isCompleteFn: (id: string) => boolean; currentSkillId: string | null
+  onJump: (islandIdx: number) => void; t: Record<string, string>
+}) {
+  if (!skills.length) return null
+  const doneCount = skills.filter(s => isCompleteFn(s.id)).length
+  return (
+    <div className="mt-5 rounded-2xl bg-white px-4 py-3.5 flex items-center gap-3" style={{ boxShadow: SOFT_SHADOW }}>
+      <p className="shrink-0 text-sm font-extrabold whitespace-nowrap" style={{ color: PAL.ink }}>
+        {doneCount} <span className="font-semibold" style={{ color: PAL.inkSoft }}>{t.missions}</span>
+      </p>
+      <div className="h-7 w-px shrink-0" style={{ backgroundColor: PAL.shellLockTo }} />
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1.5 flex-1">
+        {skills.map((s, i) => {
+          const complete = isCompleteFn(s.id)
+          const current = s.id === currentSkillId
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => onJump(Math.floor(i / ISLAND_SIZE))}
+              aria-label={cleanTitle(s.title)}
+              className="shrink-0 rounded-full transition-transform hover:-translate-y-0.5"
+              style={{
+                width: current ? 16 : 11, height: current ? 16 : 11,
+                backgroundColor: complete || current ? PAL.pearlGold : 'transparent',
+                border: complete || current ? 'none' : `1.5px solid ${PAL.shellLockTo}`,
+                boxShadow: current ? '0 0 0 4px rgba(255,185,48,0.22)' : complete ? '0 1px 3px rgba(185,121,26,0.35)' : 'none',
+                animation: current ? 'glowPulse 1.8s ease-in-out infinite' : undefined,
+              }}
+            />
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Hero — "today's voyage" ──────────────────────────────────────
 function MissionHero({ skill, lessonIdx, lessonCount, pct, onPlay, t }: {
   skill: Skill; lessonIdx: number; lessonCount: number; pct: number; onPlay: () => void; t: Record<string, string>
 }) {
@@ -235,6 +368,7 @@ function MissionHero({ skill, lessonIdx, lessonCount, pct, onPlay, t }: {
     >
       <div aria-hidden className="absolute inset-0 pointer-events-none">
         <span className="absolute rounded-full" style={{ width: 320, height: 320, top: -140, right: -100, background: `radial-gradient(circle, ${PAL.pearlGold}22, transparent 70%)` }} />
+        <CompassRose className="absolute -bottom-10 -left-10 w-56 h-56" style={{ color: PAL.pearlWhite, opacity: 0.05 }} />
         <span className="absolute inset-0 rounded-[28px]" style={{ boxShadow: `inset 0 0 0 1px ${PAL.pearlGold}33` }} />
       </div>
 
@@ -249,7 +383,7 @@ function MissionHero({ skill, lessonIdx, lessonCount, pct, onPlay, t }: {
             {cleanTitle(skill.title)}
           </h2>
           <span className="inline-flex items-center gap-1 mt-3 rounded-full px-2.5 py-1 text-xs font-bold" style={{ backgroundColor: 'rgba(212,162,76,0.16)', color: PAL.pearlGoldSoft }}>
-            +{skill.xp_reward} XP
+            +{skill.xp_reward} {t.missions}
           </span>
         </div>
 
@@ -257,9 +391,9 @@ function MissionHero({ skill, lessonIdx, lessonCount, pct, onPlay, t }: {
           type="button"
           onClick={onPlay}
           className="sm:shrink-0 w-full sm:w-auto h-16 sm:px-9 rounded-2xl flex items-center justify-center gap-2.5 font-extrabold text-lg text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
-          style={{ backgroundColor: PAL.coral, boxShadow: `0 10px 24px rgba(255,107,87,0.35)` }}
+          style={{ backgroundColor: PAL.coral, boxShadow: '0 10px 24px rgba(255,107,87,0.35)' }}
         >
-          <Icon kind="play" className="w-5 h-5" />
+          <Wheel className="w-5 h-5" />
           {t.play}
         </button>
       </div>
@@ -267,38 +401,32 @@ function MissionHero({ skill, lessonIdx, lessonCount, pct, onPlay, t }: {
   )
 }
 
-// ── Island path ──────────────────────────────────────────────────────
-const ISLAND_SIZE = 4
-
-// 5 distinct silhouettes, each with its own scatter of up to 4 stops and
-// its own soft color wash — cycled by unit index so units 1, 2, 3, 4, 5
-// all look different, and unit 6 repeats unit 1's shape rather than
-// every unit repeating the same one.
+// ── Island path ──────────────────────────────────────────────────
 const ISLAND_SHAPES: { blob: string; points: { x: number; y: number }[]; from: string; to: string }[] = [
-  { // rounded organic blob, path winds bottom-left → top-mid → right → bottom
+  {
     blob: 'M40,20 C90,-10 180,0 220,30 C270,55 292,108 260,150 C230,190 150,202 100,180 C40,155 8,112 20,70 C25,45 20,35 40,20 Z',
     points: [{ x: 75, y: 140 }, { x: 140, y: 68 }, { x: 205, y: 118 }, { x: 165, y: 172 }],
-    from: '#EAF7F4', to: '#D9F1EC', // reef wash
+    from: PAL.lagoon, to: PAL.lagoonFill,
   },
-  { // long horizontal atoll, path drifts left → right in a shallow wave
+  {
     blob: 'M20,90 C15,45 70,15 140,18 C215,21 280,40 285,88 C289,132 240,168 168,178 C98,187 40,168 22,132 C13,115 17,102 20,90 Z',
     points: [{ x: 55, y: 105 }, { x: 120, y: 62 }, { x: 190, y: 105 }, { x: 245, y: 70 }],
-    from: '#FBF3E6', to: '#F3E1C4', // sandy-gold wash
+    from: '#FBF3E6', to: '#F3E1C4',
   },
-  { // round island, path spirals inward
+  {
     blob: 'M150,10 C212,10 268,52 271,108 C274,162 218,196 153,196 C88,196 33,164 24,110 C15,54 92,10 150,10 Z',
     points: [{ x: 80, y: 140 }, { x: 150, y: 48 }, { x: 220, y: 140 }, { x: 150, y: 168 }],
-    from: '#EAF4FB', to: '#D3E9F7', // pale lagoon-blue wash
+    from: '#EAF4FB', to: '#D3E9F7',
   },
-  { // tall narrow island, path runs top to bottom
+  {
     blob: 'M92,15 C142,-2 194,20 208,62 C222,104 212,152 190,182 C168,208 118,207 88,186 C58,165 36,128 42,88 C48,50 60,26 92,15 Z',
     points: [{ x: 128, y: 42 }, { x: 96, y: 92 }, { x: 152, y: 138 }, { x: 108, y: 178 }],
-    from: '#F2F8EA', to: '#E1EFCE', // soft palm-green wash
+    from: '#F2F8EA', to: '#E1EFCE',
   },
-  { // archipelago with a bay, path curls around the notch
+  {
     blob: 'M30,62 C42,20 104,4 152,20 C188,32 178,58 220,54 C262,50 288,82 276,122 C264,162 208,192 148,180 C108,172 90,150 58,155 C22,160 4,120 15,90 C20,76 25,68 30,62 Z',
     points: [{ x: 52, y: 92 }, { x: 122, y: 42 }, { x: 195, y: 90 }, { x: 242, y: 140 }],
-    from: '#FFF1EE', to: '#FFD9D1', // warm coral wash
+    from: '#FFF1EE', to: '#FFD9D1',
   },
 ]
 
@@ -317,6 +445,20 @@ function buildSmoothPath(points: { x: number; y: number }[]) {
   return d
 }
 
+// route waypoint drawn between two islands — gold once you've sailed
+// it, grey while it's still ahead in the fog.
+function RouteConnector({ reached }: { reached: boolean }) {
+  return (
+    <div className="flex items-center justify-center py-1.5" aria-hidden>
+      <div className="flex flex-col items-center gap-1">
+        <span className="block w-0.5 h-3 rounded-full" style={{ backgroundColor: reached ? PAL.pearlGold : PAL.shellLockTo }} />
+        <Anchor className="w-3.5 h-3.5" style={{ color: reached ? PAL.pearlGold : PAL.inkFaint }} />
+        <span className="block w-0.5 h-3 rounded-full" style={{ backgroundColor: reached ? PAL.pearlGold : PAL.shellLockTo }} />
+      </div>
+    </div>
+  )
+}
+
 function IslandNode({ locked, complete, current, isLast, onClick, label, x, y }: {
   locked: boolean; complete: boolean; current: boolean; isLast: boolean
   onClick: () => void; label: string; x: number; y: number
@@ -326,16 +468,44 @@ function IslandNode({ locked, complete, current, isLast, onClick, label, x, y }:
     if (locked) { setShake(true); window.setTimeout(() => setShake(false), 400); return }
     onClick()
   }
-  const size = current ? 56 : 46
+  const size = current ? 58 : isLast ? 52 : 46
+
+  let bg = PAL.white
+  let border = `1.5px solid rgba(41,57,74,0.10)`
+  let iconEl: React.ReactNode = null
+
+  if (locked) {
+    bg = isLast ? PAL.shellLockFrom : PAL.white
+    iconEl = isLast
+      ? <ChestClosed className="w-4.5 h-4.5" style={{ color: PAL.inkFaint }} />
+      : <Icon kind="lock" className="w-4 h-4" style={{ color: PAL.inkFaint }} strokeWidth={1.8} />
+  } else if (current) {
+    bg = PAL.sunGold
+    border = 'none'
+    iconEl = <BoatMarker className="w-7 h-6" style={{ color: PAL.white }} />
+  } else if (complete) {
+    bg = isLast ? PAL.pearlGoldSoft : PAL.reefBright
+    border = isLast ? `1.5px solid ${PAL.pearlGold}` : 'none'
+    iconEl = isLast
+      ? <ChestOpen className="w-5 h-5" style={{ color: PAL.goldDeep }} />
+      : <Icon kind="check" className="w-4 h-4" style={{ color: PAL.white }} />
+  } else if (isLast) {
+    bg = PAL.pearlGoldSoft
+    border = `1.5px dashed ${PAL.pearlGold}`
+    iconEl = <ChestClosed className="w-4.5 h-4.5" style={{ color: PAL.goldDeep }} />
+  } else {
+    iconEl = <span className="block rounded-full" style={{ width: 5, height: 5, backgroundColor: PAL.lagoonFill }} />
+  }
+
   return (
     <div
       className="absolute flex flex-col items-center"
       style={{ left: `${(x / 300) * 100}%`, top: `${(y / 200) * 100}%`, transform: 'translate(-50%,-50%)' }}
     >
       {current && (
-        <span className="mb-1.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold text-white relative" style={{ backgroundColor: PAL.gold }}>
+        <span className="mb-1.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold text-white relative whitespace-nowrap" style={{ backgroundColor: PAL.sunGold }}>
           {label}
-          <span className="absolute left-1/2 -bottom-1 w-2 h-2 -translate-x-1/2 rotate-45" style={{ backgroundColor: PAL.gold }} />
+          <span className="absolute left-1/2 -bottom-1 w-2 h-2 -translate-x-1/2 rotate-45" style={{ backgroundColor: PAL.sunGold }} />
         </span>
       )}
       <button
@@ -343,73 +513,75 @@ function IslandNode({ locked, complete, current, isLast, onClick, label, x, y }:
         onClick={handleClick}
         aria-disabled={locked}
         aria-label={label}
-        className={cn('flex items-center justify-center transition-transform', !locked && 'hover:-translate-y-0.5 active:translate-y-0')}
+        className={cn('flex items-center justify-center transition-transform', !locked && 'hover:-translate-y-0.5 active:translate-y-0', current && 'animate-[bob_2.4s_ease-in-out_infinite]')}
         style={{
           width: size, height: size, borderRadius: '9999px',
-          backgroundColor: complete ? PAL.reef : PAL.white,
-          border: current ? `2.5px solid ${PAL.gold}` : locked ? '1.5px solid rgba(41,57,74,0.10)' : 'none',
+          backgroundColor: bg, border,
           boxShadow: current
-            ? `0 0 0 5px rgba(255,185,48,0.18), 0 6px 14px rgba(13,43,50,0.18)`
+            ? '0 0 0 5px rgba(255,185,48,0.20), 0 6px 14px rgba(13,43,50,0.18)'
             : '0 3px 8px rgba(13,43,50,0.14)',
-          animation: shake ? 'shakeX 0.4s ease' : undefined,
+          animation: shake ? 'shakeX 0.4s ease' : current ? 'bob 2.4s ease-in-out infinite' : undefined,
         }}
       >
-        {locked ? (
-          <Icon kind="lock" className="w-4 h-4" style={{ color: PAL.inkFaint }} strokeWidth={1.8} />
-        ) : current ? (
-          <Icon kind="star" className="w-5 h-5" style={{ color: PAL.gold }} />
-        ) : complete && isLast ? (
-          <Icon kind="gem" className="w-4.5 h-4.5" style={{ color: PAL.goldDeep }} />
-        ) : complete ? (
-          <Icon kind="check" className="w-4 h-4" style={{ color: PAL.white }} />
-        ) : null}
+        {iconEl}
       </button>
     </div>
   )
 }
 
-// one illustrated island: a unit label, a curved dashed trail, and a
-// handful of stops scattered across it. Shape/wash rotate by index so
-// consecutive units don't look identical. `locked` mutes the whole
-// thing to a grey-pearl palette regardless of which shape it drew.
-function IslandUnit({ title, index, skills, currentSkillId, isUnlockedFn, isCompleteFn, onTap, locked, t }: {
+function IslandUnit({ title, index, skills, currentSkillId, isUnlockedFn, isCompleteFn, onTap, islandLocked, islandCompleted, t }: {
   title: string; index: number; skills: Skill[]; currentSkillId: string | null
   isUnlockedFn: (s: Skill) => boolean; isCompleteFn: (id: string) => boolean
-  onTap: (s: Skill, unlocked: boolean) => void; locked: boolean; t: Record<string, string>
+  onTap: (s: Skill, unlocked: boolean) => void; islandLocked: boolean; islandCompleted: boolean; t: Record<string, string>
 }) {
   const shape = ISLAND_SHAPES[index % ISLAND_SHAPES.length]
   const pts = skills.map((_, i) => shape.points[i % shape.points.length])
   const pathD = buildSmoothPath(pts)
-  const gradId = `island-grad-${index}-${locked ? 'lock' : 'live'}`
+  const gradId = `island-grad-${index}-${islandLocked ? 'lock' : 'live'}`
 
   return (
-    <div className={cn(index > 0 && 'mt-2')}>
-      <p className="text-[11px] font-extrabold uppercase tracking-wider mb-0.5" style={{ color: locked ? PAL.inkFaint : PAL.goldDeep }}>
-        {t.unit} {index + 1}
-      </p>
-      <h3 className="text-base sm:text-lg font-extrabold mb-3" style={{ color: locked ? PAL.inkFaint : PAL.ink }}>
-        {title}
-      </h3>
+    <div
+      id={`island-${index}`}
+      className={cn('sm:w-[90%]', index % 2 === 0 ? 'sm:me-auto' : 'sm:ms-auto')}
+      style={{ scrollMarginTop: 24 }}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <span
+          className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-extrabold shrink-0"
+          style={{ backgroundColor: islandLocked ? PAL.shellLockTo : islandCompleted ? PAL.pearlGold : PAL.reefBright, color: islandLocked ? PAL.inkFaint : PAL.white }}
+          aria-label={`${t.unit} ${index + 1}`}
+        >
+          {index + 1}
+        </span>
+        <h3 className="text-base sm:text-lg font-extrabold flex-1 min-w-0 truncate" style={{ color: islandLocked ? PAL.inkFaint : PAL.ink }}>
+          {title}
+        </h3>
+        {islandCompleted && (
+          <span className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold" style={{ backgroundColor: PAL.lagoonFill, color: PAL.reefLux }}>
+            <Icon kind="check" className="w-3 h-3" /> {t.completed}
+          </span>
+        )}
+      </div>
 
       <div className="relative w-full" style={{ aspectRatio: '300 / 200' }}>
         <svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid meet" className="absolute inset-0 w-full h-full">
           <defs>
             <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={locked ? PAL.islandLockFrom : shape.from} />
-              <stop offset="100%" stopColor={locked ? PAL.islandLockTo : shape.to} />
+              <stop offset="0%" stopColor={islandLocked ? PAL.shellLockFrom : shape.from} />
+              <stop offset="100%" stopColor={islandLocked ? PAL.shellLockTo : shape.to} />
             </linearGradient>
           </defs>
           <path d={shape.blob} fill={`url(#${gradId})`} />
           <path
-            d={pathD} fill="none" stroke={locked ? '#C9C6BA' : PAL.reef}
-            strokeOpacity={locked ? 0.5 : 0.55} strokeWidth={2} strokeDasharray="1 7" strokeLinecap="round"
+            d={pathD} fill="none" stroke={islandLocked ? '#C9C6BA' : PAL.reefLux}
+            strokeOpacity={islandLocked ? 0.5 : 0.55} strokeWidth={2} strokeDasharray="1 7" strokeLinecap="round"
           />
         </svg>
 
         {skills.map((s, i) => {
-          const unlocked = !locked && isUnlockedFn(s)
-          const complete = !locked && isCompleteFn(s.id)
-          const isCurrent = !locked && s.id === currentSkillId
+          const unlocked = !islandLocked && isUnlockedFn(s)
+          const complete = !islandLocked && isCompleteFn(s.id)
+          const isCurrent = !islandLocked && s.id === currentSkillId
           const pos = pts[i]
           return (
             <IslandNode
@@ -421,6 +593,14 @@ function IslandUnit({ title, index, skills, currentSkillId, isUnlockedFn, isComp
             />
           )
         })}
+
+        {islandLocked && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-extrabold" style={{ backgroundColor: 'rgba(13,43,50,0.72)', color: PAL.pearlWhite }}>
+              <Icon kind="lock" className="w-3 h-3" /> {t.locked}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -438,40 +618,48 @@ function IslandPath({ skills, currentSkillId, isUnlockedFn, isCompleteFn, onTap,
   }, [skills])
 
   const currentIslandIdx = Math.max(0, islands.findIndex(chunk => chunk.some(s => s.id === currentSkillId)))
-  const doneCount = skills.filter(s => isCompleteFn(s.id)).length
-  const visibleIslands = islands.slice(currentIslandIdx, currentIslandIdx + 2)
+
+  // full sailed history + current + two fogged-in teasers ahead —
+  // nothing a kid has already conquered ever falls off this list.
+  const visibleIslands = islands.slice(0, currentIslandIdx + 3)
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      document.getElementById(`island-${currentIslandIdx}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 120)
+    return () => window.clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSkillId])
 
   return (
-    <div className="rounded-[28px] bg-white p-5 sm:p-7 mt-5" style={{ boxShadow: SOFT_SHADOW }}>
-      <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold mb-5" style={{ backgroundColor: 'rgba(212,162,76,0.14)', color: PAL.goldDeep }}>
-        {doneCount}/{skills.length} {t.missions}
-      </span>
-
-      {visibleIslands.map((chunk, i) => {
-        const islandIdx = currentIslandIdx + i
-        const isLocked = i > 0
+    <div className="rounded-[28px] bg-white p-5 sm:p-7 mt-5 overflow-hidden" style={{ boxShadow: SOFT_SHADOW }}>
+      {visibleIslands.map((chunk, islandIdx) => {
+        const islandLocked = islandIdx > currentIslandIdx
+        const islandCompleted = islandIdx < currentIslandIdx
         const title = unitTitles?.[islandIdx] ?? cleanTitle(chunk[0]?.title ?? '')
         return (
-          <IslandUnit
-            key={islandIdx}
-            title={title}
-            index={islandIdx}
-            skills={chunk}
-            currentSkillId={currentSkillId}
-            isUnlockedFn={isUnlockedFn}
-            isCompleteFn={isCompleteFn}
-            onTap={onTap}
-            locked={isLocked}
-            t={t}
-          />
+          <div key={islandIdx}>
+            {islandIdx > 0 && <RouteConnector reached={islandIdx <= currentIslandIdx} />}
+            <IslandUnit
+              title={title}
+              index={islandIdx}
+              skills={chunk}
+              currentSkillId={currentSkillId}
+              isUnlockedFn={isUnlockedFn}
+              isCompleteFn={isCompleteFn}
+              onTap={onTap}
+              islandLocked={islandLocked}
+              islandCompleted={islandCompleted}
+              t={t}
+            />
+          </div>
         )
       })}
     </div>
   )
 }
 
-// ── Level + streak badge — the one rail card left. Tied visually to the
-// hero (same dark/gold surface) instead of a plain white KPI row.
+// ── Diver rank — the one rail card ──────────────────────────────
 function LevelBadgeCard({ streak, level, totalXp, xpIntoLevel, xpForLevel, t }: {
   streak: number; level: number; totalXp: number; xpIntoLevel: number; xpForLevel: number; t: Record<string, string>
 }) {
@@ -506,7 +694,7 @@ export default function SkillsClient({
   const lang = (language || 'en') as 'en' | 'ar' | 'fr'
   const t    = UI[lang] ?? UI.en
   const dir  = lang === 'ar' ? 'rtl' : 'ltr'
-  const fontFamily = lang === 'ar' ? "'Almarai', sans-serif" : "'Plus Jakarta Sans', sans-serif"
+  const fontFamily = lang === 'ar' ? "'Baloo Bhaijaan 2', sans-serif" : "'Baloo 2', sans-serif"
 
   const [activeTrackId, setActiveTrackId] = useState<string | null>(initialTrackId)
   const [currentSkillId, setCurrentSkillId] = useState<string | null>(initialCurrentSkillId)
@@ -591,6 +779,10 @@ export default function SkillsClient({
     else router.push(`/dashboard/path/${skill.id}`)
   }
 
+  const jumpToIsland = (islandIdx: number) => {
+    document.getElementById(`island-${islandIdx}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
   const currentLessonCount = currentSkill ? (lessonCountMap[currentSkill.id] ?? 0) : 0
   const currentProgressPct = currentSkill ? (progressMap[currentSkill.id] ?? 0) : 0
   const currentLessonIdx = currentLessonCount > 0
@@ -598,14 +790,18 @@ export default function SkillsClient({
     : 1
 
   return (
-    <div dir={dir} className="w-full min-h-screen" style={{ backgroundColor: PAL.pearlWhite, color: PAL.ink, fontFamily }}>
+    <div dir={dir} className="relative w-full min-h-screen" style={{ backgroundColor: PAL.pearlWhite, color: PAL.ink, fontFamily }}>
+      <ArabesqueBackdrop />
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Almarai:wght@400;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Baloo+Bhaijaan+2:wght@500;600;700;800&display=swap');
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { scrollbar-width: none; }
         @keyframes shakeX { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
+        @keyframes bob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-4px) rotate(2deg); } }
+        @keyframes glowPulse { 0%,100% { box-shadow: 0 0 0 4px rgba(255,185,48,0.18); } 50% { box-shadow: 0 0 0 8px rgba(255,185,48,0.3); } }
       ` }} />
 
-      <div className="max-w-[1180px] mx-auto px-5 sm:px-8 py-6 sm:py-9">
+      <div className="max-w-[1180px] mx-auto px-5 sm:px-8 py-6 sm:py-9 relative">
         <PageHeader
           userName={userName}
           t={t}
@@ -617,6 +813,16 @@ export default function SkillsClient({
           onSelectTrack={handleTrackSelect}
           activeTrackId={activeTrackId}
         />
+
+        {!switching && orderedSkills.length > 0 && (
+          <PearlNecklace
+            skills={orderedSkills}
+            isCompleteFn={isComplete}
+            currentSkillId={currentSkillId}
+            onJump={jumpToIsland}
+            t={t}
+          />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 mt-6 sm:mt-8">
           <main className="min-w-0">
