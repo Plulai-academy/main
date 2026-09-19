@@ -326,12 +326,14 @@ function PearlNecklace({ skills, isCompleteFn, currentSkillId, onJump, t }: {
   if (!skills.length) return null
   const doneCount = skills.filter(s => isCompleteFn(s.id)).length
   return (
-    <div className="mt-5 rounded-2xl bg-white px-4 py-3.5 flex items-center gap-3" style={{ boxShadow: SOFT_SHADOW }}>
-      <p className="shrink-0 text-sm font-extrabold whitespace-nowrap" style={{ color: PAL.ink }}>
-        {doneCount} <span className="font-semibold" style={{ color: PAL.inkSoft }}>{t.missions}</span>
-      </p>
-      <div className="h-7 w-px shrink-0" style={{ backgroundColor: PAL.shellLockTo }} />
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1.5 flex-1">
+    <div className="mt-5 rounded-2xl bg-white px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3" style={{ boxShadow: SOFT_SHADOW }}>
+      <div className="flex items-center gap-3 shrink-0">
+        <p className="text-sm font-extrabold whitespace-nowrap" style={{ color: PAL.ink }}>
+          {doneCount} <span className="font-semibold" style={{ color: PAL.inkSoft }}>{t.missions}</span>
+        </p>
+        <div className="hidden sm:block h-7 w-px shrink-0" style={{ backgroundColor: PAL.shellLockTo }} />
+      </div>
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1.5 min-w-0 flex-1">
         {skills.map((s, i) => {
           const complete = isCompleteFn(s.id)
           const current = s.id === currentSkillId
@@ -357,40 +359,62 @@ function PearlNecklace({ skills, isCompleteFn, currentSkillId, onJump, t }: {
   )
 }
 
-// ── Hero — "today's voyage" ──────────────────────────────────────
+// ── Hero — a boarding pass for today's stop ─────────────────────
+// A ticket, not a KPI card: a main stub with the destination, and a
+// perforated tear-off stub that's the actual "get going" action —
+// so the CTA reads as *your ticket* rather than a button bolted on.
 function MissionHero({ skill, lessonIdx, lessonCount, pct, onPlay, t }: {
   skill: Skill; lessonIdx: number; lessonCount: number; pct: number; onPlay: () => void; t: Record<string, string>
 }) {
+  const notch = (
+    <>
+      <span className="absolute rounded-full sm:hidden" style={{ width: 22, height: 22, top: 0, insetInlineStart: 0, transform: 'translate(-50%,-50%)', backgroundColor: PAL.lagoon }} />
+      <span className="absolute rounded-full sm:hidden" style={{ width: 22, height: 22, top: 0, insetInlineEnd: 0, transform: 'translate(50%,-50%)', backgroundColor: PAL.lagoon }} />
+      <span className="absolute rounded-full hidden sm:block" style={{ width: 22, height: 22, top: 0, insetInlineStart: 0, transform: 'translate(-50%,-50%)', backgroundColor: PAL.lagoon }} />
+      <span className="absolute rounded-full hidden sm:block" style={{ width: 22, height: 22, bottom: 0, insetInlineStart: 0, transform: 'translate(-50%,50%)', backgroundColor: PAL.lagoon }} />
+    </>
+  )
   return (
-    <div
-      className="relative overflow-hidden rounded-[28px] p-6 sm:p-8"
-      style={{ background: `linear-gradient(135deg, ${PAL.depth} 0%, ${PAL.depthSoft} 100%)` }}
-    >
-      <div aria-hidden className="absolute inset-0 pointer-events-none">
-        <span className="absolute rounded-full" style={{ width: 320, height: 320, top: -140, right: -100, background: `radial-gradient(circle, ${PAL.pearlGold}22, transparent 70%)` }} />
-        <CompassRose className="absolute -bottom-10 -left-10 w-56 h-56" style={{ color: PAL.pearlWhite, opacity: 0.05 }} />
-        <span className="absolute inset-0 rounded-[28px]" style={{ boxShadow: `inset 0 0 0 1px ${PAL.pearlGold}33` }} />
-      </div>
-
-      <div className="relative flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8">
-        <ProgressRing pct={pct} emoji={skill.emoji} />
-
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: PAL.pearlGoldSoft, letterSpacing: '0.08em' }}>
-            {t.lessonOf} {lessonIdx} {t.of} {lessonCount || 1}
-          </p>
-          <h2 className="font-extrabold text-2xl sm:text-3xl leading-tight" style={{ color: PAL.pearlWhite }}>
-            {cleanTitle(skill.title)}
-          </h2>
-          <span className="inline-flex items-center gap-1 mt-3 rounded-full px-2.5 py-1 text-xs font-bold" style={{ backgroundColor: 'rgba(212,162,76,0.16)', color: PAL.pearlGoldSoft }}>
-            +{skill.xp_reward} {t.missions}
-          </span>
+    <div className="relative rounded-[28px] flex flex-col sm:flex-row" style={{ boxShadow: SOFT_SHADOW }}>
+      {/* main stub — the destination */}
+      <div
+        className="relative flex-1 min-w-0 overflow-hidden rounded-t-[28px] sm:rounded-t-none sm:rounded-s-[28px] p-6 sm:p-8"
+        style={{ background: `linear-gradient(135deg, ${PAL.depth} 0%, ${PAL.depthSoft} 100%)` }}
+      >
+        <div aria-hidden className="absolute inset-0 pointer-events-none">
+          <span className="absolute rounded-full" style={{ width: 320, height: 320, top: -140, insetInlineEnd: -100, background: `radial-gradient(circle, ${PAL.pearlGold}22, transparent 70%)` }} />
+          <CompassRose className="absolute -bottom-10 -start-10 w-56 h-56" style={{ color: PAL.pearlWhite, opacity: 0.05 }} />
         </div>
 
+        <div className="relative flex items-center gap-5 sm:gap-6">
+          <ProgressRing pct={pct} size={84} emoji={skill.emoji} />
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: PAL.pearlGoldSoft, letterSpacing: '0.08em' }}>
+              {t.lessonOf} {lessonIdx} {t.of} {lessonCount || 1}
+            </p>
+            <h2 className="font-extrabold text-xl sm:text-2xl leading-tight" style={{ color: PAL.pearlWhite }}>
+              {cleanTitle(skill.title)}
+            </h2>
+            <span className="inline-flex items-center gap-1 mt-3 rounded-full px-2.5 py-1 text-xs font-bold" style={{ backgroundColor: 'rgba(212,162,76,0.16)', color: PAL.pearlGoldSoft }}>
+              +{skill.xp_reward} {t.missions}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* perforated tear + CTA stub */}
+      <div
+        className="relative shrink-0 flex flex-row sm:flex-col items-center justify-between sm:justify-center gap-3 px-6 py-4 sm:px-6 sm:py-6 sm:w-[176px] rounded-b-[28px] sm:rounded-b-none sm:rounded-e-[28px] border-t sm:border-t-0 sm:border-s border-dashed"
+        style={{ backgroundColor: PAL.depthSoft, borderColor: 'rgba(246,243,234,0.22)' }}
+      >
+        {notch}
+        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(246,243,234,0.4)', letterSpacing: '0.08em' }}>
+          {t.worldName}
+        </span>
         <button
           type="button"
           onClick={onPlay}
-          className="sm:shrink-0 w-full sm:w-auto h-16 sm:px-9 rounded-2xl flex items-center justify-center gap-2.5 font-extrabold text-lg text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
+          className="shrink-0 h-14 sm:h-14 sm:w-full px-7 sm:px-4 rounded-2xl flex items-center justify-center gap-2 font-extrabold text-base text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
           style={{ backgroundColor: PAL.coral, boxShadow: '0 10px 24px rgba(255,107,87,0.35)' }}
         >
           <Wheel className="w-5 h-5" />
@@ -666,20 +690,24 @@ function LevelBadgeCard({ streak, level, totalXp, xpIntoLevel, xpForLevel, t }: 
   const pct = Math.round((xpIntoLevel / xpForLevel) * 100)
   return (
     <div className="rounded-2xl p-5 relative overflow-hidden" style={{ background: `linear-gradient(160deg, ${PAL.depth} 0%, ${PAL.depthSoft} 100%)` }}>
-      <div aria-hidden className="absolute rounded-full pointer-events-none" style={{ width: 180, height: 180, top: -80, right: -70, background: `radial-gradient(circle, ${PAL.pearlGold}1f, transparent 70%)` }} />
-      <div className="relative flex flex-col items-center text-center">
-        <div className="relative w-20 h-20 mb-3">
-          <ProgressRing pct={pct} size={80} stroke={6} />
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: PAL.pearlGoldSoft }}>{t.level}</span>
-            <span className="text-2xl font-extrabold" style={{ color: PAL.pearlWhite }}>{level}</span>
-          </div>
-          <span className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: PAL.coral, border: `2.5px solid ${PAL.depth}` }}>
-            <Icon kind="flame" className="w-3.5 h-3.5" style={{ color: PAL.white }} />
-          </span>
+      <div aria-hidden className="absolute rounded-full pointer-events-none" style={{ width: 160, height: 160, top: -70, insetInlineEnd: -60, background: `radial-gradient(circle, ${PAL.pearlGold}1f, transparent 70%)` }} />
+      <div className="relative flex items-center justify-between gap-3">
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: PAL.pearlGoldSoft, letterSpacing: '0.08em' }}>{t.level}</span>
+          <span className="text-3xl font-extrabold leading-none" style={{ color: PAL.pearlWhite }}>{level}</span>
         </div>
-        <p className="text-xs font-extrabold" style={{ color: PAL.pearlGoldSoft }}>{streak} {t.streak}</p>
-        <p className="text-[11px] font-semibold mt-1" style={{ color: 'rgba(246,243,234,0.55)' }}>{totalXp.toLocaleString()} {t.totalXp}</p>
+        <div className="flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1.5 shrink-0" style={{ backgroundColor: 'rgba(255,107,87,0.18)' }}>
+          <Icon kind="flame" className="w-4 h-4" style={{ color: PAL.coral }} />
+          <span className="text-sm font-extrabold" style={{ color: PAL.pearlWhite }}>{streak}</span>
+        </div>
+      </div>
+      <div className="relative mt-4">
+        <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.14)' }}>
+          <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: PAL.sunGold, transition: 'width 0.6s ease' }} />
+        </div>
+        <p className="text-[11px] font-semibold mt-2" style={{ color: 'rgba(246,243,234,0.55)' }}>
+          {streak} {t.streak} · {totalXp.toLocaleString()} {t.totalXp}
+        </p>
       </div>
     </div>
   )
@@ -790,7 +818,7 @@ export default function SkillsClient({
     : 1
 
   return (
-    <div dir={dir} className="relative w-full min-h-screen" style={{ backgroundColor: PAL.pearlWhite, color: PAL.ink, fontFamily }}>
+    <div dir={dir} className="relative w-full min-h-screen overflow-x-hidden" style={{ backgroundColor: PAL.lagoon, color: PAL.ink, fontFamily }}>
       <ArabesqueBackdrop />
       <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Baloo+Bhaijaan+2:wght@500;600;700;800&display=swap');
