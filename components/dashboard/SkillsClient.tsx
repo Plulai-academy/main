@@ -216,6 +216,21 @@ function CompassRose({ className, style }: { className?: string; style?: React.C
     </svg>
   )
 }
+// a tiny palm silhouette dropped onto each island for character —
+// this and the ripples below are the difference between "a pastel
+// blob" and "a place."
+function Palm({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 20 26" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 25V14" />
+      <path d="M10 14c-3.2-2.6-6.4-2-8.5-.6" />
+      <path d="M10 14c3.2-2.6 6.4-2 8.5-.6" />
+      <path d="M10 14c-1.4-3.6-.6-6.6 2.2-9" />
+      <path d="M10 14c1.4-3.6.6-6.6-2.2-9" />
+      <path d="M10 14c-.4-3.8 1.4-6.4 4.4-8" />
+    </svg>
+  )
+}
 
 // faint mashrabiya-style lattice across the whole page — the one
 // place the design nods to Gulf ornament without shouting about it.
@@ -387,7 +402,7 @@ function MissionHero({ skill, lessonIdx, lessonCount, pct, onPlay, t }: {
         </div>
 
         <div className="relative flex items-center gap-5 sm:gap-6">
-          <ProgressRing pct={pct} size={84} emoji={skill.emoji} />
+          <ProgressRing pct={pct} size={72} emoji={skill.emoji} />
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: PAL.pearlGoldSoft, letterSpacing: '0.08em' }}>
               {t.lessonOf} {lessonIdx} {t.of} {lessonCount || 1}
@@ -408,13 +423,13 @@ function MissionHero({ skill, lessonIdx, lessonCount, pct, onPlay, t }: {
         style={{ backgroundColor: PAL.depthSoft, borderColor: 'rgba(246,243,234,0.22)' }}
       >
         {notch}
-        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(246,243,234,0.4)', letterSpacing: '0.08em' }}>
+        <span className="hidden sm:block text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(246,243,234,0.4)', letterSpacing: '0.08em' }}>
           {t.worldName}
         </span>
         <button
           type="button"
           onClick={onPlay}
-          className="shrink-0 h-14 sm:h-14 sm:w-full px-7 sm:px-4 rounded-2xl flex items-center justify-center gap-2 font-extrabold text-base text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
+          className="flex-1 sm:flex-initial sm:w-full h-14 px-7 sm:px-4 rounded-2xl flex items-center justify-center gap-2 font-extrabold text-base text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
           style={{ backgroundColor: PAL.coral, boxShadow: '0 10px 24px rgba(255,107,87,0.35)' }}
         >
           <Wheel className="w-5 h-5" />
@@ -426,31 +441,31 @@ function MissionHero({ skill, lessonIdx, lessonCount, pct, onPlay, t }: {
 }
 
 // ── Island path ──────────────────────────────────────────────────
-const ISLAND_SHAPES: { blob: string; points: { x: number; y: number }[]; from: string; to: string }[] = [
+const ISLAND_SHAPES: { blob: string; points: { x: number; y: number }[]; from: string; to: string; flair: { x: number; y: number } }[] = [
   {
     blob: 'M40,20 C90,-10 180,0 220,30 C270,55 292,108 260,150 C230,190 150,202 100,180 C40,155 8,112 20,70 C25,45 20,35 40,20 Z',
     points: [{ x: 75, y: 140 }, { x: 140, y: 68 }, { x: 205, y: 118 }, { x: 165, y: 172 }],
-    from: PAL.lagoon, to: PAL.lagoonFill,
+    from: PAL.lagoon, to: PAL.lagoonFill, flair: { x: 235, y: 55 },
   },
   {
     blob: 'M20,90 C15,45 70,15 140,18 C215,21 280,40 285,88 C289,132 240,168 168,178 C98,187 40,168 22,132 C13,115 17,102 20,90 Z',
     points: [{ x: 55, y: 105 }, { x: 120, y: 62 }, { x: 190, y: 105 }, { x: 245, y: 70 }],
-    from: '#FBF3E6', to: '#F3E1C4',
+    from: '#FBF3E6', to: '#F3E1C4', flair: { x: 258, y: 130 },
   },
   {
     blob: 'M150,10 C212,10 268,52 271,108 C274,162 218,196 153,196 C88,196 33,164 24,110 C15,54 92,10 150,10 Z',
     points: [{ x: 80, y: 140 }, { x: 150, y: 48 }, { x: 220, y: 140 }, { x: 150, y: 168 }],
-    from: '#EAF4FB', to: '#D3E9F7',
+    from: '#EAF4FB', to: '#D3E9F7', flair: { x: 65, y: 65 },
   },
   {
     blob: 'M92,15 C142,-2 194,20 208,62 C222,104 212,152 190,182 C168,208 118,207 88,186 C58,165 36,128 42,88 C48,50 60,26 92,15 Z',
     points: [{ x: 128, y: 42 }, { x: 96, y: 92 }, { x: 152, y: 138 }, { x: 108, y: 178 }],
-    from: '#F2F8EA', to: '#E1EFCE',
+    from: '#F2F8EA', to: '#E1EFCE', flair: { x: 178, y: 55 },
   },
   {
     blob: 'M30,62 C42,20 104,4 152,20 C188,32 178,58 220,54 C262,50 288,82 276,122 C264,162 208,192 148,180 C108,172 90,150 58,155 C22,160 4,120 15,90 C20,76 25,68 30,62 Z',
     points: [{ x: 52, y: 92 }, { x: 122, y: 42 }, { x: 195, y: 90 }, { x: 242, y: 140 }],
-    from: '#FFF1EE', to: '#FFD9D1',
+    from: '#FFF1EE', to: '#FFD9D1', flair: { x: 90, y: 30 },
   },
 ]
 
@@ -473,11 +488,13 @@ function buildSmoothPath(points: { x: number; y: number }[]) {
 // it, grey while it's still ahead in the fog.
 function RouteConnector({ reached }: { reached: boolean }) {
   return (
-    <div className="flex items-center justify-center py-1.5" aria-hidden>
+    <div className="flex items-center justify-center py-2.5" aria-hidden>
       <div className="flex flex-col items-center gap-1">
-        <span className="block w-0.5 h-3 rounded-full" style={{ backgroundColor: reached ? PAL.pearlGold : PAL.shellLockTo }} />
-        <Anchor className="w-3.5 h-3.5" style={{ color: reached ? PAL.pearlGold : PAL.inkFaint }} />
-        <span className="block w-0.5 h-3 rounded-full" style={{ backgroundColor: reached ? PAL.pearlGold : PAL.shellLockTo }} />
+        <span className="block w-0.5 h-4 rounded-full" style={{ backgroundColor: reached ? PAL.pearlGold : PAL.shellLockTo }} />
+        <span className="flex items-center justify-center w-7 h-7 rounded-full shrink-0" style={{ backgroundColor: reached ? PAL.lagoonFill : PAL.shellLockFrom, boxShadow: '0 2px 6px rgba(13,43,50,0.10)' }}>
+          <Anchor className="w-3.5 h-3.5" style={{ color: reached ? PAL.goldDeep : PAL.inkFaint }} />
+        </span>
+        <span className="block w-0.5 h-4 rounded-full" style={{ backgroundColor: reached ? PAL.pearlGold : PAL.shellLockTo }} />
       </div>
     </div>
   )
@@ -594,13 +611,32 @@ function IslandUnit({ title, index, skills, currentSkillId, isUnlockedFn, isComp
               <stop offset="0%" stopColor={islandLocked ? PAL.shellLockFrom : shape.from} />
               <stop offset="100%" stopColor={islandLocked ? PAL.shellLockTo : shape.to} />
             </linearGradient>
+            <pattern id={`water-${index}`} width="26" height="14" patternUnits="userSpaceOnUse">
+              <path d="M0 7 Q6.5 2 13 7 T26 7" fill="none" stroke={islandLocked ? '#C9C6BA' : PAL.reefLux} strokeWidth={1} strokeOpacity={islandLocked ? 0.16 : 0.13} />
+            </pattern>
+            <filter id={`lift-${index}`} x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="6" stdDeviation="7" floodColor={PAL.depth} floodOpacity="0.14" />
+            </filter>
           </defs>
-          <path d={shape.blob} fill={`url(#${gradId})`} />
+          <rect width="300" height="200" fill={`url(#water-${index})`} />
+          <ellipse cx="150" cy="102" rx="152" ry="98" fill="none" stroke={islandLocked ? '#C9C6BA' : shape.to} strokeOpacity={0.3} strokeWidth={1} />
+          <ellipse cx="150" cy="102" rx="132" ry="84" fill="none" stroke={islandLocked ? '#C9C6BA' : shape.to} strokeOpacity={0.4} strokeWidth={1} />
+          <path d={shape.blob} fill={`url(#${gradId})`} filter={`url(#lift-${index})`} />
           <path
             d={pathD} fill="none" stroke={islandLocked ? '#C9C6BA' : PAL.reefLux}
             strokeOpacity={islandLocked ? 0.5 : 0.55} strokeWidth={2} strokeDasharray="1 7" strokeLinecap="round"
           />
         </svg>
+
+        {!islandLocked && (
+          <Palm
+            className="absolute w-5 h-6 pointer-events-none"
+            style={{
+              left: `${(shape.flair.x / 300) * 100}%`, top: `${(shape.flair.y / 200) * 100}%`,
+              transform: 'translate(-50%,-100%)', color: islandCompleted ? PAL.goldDeep : PAL.reefLux, opacity: 0.55,
+            }}
+          />
+        )}
 
         {skills.map((s, i) => {
           const unlocked = !islandLocked && isUnlockedFn(s)
@@ -887,7 +923,7 @@ export default function SkillsClient({
             ) : null}
           </main>
 
-          <aside>
+          <aside className="lg:sticky lg:top-6 lg:self-start">
             <LevelBadgeCard streak={streak} level={level} totalXp={totalXp} xpIntoLevel={xpIntoLevel} xpForLevel={XP_PER_LEVEL} t={t} />
           </aside>
         </div>
