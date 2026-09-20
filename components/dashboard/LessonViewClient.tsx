@@ -20,10 +20,10 @@ type IconKind =
   | 'play' | 'link' | 'image' | 'external' | 'bolt' | 'pencil' | 'shuffle' | 'bug'
   | 'timer' | 'palette' | 'puzzle' | 'upload' | 'robot' | 'fire' | 'star' | 'trophy'
   | 'hourglass' | 'check' | 'x' | 'lock' | 'sparkle' | 'partyPop' | 'copy' | 'dragHandle'
-  | 'arrowUp' | 'arrowDown' | 'flashlight' | 'video' | 'sun'
+  | 'arrowUp' | 'arrowDown' | 'flashlight' | 'video' | 'sun' | 'expand' | 'refresh'
 
 function Icon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
-  const common = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const }
+  const common = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const, 'aria-hidden': true as const }
   switch (kind) {
     case 'chevronLeft':  return <svg {...common}><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
     case 'chevronRight': return <svg {...common}><path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4L13.2 12z"/></svg>
@@ -68,38 +68,27 @@ function Icon({ kind, className, style }: { kind: IconKind; className?: string; 
     case 'flashlight': return <svg {...common}><path d="M9 2h6v4l-2 2v3l3 3v8H8v-8l3-3V8L9 6V2Z"/></svg>
     case 'video':      return <svg {...common}><path d="M4 6a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v2.5l4-2.4v11.8l-4-2.4V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"/></svg>
     case 'sun':        return <svg {...common}><path d="M12 4a1 1 0 0 1 1 1v2h-2V5a1 1 0 0 1 1-1Zm6.4 2.6 1.4 1.4-1.5 1.5-1.4-1.4 1.5-1.5ZM4.2 6l1.5 1.5-1.4 1.4L2.8 7.4 4.2 6ZM12 9a5 5 0 0 1 4.9 6H7.1A5 5 0 0 1 12 9Zm-9 7h18v2H3v-2Zm.8 4 1.4-1.4 1.5 1.5-1.4 1.4L3.8 20Zm14.9.1 1.4-1.4 1.5 1.5-1.4 1.4-1.5-1.5Z"/></svg>
+    case 'expand':     return <svg {...common}><path d="M4 4h6v2H6v4H4V4Zm10 0h6v6h-2V6h-4V4ZM4 14h2v4h4v2H4v-6Zm14 0h2v6h-6v-2h4v-4Z"/></svg>
+    case 'refresh':    return <svg {...common}><path d="M17.65 6.35A8 8 0 1 0 19.73 14h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35Z"/></svg>
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Design system, condensed: ONE neutral content card, ONE dark terminal card,
 // and two semantic action colors (coral primary / teal-green success) reused
-// for every state everywhere. Activity types keep their icon for
-// recognizability, but no longer get their own unique background/border color.
+// for every state everywhere.
 //
-// GULF CIRCUIT REBRAND — "energetic" mode (kid-facing B2C app, ages 6-18):
-// Cards now sit on the Lagoon (#EAF7F4) page background (set globally on
-// <body>) as clean WHITE surfaces with soft navy hairlines, instead of the
-// old dark/space theme. Every hardcoded accent color across the ~20 activity
-// renderers in this file was pulled from a tiny palette, so recoloring it
-// here recolors the whole lesson experience consistently:
+// GULF CIRCUIT palette:
 //   accent / "correct"   → Reef Bright  #17D9C0
 //   reward / hint / tip  → Sun Gold     #FFB930
-//   primary CTA          → Coral        #FF6B57  (never used for anything else)
-//   error / "wrong"      → shared error red #E15B71 (unchanged — matches
-//                           --color-error in globals.css)
-// Code/terminal windows (code, code_editor, fill-blank, unscramble, debug,
-// drag-drop) intentionally KEEP a dark "editor" background — that's a
-// familiar, legible metaphor for a code surface even inside an otherwise
-// light, playful kid UI — but their accent hex values are updated to match.
+//   primary CTA          → Coral        #FF6B57
+//   error / "wrong"      → #E15B71
 // ─────────────────────────────────────────────────────────────────────────────
 const CARD       = 'bg-white border border-[#0D2B32]/8 rounded-3xl shadow-[0_4px_20px_rgba(13,43,50,0.05)]'
 const TERMINAL   = 'bg-[#0D2B32] border border-white/10 rounded-3xl overflow-hidden'
 const PRIMARY_BTN  = 'bg-[#FF6B57] text-white shadow-[0_4px_0_rgba(13,43,50,0.18)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none'
 const SUCCESS_BTN  = 'bg-[#17D9C0] text-white shadow-[0_4px_0_rgba(13,43,50,0.18)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none'
 
-// Shared chrome for "code-window" style activities — mac-style dots, icon +
-// label, all using the same dark terminal background regardless of type.
 function CodeWindowHeader({ icon, label, trailing }: { icon: IconKind; label: string; trailing?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/2">
@@ -116,8 +105,6 @@ function CodeWindowHeader({ icon, label, trailing }: { icon: IconKind; label: st
   )
 }
 
-// Section eyebrow used across content blocks — small icon chip carries the
-// only color; the card itself stays neutral white.
 function SectionEyebrow({ icon, label, color }: { icon: IconKind; label: string; color: string }) {
   return (
     <div className="flex items-center gap-2 mb-3">
@@ -179,6 +166,7 @@ const UI: Record<string, Record<string, string>> = {
     remixComplete: 'Remix complete!',
     dragDrop: 'Drag & Drop',
     dragInstruction: 'Drag each word into the correct slot',
+    tapToPlace: 'Tip: tap a word, then tap a slot. Dragging works too.',
     wordBank: 'Word Bank',
     resetWords: 'Reset',
     submitWork: 'Submit Your Work',
@@ -188,6 +176,14 @@ const UI: Record<string, Record<string, string>> = {
     submitBtn: 'Submit',
     submitDone: 'Submitted! Great work.',
     submitRequired: 'Please paste your link before submitting.',
+    prev: 'Back', cont: 'Continue', stepLabel: 'Step',
+    reload: 'Reload', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen',
+    loadingResource: 'Loading activity…',
+    slowLoad: 'Taking long? Open it in a new tab instead.',
+    finishFirst: 'Finish these activities first',
+    finishToContinue: 'Finish this activity to continue',
+    jumpTo: 'Go to activity',
+    reviewMode: 'Review mode — every step is open for you to revisit.',
   },
   ar: {
     back: 'الدروس', complete: 'علّم كمكتمل', completed: 'تم!',
@@ -235,6 +231,7 @@ const UI: Record<string, Record<string, string>> = {
     remixComplete: 'اكتمل الريمكس!',
     dragDrop: 'اسحب وأفلت',
     dragInstruction: 'اسحب كل كلمة إلى المكان الصحيح',
+    tapToPlace: 'نصيحة: المس كلمة ثم المس المكان. السحب يعمل أيضاً.',
     wordBank: 'بنك الكلمات',
     resetWords: 'إعادة تعيين',
     submitWork: 'أرسل عملك',
@@ -244,6 +241,14 @@ const UI: Record<string, Record<string, string>> = {
     submitBtn: 'أرسل',
     submitDone: 'تم الإرسال! عمل رائع.',
     submitRequired: 'الرجاء لصق رابطك قبل الإرسال.',
+    prev: 'السابق', cont: 'متابعة', stepLabel: 'الخطوة',
+    reload: 'إعادة تحميل', fullscreen: 'ملء الشاشة', exitFullscreen: 'إغلاق ملء الشاشة',
+    loadingResource: 'جارٍ تحميل النشاط…',
+    slowLoad: 'يستغرق وقتاً طويلاً؟ افتحه في تبويب جديد.',
+    finishFirst: 'أكمل هذه الأنشطة أولاً',
+    finishToContinue: 'أكمل هذا النشاط للمتابعة',
+    jumpTo: 'اذهب إلى النشاط',
+    reviewMode: 'وضع المراجعة — يمكنك العودة إلى كل خطوة.',
   },
   fr: {
     back: 'Leçons', complete: 'Marquer terminé', completed: 'Fait !',
@@ -291,6 +296,7 @@ const UI: Record<string, Record<string, string>> = {
     remixComplete: 'Remix terminé !',
     dragDrop: 'Glisser-Déposer',
     dragInstruction: 'Glisse chaque mot dans le bon emplacement',
+    tapToPlace: "Astuce : touche un mot, puis touche un emplacement. Le glisser marche aussi.",
     wordBank: 'Banque de mots',
     resetWords: 'Réinitialiser',
     submitWork: 'Soumettre ton travail',
@@ -300,6 +306,14 @@ const UI: Record<string, Record<string, string>> = {
     submitBtn: 'Envoyer',
     submitDone: 'Envoyé ! Excellent travail.',
     submitRequired: "Colle ton lien avant d'envoyer.",
+    prev: 'Précédent', cont: 'Continuer', stepLabel: 'Étape',
+    reload: 'Recharger', fullscreen: 'Plein écran', exitFullscreen: 'Quitter le plein écran',
+    loadingResource: "Chargement de l'activité…",
+    slowLoad: "Ça prend du temps ? Ouvre-la dans un nouvel onglet.",
+    finishFirst: "Termine d'abord ces activités",
+    finishToContinue: 'Termine cette activité pour continuer',
+    jumpTo: "Aller à l'activité",
+    reviewMode: 'Mode révision — chaque étape reste ouverte.',
   },
 }
 
@@ -384,6 +398,108 @@ interface Props {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ACTIVITY: Website / interactive resource (iframe embed)
+// One clean header, loading skeleton, slow-load fallback, reload, fullscreen.
+// No fake browser bar. Responsive height (min(78vh, 820px)) unless the lesson
+// JSON sets `height`.
+// ─────────────────────────────────────────────────────────────────────────────
+function WebsiteEmbed({ s, t }: { s: Section; t: Record<string, string> }) {
+  const src        = s.embed_url ?? s.url ?? ''
+  const openHref   = s.url ?? s.embed_url ?? ''
+  const [loaded, setLoaded]       = useState(false)
+  const [slow, setSlow]           = useState(false)
+  const [full, setFull]           = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
+
+  useEffect(() => {
+    setLoaded(false); setSlow(false)
+    if (!src) return
+    const id = setTimeout(() => setSlow(true), 8000)
+    return () => clearTimeout(id)
+  }, [src, reloadKey])
+
+  useEffect(() => {
+    if (!full) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFull(false) }
+    window.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prevOverflow }
+  }, [full])
+
+  const frameHeight: string | number = s.height ?? 'min(78vh, 820px)'
+  const iconBtn = 'w-9 h-9 rounded-xl flex items-center justify-center text-[#4E7169] hover:text-[#0D2B32] hover:bg-[#0D2B32]/5 transition-colors shrink-0'
+
+  return (
+    <div className={full ? 'fixed inset-0 z-[60] bg-white flex flex-col' : cn(CARD, 'overflow-hidden')}>
+      {/* Header: title + caption on the left, tools on the right */}
+      <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8 bg-[#EAF7F4]/50">
+        <span className="w-8 h-8 rounded-xl bg-[#17D9C0]/15 flex items-center justify-center shrink-0">
+          <Icon kind="puzzle" className="w-4 h-4" style={{ color: '#0F9B87' }} />
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-extrabold text-[#0D2B32] truncate">{t.website}</p>
+          {s.caption && <p className="text-xs font-semibold text-[#4E7169] truncate">{s.caption}</p>}
+        </div>
+        {src && (
+          <div className="flex items-center gap-0.5">
+            <button type="button" onClick={() => setReloadKey(k => k + 1)} className={iconBtn} aria-label={t.reload} title={t.reload}>
+              <Icon kind="refresh" className="w-4 h-4" />
+            </button>
+            <button type="button" onClick={() => setFull(f => !f)} className={iconBtn}
+              aria-label={full ? t.exitFullscreen : t.fullscreen} title={full ? t.exitFullscreen : t.fullscreen}>
+              <Icon kind={full ? 'x' : 'expand'} className="w-4 h-4" />
+            </button>
+            {openHref && (
+              <a href={openHref} target="_blank" rel="noopener noreferrer" className={iconBtn} aria-label={t.openSite} title={t.openSite}>
+                <Icon kind="external" className="w-4 h-4" />
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Frame */}
+      {src ? (
+        <div className={cn('relative bg-[#EAF7F4]', full && 'flex-1')} style={full ? undefined : { height: frameHeight, minHeight: 420 }}>
+          {!loaded && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-[#EAF7F4] text-center px-6">
+              <span className="w-10 h-10 rounded-full border-4 border-[#17D9C0]/25 border-t-[#17D9C0] animate-spin" />
+              <p className="text-sm font-bold text-[#4E7169]">{t.loadingResource}</p>
+              {slow && openHref && (
+                <a href={openHref} target="_blank" rel="noopener noreferrer"
+                  className={cn('inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl font-extrabold text-xs transition-all', PRIMARY_BTN)}>
+                  <Icon kind="external" className="w-4 h-4" /> {t.slowLoad}
+                </a>
+              )}
+            </div>
+          )}
+          <iframe
+            key={reloadKey}
+            src={src}
+            onLoad={() => setLoaded(true)}
+            className="absolute inset-0 w-full h-full border-0 block"
+            title={s.caption ?? t.website}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            allow="fullscreen"
+            allowFullScreen
+            loading="lazy"
+          />
+        </div>
+      ) : (
+        <div className="flex items-center justify-center text-[#4E7169] text-sm font-semibold h-40">No URL provided</div>
+      )}
+
+      {s.text && !full && (
+        <div className="px-4 sm:px-5 py-3 border-t border-[#0D2B32]/6">
+          <p className="text-xs font-semibold text-[#4E7169] leading-relaxed">{s.text}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY: Speed Quiz
 // ─────────────────────────────────────────────────────────────────────────────
 function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
@@ -397,7 +513,9 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
   const [score, setScore]         = useState(0)
   const [done, setDone]           = useState(false)
   const [results, setResults]     = useState<boolean[]>([])
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const timerRef    = useRef<NodeJS.Timeout | null>(null)
+  const selectedRef = useRef<number | null>(null)
+  selectedRef.current = selected
 
   const stopTimer = useCallback(() => { if (timerRef.current) clearInterval(timerRef.current) }, [])
 
@@ -405,7 +523,7 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
     stopTimer()
     setSubmitted(true)
     const correct = sel === questions[qIdx]?.correct
-    if (correct) setScore(s => s + 1)
+    if (correct) setScore(sc => sc + 1)
     setResults(r => [...r, correct])
   }, [qIdx, questions, stopTimer])
 
@@ -415,13 +533,19 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
     else { setQIdx(q => q + 1); setTimeLeft(timePerQ); setSelected(null); setSubmitted(false) }
   }, [qIdx, questions.length, timePerQ, stopTimer, onComplete])
 
+  // Timer only restarts per question (not on every option click) — the latest
+  // selection is read through a ref when time runs out.
   useEffect(() => {
     if (!started || submitted || done) return
     timerRef.current = setInterval(() => {
-      setTimeLeft(t => { if (t <= 1) { submitAnswer(selected); return 0 } return t - 1 })
+      setTimeLeft(tl => tl - 1)
     }, 1000)
     return stopTimer
-  }, [started, submitted, done, selected, submitAnswer, stopTimer])
+  }, [started, submitted, done, qIdx, stopTimer])
+
+  useEffect(() => {
+    if (started && !submitted && !done && timeLeft <= 0) submitAnswer(selectedRef.current)
+  }, [timeLeft, started, submitted, done, submitAnswer])
 
   if (!started) return (
     <div className={cn(CARD, 'p-6 text-center')}>
@@ -465,7 +589,7 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
   }
 
   const q    = questions[qIdx]
-  const pct  = Math.round((timeLeft / timePerQ) * 100)
+  const pct  = Math.max(0, Math.round((timeLeft / timePerQ) * 100))
   const timerColor = timeLeft <= 3 ? 'bg-[#E15B71]' : timeLeft <= 5 ? 'bg-[#FFB930]' : 'bg-[#17D9C0]'
 
   return (
@@ -480,7 +604,7 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
             <div className="w-24 h-2 bg-[#0D2B32]/8 rounded-full overflow-hidden">
               <div className={cn('h-full rounded-full transition-all duration-1000', timerColor)} style={{ width: `${pct}%` }} />
             </div>
-            <span className={cn('text-sm font-extrabold tabular-nums w-5 text-right', timeLeft <= 3 ? 'text-[#E15B71]' : 'text-[#0D2B32]')}>{timeLeft}</span>
+            <span className={cn('text-sm font-extrabold tabular-nums w-5 text-right', timeLeft <= 3 ? 'text-[#E15B71]' : 'text-[#0D2B32]')}>{Math.max(0, timeLeft)}</span>
           </div>
         </div>
       </div>
@@ -497,7 +621,7 @@ function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string,
           } else if (selected === oi) cls = 'border-[#17D9C0]/50 bg-[#17D9C0]/15 text-[#0D2B32] cursor-pointer'
           return (
             <button key={oi} onClick={() => !submitted && setSelected(oi)} disabled={submitted}
-              className={cn('w-full text-left px-4 py-3 rounded-2xl text-sm font-bold border transition-all', cls)}>
+              className={cn('w-full text-start px-4 py-3 rounded-2xl text-sm font-bold border transition-all', cls)}>
               <span className="font-extrabold mr-2 text-[#4E7169]/60">{String.fromCharCode(65 + oi)}.</span> {opt}
             </button>
           )
@@ -580,6 +704,7 @@ function FillBlankActivity({ s, t, onComplete }: { s: Section; t: Record<string,
                 <input
                   ref={el => { inputRefs.current[currentBlank] = el }}
                   value={inputs[currentBlank]}
+                  aria-label={`Blank ${currentBlank + 1}`}
                   onChange={e => { const next = [...inputs]; next[currentBlank] = e.target.value; setInputs(next); setChecked(false); setResults([]) }}
                   onKeyDown={e => { if (e.key === 'Enter') { const next = inputRefs.current[currentBlank + 1]; if (next) next.focus(); else check() } }}
                   disabled={checked && isCorrect}
@@ -681,6 +806,7 @@ function UnscrambleActivity({ s, t, onComplete }: { s: Section; t: Record<string
             <div key={i}
               draggable
               onDragStart={() => setDragging(i)}
+              onDragEnd={() => { setDragging(null); setDragOver(null) }}
               onDragOver={e => { e.preventDefault(); setDragOver(i) }}
               onDragLeave={() => setDragOver(null)}
               onDrop={() => handleDrop(i)}
@@ -694,10 +820,10 @@ function UnscrambleActivity({ s, t, onComplete }: { s: Section; t: Record<string
               )}>
               <span className="text-xs font-mono text-white/20 w-4 flex-shrink-0">{i + 1}</span>
               <Icon kind="dragHandle" className="w-3.5 h-3.5 text-white/20 flex-shrink-0" />
-              <code className={cn('flex-1 text-sm font-mono whitespace-pre', lineCorrect ? 'text-[#17D9C0]' : lineWrong ? 'text-[#E15B71]' : 'text-[#17D9C0]/80')}>{lines[lineIdx]}</code>
+              <code className={cn('flex-1 text-sm font-mono whitespace-pre overflow-x-auto', lineCorrect ? 'text-[#17D9C0]' : lineWrong ? 'text-[#E15B71]' : 'text-[#17D9C0]/80')}>{lines[lineIdx]}</code>
               <div className="flex flex-col gap-0.5 flex-shrink-0">
-                <button onClick={() => moveUp(i)} disabled={i === 0} aria-label="Move line up" className="text-white/20 hover:text-white/60 disabled:opacity-10 transition-colors"><Icon kind="arrowUp" className="w-3 h-3" /></button>
-                <button onClick={() => moveDown(i)} disabled={i === order.length - 1} aria-label="Move line down" className="text-white/20 hover:text-white/60 disabled:opacity-10 transition-colors"><Icon kind="arrowDown" className="w-3 h-3" /></button>
+                <button onClick={() => moveUp(i)} disabled={i === 0} aria-label="Move line up" className="p-1 text-white/30 hover:text-white/70 disabled:opacity-10 transition-colors"><Icon kind="arrowUp" className="w-3.5 h-3.5" /></button>
+                <button onClick={() => moveDown(i)} disabled={i === order.length - 1} aria-label="Move line down" className="p-1 text-white/30 hover:text-white/70 disabled:opacity-10 transition-colors"><Icon kind="arrowDown" className="w-3.5 h-3.5" /></button>
               </div>
               {checked && <Icon kind={lineCorrect ? 'check' : 'x'} className={cn('w-4 h-4 flex-shrink-0', lineCorrect ? 'text-[#17D9C0]' : 'text-[#E15B71]')} />}
             </div>
@@ -758,7 +884,7 @@ function DebugActivity({ s, t, onComplete }: { s: Section; t: Record<string, str
       {s.text && <p className="px-5 pt-4 text-sm text-white/60 font-semibold">{s.text}</p>}
 
       <div className="relative">
-        <pre className="px-5 py-4 text-sm font-mono text-[#FF9A8C] leading-7 overflow-x-auto whitespace-pre">{code}</pre>
+        <pre className="px-5 py-4 pr-20 text-sm font-mono text-[#FF9A8C] leading-7 overflow-x-auto whitespace-pre">{code}</pre>
         <button
           onClick={() => { navigator.clipboard.writeText(code); setCopiedBroken(true); setTimeout(() => setCopiedBroken(false), 2000) }}
           aria-label={copiedBroken ? 'Code copied' : 'Copy code'}
@@ -772,7 +898,7 @@ function DebugActivity({ s, t, onComplete }: { s: Section; t: Record<string, str
         {bugs.map((bug, i) => (
           <button key={i} onClick={() => toggleFound(i)}
             className={cn(
-              'w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-sm font-semibold text-left transition-all',
+              'w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-sm font-semibold text-start transition-all',
               found[i] ? 'bg-[#17D9C0]/10 border-[#17D9C0]/30 text-[#17D9C0]' : 'bg-white/3 border-white/8 text-white/60 hover:border-white/20 hover:text-white'
             )}>
             <span className={cn('w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-all', found[i] ? 'bg-[#17D9C0] border-[#17D9C0] text-white' : 'border-white/20')}>
@@ -824,7 +950,7 @@ function TimedChallengeActivity({ s, t, lessonTitle, onComplete }: { s: Section;
   const start = () => {
     setPhase('running'); setTimeLeft(duration)
     timerRef.current = setInterval(() => {
-      setTimeLeft(t => { if (t <= 1) { clearInterval(timerRef.current!); setPhase('done'); return 0 } return t - 1 })
+      setTimeLeft(tl => { if (tl <= 1) { clearInterval(timerRef.current!); setPhase('done'); return 0 } return tl - 1 })
     }, 1000)
   }
   const submit = () => {
@@ -968,17 +1094,22 @@ function RemixActivity({ s, t, lessonTitle, onComplete }: { s: Section; t: Recor
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITY: Drag & Drop
+// Now works on touch screens too: tap a word to pick it up, then tap a slot.
+// (HTML5 drag-and-drop does not fire on most phones/tablets.)
 // ─────────────────────────────────────────────────────────────────────────────
 function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
   const targets  = s.targets ?? []
   const wordBank = s.word_bank ?? targets.map(tgt => tgt.correct)
 
-  const [bank, setBank] = useState<string[]>(() => {
-    const arr = [...wordBank]
+  const shuffle = (src: string[]) => {
+    const arr = [...src]
     for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]] }
     return arr
-  })
+  }
+
+  const [bank, setBank] = useState<string[]>(() => shuffle(wordBank))
   const [slots, setSlots] = useState<Record<string, string>>({})
+  // "dragging" doubles as the tap-selected word
   const [dragging, setDragging] = useState<{ word: string; from: 'bank' | string } | null>(null)
   const [checked, setChecked]   = useState(false)
   const [results, setResults]   = useState<Record<string, boolean>>({})
@@ -989,29 +1120,42 @@ function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, 
     setResults(res); setChecked(true)
   }
   const reset = () => {
-    setSlots({})
-    setBank(() => { const arr = [...wordBank]; for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]] } return arr })
+    setSlots({}); setBank(shuffle(wordBank))
     setChecked(false); setResults({}); setDragging(null)
   }
+
   const dropOnSlot = (targetId: string) => {
     if (!dragging) return
-    const word = dragging.word; const from = dragging.from
-    setSlots(prev => {
-      const next = { ...prev }
-      const evicted = next[targetId]
-      next[targetId] = word
-      if (from !== 'bank') delete next[from]
-      if (evicted) setBank(b => [...b, evicted])
-      return next
-    })
-    if (from === 'bank') setBank(b => b.filter(w => w !== word))
+    const { word, from } = dragging
+    if (from === targetId) { setDragging(null); return }
+    const evicted   = slots[targetId]
+    const nextSlots = { ...slots }
+    const nextBank  = [...bank]
+    if (from === 'bank') {
+      const i = nextBank.indexOf(word)
+      if (i > -1) nextBank.splice(i, 1)
+      if (evicted) nextBank.push(evicted)
+    } else {
+      // slot → slot: swap
+      if (evicted) nextSlots[from] = evicted
+      else delete nextSlots[from]
+    }
+    nextSlots[targetId] = word
+    setSlots(nextSlots); setBank(nextBank)
     setDragging(null); setChecked(false); setResults({})
   }
+
   const dropOnBank = () => {
     if (!dragging || dragging.from === 'bank') return
     const { word, from } = dragging
-    setSlots(prev => { const next = { ...prev }; delete next[from]; return next })
-    setBank(b => [...b, word]); setDragging(null)
+    const nextSlots = { ...slots }; delete nextSlots[from]
+    setSlots(nextSlots); setBank([...bank, word])
+    setDragging(null); setChecked(false); setResults({})
+  }
+
+  const onSlotClick = (targetId: string) => {
+    if (dragging) dropOnSlot(targetId)
+    else if (slots[targetId]) setDragging({ word: slots[targetId], from: targetId })
   }
 
   const allFilled  = targets.every(tgt => slots[tgt.id])
@@ -1023,35 +1167,44 @@ function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, 
       <CodeWindowHeader icon="puzzle" label={t.dragDrop}
         trailing={s.text ? <span className="text-xs text-white/40 truncate max-w-xs">{s.text}</span> : undefined} />
 
-      <div className="p-5 space-y-6">
-        <p className="text-xs font-semibold text-white/40">{s.instructions ?? t.dragInstruction}</p>
+      <div className="p-4 sm:p-5 space-y-6">
+        <div>
+          <p className="text-xs font-semibold text-white/50">{s.instructions ?? t.dragInstruction}</p>
+          <p className="text-xs font-semibold text-white/30 mt-1">{t.tapToPlace}</p>
+        </div>
 
         <div className="space-y-3">
           {targets.map(tgt => {
             const filled    = slots[tgt.id]
             const isCorrect = checked && results[tgt.id]
             const isWrong   = checked && !results[tgt.id] && !!filled
+            const isPicked  = dragging?.from === tgt.id
             return (
-              <div key={tgt.id} onDragOver={e => e.preventDefault()} onDrop={() => dropOnSlot(tgt.id)} className="flex items-center gap-3">
-                <div className="min-w-[120px] sm:min-w-[160px] text-right">
+              <div key={tgt.id} onDragOver={e => e.preventDefault()} onDrop={() => dropOnSlot(tgt.id)} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <div className="sm:min-w-[160px] sm:text-right">
                   <code className="text-sm font-mono text-[#17D9C0]/80 whitespace-pre">{tgt.label}</code>
                 </div>
-                <Icon kind="chevronRight" className="w-4 h-4 text-white/25 flex-shrink-0" />
-                <div className={cn(
-                  'flex-1 min-h-[40px] rounded-2xl border-2 border-dashed flex items-center px-3 transition-all',
-                  filled
-                    ? isCorrect ? 'border-[#17D9C0]/50 bg-[#17D9C0]/10' : isWrong ? 'border-[#E15B71]/50 bg-[#E15B71]/10' : 'border-[#17D9C0]/50 bg-[#17D9C0]/10'
-                    : dragging  ? 'border-[#17D9C0]/50 bg-[#17D9C0]/5 scale-[1.01]' : 'border-white/15 bg-white/3'
-                )}>
+                <Icon kind="chevronRight" className="w-4 h-4 text-white/25 flex-shrink-0 hidden sm:block" />
+                <div
+                  onClick={() => onSlotClick(tgt.id)}
+                  role="button" tabIndex={0}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSlotClick(tgt.id) } }}
+                  className={cn(
+                    'flex-1 min-h-[44px] rounded-2xl border-2 border-dashed flex items-center px-3 transition-all cursor-pointer',
+                    filled
+                      ? isCorrect ? 'border-[#17D9C0]/50 bg-[#17D9C0]/10' : isWrong ? 'border-[#E15B71]/50 bg-[#E15B71]/10' : 'border-[#17D9C0]/50 bg-[#17D9C0]/10'
+                      : dragging  ? 'border-[#17D9C0]/60 bg-[#17D9C0]/8' : 'border-white/15 bg-white/3',
+                    isPicked && 'ring-2 ring-[#FFB930]'
+                  )}>
                   {filled ? (
-                    <div draggable onDragStart={() => setDragging({ word: filled, from: tgt.id })}
+                    <div draggable onDragStart={() => setDragging({ word: filled, from: tgt.id })} onDragEnd={() => setDragging(null)}
                       className={cn('px-3 py-1 rounded-lg text-sm font-bold cursor-grab active:cursor-grabbing select-none flex items-center gap-1.5',
                         isCorrect ? 'bg-[#17D9C0]/20 text-[#17D9C0]' : isWrong ? 'bg-[#E15B71]/20 text-[#E15B71]' : 'bg-[#17D9C0]/20 text-[#17D9C0]')}>
                       {filled}
                       {checked && <Icon kind={isCorrect ? 'check' : 'x'} className="w-3.5 h-3.5" />}
                     </div>
                   ) : (
-                    <span className="text-xs text-white/25 font-semibold">Drop here</span>
+                    <span className="text-xs text-white/30 font-semibold">{dragging ? 'Tap to place here' : 'Drop here'}</span>
                   )}
                 </div>
               </div>
@@ -1059,16 +1212,29 @@ function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, 
           })}
         </div>
 
-        <div onDragOver={e => e.preventDefault()} onDrop={dropOnBank} className="min-h-[52px] rounded-2xl border border-white/8 bg-white/2 p-3">
+        <div
+          onDragOver={e => e.preventDefault()} onDrop={dropOnBank}
+          onClick={() => { if (dragging && dragging.from !== 'bank') dropOnBank() }}
+          className="min-h-[52px] rounded-2xl border border-white/8 bg-white/2 p-3">
           <p className="text-xs font-black text-white/30 uppercase tracking-wider mb-2">{t.wordBank}</p>
           <div className="flex flex-wrap gap-2">
-            {bank.length === 0 && <span className="text-xs text-white/25 italic">All words placed — drag back to swap</span>}
-            {bank.map((word, i) => (
-              <div key={`${word}-${i}`} draggable onDragStart={() => setDragging({ word, from: 'bank' })}
-                className="px-3 py-1.5 rounded-lg text-sm font-bold bg-[#17D9C0]/15 text-[#17D9C0] border border-[#17D9C0]/25 cursor-grab active:cursor-grabbing select-none hover:bg-[#17D9C0]/25 transition-all">
-                {word}
-              </div>
-            ))}
+            {bank.length === 0 && <span className="text-xs text-white/25 italic">All words placed — tap a placed word to swap it</span>}
+            {bank.map((word, i) => {
+              const picked = dragging?.from === 'bank' && dragging.word === word
+              return (
+                <button type="button" key={`${word}-${i}`} draggable
+                  onDragStart={() => setDragging({ word, from: 'bank' })}
+                  onDragEnd={() => setDragging(null)}
+                  onClick={e => { e.stopPropagation(); setDragging(picked ? null : { word, from: 'bank' }) }}
+                  aria-pressed={picked}
+                  className={cn(
+                    'px-3 py-2 rounded-lg text-sm font-bold border cursor-grab active:cursor-grabbing select-none transition-all',
+                    picked ? 'bg-[#FFB930]/25 text-[#FFB930] border-[#FFB930]/60 scale-105' : 'bg-[#17D9C0]/15 text-[#17D9C0] border-[#17D9C0]/25 hover:bg-[#17D9C0]/25'
+                  )}>
+                  {word}
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -1079,7 +1245,7 @@ function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, 
         )}
         {checked && !allCorrect && (
           <div className="bg-[#E15B71]/8 border border-[#E15B71]/20 rounded-2xl p-3 text-center">
-            <p className="text-sm font-bold text-[#E15B71]">{Object.values(results).filter(Boolean).length}/{targets.length} correct — drag and swap the wrong ones</p>
+            <p className="text-sm font-bold text-[#E15B71]">{Object.values(results).filter(Boolean).length}/{targets.length} correct — tap a wrong word to move it</p>
           </div>
         )}
 
@@ -1118,10 +1284,11 @@ function SubmitWorkActivity({ s, t, userId, lessonId, onComplete }: { s: Section
 
     setError(''); setLoading(true)
     try {
-      await fetch('/api/submissions', {
+      const res = await fetch('/api/submissions', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, lessonId, projectUrl: urlVal || null, videoUrl: videoVal || null }),
       })
+      if (!res.ok) throw new Error('save failed')
       setSubmitted(true)
     } catch { setError('Could not save — check your connection and try again.') }
     finally { setLoading(false) }
@@ -1204,7 +1371,7 @@ function SubmitWorkActivity({ s, t, userId, lessonId, onComplete }: { s: Section
           </div>
         )}
 
-        {error && <p className="text-xs font-bold text-[#E15B71] bg-[#E15B71]/10 border border-[#E15B71]/20 rounded-lg px-3 py-2">{error}</p>}
+        {error && <p role="alert" className="text-xs font-bold text-[#E15B71] bg-[#E15B71]/10 border border-[#E15B71]/20 rounded-lg px-3 py-2">{error}</p>}
 
         <button onClick={handleSubmit} disabled={loading}
           className={cn('w-full py-3.5 rounded-2xl font-extrabold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2', PRIMARY_BTN)}>
@@ -1237,25 +1404,30 @@ export default function LessonViewClient({
   const [showFeedback, setShowFeedback]   = useState(false)
   const [activityDone, setActivityDone]   = useState<Record<number, boolean>>({})
   const [currentStep, setCurrentStep]     = useState(0)
+  const [maxStep, setMaxStep]             = useState(0)
   const lessonStartRef = useRef<number>(Date.now())
+  const topRef         = useRef<HTMLDivElement | null>(null)
+  const firstRender    = useRef(true)
 
-  // `lang` is declared early (right after props are destructured) because it's
-  // referenced below by `praiseBank` — `const` bindings aren't hoisted the way
-  // functions are, so this must come before any usage further down the file.
   const lang  = language || 'en'
+  const t     = UI[lang] ?? UI.en
+  const dir   = lang === 'ar' ? 'rtl' : 'ltr'
+  const isDone = !!completion || justCompleted
+
+  // ── Parse sections up-front so navigation helpers can rely on them ─────
+  let sections: Section[] = []
+  try {
+    const raw = typeof lesson.content_json === 'string' ? JSON.parse(lesson.content_json) : lesson.content_json
+    sections = raw?.sections ?? []
+  } catch { sections = [] }
 
   // ── Game layer ─────────────────────────────────────────────────────────
-  // Note: hearts/lives were removed — they weren't persisted anywhere (no DB
-  // column, no API call), so they reset on every page load and never actually
-  // gated anything. Combo, praise messages, and the shake-on-wrong animation
-  // are pure client-side feedback too, but at least they're self-consistent
-  // within a single attempt; hearts implied a "lives" mechanic that didn't exist.
   const [combo, setCombo]           = useState(0)
   const [xpBurst, setXpBurst]       = useState<{ id: number; amount: number } | null>(null)
   const [shaking, setShaking]       = useState(false)
   const [praiseMsg, setPraiseMsg]   = useState<string | null>(null)
   const [slideDir, setSlideDir]     = useState<'right' | 'left'>('right')
-  const [animKey, setAnimKey]       = useState(0)   // changes to trigger re-mount of slide anim
+  const [animKey, setAnimKey]       = useState(0)
   const burstId = useRef(0)
 
   const PRAISE_EN = ['Amazing!', 'You\'re on fire!', 'Perfect!', 'Nailed it!', 'Brilliant!', 'Keep going!', 'Superb!']
@@ -1268,52 +1440,34 @@ export default function LessonViewClient({
     setXpBurst({ id: burstId.current, amount })
     setTimeout(() => setXpBurst(null), 1200)
   }
-
   const firePraise = () => {
     const msg = praiseBank[Math.floor(Math.random() * praiseBank.length)]
     setPraiseMsg(msg)
     setTimeout(() => setPraiseMsg(null), 1500)
   }
+  const fireShake = () => { setShaking(true); setTimeout(() => setShaking(false), 500) }
+  const onWrongAnswer = () => { setCombo(0); fireShake() }
+  const gainCombo = () => { setCombo(c => c + 1); firePraise(); fireXpBurst(10) }
 
-  const fireShake = () => {
-    setShaking(true)
-    setTimeout(() => setShaking(false), 500)
-  }
-
-  const onWrongAnswer = () => {
-    setCombo(0)
-    fireShake()
-  }
-
-  const gainCombo = () => {
-    setCombo(c => c + 1)
-    firePraise()
-    fireXpBurst(10)
-  }
-
-  const advanceStep = () => {
-    setSlideDir('right')
+  // ── Step navigation ────────────────────────────────────────────────────
+  const goToStep = (target: number) => {
+    const clamped = Math.max(0, Math.min(sections.length - 1, target))
+    if (clamped === currentStep) return
+    setSlideDir(clamped > currentStep ? 'right' : 'left')
     setAnimKey(k => k + 1)
-    setCurrentStep(i => Math.min(sections.length - 1, i + 1))
+    setCurrentStep(clamped)
   }
 
-  const goBack = () => {
-    setSlideDir('left')
-    setAnimKey(k => k + 1)
-    setCurrentStep(i => Math.max(0, i - 1))
-  }
+  useEffect(() => { setMaxStep(m => Math.max(m, currentStep)) }, [currentStep])
 
-  const t     = UI[lang] ?? UI.en
-  const dir   = lang === 'ar' ? 'rtl' : 'ltr'
-  const isDone = !!completion || justCompleted
+  // Scroll back to the top of the lesson whenever the step changes so kids
+  // never land halfway down the next card.
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return }
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [currentStep])
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3500) }
-
-  let sections: Section[] = []
-  try {
-    const raw = typeof lesson.content_json === 'string' ? JSON.parse(lesson.content_json) : lesson.content_json
-    sections = raw?.sections ?? []
-  } catch { sections = [] }
 
   const selectOption = (secIdx: number, optIdx: number) => {
     if (quizState[secIdx]?.submitted) return
@@ -1329,7 +1483,6 @@ export default function LessonViewClient({
       markActivityDone(secIdx)
     } else {
       onWrongAnswer()
-      // Brief delay then reset so the user can retry
       setTimeout(() => {
         setQuiz(p => ({ ...p, [secIdx]: { selected: null, submitted: false } }))
       }, 1200)
@@ -1373,38 +1526,59 @@ export default function LessonViewClient({
   const allActivitiesDone   = pendingActivities.length === 0
   const canComplete         = allActivitiesDone
 
+  const currentSection = sections[currentStep]
+  const isLastStep     = sections.length > 0 && currentStep === sections.length - 1
+  const stepReady      = !currentSection || !(currentSection.type in ACTIVITY_LABELS) || isActivityDone(currentSection, currentStep)
+
+  // Keyboard: → / ← (mirrored in RTL) move between steps when the step is ready.
+  useEffect(() => {
+    if (isDone || sections.length === 0) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const el = e.target as HTMLElement | null
+      if (el && (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || el.isContentEditable)) return
+      const fwd  = dir === 'rtl' ? 'ArrowLeft'  : 'ArrowRight'
+      const back = dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft'
+      if (e.key === fwd && stepReady && !isLastStep) goToStep(currentStep + 1)
+      else if (e.key === back && currentStep > 0)    goToStep(currentStep - 1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDone, sections.length, dir, stepReady, isLastStep, currentStep])
+
   const markComplete = () => {
-  if (isDone) return
-  startTransition(async () => {
-    const score = 100
-    const elapsedMins = Math.max(1, Math.round((Date.now() - lessonStartRef.current) / 60000))
-    await completeLesson(userId, lesson.id, score, elapsedMins)
-    await updateStreak(userId)
-    const result = await addXP(userId, lesson.xp_reward, 'lesson_complete', lesson.id)
-    const pct = Math.min(100, Math.round((lessonIndex / totalLessons) * 100))
-    await updateSkillProgress(userId, skill.id, pct)
-    if (!nextLesson && pct >= 100) await addXP(userId, skill.xp_reward, 'skill_complete', skill.id)
-    await checkAndAwardBadges(userId)
+    if (isDone) return
+    startTransition(async () => {
+      const score = 100
+      const elapsedMins = Math.max(1, Math.round((Date.now() - lessonStartRef.current) / 60000))
+      await completeLesson(userId, lesson.id, score, elapsedMins)
+      await updateStreak(userId)
+      const result = await addXP(userId, lesson.xp_reward, 'lesson_complete', lesson.id)
+      const pct = Math.min(100, Math.round((lessonIndex / totalLessons) * 100))
+      await updateSkillProgress(userId, skill.id, pct)
+      if (!nextLesson && pct >= 100) await addXP(userId, skill.xp_reward, 'skill_complete', skill.id)
+      await checkAndAwardBadges(userId)
 
-    fetch('/api/coins/xp', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ xpEarned: lesson.xp_reward }),
-    }).catch(() => {})
+      fetch('/api/coins/xp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ xpEarned: lesson.xp_reward }),
+      }).catch(() => {})
 
-    setJustCompleted(true); setShowFeedback(true)
-    showToast(`+${lesson.xp_reward} ${t.xpEarned}`)
-    if (result.data && result.data.leveledUp) {
-      const rd = result.data as any
-      setLevelUp(`${t.levelUp} Level ${rd.newLevel}!`)
-      setTimeout(() => setLevelUp(null), 4000)
-      setTimeout(() => setShareCard({ type: 'level', childName: userName, childAvatar: userAvatar, newLevel: rd.newLevel, levelTitle: rd.levelTitle ?? '', totalXP: rd.totalXP ?? undefined }), 1200)
-    }
-    if (!nextLesson && pct >= 100) {
-      setTimeout(() => setShareCard({ type: 'skill', childName: userName, childAvatar: userAvatar, skillName: skill.title, skillEmoji: skill.emoji, trackName: skill.track_id, xpEarned: (lesson.xp_reward ?? 0) + (skill.xp_reward ?? 0) }), levelUp ? 5000 : 800)
-    }
-    router.refresh()
-  })
-}
+      setJustCompleted(true); setShowFeedback(true)
+      showToast(`+${lesson.xp_reward} ${t.xpEarned}`)
+      if (result.data && result.data.leveledUp) {
+        const rd = result.data as any
+        setLevelUp(`${t.levelUp} Level ${rd.newLevel}!`)
+        setTimeout(() => setLevelUp(null), 4000)
+        setTimeout(() => setShareCard({ type: 'level', childName: userName, childAvatar: userAvatar, newLevel: rd.newLevel, levelTitle: rd.levelTitle ?? '', totalXP: rd.totalXP ?? undefined }), 1200)
+      }
+      if (!nextLesson && pct >= 100) {
+        setTimeout(() => setShareCard({ type: 'skill', childName: userName, childAvatar: userAvatar, skillName: skill.title, skillEmoji: skill.emoji, trackName: skill.track_id, xpEarned: (lesson.xp_reward ?? 0) + (skill.xp_reward ?? 0) }), levelUp ? 5000 : 800)
+      }
+      router.refresh()
+    })
+  }
 
   const getVideoEmbed = (url: string): string | null => {
     const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/)
@@ -1437,7 +1611,7 @@ export default function LessonViewClient({
               <Icon kind="lightbulb" className="w-4 h-4" style={{ color: '#0F9B87' }} />
               <p className="font-extrabold text-sm text-[#4E7169]">{t.analogy}</p>
             </div>
-            <p className="text-sm font-semibold leading-relaxed text-[#0D2B32]">{s.text}</p>
+            <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-[#0D2B32]">{s.text}</p>
           </div>
         )
 
@@ -1468,7 +1642,7 @@ export default function LessonViewClient({
               </span>
             </div>
             {s.instructions && <p className="px-4 sm:px-5 pt-4 text-xs text-white/50 font-semibold italic">{s.instructions}</p>}
-            <pre className="px-4 sm:px-5 py-4 text-sm font-mono text-[#17D9C0] leading-relaxed overflow-x-auto whitespace-pre-wrap break-all max-w-full">{s.starter}</pre>
+            <pre className="px-4 sm:px-5 py-4 text-sm font-mono text-[#17D9C0] leading-relaxed overflow-x-auto whitespace-pre-wrap break-words max-w-full">{s.starter}</pre>
             <div className="px-4 sm:px-5 pb-4">
               <Link href={`/dashboard/coach?topic=${encodeURIComponent(lesson.title)}`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17D9C0] hover:text-white transition-colors">
@@ -1502,13 +1676,13 @@ export default function LessonViewClient({
                 <p className="text-xs text-white/50 font-semibold leading-relaxed">{s.instructions}</p>
               </div>
             )}
-            <div className="flex overflow-x-auto">
-              <div className="select-none px-3 sm:px-4 py-5 text-right border-r border-white/5 bg-white/1 flex-shrink-0">
+            <div className="flex overflow-x-auto" dir="ltr">
+              <div className="select-none px-3 sm:px-4 py-5 text-right border-r border-white/5 bg-white/1 flex-shrink-0" aria-hidden>
                 {(s.starter ?? '').split('\n').map((_, i) => (
                   <div key={i} className="text-xs font-mono text-white/15 leading-6">{i + 1}</div>
                 ))}
               </div>
-              <pre className="flex-1 px-4 sm:px-5 py-5 text-sm font-mono text-[#17D9C0]/90 leading-6 whitespace-pre-wrap break-all min-w-0 max-w-full overflow-x-auto">{s.starter}</pre>
+              <pre className="flex-1 px-4 sm:px-5 py-5 text-sm font-mono text-[#17D9C0]/90 leading-6 whitespace-pre min-w-0 max-w-full overflow-x-auto">{s.starter}</pre>
             </div>
             {s.hint && (
               <div className="px-4 sm:px-5 py-3 border-t border-white/5 bg-[#FFB930]/5 flex items-start gap-2">
@@ -1561,7 +1735,7 @@ export default function LessonViewClient({
                 {t.submit}
               </button>
             ) : isWrong ? (
-              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#E15B71]/10 border border-[#E15B71]/20">
+              <div role="alert" className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#E15B71]/10 border border-[#E15B71]/20">
                 <Icon kind="x" className="w-5 h-5 text-[#E15B71] flex-shrink-0" />
                 <p className="text-xs font-extrabold text-[#E15B71]">{t.wrong}</p>
               </div>
@@ -1610,7 +1784,7 @@ export default function LessonViewClient({
             {s.expected_output && (
               <div className="bg-[#0D2B32] border border-white/10 rounded-2xl p-3 sm:p-4 mb-4">
                 <p className="text-xs font-bold text-white/50 mb-2">{lang === 'ar' ? 'النتيجة المتوقعة:' : lang === 'fr' ? 'Résultat attendu :' : 'Expected output:'}</p>
-                <pre className="text-sm font-mono text-[#17D9C0] whitespace-pre-wrap overflow-x-auto break-all max-w-full">{s.expected_output}</pre>
+                <pre className="text-sm font-mono text-[#17D9C0] whitespace-pre-wrap overflow-x-auto break-words max-w-full">{s.expected_output}</pre>
               </div>
             )}
             {s.hint && (
@@ -1666,14 +1840,14 @@ export default function LessonViewClient({
                   <span className="w-5 h-5 rounded-full bg-[#E15B71]/20 border border-[#E15B71]/40 flex items-center justify-center"><Icon kind="x" className="w-3 h-3 text-[#E15B71]" /></span>
                   <span className="text-xs font-extrabold text-[#E15B71] uppercase">{s.before_label ?? (lang === 'ar' ? 'قبل' : lang === 'fr' ? 'Avant' : 'Before')}</span>
                 </div>
-                <pre className="text-xs font-mono text-[#E15B71]/90 bg-[#E15B71]/5 border border-[#E15B71]/15 rounded-2xl p-3 sm:p-4 whitespace-pre-wrap break-all leading-relaxed overflow-x-auto max-w-full">{s.before}</pre>
+                <pre className="text-xs font-mono text-[#E15B71]/90 bg-[#E15B71]/5 border border-[#E15B71]/15 rounded-2xl p-3 sm:p-4 whitespace-pre-wrap break-words leading-relaxed overflow-x-auto max-w-full">{s.before}</pre>
               </div>
               <div className="p-4 sm:p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="w-5 h-5 rounded-full bg-[#17D9C0]/20 border border-[#17D9C0]/40 flex items-center justify-center"><Icon kind="check" className="w-3 h-3" style={{ color: '#0F9B87' }} /></span>
                   <span className="text-xs font-extrabold text-[#0F9B87] uppercase">{s.after_label ?? (lang === 'ar' ? 'بعد' : lang === 'fr' ? 'Après' : 'After')}</span>
                 </div>
-                <pre className="text-xs font-mono text-[#0F9B87] bg-[#17D9C0]/5 border border-[#17D9C0]/15 rounded-2xl p-3 sm:p-4 whitespace-pre-wrap break-all leading-relaxed overflow-x-auto max-w-full">{s.after}</pre>
+                <pre className="text-xs font-mono text-[#0F9B87] bg-[#17D9C0]/5 border border-[#17D9C0]/15 rounded-2xl p-3 sm:p-4 whitespace-pre-wrap break-words leading-relaxed overflow-x-auto max-w-full">{s.after}</pre>
               </div>
             </div>
           </div>
@@ -1690,6 +1864,7 @@ export default function LessonViewClient({
             <div className="space-y-2 sm:space-y-3">
               {checks.map((item, i) => (
                 <button key={i} onClick={() => toggleCheck(idx, i, checks.length)}
+                  aria-pressed={!!states[i]}
                   className={cn('w-full flex items-center gap-3 px-3 sm:px-4 py-3 rounded-2xl border text-sm font-semibold text-start transition-all',
                     states[i] ? 'bg-[#17D9C0]/10 border-[#17D9C0]/30 text-[#0F9B87]' : 'bg-[#EAF7F4]/40 border-[#0D2B32]/8 text-[#4E7169] hover:border-[#0D2B32]/20 hover:text-[#0D2B32]')}>
                   <span className={cn('w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-all', states[i] ? 'bg-[#17D9C0] border-[#17D9C0] text-white' : 'border-[#0D2B32]/20')}>
@@ -1738,40 +1913,8 @@ export default function LessonViewClient({
         )
       }
 
-      case 'website': {
-        const iframeSrc   = s.embed_url ?? s.url ?? ''
-        const frameHeight = s.height ?? 500
-        return (
-          <div key={idx} className={cn(CARD, 'overflow-hidden')}>
-            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8 bg-[#EAF7F4]/50">
-              <Icon kind="link" className="w-4 h-4 text-[#4E7169] flex-shrink-0" />
-              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider flex-1 truncate">{t.website}</span>
-              {(s.url ?? s.embed_url) && (
-                <a href={s.url ?? s.embed_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs font-bold text-[#0F9B87] hover:text-[#0D2B32] transition-colors flex-shrink-0 ml-2">
-                  <Icon kind="external" className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{t.openSite}</span>
-                </a>
-              )}
-            </div>
-            {s.caption && <div className="px-4 sm:px-5 py-2 border-b border-[#0D2B32]/6 bg-[#EAF7F4]/30"><p className="text-xs font-semibold text-[#4E7169]">{s.caption}</p></div>}
-            <div className="px-3 sm:px-4 py-2 bg-[#EAF7F4]/40 border-b border-[#0D2B32]/6 flex items-center gap-2">
-              <div className="flex gap-1.5 flex-shrink-0">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#0D2B32]/10" />
-                <div className="w-2.5 h-2.5 rounded-full bg-[#0D2B32]/10" />
-                <div className="w-2.5 h-2.5 rounded-full bg-[#0D2B32]/10" />
-              </div>
-              <div className="flex-1 bg-white rounded-md px-3 py-1 text-xs font-mono text-[#4E7169]/70 truncate border border-[#0D2B32]/6">{iframeSrc}</div>
-            </div>
-            {iframeSrc ? (
-              <iframe src={iframeSrc} style={{ height: frameHeight }} className="w-full max-w-full border-0 block"
-                title={s.caption ?? 'Interactive resource'} sandbox="allow-scripts allow-same-origin allow-forms allow-popups" loading="lazy" />
-            ) : (
-              <div className="flex items-center justify-center text-[#4E7169] text-sm font-semibold" style={{ height: frameHeight }}>No URL provided</div>
-            )}
-            {s.text && <div className="px-4 sm:px-5 py-4 border-t border-[#0D2B32]/6"><p className="text-xs font-semibold text-[#4E7169] leading-relaxed">{s.text}</p></div>}
-          </div>
-        )
-      }
+      case 'website':
+        return <div key={idx}><WebsiteEmbed s={s} t={t} /></div>
 
       case 'image':
         return (
@@ -1834,43 +1977,44 @@ export default function LessonViewClient({
     }
   }
 
-  const coachUrl      = `/dashboard/coach?topic=${encodeURIComponent(skill?.title ?? '')}&lesson=${encodeURIComponent(lesson.title)}`
-  const blockingItems = pendingActivities.map(({ s }) => ACTIVITY_LABELS[s.type])
+  const coachUrl = `/dashboard/coach?topic=${encodeURIComponent(skill?.title ?? '')}&lesson=${encodeURIComponent(lesson.title)}`
+  const blockingItems = pendingActivities.map(({ s, i }) => ({ label: ACTIVITY_LABELS[s.type], index: i }))
+
+  const ghostBtn = 'flex items-center gap-1.5 px-4 py-3 rounded-2xl font-bold text-sm text-[#4E7169] hover:text-[#0D2B32] hover:bg-[#0D2B32]/5 disabled:opacity-0 disabled:pointer-events-none transition-all'
 
   return (
-    <div className="p-4 sm:p-6 lg:p-10 max-w-3xl w-full overflow-x-hidden" dir={dir}>
-      {/* ── Keyframe animations injected once ── */}
+    <div className="lesson-root p-4 sm:p-6 lg:p-10 max-w-3xl w-full overflow-x-hidden" dir={dir}>
+      {/* ── Keyframes + a11y helpers, injected once ── */}
       <style>{`
         @keyframes slideInRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
         @keyframes slideInLeft  { from { opacity:0; transform:translateX(-40px); } to { opacity:1; transform:translateX(0); } }
         @keyframes xpFloat      { 0% { opacity:1; transform:translateY(0) scale(1); } 80% { opacity:1; } 100% { opacity:0; transform:translateY(-56px) scale(1.2); } }
-        @keyframes praiseIn     { 0% { opacity:0; transform:translate(-50%,-50%) scale(0.7); } 20% { opacity:1; transform:translate(-50%,-50%) scale(1.05); } 80% { opacity:1; transform:translate(-50%,-50%) scale(1); } 100% { opacity:0; transform:translate(-50%,-50%) scale(0.9); } }
+        @keyframes praiseIn     { 0% { opacity:0; transform:scale(0.7); } 20% { opacity:1; transform:scale(1.05); } 80% { opacity:1; transform:scale(1); } 100% { opacity:0; transform:scale(0.9); } }
         @keyframes shake        { 0%,100%{transform:translateX(0)} 15%{transform:translateX(-8px)} 30%{transform:translateX(8px)} 45%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 75%{transform:translateX(-3px)} 90%{transform:translateX(3px)} }
-        @keyframes heartPop     { 0%{transform:scale(1)} 40%{transform:scale(1.4)} 100%{transform:scale(1)} }
         @keyframes comboPop     { 0%{transform:scale(1)} 50%{transform:scale(1.25)} 100%{transform:scale(1)} }
-        @keyframes continuePulse{ 0%,100%{box-shadow:0 4px 0 rgba(13,43,50,0.18),0 0 0 0 rgba(23,217,192,0.5)} 50%{box-shadow:0 4px 0 rgba(13,43,50,0.18),0 0 0 10px rgba(23,217,192,0)} }
-        .slide-right { animation: slideInRight 0.28s cubic-bezier(0.22,1,0.36,1) both; }
-        .slide-left  { animation: slideInLeft  0.28s cubic-bezier(0.22,1,0.36,1) both; }
-        .card-shake  { animation: shake 0.5s ease-in-out; }
+        .card-shake { animation: shake 0.5s ease-in-out; }
+        .lesson-root button:focus-visible,
+        .lesson-root a:focus-visible,
+        .lesson-root summary:focus-visible,
+        .lesson-root [role="button"]:focus-visible { outline: 3px solid #17D9C0; outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+          .step-anim, .praise-anim, .xp-anim, .combo-anim, .card-shake { animation: none !important; }
+        }
       `}</style>
 
       {/* ── Toast ── */}
-      <div className={cn(
+      <div role="status" aria-live="polite" className={cn(
         'fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:w-auto z-50 px-5 py-3 rounded-2xl bg-white border border-[#0D2B32]/10 text-[#0F9B87] font-bold text-sm shadow-xl transition-all duration-300 flex items-center gap-2',
         toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'
       )}>
-        <Icon kind="sparkle" className="w-4 h-4 shrink-0" />
-        {toast}
+        {toast && <><Icon kind="sparkle" className="w-4 h-4 shrink-0" />{toast}</>}
       </div>
 
-      {/* ── Praise overlay — appears center-screen on correct answer ── */}
+      {/* ── Praise overlay ── */}
       {praiseMsg && (
-        <div
-          className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center"
-          aria-hidden
-        >
+        <div className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center" aria-hidden>
           <div
-            className="font-extrabold text-3xl md:text-4xl text-[#0F9B87] drop-shadow-lg px-6 py-3 rounded-3xl bg-[#17D9C0]/10 border border-[#17D9C0]/30 backdrop-blur-sm"
+            className="praise-anim font-extrabold text-3xl md:text-4xl text-[#0F9B87] drop-shadow-lg px-6 py-3 rounded-3xl bg-white/80 border border-[#17D9C0]/30 backdrop-blur-sm"
             style={{ animation: 'praiseIn 1.5s ease forwards' }}
           >
             {praiseMsg}
@@ -1891,33 +2035,49 @@ export default function LessonViewClient({
         </div>
       )}
 
-      {/* ── GAME HUD: back | step dots | combo ── */}
+      {/* ── Anchor used to scroll back to the top on every step change ── */}
+      <div ref={topRef} className="scroll-mt-4" />
+
+      {/* ── HUD: back | clickable progress segments | step count | combo ── */}
       <div className="flex items-center gap-2 sm:gap-3 mb-5 sm:mb-6">
-        <Link href={`/dashboard/path/${skill?.id}`}
+        <Link href={`/dashboard/path/${skill?.id}`} aria-label={t.back}
           className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-[#0D2B32]/10 hover:border-[#0D2B32]/25 transition-colors shrink-0">
-          <Icon kind="chevronLeft" className="w-5 h-5 text-[#4E7169]" />
+          <Icon kind="chevronLeft" className="w-5 h-5 text-[#4E7169] rtl:rotate-180" />
         </Link>
 
         {sections.length > 0 && !isDone && (
-          <div className="flex-1 flex items-center gap-1">
-            {sections.map((_, i) => (
-              <div key={i} className={cn(
-                'h-2 flex-1 rounded-full transition-all duration-400',
-                i < currentStep ? 'bg-[#17D9C0]' : i === currentStep ? 'bg-[#0F9B87]' : 'bg-[#0D2B32]/10'
-              )} />
-            ))}
-          </div>
+          <>
+            <div className="flex-1 flex items-center gap-1"
+              role="progressbar" aria-valuemin={1} aria-valuemax={sections.length} aria-valuenow={currentStep + 1}
+              aria-label={`${t.stepLabel} ${currentStep + 1} / ${sections.length}`}>
+              {sections.map((_, i) => {
+                const reachable = i <= maxStep
+                return (
+                  <button key={i} type="button" disabled={!reachable} onClick={() => goToStep(i)}
+                    aria-label={`${t.stepLabel} ${i + 1}`} aria-current={i === currentStep ? 'step' : undefined}
+                    className="group flex-1 py-2 disabled:cursor-default">
+                    <span className={cn(
+                      'block h-2 w-full rounded-full transition-all duration-300',
+                      i === currentStep ? 'bg-[#0F9B87]' : i < currentStep ? 'bg-[#17D9C0]' : reachable ? 'bg-[#17D9C0]/50' : 'bg-[#0D2B32]/10',
+                      reachable && i !== currentStep && 'group-hover:h-3'
+                    )} />
+                  </button>
+                )
+              })}
+            </div>
+            <span className="text-xs font-extrabold text-[#4E7169] tabular-nums shrink-0">{currentStep + 1}/{sections.length}</span>
+          </>
         )}
 
         {combo >= 2 && !isDone && (
-          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFB930]/15 border border-[#FFB930]/30 shrink-0" style={{ animation: 'comboPop 0.3s ease' }}>
+          <div className="combo-anim flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFB930]/15 border border-[#FFB930]/30 shrink-0" style={{ animation: 'comboPop 0.3s ease' }}>
             <Icon kind="fire" className="w-3.5 h-3.5 text-[#B8790E]" />
             <span className="text-xs font-extrabold text-[#B8790E]">{combo}x</span>
           </div>
         )}
       </div>
 
-      {/* ── Lesson title — compact ── */}
+      {/* ── Lesson title ── */}
       <div className="flex items-center gap-3 mb-5 sm:mb-6">
         <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-[0_3px_0_rgba(13,43,50,0.18)]" style={{ backgroundColor: '#FF6B57' }}>
           {lesson.emoji}
@@ -1926,10 +2086,9 @@ export default function LessonViewClient({
           <h1 className="font-extrabold text-lg sm:text-xl leading-tight text-[#0D2B32]">{lesson.title}</h1>
           <span className="text-xs font-bold text-[#4E7169]">{t.lesson} {lessonIndex}/{totalLessons} · +{lesson.xp_reward} XP</span>
         </div>
-        {/* Floating XP burst */}
-        <div className="relative shrink-0 w-10 h-10">
+        <div className="relative shrink-0 w-10 h-10" aria-hidden>
           {xpBurst && (
-            <span key={xpBurst.id} className="absolute bottom-0 left-1/2 -translate-x-1/2 font-extrabold text-sm text-[#0F9B87] pointer-events-none whitespace-nowrap" style={{ animation: 'xpFloat 1.2s ease-out forwards' }}>
+            <span key={xpBurst.id} className="xp-anim absolute bottom-0 left-1/2 -translate-x-1/2 font-extrabold text-sm text-[#0F9B87] pointer-events-none whitespace-nowrap" style={{ animation: 'xpFloat 1.2s ease-out forwards' }}>
               +{xpBurst.amount} XP
             </span>
           )}
@@ -1944,87 +2103,87 @@ export default function LessonViewClient({
         <span className="flex-1 text-xs font-bold text-[#4E7169] group-hover:text-[#0D2B32] transition-colors">
           {lang === 'ar' ? 'لديك سؤال؟ اسأل مدربك الذكي' : lang === 'fr' ? 'Une question ? Demande au Coach IA' : 'Confused? Ask your AI Coach'}
         </span>
-        <Icon kind="chevronRight" className="w-3.5 h-3.5 text-[#4E7169]/60 shrink-0" />
+        <Icon kind="chevronRight" className="w-3.5 h-3.5 text-[#4E7169]/60 shrink-0 rtl:rotate-180" />
       </Link>
 
-      {/* ── ONE SECTION AT A TIME (in progress) — or full scroll for review ── */}
+      {/* ── CONTENT: one step at a time while learning, full scroll in review ── */}
       {sections.length > 0 ? (
         isDone ? (
-          <div className="space-y-4 sm:space-y-5 mb-8 sm:mb-10">
-            {sections.map((s, i) => renderSection(s, i))}
-          </div>
+          <>
+            <p className="text-xs font-bold text-[#4E7169] mb-4 flex items-center gap-1.5">
+              <Icon kind="book" className="w-3.5 h-3.5" /> {t.reviewMode}
+            </p>
+            <div className="space-y-4 sm:space-y-5 mb-8 sm:mb-10">
+              {sections.map((s, i) => renderSection(s, i))}
+            </div>
+          </>
         ) : (
-        <>
-          <div className={cn('mb-6 sm:mb-8', shaking && 'card-shake')} key={animKey} style={{ animation: `${slideDir === 'right' ? 'slideInRight' : 'slideInLeft'} 0.28s cubic-bezier(0.22,1,0.36,1) both` }}>
+          <div
+            className={cn('step-anim mb-6 sm:mb-8', shaking && 'card-shake')}
+            key={animKey}
+            style={{ animation: `${slideDir === 'right' ? 'slideInRight' : 'slideInLeft'} 0.28s cubic-bezier(0.22,1,0.36,1) both` }}
+          >
             {renderSection(sections[currentStep], currentStep)}
           </div>
-
-          {(() => {
-
-            const s = sections[currentStep]
-            const isInteractive = s.type in ACTIVITY_LABELS
-            const stepReady = !isInteractive || isActivityDone(s, currentStep)
-            const isLastStep = currentStep === sections.length - 1
-
-            if (isLastStep) {
-              // Final step's own continue is replaced by the Mark Complete
-              // card below, so nothing renders here — avoids a redundant
-              // "Continue" right above "Mark Complete".
-              return null
-            }
-
-            return (
-              <div className="flex items-center justify-between gap-3 mb-8 sm:mb-10">
-                <button
-                  onClick={() => setCurrentStep(i => Math.max(0, i - 1))}
-                  disabled={currentStep === 0}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-bold text-sm text-[#4E7169] hover:text-[#0D2B32] disabled:opacity-0 disabled:pointer-events-none transition-all"
-                >
-                  <Icon kind="chevronLeft" className="w-4 h-4" />
-                  {lang === 'ar' ? 'السابق' : lang === 'fr' ? 'Précédent' : 'Back'}
-                </button>
-                <button
-                  onClick={() => setCurrentStep(i => Math.min(sections.length - 1, i + 1))}
-                  disabled={!stepReady}
-                  className={cn(
-                    'flex items-center gap-2 px-8 py-3 rounded-2xl font-extrabold text-sm transition-all',
-                    stepReady ? PRIMARY_BTN : 'bg-[#0D2B32]/8 text-[#4E7169]/50 cursor-not-allowed'
-                  )}
-                >
-                  {lang === 'ar' ? 'متابعة' : lang === 'fr' ? 'Continuer' : 'Continue'}
-                  <Icon kind="chevronRight" className="w-4 h-4" />
-                </button>
-              </div>
-            )
-          })()}
-        </>
         )
       ) : (
         <div className={cn(CARD, 'p-8 text-center mb-8')}><p className="text-[#4E7169] font-semibold text-sm">Content loading...</p></div>
       )}
-      {!isDone && currentStep === Math.max(0, sections.length - 1) && (
-        <div className={cn(CARD, 'p-5 sm:p-6 mb-5 sm:mb-6 text-center')}>
-          {blockingItems.length > 0 && (
-            <>
-              <p className="text-xs font-bold text-[#4E7169]/80 mb-2 uppercase tracking-wider">
-                {lang === 'ar' ? 'أكمل هذه الأنشطة أولاً' : lang === 'fr' ? "Termine d'abord ces activités" : 'Finish these activities first'}
-              </p>
-              <ul className="mb-4 space-y-1">
-                {blockingItems.map((item, i) => (
-                  <li key={i} className="text-xs text-[#4E7169] font-semibold flex items-center justify-center gap-2">
-                    <Icon kind="chevronRight" className="w-3 h-3" style={{ color: '#0F9B87' }} /> {item}
+
+      {/* ── STICKY ACTION BAR: Back always available; Continue OR Mark Complete ── */}
+      {!isDone && sections.length > 0 && (
+        <div className="sticky bottom-3 z-30 mb-8 sm:mb-10 space-y-3" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          {/* On the last step, tell the learner exactly what is still open — each item is a shortcut. */}
+          {isLastStep && blockingItems.length > 0 && (
+            <div className={cn(CARD, 'p-4')}>
+              <p className="text-xs font-bold text-[#4E7169] mb-2 uppercase tracking-wider">{t.finishFirst}</p>
+              <ul className="space-y-1.5">
+                {blockingItems.map((item) => (
+                  <li key={item.index}>
+                    <button type="button" onClick={() => goToStep(item.index)}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#0D2B32] bg-[#EAF7F4]/70 hover:bg-[#17D9C0]/15 transition-colors text-start">
+                      <Icon kind="lock" className="w-3.5 h-3.5 shrink-0" style={{ color: '#0F9B87' }} />
+                      <span className="flex-1 truncate">{item.label}</span>
+                      <span className="text-[#0F9B87] shrink-0">{t.jumpTo}</span>
+                      <Icon kind="chevronRight" className="w-3.5 h-3.5 text-[#0F9B87] shrink-0 rtl:rotate-180" />
+                    </button>
                   </li>
                 ))}
               </ul>
-            </>
+            </div>
           )}
-          <button onClick={markComplete} disabled={isPending || !canComplete}
-            className={cn('w-full sm:w-auto px-8 py-3.5 rounded-2xl font-extrabold text-sm transition-all flex items-center justify-center gap-2',
-              isPending ? 'opacity-50 cursor-not-allowed bg-[#0D2B32]/8 text-[#4E7169]' :
-              !canComplete ? 'bg-[#0D2B32]/8 text-[#4E7169]/70 cursor-not-allowed border border-[#0D2B32]/5' :
-              SUCCESS_BTN)}>
-            {isPending ? <><Icon kind="hourglass" className="w-4 h-4" /> Saving...</> : <><Icon kind="check" className="w-4 h-4" /> {t.complete}</>}
-          </button>
+
+          <div className="flex items-center justify-between gap-3 p-2.5 rounded-3xl bg-white/90 backdrop-blur border border-[#0D2B32]/8 shadow-[0_8px_30px_rgba(13,43,50,0.12)]">
+            <button type="button" onClick={() => goToStep(currentStep - 1)} disabled={currentStep === 0} className={ghostBtn}>
+              <Icon kind="chevronLeft" className="w-4 h-4 rtl:rotate-180" /> {t.prev}
+            </button>
+
+            {!isLastStep && !stepReady && (
+              <span className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-[#4E7169]">
+                <Icon kind="lock" className="w-3.5 h-3.5" /> {t.finishToContinue}
+              </span>
+            )}
+
+            {isLastStep ? (
+              <button onClick={markComplete} disabled={isPending || !canComplete}
+                className={cn('px-6 sm:px-8 py-3 rounded-2xl font-extrabold text-sm transition-all flex items-center justify-center gap-2',
+                  isPending ? 'opacity-50 cursor-not-allowed bg-[#0D2B32]/8 text-[#4E7169]' :
+                  !canComplete ? 'bg-[#0D2B32]/8 text-[#4E7169]/70 cursor-not-allowed' :
+                  SUCCESS_BTN)}>
+                {isPending ? <><Icon kind="hourglass" className="w-4 h-4" /> Saving...</> : <><Icon kind="check" className="w-4 h-4" /> {t.complete}</>}
+              </button>
+            ) : (
+              <button onClick={() => goToStep(currentStep + 1)} disabled={!stepReady}
+                title={!stepReady ? t.finishToContinue : undefined}
+                className={cn('flex items-center gap-2 px-6 sm:px-8 py-3 rounded-2xl font-extrabold text-sm transition-all',
+                  stepReady ? PRIMARY_BTN : 'bg-[#0D2B32]/8 text-[#4E7169]/60 cursor-not-allowed')}>
+                {t.cont} <Icon kind="chevronRight" className="w-4 h-4 rtl:rotate-180" />
+              </button>
+            )}
+          </div>
+          {!isLastStep && !stepReady && (
+            <p className="sm:hidden text-center text-xs font-bold text-[#4E7169]">{t.finishToContinue}</p>
+          )}
         </div>
       )}
 
@@ -2046,35 +2205,37 @@ export default function LessonViewClient({
         />
       )}
 
-      {/* Prev / Next nav */}
-      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-5 sm:pt-6 border-t border-[#0D2B32]/8">
-        {prevLesson ? (
-          <Link href={`/dashboard/path/${skill?.id}/lesson/${prevLesson.id}`}
-            className="flex items-center justify-center sm:justify-start gap-2 px-4 sm:px-5 py-3 rounded-2xl font-extrabold text-sm border-2 border-[#0D2B32]/10 text-[#4E7169] hover:text-[#0D2B32] hover:border-[#0D2B32]/25 transition-all truncate">
-            <Icon kind="chevronLeft" className="w-4 h-4 flex-shrink-0" /> <span className="truncate">{prevLesson.emoji} {prevLesson.title}</span>
-          </Link>
-        ) : (
-          <Link href={`/dashboard/path/${skill?.id}`} className="text-sm font-bold text-[#4E7169] hover:text-[#0D2B32] transition-colors text-center sm:text-left flex items-center gap-1.5">
-            <Icon kind="chevronLeft" className="w-4 h-4" /> {t.back}
-          </Link>
-        )}
-        {nextLesson ? (
-          <Link href={`/dashboard/path/${skill?.id}/lesson/${nextLesson.id}`}
-            className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm truncate transition-all', PRIMARY_BTN)}>
-            <span className="truncate">{nextLesson.emoji} {nextLesson.title}</span> <Icon kind="chevronRight" className="w-4 h-4 flex-shrink-0" />
-          </Link>
-        ) : nextSkill ? (
-          <Link href={`/dashboard/path/${nextSkill.id}/lesson/${nextSkill.lessonId}`}
-            className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm truncate transition-all', PRIMARY_BTN)}>
-            <span className="truncate">{nextSkill.emoji} {nextSkill.title}</span> <Icon kind="chevronRight" className="w-4 h-4 flex-shrink-0" />
-          </Link>
-        ) : (
-          <Link href={`/dashboard/path/${skill?.id}`}
-            className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm transition-all', SUCCESS_BTN)}>
-            <Icon kind="partyPop" className="w-4 h-4" /> {t.finish}
-          </Link>
-        )}
-      </div>
+      {/* Prev / Next lesson nav — only after finishing, so it never competes with the step buttons */}
+      {isDone && (
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-5 sm:pt-6 border-t border-[#0D2B32]/8">
+          {prevLesson ? (
+            <Link href={`/dashboard/path/${skill?.id}/lesson/${prevLesson.id}`}
+              className="flex items-center justify-center sm:justify-start gap-2 px-4 sm:px-5 py-3 rounded-2xl font-extrabold text-sm border-2 border-[#0D2B32]/10 text-[#4E7169] hover:text-[#0D2B32] hover:border-[#0D2B32]/25 transition-all truncate">
+              <Icon kind="chevronLeft" className="w-4 h-4 flex-shrink-0 rtl:rotate-180" /> <span className="truncate">{prevLesson.emoji} {prevLesson.title}</span>
+            </Link>
+          ) : (
+            <Link href={`/dashboard/path/${skill?.id}`} className="text-sm font-bold text-[#4E7169] hover:text-[#0D2B32] transition-colors text-center sm:text-left flex items-center gap-1.5">
+              <Icon kind="chevronLeft" className="w-4 h-4 rtl:rotate-180" /> {t.back}
+            </Link>
+          )}
+          {nextLesson ? (
+            <Link href={`/dashboard/path/${skill?.id}/lesson/${nextLesson.id}`}
+              className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm truncate transition-all', PRIMARY_BTN)}>
+              <span className="truncate">{nextLesson.emoji} {nextLesson.title}</span> <Icon kind="chevronRight" className="w-4 h-4 flex-shrink-0 rtl:rotate-180" />
+            </Link>
+          ) : nextSkill ? (
+            <Link href={`/dashboard/path/${nextSkill.id}/lesson/${nextSkill.lessonId}`}
+              className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm truncate transition-all', PRIMARY_BTN)}>
+              <span className="truncate">{nextSkill.emoji} {nextSkill.title}</span> <Icon kind="chevronRight" className="w-4 h-4 flex-shrink-0 rtl:rotate-180" />
+            </Link>
+          ) : (
+            <Link href={`/dashboard/path/${skill?.id}`}
+              className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm transition-all', SUCCESS_BTN)}>
+              <Icon kind="partyPop" className="w-4 h-4" /> {t.finish}
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Feedback Modal */}
       {showFeedback && (
