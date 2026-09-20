@@ -611,15 +611,19 @@ export default function LandingPage() {
       </div>
       )}
 
-      {/* ================= TRACKS: illustrated path ================= */}
+      {/* ================= TRACKS: roadmap ================= */}
+      {/* A literal winding path now, not three separate tilted stickers with
+          a decorative squiggle behind them — the icon circles sit ON the
+          path and alternate high/low left→right, like a game world map
+          (the same move as the dashboard's pearl-diving route). */}
       <div id="tracks" className={styles.tracksSec} style={{ overflow: 'hidden' }}>
         <style>{`
-          .trk-card { transition: transform .25s ease, box-shadow .25s ease; }
-          .trk-card:hover { transform: translateY(-6px) rotate(0deg) !important; box-shadow: 0 18px 30px rgba(13,43,50,0.14) !important; }
+          .curr-icon { transition: transform .2s ease; }
+          .curr-col:hover .curr-icon { transform: scale(1.07); }
           @media (max-width: 760px) {
-            .trk-card { transform: none !important; }
-            .trk-row { flex-direction: column; align-items: center !important; }
-            .trk-path { display: none; }
+            .curr-path { display: none; }
+            .curr-row { flex-direction: column !important; align-items: center !important; gap: 40px !important; }
+            .curr-col { transform: none !important; }
           }
         `}</style>
         <div className="container">
@@ -651,175 +655,98 @@ export default function LandingPage() {
             </span>
           </div>
 
-          <div style={{ position: 'relative', marginTop: 64, paddingBottom: 30 }}>
-            {/* dashed path connecting the three stops, decorative */}
-            <svg
-              className="trk-path"
-              viewBox="0 0 1000 120" preserveAspectRatio="none"
-              style={{ position: 'absolute', top: 60, left: 0, width: '100%', height: 120, zIndex: 0 }}
-              aria-hidden
-            >
-              <path
-                d="M110 100 C 250 20, 400 20, 500 60 S 750 100, 890 20"
-                stroke="#C9DAD5" strokeWidth={3} strokeDasharray="2 14" strokeLinecap="round" fill="none"
-              />
-              <circle cx="110" cy="100" r="6" fill="#1FB8A6" />
-              <circle cx="500" cy="60" r="6" fill="#D4A24C" />
-              <circle cx="890" cy="20" r="6" fill="#053D35" />
-            </svg>
-
-            {/* stray doodle stars */}
-            <svg width="22" height="22" viewBox="0 0 22 22" style={{ position: 'absolute', top: -30, left: '18%', opacity: 0.6 }} aria-hidden>
-              <path d="M11 0 L13 9 L22 11 L13 13 L11 22 L9 13 L0 11 L9 9 Z" fill="#D4A24C" />
-            </svg>
-            <svg width="14" height="14" viewBox="0 0 22 22" style={{ position: 'absolute', top: 10, right: '12%', opacity: 0.5 }} aria-hidden>
-              <path d="M11 0 L13 9 L22 11 L13 13 L11 22 L9 13 L0 11 L9 9 Z" fill="#1FB8A6" />
-            </svg>
-
-            <div
-              className="trk-row"
-              style={{
-                position: 'relative', zIndex: 1, display: 'flex', flexWrap: 'wrap',
-                justifyContent: 'center', alignItems: 'flex-start', gap: 32,
-              }}
-            >
-              {/* Coding */}
-              <div
-                className="trk-card"
-                style={{
-                  width: 272, background: '#fff', borderRadius: 22, padding: '30px 24px 26px',
-                  border: '2px solid #0D2B32', boxShadow: '0 8px 0 #0D2B32',
-                  transform: 'rotate(-3deg)', position: 'relative',
-                }}
-              >
-                <span
-                  style={{
-                    position: 'absolute', top: -14, left: 20, transform: 'rotate(-6deg)',
-                    background: '#0D2B32', color: '#fff', fontSize: 11.5, fontWeight: 700,
-                    padding: '5px 12px', borderRadius: 8, letterSpacing: 0.3,
-                  }}
-                >
-                  STOP 01 · AGES 8–16
-                </span>
-                <div
-                  style={{
-                    width: 76, height: 76, margin: '18px auto 16px',
-                    borderRadius: '63% 37% 54% 46% / 55% 45% 45% 55%',
-                    background: 'linear-gradient(135deg, #1FB8A6, #17948A)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  <span className="font-mono" style={{ fontWeight: 700, fontSize: 24, color: '#fff' }}>{'{ }'}</span>
-                </div>
-                <p style={{ fontWeight: 700, fontSize: 19, color: '#0D2B32', margin: '0 0 8px', textAlign: 'center' }}>
-                  Coding
-                </p>
-                <p style={{ color: 'rgba(41,57,74,0.7)', fontSize: 14, lineHeight: 1.55, margin: '0 0 16px', textAlign: 'center' }}>
-                  Blocks to real Python — students ship actual apps and games.
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginBottom: 18 }}>
-                  {['Logic', 'Python', 'Debugging'].map((t) => (
-                    <span key={t} style={{ fontSize: 11.5, fontWeight: 600, color: '#0D2B32', background: '#EAF6F3', padding: '4px 10px', borderRadius: 999 }}>
-                      {t}
-                    </span>
-                  ))}
-                </div>
-                <p style={{ textAlign: 'center', fontWeight: 700, fontSize: 13, color: '#1FB8A6', margin: 0 }}>180+ lessons →</p>
-              </div>
-
-              {/* AI & Future Tech — raised, center stop */}
-              <div
-                className="trk-card"
-                style={{
-                  width: 272, background: '#fff', borderRadius: 22, padding: '30px 24px 26px',
-                  border: '2px solid #402F12', boxShadow: '0 8px 0 #D4A24C',
-                  transform: 'translateY(-18px) rotate(2deg)', position: 'relative',
-                }}
-              >
-                <span
-                  style={{
-                    position: 'absolute', top: -14, left: 20, transform: 'rotate(4deg)',
-                    background: '#D4A24C', color: '#402F12', fontSize: 11.5, fontWeight: 700,
-                    padding: '5px 12px', borderRadius: 8, letterSpacing: 0.3,
-                  }}
-                >
-                  STOP 02 · AGES 10–16
-                </span>
-                <div
-                  style={{
-                    width: 76, height: 76, margin: '18px auto 16px',
-                    borderRadius: '45% 55% 60% 40% / 50% 45% 55% 50%',
-                    background: 'linear-gradient(135deg, #E8BE72, #D4A24C)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  <span className="font-mono" style={{ fontWeight: 700, fontSize: 24, color: '#402F12' }}>AI</span>
-                </div>
-                <p style={{ fontWeight: 700, fontSize: 19, color: '#0D2B32', margin: '0 0 8px', textAlign: 'center' }}>
-                  AI &amp; Future Tech
-                </p>
-                <p style={{ color: 'rgba(41,57,74,0.7)', fontSize: 14, lineHeight: 1.55, margin: '0 0 16px', textAlign: 'center' }}>
-                  Prompting, data, and real ML basics — AI literacy from day one.
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginBottom: 18 }}>
-                  {['Prompting', 'Data', 'ML basics'].map((t) => (
-                    <span key={t} style={{ fontSize: 11.5, fontWeight: 600, color: '#402F12', background: '#FBF1DE', padding: '4px 10px', borderRadius: 999 }}>
-                      {t}
-                    </span>
-                  ))}
-                </div>
-                <p style={{ textAlign: 'center', fontWeight: 700, fontSize: 13, color: '#D4A24C', margin: 0 }}>160+ lessons →</p>
-              </div>
-
-              {/* Entrepreneurship */}
-              <div
-                className="trk-card"
-                style={{
-                  width: 272, background: '#fff', borderRadius: 22, padding: '30px 24px 26px',
-                  border: '2px solid #053D35', boxShadow: '0 8px 0 #053D35',
-                  transform: 'rotate(-2deg)', position: 'relative',
-                }}
-              >
-                <span
-                  style={{
-                    position: 'absolute', top: -14, left: 20, transform: 'rotate(-5deg)',
-                    background: '#053D35', color: '#fff', fontSize: 11.5, fontWeight: 700,
-                    padding: '5px 12px', borderRadius: 8, letterSpacing: 0.3,
-                  }}
-                >
-                  STOP 03 · AGES 10–16
-                </span>
-                <div
-                  style={{
-                    width: 76, height: 76, margin: '18px auto 16px',
-                    borderRadius: '50% 50% 38% 62% / 60% 45% 55% 40%',
-                    background: 'linear-gradient(135deg, #145048, #053D35)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  <svg width={26} height={26} viewBox="0 0 20 20">
+          {(() => {
+            const trackStops = [
+              {
+                stop: 'STOP 01', ages: 'Ages 8–16', title: 'Coding', color: '#1FB8A6', dark: '#0D2B32',
+                icon: <span className="font-mono" style={{ fontWeight: 700, fontSize: 22, color: '#fff' }}>{'{ }'}</span>,
+                desc: 'Blocks to real Python — students ship actual apps and games.',
+                tags: ['Logic', 'Python', 'Debugging'],
+                lessons: '180+ lessons',
+              },
+              {
+                stop: 'STOP 02', ages: 'Ages 10–16', title: 'AI & Future Tech', color: '#D4A24C', dark: '#402F12',
+                icon: <span className="font-mono" style={{ fontWeight: 700, fontSize: 22, color: '#402F12' }}>AI</span>,
+                desc: 'Prompting, data, and real ML basics — AI literacy from day one.',
+                tags: ['Prompting', 'Data', 'ML basics'],
+                lessons: '160+ lessons',
+              },
+              {
+                stop: 'STOP 03', ages: 'Ages 10–16', title: 'Entrepreneurship', color: '#053D35', dark: '#053D35',
+                icon: (
+                  <svg width={24} height={24} viewBox="0 0 20 20">
                     <rect x="2" y="12" width="4" height="6" fill="#fff" />
                     <rect x="8" y="7" width="4" height="11" fill="#fff" />
                     <rect x="14" y="2" width="4" height="16" fill="#fff" />
                   </svg>
-                </div>
-                <p style={{ fontWeight: 700, fontSize: 19, color: '#0D2B32', margin: '0 0 8px', textAlign: 'center' }}>
-                  Entrepreneurship
-                </p>
-                <p style={{ color: 'rgba(41,57,74,0.7)', fontSize: 14, lineHeight: 1.55, margin: '0 0 16px', textAlign: 'center' }}>
-                  A first small venture — pricing, marketing, and a real pitch.
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginBottom: 18 }}>
-                  {['Pricing', 'Marketing', 'Pitching'].map((t) => (
-                    <span key={t} style={{ fontSize: 11.5, fontWeight: 600, color: '#053D35', background: '#EAF6F3', padding: '4px 10px', borderRadius: 999 }}>
-                      {t}
-                    </span>
+                ),
+                desc: 'A first small venture — pricing, marketing, and a real pitch.',
+                tags: ['Pricing', 'Marketing', 'Pitching'],
+                lessons: '140+ lessons',
+              },
+            ]
+            const SWING = 38 // px — how far the path/icons rise and dip
+
+            return (
+              <div style={{ position: 'relative', marginTop: 76, paddingBottom: 24 }}>
+                {/* the road itself — anchors line up with the icon centers below */}
+                <svg
+                  className="curr-path"
+                  viewBox="0 0 1000 170" preserveAspectRatio="none"
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 170, zIndex: 0 }}
+                  aria-hidden
+                >
+                  <path
+                    d="M167,106 C280,106 320,30 500,30 C680,30 720,106 833,106"
+                    stroke="#CFE3DF" strokeWidth={3} strokeDasharray="2 13" strokeLinecap="round" fill="none"
+                  />
+                  {trackStops.map((s, i) => (
+                    <circle key={s.title} cx={i === 1 ? 500 : i === 0 ? 167 : 833} cy={i === 1 ? 30 : 106} r={5} fill={s.color} />
                   ))}
+                </svg>
+
+                <div
+                  className="curr-row"
+                  style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 32 }}
+                >
+                  {trackStops.map((s, i) => {
+                    const offset = i % 2 === 0 ? SWING : -SWING
+                    return (
+                      <div
+                        key={s.title}
+                        className="curr-col"
+                        style={{ width: 240, textAlign: 'center', transform: `translateY(${offset}px)` }}
+                      >
+                        <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, letterSpacing: 0.4, color: 'rgba(41,57,74,0.5)', marginBottom: 10 }}>
+                          {s.stop} · {s.ages}
+                        </span>
+                        <div
+                          className="curr-icon"
+                          style={{
+                            width: 84, height: 84, margin: '0 auto 18px', borderRadius: '50%',
+                            background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: `0 10px 22px ${s.color}4d, 0 0 0 6px #fff, 0 0 0 7px #E4E9E7`,
+                          }}
+                        >
+                          {s.icon}
+                        </div>
+                        <p style={{ fontWeight: 700, fontSize: 18, color: '#0D2B32', margin: '0 0 8px' }}>{s.title}</p>
+                        <p style={{ color: 'rgba(41,57,74,0.7)', fontSize: 13.5, lineHeight: 1.55, margin: '0 0 14px' }}>{s.desc}</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginBottom: 14 }}>
+                          {s.tags.map((t) => (
+                            <span key={t} style={{ fontSize: 11.5, fontWeight: 600, color: s.dark, background: `${s.color}1a`, padding: '4px 10px', borderRadius: 999 }}>
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                        <p style={{ fontWeight: 700, fontSize: 13, color: s.color, margin: 0 }}>{s.lessons} →</p>
+                      </div>
+                    )
+                  })}
                 </div>
-                <p style={{ textAlign: 'center', fontWeight: 700, fontSize: 13, color: '#053D35', margin: 0 }}>140+ lessons →</p>
               </div>
-            </div>
-          </div>
+            )
+          })()}
         </div>
       </div>
 
