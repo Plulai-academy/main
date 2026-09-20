@@ -771,54 +771,92 @@ export default function LandingPage() {
       </div>
 
       {/* ================= ALUMNI PROJECTS ================= */}
-      <div className={styles.alumniSec}>
+      {/* Rebuilt fully inline, same reasoning as the partners strip: this
+          leaned on styles.alumniIntro/projectCarousel/projectSlide/etc,
+          which aren't visible here, so there was no way to be sure the
+          redesign actually rendered as intended. Cards are now proper
+          portfolio tiles — image, floating track pill, title, builder —
+          with the same edge-fade marquee treatment as the partners strip
+          above, so the two belts feel like one design system. */}
+      <div style={{ background: '#fff', padding: '64px 0 60px', overflow: 'hidden' }}>
         <style>{`
           @keyframes plulai-project-scroll {
             from { transform: translateX(0); }
             to { transform: translateX(-50%); }
           }
-          .project-marquee-track {
-            animation: plulai-project-scroll 45s linear infinite;
-          }
-          .project-marquee-wrap:hover .project-marquee-track {
-            animation-play-state: paused;
-          }
+          .project-marquee-track { animation: plulai-project-scroll 50s linear infinite; }
+          .project-marquee-wrap:hover .project-marquee-track { animation-play-state: paused; }
+          .project-card { transition: transform .25s ease, box-shadow .25s ease; }
+          .project-card:hover { transform: translateY(-5px); box-shadow: 0 16px 30px rgba(13,43,50,0.14); }
+          .project-img { transition: transform .4s ease; }
+          .project-card:hover .project-img { transform: scale(1.06); }
           @media (prefers-reduced-motion: reduce) {
             .project-marquee-track { animation: none; }
+            .project-card, .project-img { transition: none; }
           }
         `}</style>
+
         <div className="container">
           <p className="eyebrow">Real work, not just quizzes</p>
           <h2>What kids actually build</h2>
-          <p className={styles.alumniIntro}>
+          <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 480, marginTop: 10 }}>
             Every track ends in a real project, not a certificate for clicking through slides.
           </p>
         </div>
 
-        <div className="project-marquee-wrap" style={{ overflow: 'hidden' }}>
+        <div className="project-marquee-wrap" style={{ position: 'relative', marginTop: 36 }}>
+          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 90, background: 'linear-gradient(90deg, #fff, rgba(255,255,255,0))', zIndex: 2, pointerEvents: 'none' }} />
+          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: 90, background: 'linear-gradient(270deg, #fff, rgba(255,255,255,0))', zIndex: 2, pointerEvents: 'none' }} />
+
           <div
-            className={`${styles.projectCarousel} project-marquee-track`}
-            style={{ display: 'flex', overflow: 'visible', width: 'max-content' }}
+            className="project-marquee-track"
+            style={{ display: 'flex', width: 'max-content', gap: 22, padding: '6px 4px 14px' }}
           >
-            {[...projects, ...projects].map((project, i) => (
-              <div key={`${project.file}-${i}`} className={styles.projectSlide}>
-                <div className={styles.projectShot}>
-                  <Image
-                    src={`/projects/${project.file}`}
-                    alt={project.title}
-                    fill
-                    className={styles.projectImg}
-                    sizes="(max-width: 640px) 80vw, 320px"
-                  />
+            {[...projects, ...projects].map((project, i) => {
+              const tag = project.tagColor === 'gold'
+                ? { bg: '#D4A24C', fg: '#402F12' }
+                : { bg: '#1FB8A6', fg: '#fff' }
+              return (
+                <div
+                  key={`${project.file}-${i}`}
+                  className="project-card"
+                  style={{
+                    flex: '0 0 auto', width: 264, borderRadius: 20, background: '#fff',
+                    border: '1px solid #E4E9E7', overflow: 'hidden', boxShadow: '0 1px 2px rgba(13,43,50,0.04)',
+                  }}
+                >
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', overflow: 'hidden', background: '#EEF2F1' }}>
+                    <Image
+                      src={`/projects/${project.file}`}
+                      alt={project.title}
+                      fill
+                      className="project-img"
+                      style={{ objectFit: 'cover' }}
+                      sizes="264px"
+                    />
+                    <span
+                      style={{
+                        position: 'absolute', top: 10, left: 10, fontSize: 11, fontWeight: 700,
+                        letterSpacing: 0.3, color: tag.fg, background: tag.bg,
+                        padding: '4px 10px', borderRadius: 999, boxShadow: '0 2px 6px rgba(13,43,50,0.18)',
+                      }}
+                    >
+                      {project.track}
+                    </span>
+                  </div>
+                  <div style={{ padding: '14px 16px 16px' }}>
+                    <p style={{ fontWeight: 700, fontSize: 15, color: '#0D2B32', margin: '0 0 3px' }}>{project.title}</p>
+                    {project.student && (
+                      <p style={{ fontSize: 12.5, color: 'rgba(41,57,74,0.55)', margin: 0 }}>{project.student}</p>
+                    )}
+                  </div>
                 </div>
-                <span className={`tag-mono tag-mono--${project.tagColor}`}>{project.track}</span>
-                <p className={styles.projectTitle}>{project.title}</p>
-                <p className={styles.projectStudent}>{project.student}</p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>
+
       {/* ================= PATH SECTION: before / after ================= */}
       <div className={styles.pathSec}>
         <style>{`
