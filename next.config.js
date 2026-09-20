@@ -19,7 +19,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://*.supabase.co",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://openrouter.ai https://api.resend.com https://api.stripe.com https://api.open-meteo.com",
-      "frame-src https://js.stripe.com https://hooks.stripe.com https://www.youtube.com https://player.vimeo.com https://www.youtube-nocookie.com",
+      "frame-src https://js.stripe.com https://hooks.stripe.com https://www.youtube.com https://player.vimeo.com https://www.youtube-nocookie.com https://*.lovable.app",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
