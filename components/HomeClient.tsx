@@ -88,9 +88,26 @@ export default function LandingPage() {
             </div>
 
             <div className={styles.navRight}>
-              <a href="/ar" style={{ color: '#0D2B32', fontSize: 13.5, fontWeight: 600 }}>العربية</a>
+              <a
+                href="/ar"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6, color: '#0D2B32',
+                  fontSize: 13.5, fontWeight: 700, padding: '7px 13px', borderRadius: 999,
+                  border: '1.5px solid rgba(13,43,50,0.14)',
+                }}
+              >
+                <svg width={14} height={14} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                  <circle cx="10" cy="10" r="8" />
+                  <path d="M2 10h16M10 2c2.5 2.2 2.5 13.8 0 16M10 2c-2.5 2.2-2.5 13.8 0 16" />
+                </svg>
+                العربية
+              </a>
               <a href="/auth/login" style={{ color: '#0D2B32' }}>Log in</a>
-              <a href="#audience"><button className="btn btn-dark">{audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;</button></a>
+              <a href="#audience">
+                <button className="btn btn-dark" style={{ padding: '11px 20px', fontSize: 14.5 }}>
+                  {audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;
+                </button>
+              </a>
             </div>
 
             <button
@@ -113,7 +130,20 @@ export default function LandingPage() {
             <a href="#plans" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Pricing</a>
             <div className={styles.mobilePanelDivider} />
             <a href="/auth/login" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Log in</a>
-            <a href="/ar" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>العربية</a>
+            <a
+              href="/ar"
+              onClick={() => setNavOpen(false)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, color: '#0D2B32',
+                fontSize: 13.5, fontWeight: 700, width: 'fit-content',
+              }}
+            >
+              <svg width={14} height={14} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                <circle cx="10" cy="10" r="8" />
+                <path d="M2 10h16M10 2c2.5 2.2 2.5 13.8 0 16M10 2c-2.5 2.2-2.5 13.8 0 16" />
+              </svg>
+              العربية
+            </a>
             <a href="#audience" onClick={() => setNavOpen(false)}>
               <button className="btn btn-cta btn-block">{audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;</button>
             </a>
@@ -183,32 +213,40 @@ export default function LandingPage() {
               {audience === 'family' ? (
                 <>
                   <h1 className={styles.heroTitle}>
-                    Coding, AI &amp; entrepreneurship — learned at their own pace.
+                    Coding, AI, and the confidence to use them.
                   </h1>
                   <p className={styles.heroSub}>
-                    15 minutes a day, taught in real Arabic, French, or English —
-                    with an AI coach built around how kids actually learn. No
-                    classroom required.
+                    15 minutes a day. Real Arabic, French, or English. An AI coach
+                    that adapts to your kid — no classroom required.
                   </p>
-                  <div className={styles.ctaRow}>
+                  <div className={styles.ctaRow} style={{ alignItems: 'center' }}>
                     <a href="/auth/signup"><button className="btn btn-cta">Start free trial &rarr;</button></a>
-                    <a href="#plans"><button className="btn btn-outline">See family plans &rarr;</button></a>
+                    <a
+                      href="#plans"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: '#0D2B32' }}
+                    >
+                      See family plans &rarr;
+                    </a>
                   </div>
                 </>
               ) : (
                 <>
                   <h1 className={styles.heroTitle}>
-                    A coding, AI &amp; entrepreneurship curriculum your school can run.
+                    A coding, AI &amp; life-skills curriculum your school can run.
                   </h1>
                   <p className={styles.heroSub}>
-                    A curriculum built in 30–45 minute class periods, taught in
-                    real Arabic, French, or English — with an AI coach built
-                    around how kids actually learn, and a dashboard that flags
-                    who&apos;s stuck before report cards do.
+                    30–45 minute class periods. Real Arabic, French, or English. An
+                    AI coach for every student, and a dashboard that flags who&apos;s
+                    stuck before report cards do.
                   </p>
-                  <div className={styles.ctaRow}>
+                  <div className={styles.ctaRow} style={{ alignItems: 'center' }}>
                     <a href="#audience"><button className="btn btn-cta">Book a demo &rarr;</button></a>
-                    <a href="mailto:hello@plulai.com"><button className="btn btn-outline">Talk to our team</button></a>
+                    <a
+                      href="mailto:hello@plulai.com"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: '#0D2B32' }}
+                    >
+                      Talk to our team &rarr;
+                    </a>
                   </div>
                 </>
               )}
@@ -771,14 +809,27 @@ export default function LandingPage() {
       </div>
 
       {/* ================= ALUMNI PROJECTS ================= */}
-      {/* Rebuilt fully inline, same reasoning as the partners strip: this
-          leaned on styles.alumniIntro/projectCarousel/projectSlide/etc,
-          which aren't visible here, so there was no way to be sure the
-          redesign actually rendered as intended. Cards are now proper
-          portfolio tiles — image, floating track pill, title, builder —
-          with the same edge-fade marquee treatment as the partners strip
-          above, so the two belts feel like one design system. */}
-      <div style={{ background: '#fff', padding: '64px 0 60px', overflow: 'hidden' }}>
+      {/* Second pass — the white portfolio-card version was competent but
+          generic; it could've been any coding bootcamp's site. This ties
+          back into the one identity that actually is Plulai's: the pearl
+          path. Projects are framed as treasure brought back from the
+          journey (dark display case, gold-pearl bullet before each
+          builder's name — the same "pearl" language the dashboard uses
+          for XP), the backdrop carries a faint geometric lattice, and it
+          runs straight into the dark "pearl path" section next with no
+          light-dark-light flicker in between — one continuous dark
+          passage telling the proof/outcome story. Closes on a CTA so the
+          proof doesn't just sit there — it pushes toward the trial. */}
+      <div style={{ position: 'relative', background: 'linear-gradient(135deg, #0D2B32 0%, #153B44 100%)', padding: '68px 0 64px', overflow: 'hidden' }}>
+        <svg aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.05 }}>
+          <defs>
+            <pattern id="alumni-lattice" width="46" height="46" patternUnits="userSpaceOnUse">
+              <path d="M23 4 L42 23 L23 42 L4 23 Z" fill="none" stroke="#F6F3EA" strokeWidth={1} />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#alumni-lattice)" />
+        </svg>
+
         <style>{`
           @keyframes plulai-project-scroll {
             from { transform: translateX(0); }
@@ -786,8 +837,8 @@ export default function LandingPage() {
           }
           .project-marquee-track { animation: plulai-project-scroll 50s linear infinite; }
           .project-marquee-wrap:hover .project-marquee-track { animation-play-state: paused; }
-          .project-card { transition: transform .25s ease, box-shadow .25s ease; }
-          .project-card:hover { transform: translateY(-5px); box-shadow: 0 16px 30px rgba(13,43,50,0.14); }
+          .project-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+          .project-card:hover { transform: translateY(-5px); box-shadow: 0 16px 30px rgba(0,0,0,0.35); border-color: rgba(212,162,76,0.55) !important; }
           .project-img { transition: transform .4s ease; }
           .project-card:hover .project-img { transform: scale(1.06); }
           @media (prefers-reduced-motion: reduce) {
@@ -796,21 +847,22 @@ export default function LandingPage() {
           }
         `}</style>
 
-        <div className="container">
-          <p className="eyebrow">Real work, not just quizzes</p>
-          <h2>What kids actually build</h2>
-          <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 480, marginTop: 10 }}>
-            Every track ends in a real project, not a certificate for clicking through slides.
+        <div className="container" style={{ position: 'relative' }}>
+          <p className="eyebrow" style={{ color: '#8FA8A3' }}>Real missions, real treasure</p>
+          <h2 style={{ color: '#F6F3EA' }}>What they bring back from the path</h2>
+          <p style={{ color: '#8FA8A3', maxWidth: 480, marginTop: 10 }}>
+            Not stock screenshots — every project below was shipped by a real Plulai kid,
+            track and age included.
           </p>
         </div>
 
         <div className="project-marquee-wrap" style={{ position: 'relative', marginTop: 36 }}>
-          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 90, background: 'linear-gradient(90deg, #fff, rgba(255,255,255,0))', zIndex: 2, pointerEvents: 'none' }} />
-          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: 90, background: 'linear-gradient(270deg, #fff, rgba(255,255,255,0))', zIndex: 2, pointerEvents: 'none' }} />
+          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 90, background: 'linear-gradient(90deg, #0D2B32, rgba(13,43,50,0))', zIndex: 2, pointerEvents: 'none' }} />
+          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: 90, background: 'linear-gradient(270deg, #0D2B32, rgba(13,43,50,0))', zIndex: 2, pointerEvents: 'none' }} />
 
           <div
             className="project-marquee-track"
-            style={{ display: 'flex', width: 'max-content', gap: 22, padding: '6px 4px 14px' }}
+            style={{ display: 'flex', width: 'max-content', gap: 20, padding: '6px 4px 14px' }}
           >
             {[...projects, ...projects].map((project, i) => {
               const tag = project.tagColor === 'gold'
@@ -821,39 +873,48 @@ export default function LandingPage() {
                   key={`${project.file}-${i}`}
                   className="project-card"
                   style={{
-                    flex: '0 0 auto', width: 264, borderRadius: 20, background: '#fff',
-                    border: '1px solid #E4E9E7', overflow: 'hidden', boxShadow: '0 1px 2px rgba(13,43,50,0.04)',
+                    flex: '0 0 auto', width: 250, borderRadius: 18, background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(212,162,76,0.22)', overflow: 'hidden',
                   }}
                 >
-                  <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', overflow: 'hidden', background: '#EEF2F1' }}>
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', overflow: 'hidden', background: 'rgba(255,255,255,0.03)' }}>
                     <Image
                       src={`/projects/${project.file}`}
                       alt={project.title}
                       fill
                       className="project-img"
                       style={{ objectFit: 'cover' }}
-                      sizes="264px"
+                      sizes="250px"
                     />
                     <span
                       style={{
                         position: 'absolute', top: 10, left: 10, fontSize: 11, fontWeight: 700,
                         letterSpacing: 0.3, color: tag.fg, background: tag.bg,
-                        padding: '4px 10px', borderRadius: 999, boxShadow: '0 2px 6px rgba(13,43,50,0.18)',
+                        padding: '4px 10px', borderRadius: 999, boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
                       }}
                     >
                       {project.track}
                     </span>
                   </div>
-                  <div style={{ padding: '14px 16px 16px' }}>
-                    <p style={{ fontWeight: 700, fontSize: 15, color: '#0D2B32', margin: '0 0 3px' }}>{project.title}</p>
+                  <div style={{ padding: '13px 15px 15px' }}>
+                    <p style={{ fontWeight: 700, fontSize: 14.5, color: '#F6F3EA', margin: '0 0 6px' }}>{project.title}</p>
                     {project.student && (
-                      <p style={{ fontSize: 12.5, color: 'rgba(41,57,74,0.55)', margin: 0 }}>{project.student}</p>
+                      <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#8FA8A3', margin: 0 }}>
+                        <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: '#D4A24C', flexShrink: 0 }} />
+                        {project.student}
+                      </p>
                     )}
                   </div>
                 </div>
               )
             })}
           </div>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: 40, position: 'relative' }}>
+          <a href="#audience">
+            <button className="btn btn-outline btn-outline--on-dark">See what they could build next &rarr;</button>
+          </a>
         </div>
       </div>
 
