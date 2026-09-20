@@ -65,6 +65,39 @@ export default function LandingPage() {
 
   return (
     <>
+      {/* Skip link — a11y + a small SEO signal that the page has a clear structure */}
+      <a
+        href="#main-content"
+        style={{
+          position: 'absolute', left: -9999, top: 0, zIndex: 100, background: '#0D2B32', color: '#F6F3EA',
+          padding: '10px 18px', borderRadius: 8, fontWeight: 700, fontSize: 14,
+        }}
+        onFocus={(e) => { e.currentTarget.style.left = '16px'; e.currentTarget.style.top = '16px' }}
+        onBlur={(e) => { e.currentTarget.style.left = '-9999px' }}
+      >
+        Skip to content
+      </a>
+
+      {/* Structured data — helps search engines understand Plulai as an
+          education provider rather than guessing from prose alone. */}
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'EducationalOrganization',
+            name: 'Plulai',
+            url: 'https://plulai.com',
+            logo: 'https://plulai.com/logo.png',
+            description: 'A coding, AI, and life-skills curriculum for kids and schools, taught natively in Arabic, French, and English.',
+            areaServed: 'MENA',
+            availableLanguage: ['ar', 'fr', 'en'],
+            sameAs: [],
+          }),
+        }}
+      />
+
       {/* ================= NAV ================= */}
       <nav className={styles.nav}>
         <div className="container">
@@ -81,7 +114,7 @@ export default function LandingPage() {
             </a>
 
             <div className={styles.navLinks} style={{ color: '#0D2B32' }}>
-              <a href="#tracks" style={{ color: '#0D2B32' }}>Tracks</a>
+              <a href="#tracks" style={{ color: '#0D2B32' }}>The Path</a>
               <a href="#audience" onClick={() => setAudience('schools')} style={{ color: audience === 'schools' ? '#1FB8A6' : '#0D2B32' }}>For Schools</a>
               <a href="#audience" onClick={() => setAudience('family')} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>For Families</a>
               <a href="#plans" style={{ color: '#0D2B32' }}>Pricing</a>
@@ -124,7 +157,7 @@ export default function LandingPage() {
           </div>
 
           <div className={`${styles.mobilePanel} ${navOpen ? styles.mobilePanelOpen : ''}`}>
-            <a href="#tracks" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Tracks</a>
+            <a href="#tracks" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>The Path</a>
             <a href="#audience" onClick={() => { setAudience('schools'); setNavOpen(false) }} style={{ color: audience === 'schools' ? '#1FB8A6' : '#0D2B32' }}>For Schools</a>
             <a href="#audience" onClick={() => { setAudience('family'); setNavOpen(false) }} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>For Families</a>
             <a href="#plans" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Pricing</a>
@@ -151,6 +184,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      <main id="main-content">
       {/* ================= HERO ================= */}
       <div className={styles.hero}>
         <span aria-hidden className={styles.heroWatermark}>/</span>
@@ -398,7 +432,7 @@ export default function LandingPage() {
                 <div className={styles.schoolsList}>
                   <div className={styles.schoolsItem}>
                     <b>Learn anytime, anywhere</b>
-                    <span>Self-paced lessons your child can start and stop on their own.</span>
+                    <span>Self-paced missions your child can start and stop on their own.</span>
                   </div>
                   <div className={styles.schoolsItem}>
                     <b>Arabic, French &amp; English</b>
@@ -428,7 +462,7 @@ export default function LandingPage() {
                 <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>
                   Faris&apos; week
                 </p>
-                <div className={styles.rosterRow}><span>Lessons completed</span><span>5 / 5</span></div>
+                <div className={styles.rosterRow}><span>Missions completed</span><span>5 / 5</span></div>
                 <div className={styles.rosterRow}><span>Current streak</span><span style={{ color: '#D4A24C' }}>4 pearls 🔥</span></div>
                 <div className={styles.rosterRow}><span>Track</span><span>Coding</span></div>
                 <div className={styles.rosterRow}>
@@ -948,7 +982,7 @@ export default function LandingPage() {
           </h2>
           <p style={{ color: '#8FA8A3', maxWidth: 560 }}>
             {audience === 'family'
-              ? "This isn't a points system \u2014 it's what actually changes over a few months of lessons."
+              ? "This isn't a points system \u2014 it's what actually changes over a few months of missions."
               : "This is the shift schools notice \u2014 not a leaderboard, a real change in how students work."}
           </p>
 
@@ -973,7 +1007,7 @@ export default function LandingPage() {
                 </span>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {(audience === 'family'
-                    ? ['Never touched a line of code', 'Nervous to try, quick to give up', 'Screen time with nothing to show for it']
+                    ? ['Never touched a line of code', 'Quiet in a room, quick to give up', 'Screen time with nothing to show for it']
                     : ['Hesitant, unsure where to start', 'Needs constant hand-holding', 'Engagement drops after week one']
                   ).map((item) => (
                     <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 15, color: '#8FA8A3', lineHeight: 1.5 }}>
@@ -1004,8 +1038,8 @@ export default function LandingPage() {
                 </span>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {(audience === 'family'
-                    ? ['Ships their own app or game', 'Debugs mistakes without asking for help', 'Pitches ideas like they mean it']
-                    : ['Builds and presents real projects', 'Works through problems independently', 'Asks to keep going after class ends']
+                    ? ['Pitches an idea without flinching', 'Ships their own app or game', 'Debugs mistakes without asking for help']
+                    : ['Speaks up and presents with confidence', 'Builds and ships real projects', 'Works through problems independently']
                   ).map((item) => (
                     <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 15, color: '#F6F3EA', fontWeight: 600, lineHeight: 1.5 }}>
                       <svg width={17} height={17} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
@@ -1058,18 +1092,33 @@ export default function LandingPage() {
       </div>
 
       {/* ================= STATS =================
-          TODO(Mohamed): verify each number below before this ships. 150+ and 9+
-          look like they track your real competition/partner numbers — 9.2/10
-          satisfaction has no visible source and is the one most likely to read
-          as fabricated precision. Either attach a real source or round it down
-          to something you can defend if asked. */}
-      <div className={styles.statsSec}>
-        <div className="container">
-          <div className={styles.statsRow}>
-            <div><div className={styles.statNum}>150+</div><div className={styles.statLabel}>Active learners</div></div>
-            <div><div className={styles.statNum}>500+</div><div className={styles.statLabel}>Bite-sized lessons</div></div>
-            <div><div className={styles.statNum}>9+</div><div className={styles.statLabel}>Partner schools</div></div>
-            <div><div className={styles.statNum}>9.2/10</div><div className={styles.statLabel}>User satisfaction</div></div>
+          Rebuilt self-contained (was styles.statsSec, unseen CSS) as a dark
+          luxury band matching the Alumni/Journey treatment. Also addresses
+          the open TODO: 9.2/10 "satisfaction" had no visible source and
+          read as invented precision, so it's dropped rather than kept as
+          a number nobody could defend if asked. Swap the two remaining
+          numbers for real, current ones whenever you have them. */}
+      <div style={{ position: 'relative', background: 'linear-gradient(135deg, #0D2B32 0%, #153B44 100%)', padding: '52px 0', overflow: 'hidden' }}>
+        <svg aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.05 }}>
+          <defs>
+            <pattern id="stats-lattice" width="46" height="46" patternUnits="userSpaceOnUse">
+              <path d="M23 4 L42 23 L23 42 L4 23 Z" fill="none" stroke="#F6F3EA" strokeWidth={1} />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#stats-lattice)" />
+        </svg>
+        <div className="container" style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '36px 64px', textAlign: 'center' }}>
+            {[
+              { num: '150+', label: 'Active learners' },
+              { num: '500+', label: 'Bite-sized missions' },
+              { num: '9+', label: 'Partner schools' },
+            ].map((s) => (
+              <div key={s.label}>
+                <div style={{ fontWeight: 700, fontSize: 34, color: '#D4A24C' }}>{s.num}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#8FA8A3', marginTop: 4 }}>{s.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -1103,11 +1152,11 @@ export default function LandingPage() {
               <h2 style={{ color: '#F6F3EA', marginBottom: 14 }}>What happens when a partner leans in</h2>
               <p style={{ color: '#B7C9C5', lineHeight: 1.7, marginBottom: 22 }}>
                 We ran a national coding &amp; AI competition with 8 school and
-                training-center partners across Tunisia. The pattern was clear:
-                where a partner actively promoted it to their students, turnout
-                followed. One training-center partnership alone brought real,
-                sustained participation — proof the model works when a partner
-                is engaged, not just signed up.
+                training-center partners. The pattern was clear: where a partner
+                actively promoted it to their students, turnout followed. One
+                training-center partnership alone brought real, sustained
+                participation — proof the model works when a partner is
+                engaged, not just signed up.
               </p>
               <a href="mailto:hello@plulai.com">
                 <button className="btn btn-cta">Book a demo &rarr;</button>
@@ -1161,13 +1210,13 @@ export default function LandingPage() {
               </span>
               <p style={{ margin: '0 0 4px' }}>
                 <span style={{ fontWeight: 700, fontSize: 40, color: '#F6F3EA' }}>$70</span>
-                <span style={{ fontSize: 15, color: '#B7C9C5' }}>/month</span>
+                <span style={{ fontSize: 15, color: '#B7C9C5' }}> USD/month</span>
               </p>
               <p style={{ fontSize: 13, margin: '0 0 26px', color: '#B7C9C5' }}>
                 after your free trial ends — billed monthly, cancel anytime
               </p>
               <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px', display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'left' }}>
-                {['All three tracks — Coding, AI, Entrepreneurship', 'Unlimited AI tutor', 'Weekly parent summary', 'Arabic, French & English'].map((f) => (
+                {['The full path — Spark, Build, Think & Launch', 'Unlimited AI tutor', 'Weekly parent summary', 'Arabic, French & English'].map((f) => (
                   <li key={f} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', fontSize: 14, color: '#F6F3EA' }}>
                     <svg width={15} height={15} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
                       <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -1184,7 +1233,7 @@ export default function LandingPage() {
 
           <div style={{ maxWidth: 640, margin: '36px auto 0', textAlign: 'center' }}>
             <p style={{ fontSize: 13, color: 'rgba(41,57,74,0.6)', lineHeight: 1.6 }}>
-              We collect only what&apos;s needed to run lessons and track progress — never sold or
+              We collect only what&apos;s needed to run missions and track progress — never sold or
               used for advertising. Questions about how we handle your child&apos;s data?{' '}
               <a href="mailto:hello@plulai.com" style={{ color: '#1FB8A6', fontWeight: 600 }}>Email us</a>.
             </p>
@@ -1201,8 +1250,9 @@ export default function LandingPage() {
             <p className="eyebrow">Schools &amp; training centers</p>
             <h2>A package sized for your institution</h2>
             <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
-              Every plan includes all three tracks and the admin dashboard. Pricing
-              is scoped to seat count and term length — book a demo for a quote.
+              Every plan includes the full path — Spark, Build, Think &amp; Launch —
+              and the admin dashboard. Pricing is scoped to seat count and term
+              length — book a demo for a quote.
             </p>
           </div>
 
@@ -1212,7 +1262,7 @@ export default function LandingPage() {
                 name: 'Classroom Pilot',
                 blurb: 'Try it with one class before deciding school-wide.',
                 seats: '1 classroom · up to 35 seats',
-                features: ['All three tracks', 'One term', 'Teacher onboarding session'],
+                features: ['The full path — all 4 stages', 'One term', 'Teacher onboarding session'],
                 cta: 'Start a pilot',
                 highlight: false,
               },
@@ -1220,7 +1270,7 @@ export default function LandingPage() {
                 name: 'School-wide',
                 blurb: 'The most common setup for a full school rollout.',
                 seats: '50–1,000 seats',
-                features: ['All three tracks', 'Admin dashboard', 'Teacher training + support', 'Full academic year'],
+                features: ['The full path — all 4 stages', 'Admin dashboard', 'Teacher training + support', 'Full academic year'],
                 cta: 'Book a demo',
                 highlight: true,
               },
@@ -1236,12 +1286,24 @@ export default function LandingPage() {
               <div
                 key={pkg.name}
                 style={{
+                  position: 'relative',
                   background: pkg.highlight ? '#0D2B32' : '#fff',
-                  border: pkg.highlight ? 'none' : '1px solid #E4E9E7',
+                  border: pkg.highlight ? '1px solid rgba(212,162,76,0.35)' : '1px solid #E4E9E7',
                   borderRadius: 20, padding: '30px 26px', display: 'flex', flexDirection: 'column',
                   boxShadow: pkg.highlight ? '0 12px 26px rgba(13,43,50,0.18)' : '0 1px 2px rgba(13,43,50,0.04)',
                 }}
               >
+                {pkg.highlight && (
+                  <span
+                    style={{
+                      position: 'absolute', top: -12, left: 26, fontSize: 11, fontWeight: 700, letterSpacing: 0.4,
+                      color: '#402F12', background: '#D4A24C', padding: '4px 12px', borderRadius: 999,
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    MOST POPULAR
+                  </span>
+                )}
                 <p style={{ fontWeight: 700, fontSize: 19, margin: '0 0 6px', color: pkg.highlight ? '#F6F3EA' : '#0D2B32' }}>
                   {pkg.name}
                 </p>
@@ -1280,6 +1342,12 @@ export default function LandingPage() {
       </div>
 
       {/* ================= TESTIMONIALS ================= */}
+      {/* Names/quotes kept as-is — real customer proof shouldn't be rewritten.
+          City tags dropped rather than swapped for invented Gulf ones: these
+          are genuine Tunisian testimonials, and relabeling them "Doha" or
+          "Dubai" would be fabricating proof, not just softening a detail.
+          If real GCC testimonials exist, swap these in; until then this
+          section stays honest about what it actually has. */}
       <div className={styles.testiSec}>
         <div className="container">
           <p className="eyebrow" style={{ textAlign: 'center', opacity: 0.7 }}>Loved by parents &amp; principals</p>
@@ -1287,21 +1355,21 @@ export default function LandingPage() {
 
           <div className={styles.testiCluster}>
             <div className={styles.testiBubble}>
-              <p className={styles.stars}>★★★★★</p>
+              <p className={styles.stars} style={{ color: '#D4A24C' }}>★★★★★</p>
               <p className={styles.testiQuote}>
-                &quot;My 9-year-old asks to do his lesson after school. I never thought
+                &quot;My 9-year-old asks to do his mission after school. I never thought
                 I&apos;d see that with coding.&quot;
               </p>
               <div className={styles.testiPerson}>
                 <div className={styles.testiAvatar}>L</div>
                 <div>
                   <p className={styles.testiName}>Layla M.</p>
-                  <p className={styles.testiRole}>Parent, Sousse</p>
+                  <p className={styles.testiRole}>Parent</p>
                 </div>
               </div>
             </div>
             <div className={styles.testiBubble}>
-              <p className={styles.stars}>★★★★★</p>
+              <p className={styles.stars} style={{ color: '#D4A24C' }}>★★★★★</p>
               <p className={styles.testiQuote}>
                 &quot;The Arabic and French aren&apos;t translated — they&apos;re
                 native. That alone sets it apart.&quot;
@@ -1310,12 +1378,12 @@ export default function LandingPage() {
                 <div className={styles.testiAvatar}>D</div>
                 <div>
                   <p className={styles.testiName}>Dr. Khalid R.</p>
-                  <p className={styles.testiRole}>Principal, Tunis</p>
+                  <p className={styles.testiRole}>Principal</p>
                 </div>
               </div>
             </div>
             <div className={styles.testiBubble}>
-              <p className={styles.stars}>★★★★★</p>
+              <p className={styles.stars} style={{ color: '#D4A24C' }}>★★★★★</p>
               <p className={styles.testiQuote}>
                 &quot;He built his first working game in two weeks. The AI tutor is more
                 patient than I ever am.&quot;
@@ -1324,7 +1392,7 @@ export default function LandingPage() {
                 <div className={styles.testiAvatar}>S</div>
                 <div>
                   <p className={styles.testiName}>Sara A.</p>
-                  <p className={styles.testiRole}>Parent, Sfax</p>
+                  <p className={styles.testiRole}>Parent</p>
                 </div>
               </div>
             </div>
@@ -1348,7 +1416,7 @@ export default function LandingPage() {
             {[
               {
                 title: 'Student data stays protected',
-                desc: 'Student accounts collect only what\u2019s needed to run lessons and track progress \u2014 never sold or used for advertising.',
+                desc: 'Student accounts collect only what\u2019s needed to run missions and track progress \u2014 never sold or used for advertising.',
               },
               {
                 title: 'Role-based access',
@@ -1398,7 +1466,7 @@ export default function LandingPage() {
             {[
               {
                 q: 'Can my child use Plulai on their own at home?',
-                a: 'Yes \u2014 the Family plans are built for exactly that. Lessons are self-paced and the AI tutor adapts to your child, so no classroom or teacher is required.',
+                a: 'Yes \u2014 the Family plans are built for exactly that. Missions are self-paced and the AI tutor adapts to your child, so no classroom or teacher is required.',
                 for: 'family',
               },
               {
@@ -1413,12 +1481,12 @@ export default function LandingPage() {
               },
               {
                 q: 'How is student data handled?',
-                a: 'We collect only what\u2019s needed to run lessons and track progress. Data is never sold or used for advertising.',
+                a: 'We collect only what\u2019s needed to run missions and track progress. Data is never sold or used for advertising.',
                 for: 'common',
               },
               {
-                q: 'Can lessons fit inside a normal class period?',
-                a: 'Yes \u2014 lessons are paced in 30\u201345 minute sessions, built to fit inside a standard class period without extra scheduling.',
+                q: 'Can missions fit inside a normal class period?',
+                a: 'Yes \u2014 missions are paced in 30\u201345 minute sessions, built to fit inside a standard class period without extra scheduling.',
                 for: 'schools',
               },
               {
@@ -1433,7 +1501,7 @@ export default function LandingPage() {
               },
               {
                 q: 'Do teachers need a coding background?',
-                a: 'No. Teachers get a short onboarding session and the lessons are designed to run themselves \u2014 the AI tutor handles most of the one-on-one guidance.',
+                a: 'No. Teachers get a short onboarding session and the missions are designed to run themselves \u2014 the AI tutor handles most of the one-on-one guidance.',
                 for: 'schools',
               },
             ].filter((item) => item.for === 'common' || item.for === audience).map((item, i) => {
@@ -1473,8 +1541,16 @@ export default function LandingPage() {
       </div>
 
       {/* ================= FINAL CTA ================= */}
-      <div className={styles.finalCta}>
-        <div className="container">
+      <div className={styles.finalCta} style={{ position: 'relative', overflow: 'hidden' }}>
+        <svg aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.05, pointerEvents: 'none' }}>
+          <defs>
+            <pattern id="finalcta-lattice" width="46" height="46" patternUnits="userSpaceOnUse">
+              <path d="M23 4 L42 23 L23 42 L4 23 Z" fill="none" stroke="#F6F3EA" strokeWidth={1} />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#finalcta-lattice)" />
+        </svg>
+        <div className="container" style={{ position: 'relative' }}>
           {audience === 'family' ? (
             <>
               <h2 className={styles.finalCtaTitle}>Ready to give them a head start?</h2>
@@ -1509,6 +1585,8 @@ export default function LandingPage() {
         </div>
       </div>
 
+      </main>
+
       {/* ================= FOOTER ================= */}
       <footer className={styles.footer}>
         <style>{`
@@ -1529,7 +1607,7 @@ export default function LandingPage() {
             </div>
             <div className={styles.footerCol}>
               <p className={styles.footerColTitle}>Product</p>
-              <a href="#tracks">Tracks</a>
+              <a href="#tracks">The Path</a>
               <a href="#plans">Pricing</a>
             </div>
             <div className={styles.footerCol}>

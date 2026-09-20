@@ -1,2286 +1,1632 @@
-'use client'
-// components/dashboard/LessonViewClient.tsx
-import React, { useState, useTransition, useEffect, useRef, useCallback } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { completeLesson, addXP, updateSkillProgress, checkAndAwardBadges, updateStreak } from '@/lib/supabase/queries'
-import { cn } from '@/lib/utils'
-import type { Language } from '@/lib/openrouter'
-import ShareCardModal, { type ShareCardProps } from '@/components/share/ShareCardGenerator'
-import LessonFeedback from '@/components/dashboard/LessonFeedback'
-import LessonCompletionPanel from '@/components/dashboard/LessonCompletionPanel'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared icon set — every literal emoji used as UI chrome across this file is
-// replaced by one of these. Dynamic content (lesson.emoji, etc.) is untouched.
-// ─────────────────────────────────────────────────────────────────────────────
-type IconKind =
-  | 'chevronLeft' | 'chevronRight' | 'book' | 'lightbulb' | 'code' | 'quiz' | 'ladder'
-  | 'target' | 'note' | 'warning' | 'danger' | 'success' | 'compare' | 'checklist'
-  | 'play' | 'link' | 'image' | 'external' | 'bolt' | 'pencil' | 'shuffle' | 'bug'
-  | 'timer' | 'palette' | 'puzzle' | 'upload' | 'robot' | 'fire' | 'star' | 'trophy'
-  | 'hourglass' | 'check' | 'x' | 'lock' | 'sparkle' | 'partyPop' | 'copy' | 'dragHandle'
-  | 'arrowUp' | 'arrowDown' | 'flashlight' | 'video' | 'sun' | 'expand' | 'refresh'
-
-function Icon({ kind, className, style }: { kind: IconKind; className?: string; style?: React.CSSProperties }) {
-  const common = { className, style, fill: 'currentColor', viewBox: '0 0 24 24' as const, 'aria-hidden': true as const }
-  switch (kind) {
-    case 'chevronLeft':  return <svg {...common}><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
-    case 'chevronRight': return <svg {...common}><path d="M8.6 16.6 10 18l6-6-6-6-1.4 1.4L13.2 12z"/></svg>
-    case 'book':       return <svg {...common}><path d="M5 4a2 2 0 0 1 2-2h11v17H7a2 2 0 0 0-2 2V4Zm2 14h9V4H7v14Z"/></svg>
-    case 'lightbulb':  return <svg {...common}><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2ZM9 19h6v1H9v-1Zm1 3h4v1h-4v-1Z"/></svg>
-    case 'code':       return <svg {...common}><path d="M8.6 16.6 4 12l4.6-4.6L7.2 6 1.4 12l5.8 6 1.4-1.4Zm6.8 0L20 12l-4.6-4.6L16.8 6l5.8 6-5.8 6-1.4-1.4Z"/></svg>
-    case 'quiz':       return <svg {...common}><path d="M11 18h2v2h-2v-2Zm1-14a5 5 0 0 0-5 5h2a3 3 0 1 1 4.5 2.6c-.9.55-1.5 1.5-1.5 2.4v1h2v-1c0-.4.3-.85.8-1.15A5 5 0 0 0 12 4Z"/></svg>
-    case 'ladder':     return <svg {...common}><path d="M6 2h2v20H6V2Zm10 0h2v20h-2V2ZM6 6h12v2H6V6Zm0 5h12v2H6v-2Zm0 5h12v2H6v-2Z"/></svg>
-    case 'target':     return <svg {...common}><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm0 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"/></svg>
-    case 'note':       return <svg {...common}><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 4v2h10V7H7Zm0 4v2h10v-2H7Zm0 4v2h6v-2H7Z"/></svg>
-    case 'warning':    return <svg {...common}><path d="M12 2 1 21h22L12 2Zm0 6 .9.9-.4 6.1h-1l-.4-6.1L12 8Zm0 9a1.2 1.2 0 1 1 0 2.4A1.2 1.2 0 0 1 12 17Z"/></svg>
-    case 'danger':     return <svg {...common}><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 4 .9.9-.5 6.1h-.8l-.5-6.1.9-.9Zm0 9.5a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z"/></svg>
-    case 'success':    return <svg {...common}><path d="M9.5 16.6 4.9 12l-1.4 1.4 6 6L21 7.9l-1.4-1.4z"/></svg>
-    case 'compare':    return <svg {...common}><path d="M7 4v13l-4-4v6h18v-6l-4 4V4h-2v13l-3-3-3 3V4H7Z"/></svg>
-    case 'checklist':  return <svg {...common}><path d="M3 5h2v2H3V5Zm4 0h14v2H7V5ZM3 11h2v2H3v-2Zm4 0h14v2H7v-2ZM3 17h2v2H3v-2Zm4 0h14v2H7v-2Z"/></svg>
-    case 'play':       return <svg {...common}><path d="M8 5v14l11-7L8 5Z"/></svg>
-    case 'link':       return <svg {...common}><path d="M10.6 13.4a1 1 0 0 1 0-1.4l3-3a3 3 0 0 1 4.2 4.2l-2 2a1 1 0 1 1-1.4-1.4l2-2a1 1 0 0 0-1.4-1.4l-3 3a1 1 0 0 1-1.4 0ZM13.4 10.6a1 1 0 0 1 0 1.4l-3 3a3 3 0 0 1-4.2-4.2l2-2a1 1 0 1 1 1.4 1.4l-2 2a1 1 0 0 0 1.4 1.4l3-3a1 1 0 0 1 1.4 0Z"/></svg>
-    case 'image':      return <svg {...common}><path d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm1 13 4-5 2.5 3 3-4L19 17H6Z"/></svg>
-    case 'external':   return <svg {...common}><path d="M14 3h7v7h-2V6.4l-8.3 8.3-1.4-1.4L17.6 5H14V3ZM5 5h6v2H7v10h10v-4h2v6H5V5Z"/></svg>
-    case 'bolt':       return <svg {...common}><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>
-    case 'pencil':     return <svg {...common}><path d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25ZM20.7 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"/></svg>
-    case 'shuffle':    return <svg {...common}><path d="M16 3h5v5h-2V6.4l-3.3 3.3-1.4-1.4L17.6 5H16V3ZM3 6h5l3 3-1.4 1.4L7 7.8H3V6Zm13 15h5v-5h-2v2.6l-3.3-3.3-1.4 1.4 3.3 3.3H16v1ZM3 18h4l2.6-2.6 1.4 1.4L8.4 20H3v-2Z"/></svg>
-    case 'bug':        return <svg {...common}><path d="M9 2 7.6 3.4 9 4.8A5 5 0 0 0 7 9H4v2h3v2H4v2h3a5 5 0 0 0 10 0h3v-2h-3v-2h3V9h-3a5 5 0 0 0-2-3.9l1.4-1.5L15 2l-1.8 1.8a5 5 0 0 0-2.4 0L9 2Zm1 9h4v2h-4v-2Z"/></svg>
-    case 'timer':      return <svg {...common}><path d="M9 2h6v2H9V2Zm3 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm1 4v4.4l3 1.8-.75 1.25L11 14V10h2Z"/></svg>
-    case 'palette':    return <svg {...common}><path d="M12 2a10 10 0 1 0 0 20c1.4 0 2-1 2-2 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.1 0-.8.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-5-4-9-9-9Zm-5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z"/></svg>
-    case 'puzzle':     return <svg {...common}><path d="M10 3h4v2.2a2 2 0 1 1 0 3.6V11h2.2a2 2 0 1 1 0 4H14v3.8a2 2 0 1 1-4 0V15H7.8a2 2 0 1 1 0-4H10v-3.2a2 2 0 1 1 0-3.6V3Z"/></svg>
-    case 'upload':     return <svg {...common}><path d="M12 3 7 8h3v6h4V8h3l-5-5Zm-7 13h14v5H5v-5Z"/></svg>
-    case 'robot':      return <svg {...common}><path d="M12 2a1.5 1.5 0 0 1 1.5 1.5V5h3A2.5 2.5 0 0 1 19 7.5V9a3 3 0 0 1 0 6v1.5A2.5 2.5 0 0 1 16.5 19h-9A2.5 2.5 0 0 1 5 16.5V15a3 3 0 0 1 0-6V7.5A2.5 2.5 0 0 1 7.5 5h3V3.5A1.5 1.5 0 0 1 12 2ZM9 11a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm6 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"/></svg>
-    case 'fire':       return <svg {...common}><path d="M13 2c1 3-2 4-2 7a3 3 0 1 0 6 0c1 1 2 3 2 5a7 7 0 1 1-14 0c0-4 3-5 4-8 0 1 .5 2 1.5 2C11 6 12 4 13 2Z"/></svg>
-    case 'star':       return <svg {...common}><path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.4 6.5L12 17.3l-6 3.1 1.4-6.5L2.5 9.3l6.6-.7L12 2.5Z"/></svg>
-    case 'trophy':     return <svg {...common}><path d="M6 3h12v3h3v3a4 4 0 0 1-4 4 6 6 0 0 1-4 3.9V19h3v2H8v-2h3v-2.1A6 6 0 0 1 7 13a4 4 0 0 1-4-4V6h3V3Zm0 5H5v1a2 2 0 0 0 1 1.7V8Zm12 0v2.7A2 2 0 0 0 19 9V8h-1Z"/></svg>
-    case 'hourglass':  return <svg {...common}><path d="M6 2h12v2l-4 5 4 5v2H6v-2l4-5-4-5V2Zm2 2.6L11 8h2l3-3.4H8Zm0 14.8h8L11 16H9l-1 3.4Z"/></svg>
-    case 'check':      return <svg {...common}><path d="M9.5 16.6 4.9 12l-1.4 1.4 6 6L21 7.9l-1.4-1.4z"/></svg>
-    case 'x':          return <svg {...common}><path d="M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5 12 10.6 6.4 5Z"/></svg>
-    case 'lock':       return <svg {...common}><path d="M7 10V8a5 5 0 0 1 10 0v2h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1Zm2 0h6V8a3 3 0 0 0-6 0v2Z"/></svg>
-    case 'sparkle':    return <svg {...common}><path d="M12 2l1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2Z"/></svg>
-    case 'partyPop':   return <svg {...common}><path d="M3 21l4-13 13 4-13 4-4 5Zm9-17 1.5 2.6L17 8l-3.6.3L12 11l-1.4-2.7L7 8l3.5-2.4L12 3Z"/></svg>
-    case 'copy':       return <svg {...common}><path d="M8 3h9a2 2 0 0 1 2 2v9h-2V5H8V3Zm-3 4h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm0 2v10h9V9H5Z"/></svg>
-    case 'dragHandle': return <svg {...common}><circle cx="8" cy="6" r="1.4"/><circle cx="16" cy="6" r="1.4"/><circle cx="8" cy="12" r="1.4"/><circle cx="16" cy="12" r="1.4"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg>
-    case 'arrowUp':    return <svg {...common}><path d="M12 5 5 12l1.4 1.4L11 8.8V19h2V8.8l4.6 4.6L19 12 12 5Z"/></svg>
-    case 'arrowDown':  return <svg {...common}><path d="M12 19 19 12l-1.4-1.4L13 15.2V5h-2v10.2l-4.6-4.6L5 12l7 7Z"/></svg>
-    case 'flashlight': return <svg {...common}><path d="M9 2h6v4l-2 2v3l3 3v8H8v-8l3-3V8L9 6V2Z"/></svg>
-    case 'video':      return <svg {...common}><path d="M4 6a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v2.5l4-2.4v11.8l-4-2.4V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"/></svg>
-    case 'sun':        return <svg {...common}><path d="M12 4a1 1 0 0 1 1 1v2h-2V5a1 1 0 0 1 1-1Zm6.4 2.6 1.4 1.4-1.5 1.5-1.4-1.4 1.5-1.5ZM4.2 6l1.5 1.5-1.4 1.4L2.8 7.4 4.2 6ZM12 9a5 5 0 0 1 4.9 6H7.1A5 5 0 0 1 12 9Zm-9 7h18v2H3v-2Zm.8 4 1.4-1.4 1.5 1.5-1.4 1.4L3.8 20Zm14.9.1 1.4-1.4 1.5 1.5-1.4 1.4-1.5-1.5Z"/></svg>
-    case 'expand':     return <svg {...common}><path d="M4 4h6v2H6v4H4V4Zm10 0h6v6h-2V6h-4V4ZM4 14h2v4h4v2H4v-6Zm14 0h2v6h-6v-2h4v-4Z"/></svg>
-    case 'refresh':    return <svg {...common}><path d="M17.65 6.35A8 8 0 1 0 19.73 14h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35Z"/></svg>
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Design system, condensed: ONE neutral content card, ONE dark terminal card,
-// and two semantic action colors (coral primary / teal-green success) reused
-// for every state everywhere.
+// File: HomeClient.tsx
+// Placement: components/HomeClient.tsx
 //
-// GULF CIRCUIT palette:
-//   accent / "correct"   → Reef Bright  #17D9C0
-//   reward / hint / tip  → Sun Gold     #FFB930
-//   primary CTA          → Coral        #FF6B57
-//   error / "wrong"      → #E15B71
-// ─────────────────────────────────────────────────────────────────────────────
-const CARD       = 'bg-white border border-[#0D2B32]/8 rounded-3xl shadow-[0_4px_20px_rgba(13,43,50,0.05)]'
-const TERMINAL   = 'bg-[#0D2B32] border border-white/10 rounded-3xl overflow-hidden'
-const PRIMARY_BTN  = 'bg-[#FF6B57] text-white shadow-[0_4px_0_rgba(13,43,50,0.18)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none'
-const SUCCESS_BTN  = 'bg-[#17D9C0] text-white shadow-[0_4px_0_rgba(13,43,50,0.18)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none'
+// This is the full interactive homepage — everything that used to live
+// directly in app/page.tsx. It's now a Client Component imported by a
+// thin Server Component app/page.tsx, so that page.tsx can also render
+// <CountryBanner /> (a Server Component using cookies()) as a sibling.
+// A Client Component can't import a Server Component that uses
+// server-only APIs directly — this split is what makes both work
+// together correctly.
+//
+// 'use client' because the mobile nav menu and audience toggle need
+// local state.
 
-function CodeWindowHeader({ icon, label, trailing }: { icon: IconKind; label: string; trailing?: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/2">
-      <div className="flex gap-1.5 flex-shrink-0">
-        <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-        <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-        <div className="w-3 h-3 rounded-full bg-[#28c840]" />
-      </div>
-      <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-white/50">
-        <Icon kind={icon} className="w-3.5 h-3.5" /> {label}
-      </span>
-      {trailing && <span className="ml-auto">{trailing}</span>}
-    </div>
-  )
-}
+'use client'
 
-function SectionEyebrow({ icon, label, color }: { icon: IconKind; label: string; color: string }) {
-  return (
-    <div className="flex items-center gap-2 mb-3">
-      <span className={cn('w-7 h-7 rounded-lg flex items-center justify-center shrink-0', color)}>
-        <Icon kind={icon} className="w-4 h-4" />
-      </span>
-      <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{label}</span>
-    </div>
-  )
-}
+import { useState } from 'react'
+import styles from '@/app/page.module.css'
+import Image from 'next/image'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// i18n
-// ─────────────────────────────────────────────────────────────────────────────
-const UI: Record<string, Record<string, string>> = {
-  en: {
-    back: 'Lessons', complete: 'Mark Complete', completed: 'Done!',
-    next: 'Next Lesson', finish: 'Finish Skill!', quiz: 'Quick Check',
-    correct: 'Correct! Great job!', wrong: 'Not quite — think it over!',
-    xpEarned: 'XP earned!', levelUp: 'Level Up!', tryAgain: 'Try Again',
-    submit: 'Submit Answer', askCoach: 'Ask AI Coach',
-    reading: 'Reading', code: 'Code Example', analogy: 'Think of it this way',
-    tip: 'Pro Tip', completedBefore: 'Already Completed',
-    progress: 'Your Progress', lesson: 'Lesson',
-    steps: 'Step-by-Step', challenge: 'Challenge', callout_note: 'Note',
-    callout_warning: 'Warning', callout_danger: 'Important',
-    comparison: 'Before vs After', checklist: 'Checklist',
-    video: 'Video', image: 'Diagram',
-    checkAll: 'Check all items before continuing',
-    codeViewer: 'Python Code',
-    copyCode: 'Copy', copied: 'Copied!',
-    website: 'Interactive Resource',
-    openSite: 'Open in new tab',
-    external: 'External Activity',
-    externalDesc: 'This activity takes place on another platform. Complete it there, then come back and mark this lesson done.',
-    externalBtn: 'Open Activity',
-    externalDone: 'Done? Come back here and mark complete',
-    speedQuiz: 'Speed Round',
-    fillBlank: 'Fill in the Blanks',
-    unscramble: 'Unscramble the Code',
-    debug: 'Bug Hunt',
-    timedChallenge: 'Timed Challenge',
-    remix: 'Remix Challenge',
-    timeLeft: 'Time left',
-    score: 'Score',
-    startQuiz: 'Start Speed Round',
-    checkAnswer: 'Check Answer',
-    nextQuestion: 'Next',
-    showHint: 'Show Hint',
-    hideHint: 'Hide Hint',
-    dragToOrder: 'Drag lines into the correct order',
-    bugFound: 'Bug found!',
-    fixIt: 'I fixed it!',
-    bonusChallenge: 'Bonus Challenge Unlocked!',
-    startTimer: 'Start Timer',
-    submitChallenge: 'Submit',
-    remixDesc: 'You nailed the basics. Now twist it.',
-    remixDone: 'I finished my remix',
-    remixComplete: 'Remix complete!',
-    dragDrop: 'Drag & Drop',
-    dragInstruction: 'Drag each word into the correct slot',
-    tapToPlace: 'Tip: tap a word, then tap a slot. Dragging works too.',
-    wordBank: 'Word Bank',
-    resetWords: 'Reset',
-    submitWork: 'Submit Your Work',
-    submitUrl: 'Project / website link',
-    submitVideo: 'Video demo link (YouTube, Loom…)',
-    submitPlaceholder: 'Paste your link here…',
-    submitBtn: 'Submit',
-    submitDone: 'Submitted! Great work.',
-    submitRequired: 'Please paste your link before submitting.',
-    prev: 'Back', cont: 'Continue', stepLabel: 'Step',
-    reload: 'Reload', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen',
-    loadingResource: 'Loading activity…',
-    slowLoad: 'Taking long? Open it in a new tab instead.',
-    finishFirst: 'Finish these activities first',
-    finishToContinue: 'Finish this activity to continue',
-    jumpTo: 'Go to activity',
-    reviewMode: 'Review mode — every step is open for you to revisit.',
-  },
-  ar: {
-    back: 'الدروس', complete: 'علّم كمكتمل', completed: 'تم!',
-    next: 'الدرس التالي', finish: 'أكمل المهارة!', quiz: 'اختبار سريع',
-    correct: 'صحيح! عمل رائع!', wrong: 'ليس تماماً — فكّر مجدداً!',
-    xpEarned: 'XP مكتسب!', levelUp: 'ترقية المستوى!', tryAgain: 'حاول مجدداً',
-    submit: 'أرسل الإجابة', askCoach: 'اسأل المدرب الذكي',
-    reading: 'قراءة', code: 'مثال كودي', analogy: 'فكر بهذه الطريقة',
-    tip: 'نصيحة احترافية', completedBefore: 'مكتمل بالفعل',
-    progress: 'تقدمك', lesson: 'درس',
-    steps: 'خطوة بخطوة', challenge: 'تحدي', callout_note: 'ملاحظة',
-    callout_warning: 'تحذير', callout_danger: 'مهم',
-    comparison: 'قبل وبعد', checklist: 'قائمة التحقق',
-    video: 'فيديو', image: 'رسم توضيحي',
-    checkAll: 'تحقق من جميع العناصر قبل المتابعة',
-    codeViewer: 'كود Python',
-    copyCode: 'نسخ', copied: 'تم النسخ!',
-    website: 'مورد تفاعلي',
-    openSite: 'فتح في تبويب جديد',
-    external: 'نشاط خارجي',
-    externalDesc: 'يتم هذا النشاط على منصة أخرى. أكمله هناك، ثم عد وعلّم الدرس كمكتمل.',
-    externalBtn: 'فتح النشاط',
-    externalDone: 'انتهيت؟ عد هنا وعلّم الدرس كمكتمل',
-    speedQuiz: 'جولة سريعة',
-    fillBlank: 'أكمل الفراغات',
-    unscramble: 'رتّب الكود',
-    debug: 'صياد الأخطاء',
-    timedChallenge: 'تحدي موقوت',
-    remix: 'تحدي الريمكس',
-    timeLeft: 'الوقت المتبقي',
-    score: 'النتيجة',
-    startQuiz: 'ابدأ الجولة',
-    checkAnswer: 'تحقق من الإجابة',
-    nextQuestion: 'التالي',
-    showHint: 'أظهر التلميح',
-    hideHint: 'أخفِ التلميح',
-    dragToOrder: 'اسحب الأسطر إلى الترتيب الصحيح',
-    bugFound: 'وجدت الخطأ!',
-    fixIt: 'أصلحته!',
-    bonusChallenge: 'تحدي إضافي مفتوح!',
-    startTimer: 'ابدأ الموقت',
-    submitChallenge: 'أرسل',
-    remixDesc: 'أتقنت الأساسيات. الآن طوّرها.',
-    remixDone: 'أنهيت الريمكس',
-    remixComplete: 'اكتمل الريمكس!',
-    dragDrop: 'اسحب وأفلت',
-    dragInstruction: 'اسحب كل كلمة إلى المكان الصحيح',
-    tapToPlace: 'نصيحة: المس كلمة ثم المس المكان. السحب يعمل أيضاً.',
-    wordBank: 'بنك الكلمات',
-    resetWords: 'إعادة تعيين',
-    submitWork: 'أرسل عملك',
-    submitUrl: 'رابط المشروع / الموقع',
-    submitVideo: 'رابط الفيديو (YouTube، Loom…)',
-    submitPlaceholder: 'الصق رابطك هنا…',
-    submitBtn: 'أرسل',
-    submitDone: 'تم الإرسال! عمل رائع.',
-    submitRequired: 'الرجاء لصق رابطك قبل الإرسال.',
-    prev: 'السابق', cont: 'متابعة', stepLabel: 'الخطوة',
-    reload: 'إعادة تحميل', fullscreen: 'ملء الشاشة', exitFullscreen: 'إغلاق ملء الشاشة',
-    loadingResource: 'جارٍ تحميل النشاط…',
-    slowLoad: 'يستغرق وقتاً طويلاً؟ افتحه في تبويب جديد.',
-    finishFirst: 'أكمل هذه الأنشطة أولاً',
-    finishToContinue: 'أكمل هذا النشاط للمتابعة',
-    jumpTo: 'اذهب إلى النشاط',
-    reviewMode: 'وضع المراجعة — يمكنك العودة إلى كل خطوة.',
-  },
-  fr: {
-    back: 'Leçons', complete: 'Marquer terminé', completed: 'Fait !',
-    next: 'Leçon suivante', finish: 'Terminer !', quiz: 'Vérification rapide',
-    correct: 'Correct ! Super boulot !', wrong: 'Pas tout à fait — réfléchis encore !',
-    xpEarned: 'XP gagné !', levelUp: 'Niveau supérieur !', tryAgain: 'Réessayer',
-    submit: 'Soumettre', askCoach: 'Demander au Coach IA',
-    reading: 'Lecture', code: 'Exemple de code', analogy: 'Imagine ça ainsi',
-    tip: 'Conseil pro', completedBefore: 'Déjà complété',
-    progress: 'Ta progression', lesson: 'Leçon',
-    steps: 'Étape par étape', challenge: 'Défi', callout_note: 'Note',
-    callout_warning: 'Attention', callout_danger: 'Important',
-    comparison: 'Avant / Après', checklist: 'Liste de contrôle',
-    video: 'Vidéo', image: 'Schéma',
-    checkAll: 'Coche tous les éléments avant de continuer',
-    codeViewer: 'Code Python',
-    copyCode: 'Copier', copied: 'Copié !',
-    website: 'Ressource interactive',
-    openSite: 'Ouvrir dans un nouvel onglet',
-    external: 'Activité externe',
-    externalDesc: "Cette activité se déroule sur une autre plateforme. Complète-la là-bas, puis reviens ici pour marquer la leçon terminée.",
-    externalBtn: "Ouvrir l'activité",
-    externalDone: 'Terminé ? Reviens ici et marque la leçon complète',
-    speedQuiz: 'Tour rapide',
-    fillBlank: 'Complète les blancs',
-    unscramble: "Remets dans l'ordre",
-    debug: 'Chasse aux bugs',
-    timedChallenge: 'Défi chronométré',
-    remix: 'Défi remix',
-    timeLeft: 'Temps restant',
-    score: 'Score',
-    startQuiz: 'Commencer',
-    checkAnswer: 'Vérifier',
-    nextQuestion: 'Suivant',
-    showHint: "Voir l'indice",
-    hideHint: "Cacher l'indice",
-    dragToOrder: 'Glisse les lignes dans le bon ordre',
-    bugFound: 'Bug trouvé !',
-    fixIt: "Je l'ai corrigé !",
-    bonusChallenge: 'Défi bonus débloqué !',
-    startTimer: 'Lancer le chrono',
-    submitChallenge: 'Envoyer',
-    remixDesc: 'Tu maîtrises les bases. Maintenant, adapte !',
-    remixDone: "J'ai terminé mon remix",
-    remixComplete: 'Remix terminé !',
-    dragDrop: 'Glisser-Déposer',
-    dragInstruction: 'Glisse chaque mot dans le bon emplacement',
-    tapToPlace: "Astuce : touche un mot, puis touche un emplacement. Le glisser marche aussi.",
-    wordBank: 'Banque de mots',
-    resetWords: 'Réinitialiser',
-    submitWork: 'Soumettre ton travail',
-    submitUrl: 'Lien projet / site web',
-    submitVideo: 'Lien vidéo démo (YouTube, Loom…)',
-    submitPlaceholder: 'Colle ton lien ici…',
-    submitBtn: 'Envoyer',
-    submitDone: 'Envoyé ! Excellent travail.',
-    submitRequired: "Colle ton lien avant d'envoyer.",
-    prev: 'Précédent', cont: 'Continuer', stepLabel: 'Étape',
-    reload: 'Recharger', fullscreen: 'Plein écran', exitFullscreen: 'Quitter le plein écran',
-    loadingResource: "Chargement de l'activité…",
-    slowLoad: "Ça prend du temps ? Ouvre-la dans un nouvel onglet.",
-    finishFirst: "Termine d'abord ces activités",
-    finishToContinue: 'Termine cette activité pour continuer',
-    jumpTo: "Aller à l'activité",
-    reviewMode: 'Mode révision — chaque étape reste ouverte.',
-  },
-}
+const partners = [
+  { name: 'Partner 1', file: 'p1.png' },
+  { name: 'Partner 2', file: 'p2.png' },
+  { name: 'Partner 3', file: 'p3.png' },
+  { name: 'Partner 4', file: 'p4.png' },
+  { name: 'Partner 5', file: 'p5.png' },
+  { name: 'Partner 6', file: 'p6.png' },
+  { name: 'Partner 7', file: 'p7.png' },
+  { name: 'Partner 8', file: 'p8.png' },
+  { name: 'Partner 9', file: 'p9.png' },
+  { name: 'Partner 10', file: 'p10.png' },
+  { name: 'Partner 10', file: 'p11.png' },
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Section interface
-// ─────────────────────────────────────────────────────────────────────────────
-interface Section {
-  type: string
-  text?: string
-  language?: string
-  starter?: string
-  instructions?: string
-  expected_output?: string
-  question?: string
-  options?: string[]
-  correct?: number
-  explanation?: string
-  items?: string[]
-  title?: string
-  hint?: string
-  variant?: 'note' | 'warning' | 'danger' | 'success'
-  before?: string
-  after?: string
-  before_label?: string
-  after_label?: string
-  checks?: string[]
-  url?: string
-  caption?: string
-  src?: string
-  alt?: string
-  embed_url?: string
-  height?: number
-  platform?: string
-  button_label?: string
-  time_per_question?: number
-  questions?: Array<{ question: string; options: string[]; correct: number; explanation?: string }>
-  code?: string
-  blanks?: string[]
-  hints?: string[]
-  lines?: string[]
-  correct_order?: number[]
-  broken_code?: string
-  bugs?: string[]
-  duration_seconds?: number
-  task?: string
-  bonus_task?: string
-  base_xp?: number
-  speed_bonus_xp?: number
-  twist?: string
-  xp_bonus?: number
-  word_bank?: string[]
-  targets?: Array<{ id: string; label: string; correct: string }>
-  submission_type?: 'url' | 'video' | 'both'
-  prompt?: string
-  placeholder?: string
-  required?: boolean
-}
 
-interface NextSkill {
-  id: string
-  lessonId: string
-  title: string
-  emoji: string
-}
 
-interface Props {
-  userId:       string
-  lesson:       any
-  skill:        any
-  completion:   any
-  totalLessons: number
-  lessonIndex:  number
-  prevLesson:   any
-  nextLesson:   any
-  nextSkill?:        NextSkill | null
-  language:     string
-  userName:     string
-  userAvatar?:  string
-  streak:            number
-  finishedAllTracks: boolean
-  suggestedTracks:   { id: string; name: string; emoji: string; description: string }[]
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ACTIVITY: Website / interactive resource (iframe embed)
-// One clean header, loading skeleton, slow-load fallback, reload, fullscreen.
-// No fake browser bar. Responsive height (min(78vh, 820px)) unless the lesson
-// JSON sets `height`.
-// ─────────────────────────────────────────────────────────────────────────────
-function WebsiteEmbed({ s, t }: { s: Section; t: Record<string, string> }) {
-  const src        = s.embed_url ?? s.url ?? ''
-  const openHref   = s.url ?? s.embed_url ?? ''
-  const [loaded, setLoaded]       = useState(false)
-  const [slow, setSlow]           = useState(false)
-  const wrapRef                   = useRef<HTMLDivElement | null>(null)
-  const [nativeFull, setNativeFull] = useState(false)   // browser Fullscreen API active
-  const [cssFull, setCssFull]       = useState(false)   // fallback (e.g. iPhone Safari)
-  const full = nativeFull || cssFull
-  const [reloadKey, setReloadKey] = useState(0)
-
-  useEffect(() => {
-    setLoaded(false); setSlow(false)
-    if (!src) return
-    const id = setTimeout(() => setSlow(true), 8000)
-    return () => clearTimeout(id)
-  }, [src, reloadKey])
-
-  // Native fullscreen puts the frame above EVERYTHING (sidebar included) and
-  // keeps the same iframe alive, so the game's progress is not lost.
-  useEffect(() => {
-    const onChange = () => setNativeFull(document.fullscreenElement === wrapRef.current)
-    document.addEventListener('fullscreenchange', onChange)
-    return () => document.removeEventListener('fullscreenchange', onChange)
-  }, [])
-
-  // Fallback overlay (browsers without element fullscreen): Esc closes it.
-  useEffect(() => {
-    if (!cssFull) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCssFull(false) }
-    window.addEventListener('keydown', onKey)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prevOverflow }
-  }, [cssFull])
-
-  const toggleFull = async () => {
-    const el = wrapRef.current
-    if (!el) return
-    if (document.fullscreenElement) { await document.exitFullscreen().catch(() => {}); return }
-    if (cssFull) { setCssFull(false); return }
-    if (el.requestFullscreen) {
-      try { await el.requestFullscreen(); return } catch { /* fall through to overlay */ }
-    }
-    setCssFull(true)
-  }
-
-  const frameHeight: string | number = s.height ?? 'min(78vh, 820px)'
-  const iconBtn = 'w-9 h-9 rounded-xl flex items-center justify-center text-[#4E7169] hover:text-[#0D2B32] hover:bg-[#0D2B32]/5 transition-colors shrink-0'
+]
+const projects = [
+  { file: '1.png', title: 'Watch With Friends', track: 'Coding', tagColor: 'reef', student: 'Sarah, age 15' },
+  { file: '2.png', title: 'Escape Game', track: 'Game', tagColor: 'reef', student: 'Kmar, age 15' },
+  { file: '3.png', title: 'country quizz', track: 'Game', tagColor: 'reef', student: 'Farah, age 15' },
+  { file: '4.png', title: 'Guess The Flag', track: 'Game', tagColor: 'reef', student: 'Mariam, age 12' },
+  { file: '5.png', title: 'Prescription reader', track: 'AI', tagColor: 'gold', student: 'Youssef, age 15' },
+  { file: '6.png', title: 'Event Management', track: 'Coding', tagColor: 'reef', student: 'Kmar , age 14' },
+  { file: '7.png', title: 'Sudoku', track: 'Game', tagColor: 'reef', student: 'Kamar, age 15' },
+  { file: '8.png', title: 'AI doctor', track: 'AI', tagColor: 'gold', student: 'Yassine, age 11' },
+  // { file: '9.png', title: 'Sticker Shop', track: 'Coding', tagColor: 'reef', student: 'Yousef, age 15' },
+  { file: '10.png', title: 'Coloring Game', track: 'Game', tagColor: 'reef', student: 'Kamar, age 15' },
+  { file: '11.png', title: 'Geological Assistant', track: 'AI', tagColor: 'gold', student: 'Ahmed, age 13' },
+  { file: '12.png', title: 'Game', track: 'Game', tagColor: 'reef', student: 'Abd Arrahman, age 12' },
+  { file: '13.png', title: 'Maze Game', track: 'Game', tagColor: 'reef', student: 'Serah , age 14' },
+  { file: '14.png', title: 'AI For Meditation', track: 'AI', tagColor: 'gold', student: 'Yahya, age 12' },
+  { file: '15.png', title: 'Football Game', track: 'Coding', tagColor: 'reef', student: 'Othman, age 10' },
+  { file: '17.png', title: 'AI DIY', track: 'AI', tagColor: 'gold', student: '' },
+  { file: '18.png', title: 'Sequences Game', track: 'Game', tagColor: 'reef', student: 'Mariam, age 14' },
+  { file: '19.png', title: 'Flag Quest', track: 'Coding', tagColor: 'reef', student: 'Farah, age 15' },
+  // { file: '20.png', title: '', track: 'Coding', tagColor: 'reef', student: '' } 
+]
+export default function LandingPage() {
+  const [navOpen, setNavOpen] = useState(false)
+  const [openFaq, setOpenFaq] = useState<number | null>(0)
+  const [activeStep, setActiveStep] = useState(0)
+  // Schools/institutions are the primary motion — families are still fully served,
+  // just one tap away via the toggle below instead of the default landing state.
+  const [audience, setAudience] = useState<'family' | 'schools'>('schools')
 
   return (
-    <div ref={wrapRef} className={full ? cn('bg-white flex flex-col w-full h-full', cssFull && 'fixed inset-0 z-[9999]') : cn(CARD, 'overflow-hidden')}>
-      {/* Header: title + caption on the left, tools on the right */}
-      <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8 bg-[#EAF7F4]/50">
-        <span className="w-8 h-8 rounded-xl bg-[#17D9C0]/15 flex items-center justify-center shrink-0">
-          <Icon kind="puzzle" className="w-4 h-4" style={{ color: '#0F9B87' }} />
-        </span>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-extrabold text-[#0D2B32] truncate">{t.website}</p>
-          {s.caption && <p className="text-xs font-semibold text-[#4E7169] truncate">{s.caption}</p>}
-        </div>
-        {src && (
-          <div className="flex items-center gap-0.5">
-            <button type="button" onClick={() => setReloadKey(k => k + 1)} className={iconBtn} aria-label={t.reload} title={t.reload}>
-              <Icon kind="refresh" className="w-4 h-4" />
-            </button>
-            <button type="button" onClick={toggleFull} className={iconBtn}
-              aria-label={full ? t.exitFullscreen : t.fullscreen} title={full ? t.exitFullscreen : t.fullscreen}>
-              <Icon kind={full ? 'x' : 'expand'} className="w-4 h-4" />
-            </button>
-            {openHref && (
-              <a href={openHref} target="_blank" rel="noopener noreferrer" className={iconBtn} aria-label={t.openSite} title={t.openSite}>
-                <Icon kind="external" className="w-4 h-4" />
+    <>
+      {/* Skip link — a11y + a small SEO signal that the page has a clear structure */}
+      <a
+        href="#main-content"
+        style={{
+          position: 'absolute', left: -9999, top: 0, zIndex: 100, background: '#0D2B32', color: '#F6F3EA',
+          padding: '10px 18px', borderRadius: 8, fontWeight: 700, fontSize: 14,
+        }}
+        onFocus={(e) => { e.currentTarget.style.left = '16px'; e.currentTarget.style.top = '16px' }}
+        onBlur={(e) => { e.currentTarget.style.left = '-9999px' }}
+      >
+        Skip to content
+      </a>
+
+      {/* Structured data — helps search engines understand Plulai as an
+          education provider rather than guessing from prose alone. */}
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'EducationalOrganization',
+            name: 'Plulai',
+            url: 'https://plulai.com',
+            logo: 'https://plulai.com/logo.png',
+            description: 'A coding, AI, and life-skills curriculum for kids and schools, taught natively in Arabic, French, and English.',
+            areaServed: 'MENA',
+            availableLanguage: ['ar', 'fr', 'en'],
+            sameAs: [],
+          }),
+        }}
+      />
+
+      {/* ================= NAV ================= */}
+      <nav className={styles.nav}>
+        <div className="container">
+          <div className={styles.navRow}>
+            <a href="/" aria-label="Plulai home" style={{ display: 'flex', alignItems: 'center' }}>
+              <Image
+                src="/logo.png"
+                alt="Plulai"
+                width={132}
+                height={36}
+                priority
+                style={{ height: 'auto', width: 'auto', maxHeight: 36 }}
+              />
+            </a>
+
+            <div className={styles.navLinks} style={{ color: '#0D2B32' }}>
+              <a href="#tracks" style={{ color: '#0D2B32' }}>The Path</a>
+              <a href="#audience" onClick={() => setAudience('schools')} style={{ color: audience === 'schools' ? '#1FB8A6' : '#0D2B32' }}>For Schools</a>
+              <a href="#audience" onClick={() => setAudience('family')} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>For Families</a>
+              <a href="#plans" style={{ color: '#0D2B32' }}>Pricing</a>
+            </div>
+
+            <div className={styles.navRight}>
+              <a
+                href="/ar"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6, color: '#0D2B32',
+                  fontSize: 13.5, fontWeight: 700, padding: '7px 13px', borderRadius: 999,
+                  border: '1.5px solid rgba(13,43,50,0.14)',
+                }}
+              >
+                <svg width={14} height={14} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                  <circle cx="10" cy="10" r="8" />
+                  <path d="M2 10h16M10 2c2.5 2.2 2.5 13.8 0 16M10 2c-2.5 2.2-2.5 13.8 0 16" />
+                </svg>
+                العربية
               </a>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Frame */}
-      {src ? (
-        <div className={cn('relative bg-[#EAF7F4]', full && 'flex-1')} style={full ? undefined : { height: frameHeight, minHeight: 420 }}>
-          {!loaded && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-[#EAF7F4] text-center px-6">
-              <span className="w-10 h-10 rounded-full border-4 border-[#17D9C0]/25 border-t-[#17D9C0] animate-spin" />
-              <p className="text-sm font-bold text-[#4E7169]">{t.loadingResource}</p>
-              {slow && openHref && (
-                <a href={openHref} target="_blank" rel="noopener noreferrer"
-                  className={cn('inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl font-extrabold text-xs transition-all', PRIMARY_BTN)}>
-                  <Icon kind="external" className="w-4 h-4" /> {t.slowLoad}
-                </a>
-              )}
+              <a href="/auth/login" style={{ color: '#0D2B32' }}>Log in</a>
+              <a href="#audience">
+                <button className="btn btn-dark" style={{ padding: '11px 20px', fontSize: 14.5 }}>
+                  {audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;
+                </button>
+              </a>
             </div>
-          )}
-          <iframe
-            key={reloadKey}
-            src={src}
-            onLoad={() => setLoaded(true)}
-            className="absolute inset-0 w-full h-full border-0 block"
-            title={s.caption ?? t.website}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-            allow="fullscreen"
-            allowFullScreen
-            loading="lazy"
-          />
-        </div>
-      ) : (
-        <div className="flex items-center justify-center text-[#4E7169] text-sm font-semibold h-40">No URL provided</div>
-      )}
 
-      {s.text && !full && (
-        <div className="px-4 sm:px-5 py-3 border-t border-[#0D2B32]/6">
-          <p className="text-xs font-semibold text-[#4E7169] leading-relaxed">{s.text}</p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ACTIVITY: Speed Quiz
-// ─────────────────────────────────────────────────────────────────────────────
-function SpeedQuizActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
-  const questions = s.questions ?? []
-  const timePerQ  = s.time_per_question ?? 10
-  const [started, setStarted]     = useState(false)
-  const [qIdx, setQIdx]           = useState(0)
-  const [timeLeft, setTimeLeft]   = useState(timePerQ)
-  const [selected, setSelected]   = useState<number | null>(null)
-  const [submitted, setSubmitted] = useState(false)
-  const [score, setScore]         = useState(0)
-  const [done, setDone]           = useState(false)
-  const [results, setResults]     = useState<boolean[]>([])
-  const timerRef    = useRef<NodeJS.Timeout | null>(null)
-  const selectedRef = useRef<number | null>(null)
-  selectedRef.current = selected
-
-  const stopTimer = useCallback(() => { if (timerRef.current) clearInterval(timerRef.current) }, [])
-
-  const submitAnswer = useCallback((sel: number | null) => {
-    stopTimer()
-    setSubmitted(true)
-    const correct = sel === questions[qIdx]?.correct
-    if (correct) setScore(sc => sc + 1)
-    setResults(r => [...r, correct])
-  }, [qIdx, questions, stopTimer])
-
-  const goNext = useCallback(() => {
-    stopTimer()
-    if (qIdx + 1 >= questions.length) { setDone(true); onComplete?.() }
-    else { setQIdx(q => q + 1); setTimeLeft(timePerQ); setSelected(null); setSubmitted(false) }
-  }, [qIdx, questions.length, timePerQ, stopTimer, onComplete])
-
-  // Timer only restarts per question (not on every option click) — the latest
-  // selection is read through a ref when time runs out.
-  useEffect(() => {
-    if (!started || submitted || done) return
-    timerRef.current = setInterval(() => {
-      setTimeLeft(tl => tl - 1)
-    }, 1000)
-    return stopTimer
-  }, [started, submitted, done, qIdx, stopTimer])
-
-  useEffect(() => {
-    if (started && !submitted && !done && timeLeft <= 0) submitAnswer(selectedRef.current)
-  }, [timeLeft, started, submitted, done, submitAnswer])
-
-  if (!started) return (
-    <div className={cn(CARD, 'p-6 text-center')}>
-      <div className="w-14 h-14 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-3">
-        <Icon kind="bolt" className="w-7 h-7 text-[#0D2B32]" style={{ color: '#0F9B87' }} />
-      </div>
-      <h3 className="font-extrabold text-lg mb-2 text-[#0D2B32]">{t.speedQuiz}</h3>
-      <p className="text-sm text-[#4E7169] font-semibold mb-1">{questions.length} questions · {timePerQ}s each</p>
-      {s.text && <p className="text-xs text-[#4E7169]/70 mb-4">{s.text}</p>}
-      <button onClick={() => setStarted(true)} className={cn('px-8 py-3 rounded-2xl font-extrabold text-sm transition-all', PRIMARY_BTN)}>
-        {t.startQuiz}
-      </button>
-    </div>
-  )
-
-  if (done) {
-    const pct = Math.round((score / questions.length) * 100)
-    const resultIcon: IconKind = pct === 100 ? 'trophy' : pct >= 70 ? 'partyPop' : 'fire'
-    return (
-      <div className={cn(CARD, 'p-6 text-center')}>
-        <div className="w-16 h-16 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-3">
-          <Icon kind={resultIcon} className="w-8 h-8" style={{ color: '#0F9B87' }} />
-        </div>
-        <h3 className="font-extrabold text-2xl mb-1 text-[#0D2B32]">{score}/{questions.length}</h3>
-        <p className="text-sm text-[#4E7169] font-semibold mb-4">{pct}% — {pct === 100 ? 'Perfect!' : pct >= 70 ? 'Great job!' : 'Keep practising!'}</p>
-        <div className="flex justify-center gap-2 mb-4">
-          {results.map((r, i) => (
-            <span key={i} className={cn('w-8 h-8 rounded-full flex items-center justify-center', r ? 'bg-[#17D9C0]/20 text-[#0F9B87]' : 'bg-[#E15B71]/20 text-[#E15B71]')}>
-              <Icon kind={r ? 'check' : 'x'} className="w-4 h-4" />
-            </span>
-          ))}
-        </div>
-        {pct < 100 && (
-          <button onClick={() => { setStarted(false); setQIdx(0); setTimeLeft(timePerQ); setSelected(null); setSubmitted(false); setScore(0); setDone(false); setResults([]) }}
-            className="px-6 py-2 rounded-xl font-extrabold text-sm border border-[#0D2B32]/15 text-[#4E7169] hover:text-[#0D2B32] hover:border-[#0D2B32]/30 transition-all">
-            {t.tryAgain}
-          </button>
-        )}
-      </div>
-    )
-  }
-
-  const q    = questions[qIdx]
-  const pct  = Math.max(0, Math.round((timeLeft / timePerQ) * 100))
-  const timerColor = timeLeft <= 3 ? 'bg-[#E15B71]' : timeLeft <= 5 ? 'bg-[#FFB930]' : 'bg-[#17D9C0]'
-
-  return (
-    <div className={cn(CARD, 'p-5 sm:p-6')}>
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider flex items-center gap-1.5">
-          <Icon kind="bolt" className="w-3.5 h-3.5" style={{ color: '#0F9B87' }} /> {t.speedQuiz}
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold text-[#4E7169]">{qIdx + 1}/{questions.length}</span>
-          <div className="flex items-center gap-2">
-            <div className="w-24 h-2 bg-[#0D2B32]/8 rounded-full overflow-hidden">
-              <div className={cn('h-full rounded-full transition-all duration-1000', timerColor)} style={{ width: `${pct}%` }} />
-            </div>
-            <span className={cn('text-sm font-extrabold tabular-nums w-5 text-right', timeLeft <= 3 ? 'text-[#E15B71]' : 'text-[#0D2B32]')}>{Math.max(0, timeLeft)}</span>
-          </div>
-        </div>
-      </div>
-
-      <p className="font-extrabold text-sm mb-4 leading-relaxed text-[#0D2B32]">{q.question}</p>
-
-      <div className="space-y-2 mb-4">
-        {q.options.map((opt, oi) => {
-          let cls = 'border-[#0D2B32]/10 bg-[#EAF7F4]/50 text-[#4E7169] hover:border-[#0D2B32]/25 hover:text-[#0D2B32] cursor-pointer'
-          if (submitted) {
-            if (oi === q.correct) cls = 'border-[#17D9C0]/60 bg-[#17D9C0]/15 text-[#0F9B87] cursor-default'
-            else if (selected === oi) cls = 'border-[#E15B71]/40 bg-[#E15B71]/10 text-[#E15B71] cursor-default'
-            else cls = 'border-[#0D2B32]/5 bg-[#0D2B32]/3 text-[#4E7169]/40 cursor-default'
-          } else if (selected === oi) cls = 'border-[#17D9C0]/50 bg-[#17D9C0]/15 text-[#0D2B32] cursor-pointer'
-          return (
-            <button key={oi} onClick={() => !submitted && setSelected(oi)} disabled={submitted}
-              className={cn('w-full text-start px-4 py-3 rounded-2xl text-sm font-bold border transition-all', cls)}>
-              <span className="font-extrabold mr-2 text-[#4E7169]/60">{String.fromCharCode(65 + oi)}.</span> {opt}
+            <button
+              type="button"
+              className={styles.burger}
+              aria-label={navOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={navOpen}
+              onClick={() => setNavOpen((v) => !v)}
+            >
+              <span className={navOpen ? styles.burgerTopOpen : ''} />
+              <span className={navOpen ? styles.burgerMidOpen : ''} />
+              <span className={navOpen ? styles.burgerBotOpen : ''} />
             </button>
-          )
-        })}
-      </div>
+          </div>
 
-      {!submitted ? (
-        <button onClick={() => submitAnswer(selected)} disabled={selected === null}
-          className={cn('w-full py-2.5 rounded-2xl font-extrabold text-sm disabled:opacity-30 disabled:cursor-not-allowed transition-all', PRIMARY_BTN)}>
-          {t.checkAnswer}
-        </button>
-      ) : (
-        <div className="space-y-3">
-          {q.explanation && (
-            <div className="bg-[#EAF7F4]/60 border border-[#0D2B32]/8 rounded-2xl p-3">
-              <p className="text-xs text-[#4E7169] font-semibold leading-relaxed">{q.explanation}</p>
-            </div>
-          )}
-          <button onClick={goNext} className={cn('w-full py-2.5 rounded-2xl font-extrabold text-sm flex items-center justify-center gap-1.5 transition-all', SUCCESS_BTN)}>
-            {qIdx + 1 >= questions.length ? 'See Results' : t.nextQuestion}
-            <Icon kind="chevronRight" className="w-4 h-4" />
-          </button>
+          <div className={`${styles.mobilePanel} ${navOpen ? styles.mobilePanelOpen : ''}`}>
+            <a href="#tracks" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>The Path</a>
+            <a href="#audience" onClick={() => { setAudience('schools'); setNavOpen(false) }} style={{ color: audience === 'schools' ? '#1FB8A6' : '#0D2B32' }}>For Schools</a>
+            <a href="#audience" onClick={() => { setAudience('family'); setNavOpen(false) }} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>For Families</a>
+            <a href="#plans" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Pricing</a>
+            <div className={styles.mobilePanelDivider} />
+            <a href="/auth/login" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Log in</a>
+            <a
+              href="/ar"
+              onClick={() => setNavOpen(false)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, color: '#0D2B32',
+                fontSize: 13.5, fontWeight: 700, width: 'fit-content',
+              }}
+            >
+              <svg width={14} height={14} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                <circle cx="10" cy="10" r="8" />
+                <path d="M2 10h16M10 2c2.5 2.2 2.5 13.8 0 16M10 2c-2.5 2.2-2.5 13.8 0 16" />
+              </svg>
+              العربية
+            </a>
+            <a href="#audience" onClick={() => setNavOpen(false)}>
+              <button className="btn btn-cta btn-block">{audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;</button>
+            </a>
+          </div>
         </div>
-      )}
+      </nav>
 
-      <div className="flex justify-between items-center mt-3">
-        <span className="text-xs text-[#4E7169] font-semibold">{t.score}: {score}</span>
-        <div className="flex gap-1">
-          {questions.map((_, i) => (
-            <div key={i} className={cn('w-2 h-2 rounded-full', i < results.length ? (results[i] ? 'bg-[#17D9C0]' : 'bg-[#E15B71]') : i === qIdx ? 'bg-[#17D9C0]' : 'bg-[#0D2B32]/10')} />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ACTIVITY: Fill in the Blank
-// ─────────────────────────────────────────────────────────────────────────────
-function FillBlankActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
-  const code    = s.code ?? ''
-  const blanks  = s.blanks ?? []
-  const hints   = s.hints ?? []
-  const parts   = code.split('___')
-  const [inputs, setInputs]       = useState<string[]>(Array(blanks.length).fill(''))
-  const [checked, setChecked]     = useState(false)
-  const [results, setResults]     = useState<boolean[]>([])
-  const [showHints, setShowHints] = useState<boolean[]>(Array(blanks.length).fill(false))
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
-
-  const check = () => {
-    const res = inputs.map((v, i) => v.trim().toLowerCase() === blanks[i].toLowerCase())
-    setResults(res); setChecked(true)
-  }
-  const reset = () => {
-    setInputs(Array(blanks.length).fill('')); setResults([]); setChecked(false)
-    setShowHints(Array(blanks.length).fill(false))
-  }
-
-  const allCorrect = checked && results.every(Boolean)
-  useEffect(() => { if (allCorrect) onComplete?.() }, [allCorrect, onComplete])
-  let blankIdx = 0
-
-  return (
-    <div className={TERMINAL}>
-      <CodeWindowHeader icon="pencil" label={t.fillBlank}
-        trailing={s.text ? <span className="text-xs text-white/40 truncate max-w-xs">{s.text}</span> : undefined} />
-
-      <div className="p-5 font-mono text-sm leading-8 overflow-x-auto">
-        {parts.map((part, pi) => {
-          const currentBlank = blankIdx
-          if (pi < parts.length - 1) blankIdx++
-          const isCorrect = checked && results[currentBlank]
-          const isWrong   = checked && !results[currentBlank]
-          return (
-            <React.Fragment key={pi}>
-              <span className="text-[#17D9C0] whitespace-pre">{part}</span>
-              {pi < parts.length - 1 && (
-                <input
-                  ref={el => { inputRefs.current[currentBlank] = el }}
-                  value={inputs[currentBlank]}
-                  aria-label={`Blank ${currentBlank + 1}`}
-                  onChange={e => { const next = [...inputs]; next[currentBlank] = e.target.value; setInputs(next); setChecked(false); setResults([]) }}
-                  onKeyDown={e => { if (e.key === 'Enter') { const next = inputRefs.current[currentBlank + 1]; if (next) next.focus(); else check() } }}
-                  disabled={checked && isCorrect}
-                  className={cn(
-                    'inline-block px-2 py-0.5 rounded-md border text-sm font-mono font-bold text-center transition-all outline-none min-w-[80px]',
-                    isCorrect ? 'bg-[#17D9C0]/20 border-[#17D9C0]/60 text-[#17D9C0]' :
-                    isWrong   ? 'bg-[#E15B71]/20 border-[#E15B71]/50 text-[#E15B71]' :
-                                'bg-white/8 border-white/20 text-white focus:border-[#17D9C0]/60 focus:bg-[#17D9C0]/10'
-                  )}
-                  style={{ width: `${Math.max(blanks[currentBlank]?.length * 10 + 24, 80)}px` }}
-                  placeholder="___" spellCheck={false} autoComplete="off"
-                />
-              )}
-            </React.Fragment>
-          )
-        })}
-      </div>
-
-      {hints.length > 0 && (
-        <div className="px-5 pb-3 flex flex-wrap gap-2">
-          {hints.map((hint, i) => (
-            <div key={i} className="flex items-center gap-1.5">
-              <button onClick={() => { const n = [...showHints]; n[i] = !n[i]; setShowHints(n) }}
-                className="text-xs font-bold text-[#FFB930]/80 hover:text-[#FFB930] transition-colors flex items-center gap-1">
-                <Icon kind="flashlight" className="w-3 h-3" /> {showHints[i] ? t.hideHint : `${t.showHint} ${i + 1}`}
-              </button>
-              {showHints[i] && <span className="text-xs text-white/50 italic">→ {hint}</span>}
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="px-5 py-4 border-t border-white/5 flex items-center justify-between gap-3">
-        {allCorrect ? (
-          <p className="text-sm font-extrabold text-[#17D9C0] flex items-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> Perfect! Every blank is correct.</p>
-        ) : checked && !allCorrect ? (
-          <p className="text-sm font-bold text-[#E15B71]">{results.filter(Boolean).length}/{blanks.length} correct — check the red ones</p>
-        ) : (
-          <p className="text-xs text-white/30">Fill all blanks then check</p>
-        )}
-        <div className="flex gap-2">
-          {checked && !allCorrect && (
-            <button onClick={reset} className="px-4 py-2 rounded-xl text-xs font-extrabold border border-white/10 text-white/50 hover:text-white transition-all">Reset</button>
-          )}
-          <button onClick={check} disabled={inputs.some(v => !v.trim()) || allCorrect}
-            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#17D9C0]/20 text-[#17D9C0] border border-[#17D9C0]/30 hover:bg-[#17D9C0]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-            {t.checkAnswer}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ACTIVITY: Unscramble
-// ─────────────────────────────────────────────────────────────────────────────
-function UnscrambleActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
-  const correctOrder = s.correct_order ?? (s.lines ?? []).map((_, i) => i)
-  const [order, setOrder] = useState<number[]>(() => {
-    const shuffled = [...correctOrder]
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-    }
-    return shuffled
-  })
-  const [dragging, setDragging] = useState<number | null>(null)
-  const [dragOver, setDragOver] = useState<number | null>(null)
-  const [checked, setChecked]   = useState(false)
-  const [correct, setCorrect]   = useState(false)
-
-  const lines = s.lines ?? []
-  useEffect(() => { if (correct) onComplete?.() }, [correct, onComplete])
-
-  const check = () => { const isCorrect = order.every((v, i) => v === correctOrder[i]); setCorrect(isCorrect); setChecked(true) }
-  const handleDrop = (targetIdx: number) => {
-    if (dragging === null || dragging === targetIdx) return
-    const next = [...order]
-    const tmp = next[dragging]; next[dragging] = next[targetIdx]; next[targetIdx] = tmp
-    setOrder(next); setDragging(null); setDragOver(null); setChecked(false)
-  }
-  const moveUp = (i: number) => { if (i === 0) return; const next = [...order]; [next[i], next[i-1]] = [next[i-1], next[i]]; setOrder(next); setChecked(false) }
-  const moveDown = (i: number) => { if (i === order.length - 1) return; const next = [...order]; [next[i], next[i+1]] = [next[i+1], next[i]]; setOrder(next); setChecked(false) }
-
-  return (
-    <div className={TERMINAL}>
-      <CodeWindowHeader icon="shuffle" label={t.unscramble}
-        trailing={s.text ? <span className="text-xs text-white/40">{s.text}</span> : undefined} />
-
-      <div className="p-4 space-y-2">
-        <p className="text-xs text-white/30 font-semibold mb-3 flex items-center gap-1.5">
-          <Icon kind="dragHandle" className="w-3.5 h-3.5" /> Drag to reorder, or use the arrow buttons
-        </p>
-        {order.map((lineIdx, i) => {
-          const lineCorrect = checked && lineIdx === correctOrder[i]
-          const lineWrong   = checked && lineIdx !== correctOrder[i]
-          return (
-            <div key={i}
-              draggable
-              onDragStart={() => setDragging(i)}
-              onDragEnd={() => { setDragging(null); setDragOver(null) }}
-              onDragOver={e => { e.preventDefault(); setDragOver(i) }}
-              onDragLeave={() => setDragOver(null)}
-              onDrop={() => handleDrop(i)}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all cursor-grab active:cursor-grabbing select-none',
-                dragOver === i ? 'border-[#17D9C0]/60 bg-[#17D9C0]/10' :
-                lineCorrect    ? 'border-[#17D9C0]/50 bg-[#17D9C0]/10' :
-                lineWrong      ? 'border-[#E15B71]/40 bg-[#E15B71]/8' :
-                dragging === i ? 'border-[#17D9C0]/40 bg-[#17D9C0]/8 opacity-50' :
-                                 'border-white/8 bg-white/3 hover:border-white/15'
-              )}>
-              <span className="text-xs font-mono text-white/20 w-4 flex-shrink-0">{i + 1}</span>
-              <Icon kind="dragHandle" className="w-3.5 h-3.5 text-white/20 flex-shrink-0" />
-              <code className={cn('flex-1 text-sm font-mono whitespace-pre overflow-x-auto', lineCorrect ? 'text-[#17D9C0]' : lineWrong ? 'text-[#E15B71]' : 'text-[#17D9C0]/80')}>{lines[lineIdx]}</code>
-              <div className="flex flex-col gap-0.5 flex-shrink-0">
-                <button onClick={() => moveUp(i)} disabled={i === 0} aria-label="Move line up" className="p-1 text-white/30 hover:text-white/70 disabled:opacity-10 transition-colors"><Icon kind="arrowUp" className="w-3.5 h-3.5" /></button>
-                <button onClick={() => moveDown(i)} disabled={i === order.length - 1} aria-label="Move line down" className="p-1 text-white/30 hover:text-white/70 disabled:opacity-10 transition-colors"><Icon kind="arrowDown" className="w-3.5 h-3.5" /></button>
+      <main id="main-content">
+      {/* ================= HERO ================= */}
+      <div className={styles.hero}>
+        <span aria-hidden className={styles.heroWatermark}>/</span>
+        <div className="container">
+          <div className={styles.heroGrid}>
+            <div>
+              <style>{`
+                @media (max-width: 480px) {
+                  .audience-toggle { flex-direction: column !important; border-radius: 14px !important; width: 100%; }
+                  .audience-toggle button { width: 100%; text-align: center; }
+                }
+              `}</style>
+              {/* Audience toggle — the rest of the page follows this choice */}
+              <div
+                role="tablist"
+                aria-label="Choose your audience"
+                className="audience-toggle"
+                style={{
+                  display: 'inline-flex', flexWrap: 'wrap', background: '#EEF2F1', borderRadius: 999,
+                  padding: 4, marginBottom: 22, gap: 2, maxWidth: '100%',
+                }}
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={audience === 'family'}
+                  onClick={() => setAudience('family')}
+                  style={{
+                    border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                    padding: '9px 18px', borderRadius: 999, fontSize: 13.5, fontWeight: 700,
+                    background: audience === 'family' ? '#0D2B32' : 'transparent',
+                    color: audience === 'family' ? '#F6F3EA' : '#5C7873',
+                    transition: 'background .15s ease',
+                  }}
+                >
+                  For Families
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={audience === 'schools'}
+                  onClick={() => setAudience('schools')}
+                  style={{
+                    border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                    padding: '9px 18px', borderRadius: 999, fontSize: 13.5, fontWeight: 700,
+                    background: audience === 'schools' ? '#0D2B32' : 'transparent',
+                    color: audience === 'schools' ? '#F6F3EA' : '#5C7873',
+                    transition: 'background .15s ease',
+                  }}
+                >
+                  For Schools &amp; Training Centers
+                </button>
               </div>
-              {checked && <Icon kind={lineCorrect ? 'check' : 'x'} className={cn('w-4 h-4 flex-shrink-0', lineCorrect ? 'text-[#17D9C0]' : 'text-[#E15B71]')} />}
+
+              <div className={styles.statBadge}>
+                <span className={styles.statDot} />
+                11+ partners across the MENA region
+              </div>
+
+              {audience === 'family' ? (
+                <>
+                  <h1 className={styles.heroTitle}>
+                    Coding, AI, and the confidence to use them.
+                  </h1>
+                  <p className={styles.heroSub}>
+                    15 minutes a day. Real Arabic, French, or English. An AI coach
+                    that adapts to your kid — no classroom required.
+                  </p>
+                  <div className={styles.ctaRow} style={{ alignItems: 'center' }}>
+                    <a href="/auth/signup"><button className="btn btn-cta">Start free trial &rarr;</button></a>
+                    <a
+                      href="#plans"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: '#0D2B32' }}
+                    >
+                      See family plans &rarr;
+                    </a>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h1 className={styles.heroTitle}>
+                    A coding, AI &amp; life-skills curriculum your school can run.
+                  </h1>
+                  <p className={styles.heroSub}>
+                    30–45 minute class periods. Real Arabic, French, or English. An
+                    AI coach for every student, and a dashboard that flags who&apos;s
+                    stuck before report cards do.
+                  </p>
+                  <div className={styles.ctaRow} style={{ alignItems: 'center' }}>
+                    <a href="#audience"><button className="btn btn-cta">Book a demo &rarr;</button></a>
+                    <a
+                      href="mailto:hello@plulai.com"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: '#0D2B32' }}
+                    >
+                      Talk to our team &rarr;
+                    </a>
+                  </div>
+                </>
+              )}
             </div>
-          )
-        })}
-      </div>
 
-      <div className="px-5 py-4 border-t border-white/5 flex items-center justify-between">
-        {correct ? (
-          <p className="text-sm font-extrabold text-[#17D9C0] flex items-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> Perfect order! The code runs correctly.</p>
-        ) : checked ? (
-          <p className="text-sm font-bold text-[#E15B71]">Not quite — some lines are out of order</p>
-        ) : (
-          <p className="text-xs text-white/30">Arrange the lines into the correct order</p>
-        )}
-        {!correct && (
-          <button onClick={check} className="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#17D9C0]/20 text-[#17D9C0] border border-[#17D9C0]/30 hover:bg-[#17D9C0]/30 transition-all">
-            {t.checkAnswer}
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
+            <div className={styles.heroVisual}>
+              <Image
+                src="/avatars/heroplulai.png"
+                alt="Marjan the camel, Plulai's mascot"
+                width={336}
+                height={336}
+                priority
+              />
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ACTIVITY: Bug Hunt
-// ─────────────────────────────────────────────────────────────────────────────
-function DebugActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
-  const bugs  = s.bugs ?? []
-  const hints = s.hints ?? []
-  const [found, setFound]   = useState<boolean[]>(Array(bugs.length).fill(false))
-  const [showH, setShowH]   = useState<boolean[]>(Array(hints.length).fill(false))
-  const [allFixed, setAllFixed] = useState(false)
-  const [copiedBroken, setCopiedBroken] = useState(false)
-  useEffect(() => { if (allFixed) onComplete?.() }, [allFixed, onComplete])
+              <style>{`
+                @keyframes plulai-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: 0.7; } }
+                .streak-pulse { animation: plulai-pulse 1.8s ease-in-out infinite; }
+                @media (prefers-reduced-motion: reduce) { .streak-pulse { animation: none; } }
+              `}</style>
+              <div className={styles.floatBadge} style={{ top: 0, left: -10 }}>
+                <span className="pearl-dot pearl-dot--md streak-pulse" />
+                <div>
+                  <div className={styles.floatBadgeTitle}>4-pearl streak</div>
+                  <div className={styles.floatBadgeSub}>One more today</div>
+                </div>
+              </div>
 
-  const toggleFound = (i: number) => {
-    const next = [...found]; next[i] = !next[i]; setFound(next)
-    if (next.every(Boolean)) setAllFixed(true)
-  }
-  const code = s.broken_code ?? ''
-
-  return (
-    <div className={TERMINAL}>
-      <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/2">
-        <div className="flex gap-1.5 flex-shrink-0">
-          <div className="w-3 h-3 rounded-full bg-[#ff5f57] animate-pulse" />
-          <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-          <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+              <div className={styles.floatBadge} style={{ bottom: 20, right: -20 }}>
+                <svg width={20} height={20} viewBox="0 0 20 20">
+                  <path d="M10 2 L17 7 L17 18 L3 18 L3 7 Z" fill="#1FB8A6" />
+                </svg>
+                <div>
+                  <div className={styles.floatBadgeTitle}>Level 5 reached</div>
+                  <div className={styles.floatBadgeSub}>Faris · Coding</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <span className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-white/50">
-          <Icon kind="bug" className="w-3.5 h-3.5 text-[#E15B71]" /> {t.debug}
-        </span>
-        <span className="ml-auto text-xs text-white/40 font-semibold">{bugs.length} bug{bugs.length !== 1 ? 's' : ''} hidden</span>
       </div>
 
-      {s.text && <p className="px-5 pt-4 text-sm text-white/60 font-semibold">{s.text}</p>}
-
-      <div className="relative">
-        <pre className="px-5 py-4 pr-20 text-sm font-mono text-[#FF9A8C] leading-7 overflow-x-auto whitespace-pre">{code}</pre>
-        <button
-          onClick={() => { navigator.clipboard.writeText(code); setCopiedBroken(true); setTimeout(() => setCopiedBroken(false), 2000) }}
-          aria-label={copiedBroken ? 'Code copied' : 'Copy code'}
-          className="absolute top-3 right-3 text-xs font-bold text-white/40 hover:text-white border border-white/10 rounded-lg px-2 py-1 transition-all flex items-center gap-1">
-          <Icon kind={copiedBroken ? 'check' : 'copy'} className="w-3 h-3" /> {copiedBroken ? '' : 'Copy'}
-        </button>
+      <div className={styles.divider}>
+        <svg viewBox="0 0 1440 70" preserveAspectRatio="none">
+          <path d="M0,30 C240,80 480,0 720,25 C960,50 1200,10 1440,35 L1440,70 L0,70 Z" fill="#F6F3EA" />
+        </svg>
       </div>
 
-      <div className="px-5 py-4 border-t border-white/5 space-y-2">
-        <p className="text-xs font-black text-white/40 uppercase tracking-wider mb-3">Find and fix each bug, then check it off:</p>
-        {bugs.map((bug, i) => (
-          <button key={i} onClick={() => toggleFound(i)}
-            className={cn(
-              'w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-sm font-semibold text-start transition-all',
-              found[i] ? 'bg-[#17D9C0]/10 border-[#17D9C0]/30 text-[#17D9C0]' : 'bg-white/3 border-white/8 text-white/60 hover:border-white/20 hover:text-white'
-            )}>
-            <span className={cn('w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-all', found[i] ? 'bg-[#17D9C0] border-[#17D9C0] text-white' : 'border-white/20')}>
-              {found[i] && <Icon kind="check" className="w-3 h-3" />}
+      {/* ================= PARTNERS ================= */}
+      {/* Redesigned as a self-contained band (inline-styled, same pattern as
+          the Tracks/How-it-works/Case-study sections below) rather than the
+          old styles.partnersSec/partnerRow/partnerTile module classes, so it
+          no longer depends on CSS you can't see here. It picks up the same
+          "#F6F3EA" pearl-white the divider above already hands off to, and
+          borrows the alumni section's proven infinite-marquee technique —
+          a static wrapped grid doesn't scale gracefully once you're past
+          ~8 logos, and this list is already at 11. Logos run desaturated by
+          default (a quiet, uniform trust signal) and bloom to full colour on
+          hover; the whole strip pauses on hover too so a name can actually
+          be read. */}
+      <div style={{ background: '#F6F3EA', padding: '52px 0 60px', overflow: 'hidden' }}>
+        <style>{`
+          @keyframes plulai-partner-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+          }
+          .partner-marquee-track { animation: plulai-partner-scroll 32s linear infinite; }
+          .partner-marquee-wrap:hover .partner-marquee-track { animation-play-state: paused; }
+          .partner-tile { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+          .partner-tile:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(13,43,50,0.10); border-color: rgba(31,184,166,0.35) !important; }
+          .partner-tile img { filter: grayscale(1); opacity: 0.5; transition: filter .25s ease, opacity .25s ease; }
+          .partner-tile:hover img { filter: grayscale(0); opacity: 1; }
+          @media (prefers-reduced-motion: reduce) { .partner-marquee-track { animation: none; } }
+        `}</style>
+
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <span
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 15px',
+                borderRadius: 999, background: '#EAF6F3', color: '#0D2B32', fontSize: 12.5,
+                fontWeight: 700, letterSpacing: 0.3, marginBottom: 12,
+              }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1FB8A6' }} />
+              Trusted across the region
             </span>
-            <span className={cn(found[i] && 'line-through opacity-50')}>Bug {i + 1}: {bug}</span>
-          </button>
-        ))}
-      </div>
-
-      {hints.length > 0 && (
-        <div className="px-5 pb-4 flex flex-wrap gap-2 border-t border-white/5 pt-3">
-          {hints.map((hint, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <button onClick={() => { const n = [...showH]; n[i] = !n[i]; setShowH(n) }}
-                className="text-xs font-bold text-[#FFB930]/80 hover:text-[#FFB930] transition-colors flex items-center gap-1">
-                <Icon kind="flashlight" className="w-3 h-3" /> {showH[i] ? 'Hide' : `Hint ${i + 1}`}
-              </button>
-              {showH[i] && <span className="text-xs text-[#FFB930]/90 italic">{hint}</span>}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {allFixed && (
-        <div className="px-5 pb-5">
-          <div className="bg-[#17D9C0]/10 border border-[#17D9C0]/30 rounded-2xl p-4 text-center">
-            <p className="text-sm font-extrabold text-[#17D9C0] flex items-center justify-center gap-1.5">
-              <Icon kind="bug" className="w-4 h-4" /> All bugs squashed! Great debugging.
+            <p style={{ margin: 0, fontSize: 14.5, fontWeight: 600, color: 'rgba(41,57,74,0.6)' }}>
+              Used in real classrooms and programs
             </p>
           </div>
         </div>
-      )}
-    </div>
-  )
-}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ACTIVITY: Timed Challenge
-// ─────────────────────────────────────────────────────────────────────────────
-function TimedChallengeActivity({ s, t, lessonTitle, onComplete }: { s: Section; t: Record<string, string>; lessonTitle: string; onComplete?: () => void }) {
-  const duration = s.duration_seconds ?? 300
-  const [phase, setPhase]     = useState<'idle' | 'running' | 'done'>('idle')
-  const [timeLeft, setTimeLeft] = useState(duration)
-  const [bonusUnlocked, setBonusUnlocked] = useState(false)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
-  useEffect(() => { if (phase === 'done') onComplete?.() }, [phase, onComplete])
+        <div className="partner-marquee-wrap" style={{ position: 'relative' }}>
+          {/* edge fades so the strip reads as endless, not cut off */}
+          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 100, background: 'linear-gradient(90deg, #F6F3EA, rgba(246,243,234,0))', zIndex: 2, pointerEvents: 'none' }} />
+          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: 100, background: 'linear-gradient(270deg, #F6F3EA, rgba(246,243,234,0))', zIndex: 2, pointerEvents: 'none' }} />
 
-  const start = () => {
-    setPhase('running'); setTimeLeft(duration)
-    timerRef.current = setInterval(() => {
-      setTimeLeft(tl => { if (tl <= 1) { clearInterval(timerRef.current!); setPhase('done'); return 0 } return tl - 1 })
-    }, 1000)
-  }
-  const submit = () => {
-    if (timerRef.current) clearInterval(timerRef.current)
-    const remaining = timeLeft
-    setPhase('done')
-    if (remaining > 60) setBonusUnlocked(true)
-  }
-  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current) }, [])
-
-  const mins = Math.floor(timeLeft / 60)
-  const secs = timeLeft % 60
-  const pct  = Math.round((timeLeft / duration) * 100)
-  const timerColor = pct > 50 ? '#17D9C0' : pct > 25 ? '#FFB930' : '#E15B71'
-
-  if (phase === 'idle') return (
-    <div className={cn(CARD, 'p-6')}>
-      <div className="flex items-center gap-2 mb-3">
-        <Icon kind="timer" className="w-5 h-5" style={{ color: '#0F9B87' }} />
-        <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.timedChallenge}</span>
-      </div>
-      {s.title && <h3 className="font-extrabold text-base mb-2 text-[#0D2B32]">{s.title}</h3>}
-      <p className="text-sm font-semibold leading-relaxed text-[#4E7169] mb-4">{s.task ?? s.text}</p>
-      {s.expected_output && (
-        <div className="bg-[#0D2B32] border border-white/10 rounded-2xl p-3 mb-4">
-          <p className="text-xs font-bold text-white/50 mb-1">Expected output:</p>
-          <pre className="text-sm font-mono text-[#17D9C0] whitespace-pre-wrap">{s.expected_output}</pre>
-        </div>
-      )}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="text-sm text-[#4E7169] font-semibold">
-          {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, '0')} — finish early for bonus XP!
-        </div>
-        <button onClick={start} className={cn('px-6 py-2.5 rounded-2xl font-extrabold text-sm transition-all', PRIMARY_BTN)}>
-          {t.startTimer}
-        </button>
-      </div>
-    </div>
-  )
-
-  if (phase === 'done') return (
-    <div className={cn(CARD, 'p-6 text-center')}>
-      <div className="w-14 h-14 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-3">
-        <Icon kind={bonusUnlocked ? 'star' : 'check'} className="w-7 h-7" style={{ color: '#0F9B87' }} />
-      </div>
-      <h3 className="font-extrabold text-lg mb-2 text-[#0D2B32]">{bonusUnlocked ? t.bonusChallenge : 'Challenge complete!'}</h3>
-      {bonusUnlocked && s.bonus_task && (
-        <div className="bg-[#EAF7F4] border border-[#0D2B32]/8 rounded-2xl p-4 mt-3 text-left">
-          <p className="text-xs font-extrabold text-[#4E7169] mb-2 uppercase tracking-wider">Bonus challenge:</p>
-          <p className="text-sm font-semibold text-[#4E7169]">{s.bonus_task}</p>
-        </div>
-      )}
-      <Link href={`/dashboard/coach?topic=${encodeURIComponent(lessonTitle)}`}
-        className="inline-flex items-center gap-1.5 mt-4 text-xs font-bold text-[#0F9B87] hover:text-[#0D2B32] transition-colors">
-        <Icon kind="robot" className="w-3.5 h-3.5" /> Get feedback from AI Coach
-      </Link>
-    </div>
-  )
-
-  return (
-    <div className={cn(CARD, 'p-6')}>
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <Icon kind="timer" className="w-5 h-5" style={{ color: '#0F9B87' }} />
-        <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.timedChallenge}</span>
-        <div className="ml-auto flex items-center gap-2">
-          <div className="w-32 h-2.5 bg-[#0D2B32]/8 rounded-full overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: timerColor }} />
+          <div
+            className="partner-marquee-track"
+            style={{ display: 'flex', width: 'max-content', gap: 18, padding: '4px 0' }}
+          >
+            {[...partners, ...partners].map((partner, i) => (
+              <div
+                key={`${partner.file}-${i}`}
+                className="partner-tile"
+                style={{
+                  flex: '0 0 auto', width: 156, height: 82, borderRadius: 16,
+                  background: '#fff', border: '1px solid #E4E9E7',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '16px 22px',
+                }}
+              >
+                <Image
+                  src={`/partners/${partner.file}`}
+                  alt={partner.name}
+                  width={120}
+                  height={48}
+                  style={{ width: 'auto', height: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                />
+              </div>
+            ))}
           </div>
-          <span className={cn('text-base font-extrabold tabular-nums', timeLeft <= 60 ? 'text-[#E15B71]' : 'text-[#0D2B32]')}>{mins}:{String(secs).padStart(2, '0')}</span>
-        </div>
-      </div>
-      {s.title && <h3 className="font-extrabold text-base mb-2 text-[#0D2B32]">{s.title}</h3>}
-      <p className="text-sm font-semibold leading-relaxed text-[#4E7169] mb-4">{s.task ?? s.text}</p>
-      {s.hint && (
-        <details className="mb-4">
-          <summary className="text-xs font-bold text-[#0F9B87] cursor-pointer hover:text-[#0D2B32] transition-colors">Hint</summary>
-          <p className="text-sm text-[#4E7169] font-semibold mt-2 pl-4 border-l-2 border-[#17D9C0]/30 leading-relaxed">{s.hint}</p>
-        </details>
-      )}
-      <button onClick={submit} className={cn('w-full py-3 rounded-2xl font-extrabold text-sm transition-all', SUCCESS_BTN)}>
-        {t.submitChallenge} {timeLeft > 60 ? `(+${s.speed_bonus_xp ?? 50} bonus XP!)` : ''}
-      </button>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ACTIVITY: Remix Challenge
-// ─────────────────────────────────────────────────────────────────────────────
-function RemixActivity({ s, t, lessonTitle, onComplete }: { s: Section; t: Record<string, string>; lessonTitle: string; onComplete?: () => void }) {
-  const [unlocked, setUnlocked] = useState(false)
-  const [finished, setFinished] = useState(false)
-
-  if (!unlocked) return (
-    <div className={cn(CARD, 'border-dashed p-5 text-center')}>
-      <div className="w-12 h-12 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-2">
-        <Icon kind="palette" className="w-6 h-6" style={{ color: '#0F9B87' }} />
-      </div>
-      <p className="font-extrabold text-sm mb-1 text-[#0D2B32]">{t.remix}</p>
-      <p className="text-xs text-[#4E7169] font-semibold mb-4">{t.remixDesc}</p>
-      <button onClick={() => setUnlocked(true)} className={cn('px-6 py-2.5 rounded-2xl font-extrabold text-sm flex items-center gap-1.5 mx-auto transition-all', PRIMARY_BTN)}>
-        Unlock Remix <Icon kind="lock" className="w-3.5 h-3.5" />
-      </button>
-    </div>
-  )
-
-  return (
-    <div className={cn(CARD, 'p-5')}>
-      <div className="flex items-center gap-2 mb-3">
-        <Icon kind="palette" className="w-5 h-5" style={{ color: '#0F9B87' }} />
-        <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.remix}</span>
-        {s.xp_bonus && <span className="ml-auto text-xs font-extrabold text-[#0F9B87] bg-[#17D9C0]/15 border border-[#17D9C0]/25 px-2.5 py-0.5 rounded-full">+{s.xp_bonus} XP</span>}
-      </div>
-      {s.title && <h3 className="font-extrabold text-base mb-2 text-[#0D2B32]">{s.title}</h3>}
-      <p className="text-sm font-semibold leading-relaxed mb-4 text-[#0D2B32]">{s.twist ?? s.text}</p>
-      {s.hint && (
-        <details className="mb-4">
-          <summary className="text-xs font-bold text-[#0F9B87] cursor-pointer hover:text-[#0D2B32] transition-colors">{t.showHint}</summary>
-          <p className="text-sm text-[#4E7169] font-semibold mt-2 pl-4 border-l-2 border-[#17D9C0]/30 leading-relaxed">{s.hint}</p>
-        </details>
-      )}
-      <div className="flex items-center gap-3 flex-wrap">
-        <Link href={`/dashboard/coach?topic=${encodeURIComponent(lessonTitle + ' remix')}`}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F9B87] hover:text-[#0D2B32] transition-colors">
-          <Icon kind="robot" className="w-3.5 h-3.5" /> Show AI Coach my remix
-        </Link>
-        {!finished ? (
-          <button onClick={() => { setFinished(true); onComplete?.() }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-[#17D9C0]/15 text-[#0F9B87] border border-[#17D9C0]/25 hover:bg-[#17D9C0]/25 transition-all">
-            <Icon kind="check" className="w-3.5 h-3.5" /> {t.remixDone}
-          </button>
-        ) : (
-          <p className="text-xs font-extrabold text-[#0F9B87] flex items-center gap-1.5">
-            <Icon kind="check" className="w-4 h-4" /> {t.remixComplete}
-          </p>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ACTIVITY: Drag & Drop
-// Now works on touch screens too: tap a word to pick it up, then tap a slot.
-// (HTML5 drag-and-drop does not fire on most phones/tablets.)
-// ─────────────────────────────────────────────────────────────────────────────
-function DragDropActivity({ s, t, onComplete }: { s: Section; t: Record<string, string>; onComplete?: () => void }) {
-  const targets  = s.targets ?? []
-  const wordBank = s.word_bank ?? targets.map(tgt => tgt.correct)
-
-  const shuffle = (src: string[]) => {
-    const arr = [...src]
-    for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]] }
-    return arr
-  }
-
-  const [bank, setBank] = useState<string[]>(() => shuffle(wordBank))
-  const [slots, setSlots] = useState<Record<string, string>>({})
-  // "dragging" doubles as the tap-selected word
-  const [dragging, setDragging] = useState<{ word: string; from: 'bank' | string } | null>(null)
-  const [checked, setChecked]   = useState(false)
-  const [results, setResults]   = useState<Record<string, boolean>>({})
-
-  const check = () => {
-    const res: Record<string, boolean> = {}
-    targets.forEach(tgt => { res[tgt.id] = (slots[tgt.id] ?? '') === tgt.correct })
-    setResults(res); setChecked(true)
-  }
-  const reset = () => {
-    setSlots({}); setBank(shuffle(wordBank))
-    setChecked(false); setResults({}); setDragging(null)
-  }
-
-  const dropOnSlot = (targetId: string) => {
-    if (!dragging) return
-    const { word, from } = dragging
-    if (from === targetId) { setDragging(null); return }
-    const evicted   = slots[targetId]
-    const nextSlots = { ...slots }
-    const nextBank  = [...bank]
-    if (from === 'bank') {
-      const i = nextBank.indexOf(word)
-      if (i > -1) nextBank.splice(i, 1)
-      if (evicted) nextBank.push(evicted)
-    } else {
-      // slot → slot: swap
-      if (evicted) nextSlots[from] = evicted
-      else delete nextSlots[from]
-    }
-    nextSlots[targetId] = word
-    setSlots(nextSlots); setBank(nextBank)
-    setDragging(null); setChecked(false); setResults({})
-  }
-
-  const dropOnBank = () => {
-    if (!dragging || dragging.from === 'bank') return
-    const { word, from } = dragging
-    const nextSlots = { ...slots }; delete nextSlots[from]
-    setSlots(nextSlots); setBank([...bank, word])
-    setDragging(null); setChecked(false); setResults({})
-  }
-
-  const onSlotClick = (targetId: string) => {
-    if (dragging) dropOnSlot(targetId)
-    else if (slots[targetId]) setDragging({ word: slots[targetId], from: targetId })
-  }
-
-  const allFilled  = targets.every(tgt => slots[tgt.id])
-  const allCorrect = checked && targets.every(tgt => results[tgt.id])
-  useEffect(() => { if (allCorrect) onComplete?.() }, [allCorrect, onComplete])
-
-  return (
-    <div className={TERMINAL}>
-      <CodeWindowHeader icon="puzzle" label={t.dragDrop}
-        trailing={s.text ? <span className="text-xs text-white/40 truncate max-w-xs">{s.text}</span> : undefined} />
-
-      <div className="p-4 sm:p-5 space-y-6">
-        <div>
-          <p className="text-xs font-semibold text-white/50">{s.instructions ?? t.dragInstruction}</p>
-          <p className="text-xs font-semibold text-white/30 mt-1">{t.tapToPlace}</p>
         </div>
 
-        <div className="space-y-3">
-          {targets.map(tgt => {
-            const filled    = slots[tgt.id]
-            const isCorrect = checked && results[tgt.id]
-            const isWrong   = checked && !results[tgt.id] && !!filled
-            const isPicked  = dragging?.from === tgt.id
-            return (
-              <div key={tgt.id} onDragOver={e => e.preventDefault()} onDrop={() => dropOnSlot(tgt.id)} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
-                <div className="sm:min-w-[160px] sm:text-right">
-                  <code className="text-sm font-mono text-[#17D9C0]/80 whitespace-pre">{tgt.label}</code>
+        <div className="container">
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 30 }}>
+            {['Schools', 'Scouts programs', 'Community and training centers'].map((label, i, arr) => (
+              <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(41,57,74,0.55)' }}>{label}</span>
+                {i < arr.length - 1 && <span aria-hidden style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(41,57,74,0.25)' }} />}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ================= AUDIENCE-SPECIFIC PITCH (Family / Schools) ================= */}
+      <div id="audience" className={styles.schoolsSec} style={{ scrollMarginTop: 90 }}>
+        <div className="container">
+          {audience === 'family' ? (
+            <div className={styles.schoolsGrid}>
+              <div>
+                <span className="pill">For Families</span>
+                <h2 style={{ marginTop: 18 }}>Learning that fits your family&apos;s schedule.</h2>
+                <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 460 }}>
+                  No classroom, no fixed timetable — just 15 minutes a day, whenever
+                  it works. Alone, with a sibling, or together with you.
+                </p>
+                <div className={styles.schoolsList}>
+                  <div className={styles.schoolsItem}>
+                    <b>Learn anytime, anywhere</b>
+                    <span>Self-paced missions your child can start and stop on their own.</span>
+                  </div>
+                  <div className={styles.schoolsItem}>
+                    <b>Arabic, French &amp; English</b>
+                    <span>A native trilingual curriculum, not translated from somewhere else.</span>
+                  </div>
+                  <div className={styles.schoolsItem}>
+                    <b>Weekly parent summary</b>
+                    <span>See what they learned and where they got stuck — no digging required.</span>
+                  </div>
                 </div>
-                <Icon kind="chevronRight" className="w-4 h-4 text-white/25 flex-shrink-0 hidden sm:block" />
-                <div
-                  onClick={() => onSlotClick(tgt.id)}
-                  role="button" tabIndex={0}
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSlotClick(tgt.id) } }}
-                  className={cn(
-                    'flex-1 min-h-[44px] rounded-2xl border-2 border-dashed flex items-center px-3 transition-all cursor-pointer',
-                    filled
-                      ? isCorrect ? 'border-[#17D9C0]/50 bg-[#17D9C0]/10' : isWrong ? 'border-[#E15B71]/50 bg-[#E15B71]/10' : 'border-[#17D9C0]/50 bg-[#17D9C0]/10'
-                      : dragging  ? 'border-[#17D9C0]/60 bg-[#17D9C0]/8' : 'border-white/15 bg-white/3',
-                    isPicked && 'ring-2 ring-[#FFB930]'
-                  )}>
-                  {filled ? (
-                    <div draggable onDragStart={() => setDragging({ word: filled, from: tgt.id })} onDragEnd={() => setDragging(null)}
-                      className={cn('px-3 py-1 rounded-lg text-sm font-bold cursor-grab active:cursor-grabbing select-none flex items-center gap-1.5',
-                        isCorrect ? 'bg-[#17D9C0]/20 text-[#17D9C0]' : isWrong ? 'bg-[#E15B71]/20 text-[#E15B71]' : 'bg-[#17D9C0]/20 text-[#17D9C0]')}>
-                      {filled}
-                      {checked && <Icon kind={isCorrect ? 'check' : 'x'} className="w-3.5 h-3.5" />}
+                <div className={styles.ctaRow}>
+                  <a href="/auth/signup">
+                    <button className="btn btn-dark">Start free trial &rarr;</button>
+                  </a>
+                  <a href="#plans">
+                    <button className="btn btn-outline">See family plans &rarr;</button>
+                  </a>
+                </div>
+              </div>
+
+              <div className={styles.dashMock}>
+                <div className={styles.dashBar}>
+                  <div className={styles.dashDot} />
+                  <div className={styles.dashDot} />
+                  <div className={styles.dashDot} />
+                </div>
+                <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>
+                  Faris&apos; week
+                </p>
+                <div className={styles.rosterRow}><span>Missions completed</span><span>5 / 5</span></div>
+                <div className={styles.rosterRow}><span>Current streak</span><span style={{ color: '#D4A24C' }}>4 pearls 🔥</span></div>
+                <div className={styles.rosterRow}><span>Track</span><span>Coding</span></div>
+                <div className={styles.rosterRow}>
+                  <span>Next up</span>
+                  <span style={{ color: '#1FB8A6' }}>Level 5</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.schoolsGrid}>
+              <div>
+                <span className="pill">For Schools &amp; Institutions</span>
+                <h2 style={{ marginTop: 18 }}>Bring Plulai into your classroom.</h2>
+                <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 460 }}>
+                  A curriculum your teachers can run — with a dashboard that flags who&apos;s
+                  stuck before report cards do.
+                </p>
+                <div className={styles.schoolsList}>
+                  <div className={styles.schoolsItem}>
+                    <b>Bulk seats, 50–5,000</b>
+                    <span>Regional pricing, flexible billing.</span>
+                  </div>
+                  <div className={styles.schoolsItem}>
+                    <b>Arabic, French &amp; English curriculum</b>
+                    <span>Built for MENA classrooms, not translated from somewhere else.</span>
+                  </div>
+                  <div className={styles.schoolsItem}>
+                    <b>Dedicated support</b>
+                    <span>Onboarding, training, a named success contact.</span>
+                  </div>
+                </div>
+                <div className={styles.ctaRow}>
+                  <a href="/schools">
+                    <button className="btn btn-dark">Explore for schools &rarr;</button>
+                  </a>
+                  <a href="mailto:hello@plulai.com">
+                    <button className="btn btn-outline">Book a demo &rarr;</button>
+                  </a>
+                </div>
+              </div>
+
+              <div className={styles.dashMock}>
+                <div className={styles.dashBar}>
+                  <div className={styles.dashDot} />
+                  <div className={styles.dashDot} />
+                  <div className={styles.dashDot} />
+                </div>
+                <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>
+                  Grade 5B — Coding Track
+                </p>
+                <div className={styles.rosterRow}><span>Sara K.</span><span>80%</span></div>
+                <div className={styles.rosterRow}><span>Ali M.</span><span>45%</span></div>
+                <div className={styles.rosterRow}><span>Fatima R.</span><span>92%</span></div>
+                <div className={styles.rosterRow}>
+                  <span>Yousef A. <span style={{ color: '#D4A24C' }}>· stuck</span></span>
+                  <span>15%</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ================= HOW IT WORKS (schools only) ================= */}
+      {audience === 'schools' && (
+      <div className={styles.tracksSec}>
+        <style>{`
+          @media (max-width: 760px) {
+            .how-grid { grid-template-columns: 1fr !important; }
+            .how-tabs { flex-direction: row !important; overflow-x: auto; gap: 10px !important; padding-bottom: 6px; }
+            .how-tab { flex: 0 0 auto !important; white-space: nowrap; }
+          }
+        `}</style>
+        <div className="container">
+          <div className={styles.tracksHead}>
+            <p className="eyebrow">How it works</p>
+            <h2>From demo to full rollout</h2>
+            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
+              Most schools go from first call to a full classroom in under a month.
+            </p>
+          </div>
+
+          {(() => {
+            const steps = [
+              {
+                n: '01', title: 'Book a demo', color: '#1FB8A6',
+                desc: 'A 30-minute walkthrough tailored to your grade levels and goals — see the student view, the teacher view, and the admin dashboard.',
+                preview: (
+                  <>
+                    <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>This week</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 16 }}>
+                      {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, idx) => (
+                        <div
+                          key={d + idx}
+                          style={{
+                            aspectRatio: '1', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 11, fontWeight: 600,
+                            background: idx === 3 ? '#1FB8A6' : 'rgba(255,255,255,0.08)',
+                            color: idx === 3 ? '#0D2B32' : '#B7C9C5',
+                          }}
+                        >
+                          {d}
+                        </div>
+                      ))}
                     </div>
-                  ) : (
-                    <span className="text-xs text-white/30 font-semibold">{dragging ? 'Tap to place here' : 'Drop here'}</span>
-                  )}
+                    <div className={styles.rosterRow}><span>Demo · Wed, 10:00 AM</span><span style={{ color: '#1FB8A6' }}>Booked</span></div>
+                  </>
+                ),
+              },
+              {
+                n: '02', title: 'Pilot one classroom', color: '#D4A24C',
+                desc: 'Run a free pilot with a single class before committing school-wide — full access, no cost, no pressure to continue.',
+                preview: (
+                  <>
+                    <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>Grade 5B — Pilot</p>
+                    <div className={styles.rosterRow}><span>Sara K.</span><span>80%</span></div>
+                    <div className={styles.rosterRow}><span>Ali M.</span><span>45%</span></div>
+                    <div className={styles.rosterRow}><span>Fatima R.</span><span>92%</span></div>
+                  </>
+                ),
+              },
+              {
+                n: '03', title: 'Train your teachers', color: '#0D2B32',
+                desc: 'A short onboarding session — no coding background required. Teachers leave knowing the platform and the dashboard cold.',
+                preview: (
+                  <>
+                    <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>Onboarding checklist</p>
+                    {['Platform walkthrough', 'Grading & dashboard', 'Live Q&A session'].map((item) => (
+                      <div key={item} className={styles.rosterRow}>
+                        <span>{item}</span>
+                        <span style={{ color: '#1FB8A6' }}>✓</span>
+                      </div>
+                    ))}
+                  </>
+                ),
+              },
+              {
+                n: '04', title: 'Roll out school-wide', color: '#053D35',
+                desc: 'Scale to the full grade or school, with a dashboard for admins that flags who\u2019s stuck before report cards do.',
+                preview: (
+                  <>
+                    <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>Rollout progress</p>
+                    {[{ g: 'Grade 4', v: 82 }, { g: 'Grade 5', v: 91 }, { g: 'Grade 6', v: 76 }].map((row) => (
+                      <div key={row.g} style={{ marginBottom: 10 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#B7C9C5', marginBottom: 4 }}>
+                          <span>{row.g}</span><span>{row.v}%</span>
+                        </div>
+                        <div style={{ height: 6, borderRadius: 4, background: 'rgba(255,255,255,0.1)' }}>
+                          <div style={{ height: 6, borderRadius: 4, width: `${row.v}%`, background: '#1FB8A6' }} />
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ),
+              },
+            ]
+            const step = steps[activeStep]
+            return (
+              <div className="how-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.15fr', gap: 40, marginTop: 48, alignItems: 'start' }}>
+                <div className="how-tabs" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {steps.map((s, i) => {
+                    const active = i === activeStep
+                    return (
+                      <button
+                        key={s.n}
+                        type="button"
+                        className="how-tab"
+                        onClick={() => setActiveStep(i)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left',
+                          padding: '16px 18px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+                          border: active ? 'none' : '1px solid #E4E9E7',
+                          background: active ? '#0D2B32' : '#fff',
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 12.5, fontWeight: 700,
+                            background: active ? s.color : '#F1F5F4',
+                            color: active ? (s.color === '#D4A24C' ? '#402F12' : '#fff') : '#5C7873',
+                          }}
+                        >
+                          {s.n}
+                        </span>
+                        <span style={{ fontWeight: 700, fontSize: 14.5, color: active ? '#F6F3EA' : '#0D2B32' }}>
+                          {s.title}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div>
+                  <div className={styles.dashMock}>
+                    <div className={styles.dashBar}>
+                      <div className={styles.dashDot} />
+                      <div className={styles.dashDot} />
+                      <div className={styles.dashDot} />
+                    </div>
+                    {step.preview}
+                  </div>
+                  <p style={{ fontSize: 14, lineHeight: 1.65, color: 'rgba(41,57,74,0.75)', marginTop: 20 }}>
+                    {step.desc}
+                  </p>
                 </div>
               </div>
             )
-          })}
+          })()}
+
+          <div style={{ textAlign: 'center', marginTop: 40 }}>
+            <a href="#audience">
+              <button className="btn btn-cta">Book a demo &rarr;</button>
+            </a>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* ================= JOURNEY: roadmap ================= */}
+      {/* Reframed from "3 tracks" to the real shape of the 12-year path:
+          confidence/communication and design/marketing sit alongside
+          coding and AI, grouped into four stages so the road stays
+          readable instead of sprawling into 9 individual stops. Copy is
+          outcome-first ("you'll..."), not "what your students will
+          learn" — this section runs for both audiences, unchanged. */}
+      <div id="tracks" className={styles.tracksSec} style={{ overflow: 'hidden' }}>
+        <style>{`
+          .curr-icon { transition: transform .2s ease; }
+          .curr-col:hover .curr-icon { transform: scale(1.07); }
+          @media (max-width: 760px) {
+            .curr-path { display: none; }
+            .curr-row { flex-direction: column !important; align-items: center !important; gap: 40px !important; }
+            .curr-col { transform: none !important; }
+          }
+        `}</style>
+        <div className="container">
+          <div className={styles.tracksHead} style={{ position: 'relative' }}>
+            <p className="eyebrow">The 12-year path</p>
+            <h2 style={{ display: 'inline-block', position: 'relative' }}>
+              What they become, not just what they learn
+              <svg
+                width="280" height="14" viewBox="0 0 280 14"
+                style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: -10 }}
+                aria-hidden
+              >
+                <path d="M4 8 Q40 -2 76 8 T148 8 T220 8 T276 8" stroke="#D4A24C" strokeWidth={3} fill="none" strokeLinecap="round" />
+              </svg>
+            </h2>
+            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 560, margin: '22px auto 0' }}>
+              Coding and AI get most of the attention — the path covers just as much
+              ground in the confidence to speak up, the design sense to make things
+              people actually want to use, and the money and marketing instincts to
+              turn an idea into something real.
+            </p>
+            <span
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 18,
+                padding: '7px 15px', borderRadius: 999, background: '#EAF6F3',
+                color: '#0D2B32', fontSize: 13, fontWeight: 600,
+              }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1FB8A6' }} />
+              Ages 6–18 · one continuous path, mission by mission
+            </span>
+          </div>
+
+          {(() => {
+            const journeyStops = [
+              {
+                title: 'Spark', color: '#FF6B57', dark: '#7A2E22',
+                icon: (
+                  <svg width={22} height={22} viewBox="0 0 22 22">
+                    <path d="M11 0 L13 9 L22 11 L13 13 L11 22 L9 13 L0 11 L9 9 Z" fill="#fff" />
+                  </svg>
+                ),
+                outcome: "You'll find your voice — pitch an idea, speak up in a room, and stop being afraid to get it wrong.",
+                tags: ['Self-confidence', 'Communication', 'Creative thinking'],
+              },
+              {
+                title: 'Build', color: '#1FB8A6', dark: '#0D2B32',
+                icon: (
+                  <svg width={20} height={20} viewBox="0 0 20 20">
+                    <rect x="1.5" y="1.5" width="7" height="7" rx="1.5" fill="#fff" opacity={0.9} />
+                    <rect x="11.5" y="1.5" width="7" height="7" rx="1.5" fill="#fff" opacity={0.6} />
+                    <rect x="1.5" y="11.5" width="7" height="7" rx="1.5" fill="#fff" opacity={0.6} />
+                    <rect x="11.5" y="11.5" width="7" height="7" rx="1.5" fill="#fff" />
+                  </svg>
+                ),
+                outcome: "You'll turn what's in your head into something real — an app, a game, a design people actually want to use.",
+                tags: ['Coding', 'Game dev', 'UI/UX design'],
+              },
+              {
+                title: 'Think', color: '#D4A24C', dark: '#402F12',
+                icon: <span className="font-mono" style={{ fontWeight: 700, fontSize: 19, color: '#402F12' }}>AI</span>,
+                outcome: "You'll get fluent with AI and with money — how to use both, instead of being used by them.",
+                tags: ['AI & future tech', 'Financial literacy'],
+              },
+              {
+                title: 'Launch', color: '#053D35', dark: '#053D35',
+                icon: (
+                  <svg width={20} height={20} viewBox="0 0 20 20">
+                    <path d="M10 1c3 2 4.5 6 3.5 10.5l-2 1.5-1.5-2c-1-.5-2-.5-3 0l-1.5 2-2-1.5C2.5 7 4 3 7 1c1-.6 2-.6 3 0Z" fill="#fff" />
+                    <circle cx="10" cy="7" r="1.6" fill="#053D35" />
+                  </svg>
+                ),
+                outcome: "You'll take an idea all the way to a pitch — priced, marketed, and presented like you mean it.",
+                tags: ['Entrepreneurship', 'Marketing', 'Pitching'],
+              },
+            ]
+            const SWING = 36 // px — how far the path/icons rise and dip
+
+            return (
+              <div style={{ position: 'relative', marginTop: 76, paddingBottom: 8 }}>
+                {/* the road itself — anchors line up with the icon centers below */}
+                <svg
+                  className="curr-path"
+                  viewBox="0 0 1000 155" preserveAspectRatio="none"
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 155, zIndex: 0 }}
+                  aria-hidden
+                >
+                  <path
+                    d="M125,99 C230,99 270,27 375,27 C480,27 520,99 625,99 C730,99 770,27 875,27"
+                    stroke="#CFE3DF" strokeWidth={3} strokeDasharray="2 13" strokeLinecap="round" fill="none"
+                  />
+                  {journeyStops.map((s, i) => (
+                    <circle key={s.title} cx={125 + i * 250} cy={i % 2 === 0 ? 99 : 27} r={5} fill={s.color} />
+                  ))}
+                </svg>
+
+                <div
+                  className="curr-row"
+                  style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 22 }}
+                >
+                  {journeyStops.map((s, i) => {
+                    const offset = i % 2 === 0 ? SWING : -SWING
+                    return (
+                      <div
+                        key={s.title}
+                        className="curr-col"
+                        style={{ width: 210, textAlign: 'center', transform: `translateY(${offset}px)` }}
+                      >
+                        <span style={{ display: 'inline-block', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, color: 'rgba(41,57,74,0.5)', marginBottom: 10 }}>
+                          MISSION SET 0{i + 1}
+                        </span>
+                        <div
+                          className="curr-icon"
+                          style={{
+                            width: 74, height: 74, margin: '0 auto 16px', borderRadius: '50%',
+                            background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: `0 10px 22px ${s.color}4d, 0 0 0 6px #fff, 0 0 0 7px #E4E9E7`,
+                          }}
+                        >
+                          {s.icon}
+                        </div>
+                        <p style={{ fontWeight: 700, fontSize: 17, color: '#0D2B32', margin: '0 0 8px' }}>{s.title}</p>
+                        <p style={{ color: 'rgba(41,57,74,0.7)', fontSize: 13, lineHeight: 1.55, margin: '0 0 14px' }}>{s.outcome}</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
+                          {s.tags.map((t) => (
+                            <span key={t} style={{ fontSize: 11, fontWeight: 600, color: s.dark, background: `${s.color}1a`, padding: '4px 10px', borderRadius: 999 }}>
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(41,57,74,0.5)', marginTop: 8 }}>
+                  …plus new missions every year, in whatever skill turns out to matter next.
+                </p>
+              </div>
+            )
+          })()}
+        </div>
+      </div>
+
+      {/* ================= ALUMNI PROJECTS ================= */}
+      {/* Second pass — the white portfolio-card version was competent but
+          generic; it could've been any coding bootcamp's site. This ties
+          back into the one identity that actually is Plulai's: the pearl
+          path. Projects are framed as treasure brought back from the
+          journey (dark display case, gold-pearl bullet before each
+          builder's name — the same "pearl" language the dashboard uses
+          for XP), the backdrop carries a faint geometric lattice, and it
+          runs straight into the dark "pearl path" section next with no
+          light-dark-light flicker in between — one continuous dark
+          passage telling the proof/outcome story. Closes on a CTA so the
+          proof doesn't just sit there — it pushes toward the trial. */}
+      <div style={{ position: 'relative', background: 'linear-gradient(135deg, #0D2B32 0%, #153B44 100%)', padding: '68px 0 64px', overflow: 'hidden' }}>
+        <svg aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.05 }}>
+          <defs>
+            <pattern id="alumni-lattice" width="46" height="46" patternUnits="userSpaceOnUse">
+              <path d="M23 4 L42 23 L23 42 L4 23 Z" fill="none" stroke="#F6F3EA" strokeWidth={1} />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#alumni-lattice)" />
+        </svg>
+
+        <style>{`
+          @keyframes plulai-project-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+          }
+          .project-marquee-track { animation: plulai-project-scroll 50s linear infinite; }
+          .project-marquee-wrap:hover .project-marquee-track { animation-play-state: paused; }
+          .project-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+          .project-card:hover { transform: translateY(-5px); box-shadow: 0 16px 30px rgba(0,0,0,0.35); border-color: rgba(212,162,76,0.55) !important; }
+          .project-img { transition: transform .4s ease; }
+          .project-card:hover .project-img { transform: scale(1.06); }
+          @media (prefers-reduced-motion: reduce) {
+            .project-marquee-track { animation: none; }
+            .project-card, .project-img { transition: none; }
+          }
+        `}</style>
+
+        <div className="container" style={{ position: 'relative' }}>
+          <p className="eyebrow" style={{ color: '#8FA8A3' }}>Real missions, real treasure</p>
+          <h2 style={{ color: '#F6F3EA' }}>What they bring back from the path</h2>
+          <p style={{ color: '#8FA8A3', maxWidth: 480, marginTop: 10 }}>
+            Not stock screenshots — every project below was shipped by a real Plulai kid,
+            track and age included.
+          </p>
         </div>
 
-        <div
-          onDragOver={e => e.preventDefault()} onDrop={dropOnBank}
-          onClick={() => { if (dragging && dragging.from !== 'bank') dropOnBank() }}
-          className="min-h-[52px] rounded-2xl border border-white/8 bg-white/2 p-3">
-          <p className="text-xs font-black text-white/30 uppercase tracking-wider mb-2">{t.wordBank}</p>
-          <div className="flex flex-wrap gap-2">
-            {bank.length === 0 && <span className="text-xs text-white/25 italic">All words placed — tap a placed word to swap it</span>}
-            {bank.map((word, i) => {
-              const picked = dragging?.from === 'bank' && dragging.word === word
+        <div className="project-marquee-wrap" style={{ position: 'relative', marginTop: 36 }}>
+          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 90, background: 'linear-gradient(90deg, #0D2B32, rgba(13,43,50,0))', zIndex: 2, pointerEvents: 'none' }} />
+          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: 90, background: 'linear-gradient(270deg, #0D2B32, rgba(13,43,50,0))', zIndex: 2, pointerEvents: 'none' }} />
+
+          <div
+            className="project-marquee-track"
+            style={{ display: 'flex', width: 'max-content', gap: 20, padding: '6px 4px 14px' }}
+          >
+            {[...projects, ...projects].map((project, i) => {
+              const tag = project.tagColor === 'gold'
+                ? { bg: '#D4A24C', fg: '#402F12' }
+                : { bg: '#1FB8A6', fg: '#fff' }
               return (
-                <button type="button" key={`${word}-${i}`} draggable
-                  onDragStart={() => setDragging({ word, from: 'bank' })}
-                  onDragEnd={() => setDragging(null)}
-                  onClick={e => { e.stopPropagation(); setDragging(picked ? null : { word, from: 'bank' }) }}
-                  aria-pressed={picked}
-                  className={cn(
-                    'px-3 py-2 rounded-lg text-sm font-bold border cursor-grab active:cursor-grabbing select-none transition-all',
-                    picked ? 'bg-[#FFB930]/25 text-[#FFB930] border-[#FFB930]/60 scale-105' : 'bg-[#17D9C0]/15 text-[#17D9C0] border-[#17D9C0]/25 hover:bg-[#17D9C0]/25'
-                  )}>
-                  {word}
-                </button>
+                <div
+                  key={`${project.file}-${i}`}
+                  className="project-card"
+                  style={{
+                    flex: '0 0 auto', width: 250, borderRadius: 18, background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(212,162,76,0.22)', overflow: 'hidden',
+                  }}
+                >
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', overflow: 'hidden', background: 'rgba(255,255,255,0.03)' }}>
+                    <Image
+                      src={`/projects/${project.file}`}
+                      alt={project.title}
+                      fill
+                      className="project-img"
+                      style={{ objectFit: 'cover' }}
+                      sizes="250px"
+                    />
+                    <span
+                      style={{
+                        position: 'absolute', top: 10, left: 10, fontSize: 11, fontWeight: 700,
+                        letterSpacing: 0.3, color: tag.fg, background: tag.bg,
+                        padding: '4px 10px', borderRadius: 999, boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                      }}
+                    >
+                      {project.track}
+                    </span>
+                  </div>
+                  <div style={{ padding: '13px 15px 15px' }}>
+                    <p style={{ fontWeight: 700, fontSize: 14.5, color: '#F6F3EA', margin: '0 0 6px' }}>{project.title}</p>
+                    {project.student && (
+                      <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#8FA8A3', margin: 0 }}>
+                        <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: '#D4A24C', flexShrink: 0 }} />
+                        {project.student}
+                      </p>
+                    )}
+                  </div>
+                </div>
               )
             })}
           </div>
         </div>
 
-        {allCorrect && (
-          <div className="bg-[#17D9C0]/10 border border-[#17D9C0]/30 rounded-2xl p-4 text-center">
-            <p className="text-sm font-extrabold text-[#17D9C0] flex items-center justify-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> Perfect! Every word is in the right place.</p>
-          </div>
-        )}
-        {checked && !allCorrect && (
-          <div className="bg-[#E15B71]/8 border border-[#E15B71]/20 rounded-2xl p-3 text-center">
-            <p className="text-sm font-bold text-[#E15B71]">{Object.values(results).filter(Boolean).length}/{targets.length} correct — tap a wrong word to move it</p>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between">
-          <button onClick={reset} className="text-xs font-bold text-white/50 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-all hover:border-white/25">{t.resetWords}</button>
-          <button onClick={check} disabled={!allFilled || allCorrect}
-            className="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#17D9C0]/20 text-[#17D9C0] border border-[#17D9C0]/30 hover:bg-[#17D9C0]/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-            {t.checkAnswer}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ACTIVITY: Submit Your Work
-// ─────────────────────────────────────────────────────────────────────────────
-function SubmitWorkActivity({ s, t, userId, lessonId, onComplete }: { s: Section; t: Record<string, string>; userId: string; lessonId: string; onComplete?: () => void }) {
-  const subType = s.submission_type ?? 'both'
-  const [urlVal, setUrlVal]     = useState('')
-  const [videoVal, setVideoVal] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const [error, setError]         = useState('')
-  const [loading, setLoading]     = useState(false)
-  useEffect(() => { if (submitted) onComplete?.() }, [submitted, onComplete])
-
-  const validate = (val: string) => { try { new URL(val); return true } catch { return false } }
-
-  const handleSubmit = async () => {
-    const urlOk   = subType !== 'video' ? validate(urlVal)   : true
-    const videoOk = subType !== 'url'   ? validate(videoVal) : true
-    if (subType === 'url'   && !urlOk)            { setError(t.submitRequired); return }
-    if (subType === 'video' && !videoOk)          { setError(t.submitRequired); return }
-    if (subType === 'both'  && !urlOk && !videoOk){ setError(t.submitRequired); return }
-
-    setError(''); setLoading(true)
-    try {
-      const res = await fetch('/api/submissions', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, lessonId, projectUrl: urlVal || null, videoUrl: videoVal || null }),
-      })
-      if (!res.ok) throw new Error('save failed')
-      setSubmitted(true)
-    } catch { setError('Could not save — check your connection and try again.') }
-    finally { setLoading(false) }
-  }
-
-  if (submitted) return (
-    <div className={cn(CARD, 'p-6 text-center')}>
-      <div className="w-16 h-16 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-3">
-        <Icon kind="partyPop" className="w-8 h-8" style={{ color: '#0F9B87' }} />
-      </div>
-      <h3 className="font-extrabold text-lg text-[#0F9B87] mb-2">{t.submitDone}</h3>
-      <p className="text-sm text-[#4E7169] font-semibold">Your work has been saved to your portfolio.</p>
-      <div className="flex items-center justify-center gap-4 mt-4">
-        {urlVal && (
-          <a href={urlVal} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F9B87] hover:text-[#0D2B32] transition-colors">
-            <Icon kind="link" className="w-3.5 h-3.5" /> View project
+        <div style={{ textAlign: 'center', marginTop: 40, position: 'relative' }}>
+          <a href="#audience">
+            <button className="btn btn-outline btn-outline--on-dark">See what they could build next &rarr;</button>
           </a>
-        )}
-        {videoVal && (
-          <a href={videoVal} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F9B87] hover:text-[#0D2B32] transition-colors">
-            <Icon kind="video" className="w-3.5 h-3.5" /> Watch video
-          </a>
-        )}
-      </div>
-    </div>
-  )
-
-  return (
-    <div className={cn(CARD, 'overflow-hidden')}>
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-[#0D2B32]/8 bg-[#EAF7F4]/40">
-        <div className="w-10 h-10 rounded-xl bg-[#17D9C0]/15 flex items-center justify-center shrink-0">
-          <Icon kind="upload" className="w-5 h-5" style={{ color: '#0F9B87' }} />
-        </div>
-        <div>
-          <p className="font-extrabold text-sm text-[#0D2B32]">{t.submitWork}</p>
-          {s.prompt && <p className="text-xs text-[#4E7169] font-semibold mt-0.5">{s.prompt}</p>}
         </div>
       </div>
 
-      <div className="p-5 space-y-4">
-        {s.text && (
-          <div className="bg-[#EAF7F4]/50 border border-[#0D2B32]/8 rounded-2xl p-4">
-            <p className="text-sm font-semibold text-[#4E7169] leading-relaxed">{s.text}</p>
+      {/* ================= PATH SECTION: before / after ================= */}
+      <div className={styles.pathSec}>
+        <style>{`
+          @media (max-width: 760px) {
+            .ba-grid { grid-template-columns: 1fr !important; }
+            .ba-panel-before { border-radius: 20px 20px 0 0 !important; }
+            .ba-panel-after { border-radius: 0 0 20px 20px !important; }
+            .ba-divider-desktop { display: none !important; }
+            .ba-divider-mobile { display: flex !important; }
+          }
+        `}</style>
+        <div className="container">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 4 }}>
+            <Image
+              src="/avatars/heroplulai.png"
+              alt=""
+              width={44}
+              height={44}
+              style={{ borderRadius: '50%', flexShrink: 0 }}
+              aria-hidden
+            />
+            <p className="eyebrow" style={{ margin: 0 }}>The pearl path</p>
           </div>
-        )}
+          <h2 style={{ color: 'var(--raw-pearlwhite)' }}>
+            {audience === 'family'
+              ? 'Watch them go from curious to confident'
+              : 'Watch your students go from hesitant to confident builders'}
+          </h2>
+          <p style={{ color: '#8FA8A3', maxWidth: 560 }}>
+            {audience === 'family'
+              ? "This isn't a points system \u2014 it's what actually changes over a few months of missions."
+              : "This is the shift schools notice \u2014 not a leaderboard, a real change in how students work."}
+          </p>
 
-        {(subType === 'url' || subType === 'both') && (
-          <div>
-            <label className="flex items-center gap-1.5 text-xs font-black text-[#4E7169] uppercase tracking-wider mb-2">
-              <Icon kind="link" className="w-3.5 h-3.5" /> {t.submitUrl}
-            </label>
-            <input type="url" value={urlVal} onChange={e => { setUrlVal(e.target.value); setError('') }}
-              placeholder={s.placeholder ?? t.submitPlaceholder}
-              className="w-full bg-white border border-[#0D2B32]/15 rounded-2xl px-4 py-3 text-sm font-semibold text-[#0D2B32] placeholder:text-[#4E7169]/40 outline-none focus:border-[#17D9C0]/60 focus:bg-[#17D9C0]/5 transition-all" />
-            {urlVal && !validate(urlVal) && (
-              <p className="text-xs text-[#E15B71] font-semibold mt-1.5">That doesn&apos;t look like a valid URL — make sure it starts with https://</p>
-            )}
-          </div>
-        )}
+          <div style={{ position: 'relative', marginTop: 56, maxWidth: 920, marginLeft: 'auto', marginRight: 'auto' }}>
+            <div className="ba-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+              {/* BEFORE */}
+              <div
+                className="ba-panel-before"
+                style={{
+                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '20px 0 0 20px', padding: '40px 34px',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6,
+                    color: '#8FA8A3', background: 'rgba(255,255,255,0.06)', padding: '5px 13px',
+                    borderRadius: 999, marginBottom: 22,
+                  }}
+                >
+                  BEFORE
+                </span>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {(audience === 'family'
+                    ? ['Never touched a line of code', 'Quiet in a room, quick to give up', 'Screen time with nothing to show for it']
+                    : ['Hesitant, unsure where to start', 'Needs constant hand-holding', 'Engagement drops after week one']
+                  ).map((item) => (
+                    <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 15, color: '#8FA8A3', lineHeight: 1.5 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8FA8A3', marginTop: 8, flexShrink: 0 }} />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-        {(subType === 'video' || subType === 'both') && (
-          <div>
-            <label className="flex items-center gap-1.5 text-xs font-black text-[#4E7169] uppercase tracking-wider mb-2">
-              <Icon kind="video" className="w-3.5 h-3.5" /> {t.submitVideo}
-            </label>
-            <input type="url" value={videoVal} onChange={e => { setVideoVal(e.target.value); setError('') }}
-              placeholder="https://loom.com/share/… or https://youtube.com/…"
-              className="w-full bg-white border border-[#0D2B32]/15 rounded-2xl px-4 py-3 text-sm font-semibold text-[#0D2B32] placeholder:text-[#4E7169]/40 outline-none focus:border-[#17D9C0]/60 focus:bg-[#17D9C0]/5 transition-all" />
-            {videoVal && !validate(videoVal) && (
-              <p className="text-xs text-[#E15B71] font-semibold mt-1.5">That doesn&apos;t look like a valid URL — paste the full link</p>
-            )}
-            <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-[#FFB930]/8 rounded-lg border border-[#FFB930]/15">
-              <Icon kind="lightbulb" className="w-4 h-4 text-[#B8790E] flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-[#4E7169] font-semibold leading-relaxed">
-                No video yet? Record a 90-second screen demo on{' '}
-                <a href="https://loom.com" target="_blank" rel="noopener noreferrer" className="text-[#0F9B87] hover:text-[#0D2B32] transition-colors">Loom.com</a>
-                {' '}— free, no install, works in your browser.
-              </p>
+              {/* AFTER */}
+              <div
+                className="ba-panel-after"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(31,184,166,0.14), rgba(212,162,76,0.07))',
+                  border: '1px solid rgba(31,184,166,0.4)', borderRadius: '0 20px 20px 0',
+                  padding: '40px 34px', boxShadow: '0 20px 50px rgba(31,184,166,0.12)',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6,
+                    color: '#0D2B32', background: '#1FB8A6', padding: '5px 13px',
+                    borderRadius: 999, marginBottom: 22,
+                  }}
+                >
+                  AFTER · 3 MONTHS LATER
+                </span>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {(audience === 'family'
+                    ? ['Pitches an idea without flinching', 'Ships their own app or game', 'Debugs mistakes without asking for help']
+                    : ['Speaks up and presents with confidence', 'Builds and ships real projects', 'Works through problems independently']
+                  ).map((item) => (
+                    <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 15, color: '#F6F3EA', fontWeight: 600, lineHeight: 1.5 }}>
+                      <svg width={17} height={17} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
+                        <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* divider: circle w/ arrow, desktop only */}
+            <div
+              className="ba-divider-desktop"
+              style={{
+                position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                width: 56, height: 56, borderRadius: '50%', background: '#0D2B32', border: '3px solid #1FB8A6',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2,
+              }}
+            >
+              <svg width={22} height={22} viewBox="0 0 20 20">
+                <path d="M4 10 H16 M11 5 L16 10 L11 15" stroke="#1FB8A6" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+
+            {/* divider: arrow row, mobile only */}
+            <div
+              className="ba-divider-mobile"
+              style={{
+                display: 'none', justifyContent: 'center', alignItems: 'center',
+                background: '#0D2B32', borderTop: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)',
+                padding: '10px 0',
+              }}
+            >
+              <svg width={20} height={20} viewBox="0 0 20 20">
+                <path d="M10 4 V16 M5 11 L10 16 L15 11" stroke="#1FB8A6" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
           </div>
-        )}
 
-        {error && <p role="alert" className="text-xs font-bold text-[#E15B71] bg-[#E15B71]/10 border border-[#E15B71]/20 rounded-lg px-3 py-2">{error}</p>}
-
-        <button onClick={handleSubmit} disabled={loading}
-          className={cn('w-full py-3.5 rounded-2xl font-extrabold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2', PRIMARY_BTN)}>
-          {loading ? <><Icon kind="hourglass" className="w-4 h-4" /> Saving…</> : t.submitBtn}
-        </button>
-
-        <p className="text-xs text-center text-[#4E7169]/70 font-semibold">
-          Your submission is saved to your Plulai portfolio and visible to your teacher.
-        </p>
+          <div style={{ textAlign: 'center', marginTop: 48 }}>
+            <a href="#audience">
+              <button className="btn btn-cta">
+                {audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;
+              </button>
+            </a>
+          </div>
+        </div>
       </div>
-    </div>
-  )
-}
 
-// ─────────────────────────────────────────────────────────────────────────────
-export default function LessonViewClient({
-  userId, lesson, skill, completion, totalLessons, lessonIndex,
-  prevLesson, nextLesson, nextSkill, language, userName, userAvatar = '🧑‍🚀',
-  streak, finishedAllTracks, suggestedTracks,
-}: Props) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [toast, setToast]         = useState<string | null>(null)
-  const [levelUp, setLevelUp]     = useState<string | null>(null)
-  const [shareCard, setShareCard] = useState<ShareCardProps | null>(null)
-  const [quizState, setQuiz]      = useState<Record<number, { selected: number | null; submitted: boolean }>>({})
-  const [checkState, setChecks]   = useState<Record<number, boolean[]>>({})
-  const [copiedIdx, setCopied]    = useState<number | null>(null)
-  const [justCompleted, setJustCompleted] = useState(false)
-  const [showFeedback, setShowFeedback]   = useState(false)
-  const [activityDone, setActivityDone]   = useState<Record<number, boolean>>({})
-  const [currentStep, setCurrentStep]     = useState(0)
-  const [maxStep, setMaxStep]             = useState(0)
-  const lessonStartRef = useRef<number>(Date.now())
-  const topRef         = useRef<HTMLDivElement | null>(null)
-  const firstRender    = useRef(true)
-
-  const lang  = language || 'en'
-  const t     = UI[lang] ?? UI.en
-  const dir   = lang === 'ar' ? 'rtl' : 'ltr'
-  const isDone = !!completion || justCompleted
-
-  // ── Parse sections up-front so navigation helpers can rely on them ─────
-  let sections: Section[] = []
-  try {
-    const raw = typeof lesson.content_json === 'string' ? JSON.parse(lesson.content_json) : lesson.content_json
-    sections = raw?.sections ?? []
-  } catch { sections = [] }
-
-  // ── Game layer ─────────────────────────────────────────────────────────
-  const [combo, setCombo]           = useState(0)
-  const [xpBurst, setXpBurst]       = useState<{ id: number; amount: number } | null>(null)
-  const [shaking, setShaking]       = useState(false)
-  const [praiseMsg, setPraiseMsg]   = useState<string | null>(null)
-  const [slideDir, setSlideDir]     = useState<'right' | 'left'>('right')
-  const [animKey, setAnimKey]       = useState(0)
-  const burstId = useRef(0)
-
-  const PRAISE_EN = ['Amazing!', 'You\'re on fire!', 'Perfect!', 'Nailed it!', 'Brilliant!', 'Keep going!', 'Superb!']
-  const PRAISE_AR = ['رائع!', 'أنت في القمة!', 'ممتاز!', 'أحسنت!', 'رائع جداً!', 'واصل!', 'متميز!']
-  const PRAISE_FR = ['Incroyable!', 'Tu es en feu!', 'Parfait!', 'Excellent!', 'Brillant!', 'Continue!', 'Superbe!']
-  const praiseBank = lang === 'ar' ? PRAISE_AR : lang === 'fr' ? PRAISE_FR : PRAISE_EN
-
-  const fireXpBurst = (amount: number) => {
-    burstId.current += 1
-    setXpBurst({ id: burstId.current, amount })
-    setTimeout(() => setXpBurst(null), 1200)
-  }
-  const firePraise = () => {
-    const msg = praiseBank[Math.floor(Math.random() * praiseBank.length)]
-    setPraiseMsg(msg)
-    setTimeout(() => setPraiseMsg(null), 1500)
-  }
-  const fireShake = () => { setShaking(true); setTimeout(() => setShaking(false), 500) }
-  const onWrongAnswer = () => { setCombo(0); fireShake() }
-  const gainCombo = () => { setCombo(c => c + 1); firePraise(); fireXpBurst(10) }
-
-  // ── Step navigation ────────────────────────────────────────────────────
-  const goToStep = (target: number) => {
-    const clamped = Math.max(0, Math.min(sections.length - 1, target))
-    if (clamped === currentStep) return
-    setSlideDir(clamped > currentStep ? 'right' : 'left')
-    setAnimKey(k => k + 1)
-    setCurrentStep(clamped)
-  }
-
-  useEffect(() => { setMaxStep(m => Math.max(m, currentStep)) }, [currentStep])
-
-  // Scroll back to the top of the lesson whenever the step changes so kids
-  // never land halfway down the next card.
-  useEffect(() => {
-    if (firstRender.current) { firstRender.current = false; return }
-    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [currentStep])
-
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3500) }
-
-  const selectOption = (secIdx: number, optIdx: number) => {
-    if (quizState[secIdx]?.submitted) return
-    setQuiz(prev => ({ ...prev, [secIdx]: { selected: optIdx, submitted: false } }))
-  }
-
-  const submitQuiz = (secIdx: number, correct: number) => {
-    const selected = quizState[secIdx]?.selected ?? null
-    const isRight  = selected === correct
-    setQuiz(prev => ({ ...prev, [secIdx]: { ...prev[secIdx], submitted: true } }))
-    if (isRight) {
-      gainCombo()
-      markActivityDone(secIdx)
-    } else {
-      onWrongAnswer()
-      setTimeout(() => {
-        setQuiz(p => ({ ...p, [secIdx]: { selected: null, submitted: false } }))
-      }, 1200)
-    }
-  }
-
-  const toggleCheck = (secIdx: number, itemIdx: number, total: number) => {
-    setChecks(prev => {
-      const arr  = prev[secIdx] ?? Array(total).fill(false)
-      const next = [...arr]; next[itemIdx] = !next[itemIdx]
-      return { ...prev, [secIdx]: next }
-    })
-  }
-
-  const copyCode = (code: string, idx: number) => {
-    navigator.clipboard.writeText(code).then(() => { setCopied(idx); setTimeout(() => setCopied(null), 2000) })
-  }
-
-  const markActivityDone = (idx: number) => {
-    if (activityDone[idx]) return
-    setActivityDone(prev => ({ ...prev, [idx]: true }))
-    gainCombo()
-  }
-
-  const ACTIVITY_LABELS: Record<string, string> = {
-    quiz: t.quiz, checklist: t.checklist, speed_quiz: t.speedQuiz, fill_blank: t.fillBlank,
-    drag_drop: t.dragDrop, unscramble: t.unscramble, debug: t.debug,
-    timed_challenge: t.timedChallenge, remix: t.remix, submit_work: t.submitWork,
-  }
-
-  const isActivityDone = (s: Section, i: number): boolean => {
-    switch (s.type) {
-      case 'quiz': { const state = quizState[i]; return !!(state?.submitted && state.selected === s.correct) }
-      case 'checklist': { const arr = checkState[i] ?? []; return (s.checks ?? []).every((_, ci) => arr[ci] === true) }
-      default: return !!activityDone[i]
-    }
-  }
-
-  const interactiveSections = sections.map((s, i) => ({ s, i })).filter(({ s }) => s.type in ACTIVITY_LABELS)
-  const pendingActivities   = interactiveSections.filter(({ s, i }) => !isActivityDone(s, i))
-  const allActivitiesDone   = pendingActivities.length === 0
-  const canComplete         = allActivitiesDone
-
-  const currentSection = sections[currentStep]
-  const isLastStep     = sections.length > 0 && currentStep === sections.length - 1
-  const stepReady      = !currentSection || !(currentSection.type in ACTIVITY_LABELS) || isActivityDone(currentSection, currentStep)
-
-  // Keyboard: → / ← (mirrored in RTL) move between steps when the step is ready.
-  useEffect(() => {
-    if (isDone || sections.length === 0) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
-      const el = e.target as HTMLElement | null
-      if (el && (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || el.isContentEditable)) return
-      const fwd  = dir === 'rtl' ? 'ArrowLeft'  : 'ArrowRight'
-      const back = dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft'
-      if (e.key === fwd && stepReady && !isLastStep) goToStep(currentStep + 1)
-      else if (e.key === back && currentStep > 0)    goToStep(currentStep - 1)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDone, sections.length, dir, stepReady, isLastStep, currentStep])
-
-  const markComplete = () => {
-    if (isDone) return
-    startTransition(async () => {
-      const score = 100
-      const elapsedMins = Math.max(1, Math.round((Date.now() - lessonStartRef.current) / 60000))
-      await completeLesson(userId, lesson.id, score, elapsedMins)
-      await updateStreak(userId)
-      const result = await addXP(userId, lesson.xp_reward, 'lesson_complete', lesson.id)
-      const pct = Math.min(100, Math.round((lessonIndex / totalLessons) * 100))
-      await updateSkillProgress(userId, skill.id, pct)
-      if (!nextLesson && pct >= 100) await addXP(userId, skill.xp_reward, 'skill_complete', skill.id)
-      await checkAndAwardBadges(userId)
-
-      fetch('/api/coins/xp', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ xpEarned: lesson.xp_reward }),
-      }).catch(() => {})
-
-      setJustCompleted(true); setShowFeedback(true)
-      showToast(`+${lesson.xp_reward} ${t.xpEarned}`)
-      if (result.data && result.data.leveledUp) {
-        const rd = result.data as any
-        setLevelUp(`${t.levelUp} Level ${rd.newLevel}!`)
-        setTimeout(() => setLevelUp(null), 4000)
-        setTimeout(() => setShareCard({ type: 'level', childName: userName, childAvatar: userAvatar, newLevel: rd.newLevel, levelTitle: rd.levelTitle ?? '', totalXP: rd.totalXP ?? undefined }), 1200)
-      }
-      if (!nextLesson && pct >= 100) {
-        setTimeout(() => setShareCard({ type: 'skill', childName: userName, childAvatar: userAvatar, skillName: skill.title, skillEmoji: skill.emoji, trackName: skill.track_id, xpEarned: (lesson.xp_reward ?? 0) + (skill.xp_reward ?? 0) }), levelUp ? 5000 : 800)
-      }
-      router.refresh()
-    })
-  }
-
-  const getVideoEmbed = (url: string): string | null => {
-    const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/)
-    if (yt) return `https://www.youtube.com/embed/${yt[1]}?rel=0&modestbranding=1`
-    const vm = url.match(/vimeo\.com\/(\d+)/)
-    if (vm) return `https://player.vimeo.com/video/${vm[1]}?byline=0&portrait=0`
-    if (url.includes('/embed/') || url.includes('player.')) return url
-    return null
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // RENDER SECTION
-  // ─────────────────────────────────────────────────────────────────────────
-  const renderSection = (s: Section, idx: number) => {
-    switch (s.type) {
-
-      case 'intro':
-      case 'reading':
-        return (
-          <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
-            <SectionEyebrow icon="book" label={t.reading} color="bg-[#17D9C0]/15 text-[#0F9B87]" />
-            <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-[#0D2B32]">{s.text}</p>
+      {/* ================= STATS =================
+          Rebuilt self-contained (was styles.statsSec, unseen CSS) as a dark
+          luxury band matching the Alumni/Journey treatment. Also addresses
+          the open TODO: 9.2/10 "satisfaction" had no visible source and
+          read as invented precision, so it's dropped rather than kept as
+          a number nobody could defend if asked. Swap the two remaining
+          numbers for real, current ones whenever you have them. */}
+      <div style={{ position: 'relative', background: 'linear-gradient(135deg, #0D2B32 0%, #153B44 100%)', padding: '52px 0', overflow: 'hidden' }}>
+        <svg aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.05 }}>
+          <defs>
+            <pattern id="stats-lattice" width="46" height="46" patternUnits="userSpaceOnUse">
+              <path d="M23 4 L42 23 L23 42 L4 23 Z" fill="none" stroke="#F6F3EA" strokeWidth={1} />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#stats-lattice)" />
+        </svg>
+        <div className="container" style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '36px 64px', textAlign: 'center' }}>
+            {[
+              { num: '150+', label: 'Active learners' },
+              { num: '500+', label: 'Bite-sized missions' },
+              { num: '9+', label: 'Partner schools' },
+            ].map((s) => (
+              <div key={s.label}>
+                <div style={{ fontWeight: 700, fontSize: 34, color: '#D4A24C' }}>{s.num}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#8FA8A3', marginTop: 4 }}>{s.label}</div>
+              </div>
+            ))}
           </div>
-        )
+        </div>
+      </div>
 
-      case 'analogy':
-        return (
-          <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
-            <div className="flex items-center gap-2 mb-2">
-              <Icon kind="lightbulb" className="w-4 h-4" style={{ color: '#0F9B87' }} />
-              <p className="font-extrabold text-sm text-[#4E7169]">{t.analogy}</p>
-            </div>
-            <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-[#0D2B32]">{s.text}</p>
-          </div>
-        )
-
-      case 'tip':
-        return (
-          <div key={idx} className={cn(CARD, 'p-4 sm:p-5 flex gap-3')}>
-            <span className="w-9 h-9 rounded-xl bg-[#FFB930]/15 flex items-center justify-center flex-shrink-0">
-              <Icon kind="lightbulb" className="w-5 h-5 text-[#B8790E]" />
-            </span>
+      {/* ================= CASE STUDY (schools only) ================= */}
+      {audience === 'schools' && (
+      <div className={styles.tracksSec}>
+        <style>{`
+          @media (max-width: 720px) {
+            .case-study-grid { grid-template-columns: 1fr !important; padding: 32px 24px !important; }
+          }
+        `}</style>
+        <div className="container">
+          <div
+            className="case-study-grid"
+            style={{
+              background: '#0D2B32', borderRadius: 28, padding: '48px 40px',
+              display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 40, alignItems: 'center',
+            }}
+          >
             <div>
-              <p className="font-extrabold text-xs text-[#B8790E] mb-1 uppercase tracking-wider">{t.tip}</p>
-              <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-[#0D2B32]">{s.text}</p>
-            </div>
-          </div>
-        )
-
-      case 'code':
-        return (
-          <div key={idx} className={TERMINAL}>
-            <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/2">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-                <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-                <div className="w-3 h-3 rounded-full bg-[#28c840]" />
-              </div>
-              <span className="text-xs font-bold text-white/50 flex-1 truncate flex items-center gap-1.5">
-                <Icon kind="code" className="w-3.5 h-3.5" /> {t.code} — {s.language ?? 'code'}
+              <span
+                style={{
+                  display: 'inline-block', fontSize: 12, fontWeight: 700, letterSpacing: 0.4,
+                  color: '#1FB8A6', background: 'rgba(31,184,166,0.12)', padding: '5px 12px', borderRadius: 999,
+                  marginBottom: 18,
+                }}
+              >
+                CASE STUDY
               </span>
-            </div>
-            {s.instructions && <p className="px-4 sm:px-5 pt-4 text-xs text-white/50 font-semibold italic">{s.instructions}</p>}
-            <pre className="px-4 sm:px-5 py-4 text-sm font-mono text-[#17D9C0] leading-relaxed overflow-x-auto whitespace-pre-wrap break-words max-w-full">{s.starter}</pre>
-            <div className="px-4 sm:px-5 pb-4">
-              <Link href={`/dashboard/coach?topic=${encodeURIComponent(lesson.title)}`}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17D9C0] hover:text-white transition-colors">
-                <Icon kind="robot" className="w-3.5 h-3.5" /> {lang === 'ar' ? 'اسأل المدرب' : lang === 'fr' ? "Demander au Coach" : 'Ask AI Coach to explain'}
-              </Link>
-            </div>
-          </div>
-        )
-
-      case 'code_editor':
-        return (
-          <div key={idx} className={cn(TERMINAL, 'max-w-full')}>
-            <div className="flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-3 border-b border-white/8 bg-white/2">
-              <div className="flex gap-1.5 flex-shrink-0">
-                <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-                <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-                <div className="w-3 h-3 rounded-full bg-[#28c840]" />
-              </div>
-              <span className="text-xs font-bold text-white/50 flex-1 truncate flex items-center gap-1.5">
-                <Icon kind="code" className="w-3.5 h-3.5" /> {t.codeViewer}
-              </span>
-              <button onClick={() => copyCode(s.starter ?? '', idx)}
-                aria-label={copiedIdx === idx ? t.copied : t.copyCode}
-                className={cn('flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex-shrink-0',
-                  copiedIdx === idx ? 'bg-[#17D9C0]/20 text-[#17D9C0] border border-[#17D9C0]/30' : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white border border-white/8')}>
-                <Icon kind={copiedIdx === idx ? 'check' : 'copy'} className="w-3 h-3" /> {copiedIdx === idx ? t.copied : t.copyCode}
-              </button>
-            </div>
-            {s.instructions && (
-              <div className="px-4 sm:px-5 py-3 bg-white/2 border-b border-white/8">
-                <p className="text-xs text-white/50 font-semibold leading-relaxed">{s.instructions}</p>
-              </div>
-            )}
-            <div className="flex overflow-x-auto" dir="ltr">
-              <div className="select-none px-3 sm:px-4 py-5 text-right border-r border-white/5 bg-white/1 flex-shrink-0" aria-hidden>
-                {(s.starter ?? '').split('\n').map((_, i) => (
-                  <div key={i} className="text-xs font-mono text-white/15 leading-6">{i + 1}</div>
-                ))}
-              </div>
-              <pre className="flex-1 px-4 sm:px-5 py-5 text-sm font-mono text-[#17D9C0]/90 leading-6 whitespace-pre min-w-0 max-w-full overflow-x-auto">{s.starter}</pre>
-            </div>
-            {s.hint && (
-              <div className="px-4 sm:px-5 py-3 border-t border-white/5 bg-[#FFB930]/5 flex items-start gap-2">
-                <Icon kind="lightbulb" className="w-4 h-4 text-[#FFB930]/90 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-[#FFB930]/90 font-semibold">{s.hint}</p>
-              </div>
-            )}
-            <div className="px-4 sm:px-5 py-3 border-t border-white/5 flex items-center justify-between">
-              <span className="text-xs text-white/20 font-mono">Python 3.10</span>
-              <Link href={`/dashboard/coach?topic=${encodeURIComponent(lesson.title)}`}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#17D9C0] hover:text-white transition-colors">
-                <Icon kind="robot" className="w-3.5 h-3.5" /> {lang === 'ar' ? 'اسأل المدرب' : lang === 'fr' ? 'Demander au Coach' : 'Ask AI Coach'}
-              </Link>
-            </div>
-          </div>
-        )
-
-      case 'quiz': {
-        const state     = quizState[idx] ?? { selected: null, submitted: false }
-        const isCorrect = state.submitted && state.selected === s.correct
-        const isWrong   = state.submitted && state.selected !== s.correct
-        return (
-          <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
-            <div className="flex items-center gap-2 mb-4">
-              <span className={cn('w-8 h-8 rounded-xl flex items-center justify-center', isCorrect ? 'bg-[#17D9C0]/20 text-[#0F9B87]' : isWrong ? 'bg-[#E15B71]/15 text-[#E15B71]' : 'bg-[#17D9C0]/15 text-[#0F9B87]')}>
-                <Icon kind={isCorrect ? 'check' : isWrong ? 'x' : 'quiz'} className="w-4 h-4" />
-              </span>
-              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.quiz}</span>
-            </div>
-            <p className="font-extrabold text-sm mb-4 sm:mb-5 leading-relaxed text-[#0D2B32]">{s.question}</p>
-            <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
-              {(s.options ?? []).map((opt, oi) => {
-                let cls = 'border-[#0D2B32]/10 bg-[#EAF7F4]/40 text-[#4E7169] hover:border-[#0D2B32]/25 hover:text-[#0D2B32] cursor-pointer'
-                if (state.submitted) {
-                  if (oi === s.correct) cls = 'border-[#17D9C0]/60 bg-[#17D9C0]/15 text-[#0F9B87] cursor-default'
-                  else if (state.selected === oi) cls = 'border-[#E15B71]/40 bg-[#E15B71]/10 text-[#E15B71] cursor-default'
-                  else cls = 'border-[#0D2B32]/5 bg-[#0D2B32]/3 text-[#4E7169]/50 cursor-default'
-                } else if (state.selected === oi) cls = 'border-[#17D9C0]/50 bg-[#17D9C0]/15 text-[#0D2B32] cursor-pointer'
-                return (
-                  <button key={oi} onClick={() => selectOption(idx, oi)} disabled={state.submitted}
-                    className={cn('w-full text-start px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl text-sm font-bold border transition-all', cls)}>
-                    <span className="font-extrabold mr-2 sm:mr-3 text-[#4E7169]/60">{String.fromCharCode(65 + oi)}.</span>{opt}
-                  </button>
-                )
-              })}
-            </div>
-            {!state.submitted ? (
-              <button onClick={() => submitQuiz(idx, s.correct!)} disabled={state.selected === null}
-                className={cn('w-full sm:w-auto px-6 py-2.5 rounded-2xl font-extrabold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all', PRIMARY_BTN)}>
-                {t.submit}
-              </button>
-            ) : isWrong ? (
-              <div role="alert" className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#E15B71]/10 border border-[#E15B71]/20">
-                <Icon kind="x" className="w-5 h-5 text-[#E15B71] flex-shrink-0" />
-                <p className="text-xs font-extrabold text-[#E15B71]">{t.wrong}</p>
-              </div>
-            ) : isCorrect ? (
-              <div className="space-y-2">
-                <p className="text-sm font-extrabold text-[#0F9B87] flex items-center gap-1.5"><Icon kind="check" className="w-4 h-4" /> {t.correct}</p>
-                {s.explanation && (
-                  <div className="mt-3 bg-[#EAF7F4]/60 border border-[#0D2B32]/8 rounded-2xl p-3 sm:p-4">
-                    <p className="text-xs font-bold text-[#4E7169] mb-1">{lang === 'ar' ? 'الشرح' : lang === 'fr' ? 'Explication' : 'Explanation'}</p>
-                    <p className="text-sm text-[#4E7169] font-semibold leading-relaxed">{s.explanation}</p>
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </div>
-        )
-      }
-
-      case 'steps':
-        return (
-          <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
-            <SectionEyebrow icon="ladder" label={t.steps} color="bg-[#17D9C0]/15 text-[#0F9B87]" />
-            {s.text && <p className="text-sm font-semibold text-[#4E7169] mb-4 leading-relaxed">{s.text}</p>}
-            <ol className="space-y-3">
-              {(s.items ?? []).map((item, i) => (
-                <li key={i} className="flex gap-3 sm:gap-4 items-start">
-                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#17D9C0] flex items-center justify-center text-xs font-extrabold text-white">{i + 1}</span>
-                  <p className="text-sm font-semibold leading-relaxed pt-0.5 text-[#0D2B32]">{item}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        )
-
-      case 'challenge':
-        return (
-          <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-8 h-8 rounded-xl bg-[#17D9C0]/15 flex items-center justify-center">
-                <Icon kind="target" className="w-4 h-4" style={{ color: '#0F9B87' }} />
-              </span>
-              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.challenge}</span>
-            </div>
-            {s.title && <p className="font-extrabold text-base mb-2 text-[#0D2B32]">{s.title}</p>}
-            <p className="text-sm font-semibold leading-relaxed mb-4 text-[#0D2B32]">{s.text}</p>
-            {s.expected_output && (
-              <div className="bg-[#0D2B32] border border-white/10 rounded-2xl p-3 sm:p-4 mb-4">
-                <p className="text-xs font-bold text-white/50 mb-2">{lang === 'ar' ? 'النتيجة المتوقعة:' : lang === 'fr' ? 'Résultat attendu :' : 'Expected output:'}</p>
-                <pre className="text-sm font-mono text-[#17D9C0] whitespace-pre-wrap overflow-x-auto break-words max-w-full">{s.expected_output}</pre>
-              </div>
-            )}
-            {s.hint && (
-              <details className="mt-2">
-                <summary className="text-xs font-bold text-[#0F9B87] cursor-pointer hover:text-[#0D2B32] transition-colors select-none">
-                  {lang === 'ar' ? 'تلميح' : lang === 'fr' ? 'Indice' : 'Hint'}
-                </summary>
-                <p className="text-sm text-[#4E7169] font-semibold mt-2 leading-relaxed pl-4 border-l-2 border-[#17D9C0]/30">{s.hint}</p>
-              </details>
-            )}
-            <div className="mt-4">
-              <Link href={`/dashboard/coach?topic=${encodeURIComponent(s.title ?? lesson.title)}`}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold bg-[#17D9C0]/15 text-[#0F9B87] border border-[#17D9C0]/25 hover:bg-[#17D9C0]/25 transition-all">
-                <Icon kind="robot" className="w-3.5 h-3.5" /> {lang === 'ar' ? 'اطلب مساعدة المدرب' : lang === 'fr' ? "Aide du Coach IA" : 'Get help from AI Coach'}
-              </Link>
-            </div>
-          </div>
-        )
-
-      case 'callout': {
-        const variant = s.variant ?? 'note'
-        const styles: Record<string, { icon: IconKind; text: string; chipBg: string; label: string }> = {
-          note:    { icon: 'note',    text: 'text-[#0F9B87]',  chipBg: 'bg-[#17D9C0]/15',  label: t.callout_note },
-          warning: { icon: 'warning', text: 'text-[#B8790E]',  chipBg: 'bg-[#FFB930]/15',  label: t.callout_warning },
-          danger:  { icon: 'danger',  text: 'text-[#E15B71]',  chipBg: 'bg-[#E15B71]/15',  label: t.callout_danger },
-          success: { icon: 'success', text: 'text-[#0F9B87]',  chipBg: 'bg-[#17D9C0]/15',  label: 'Good to know' },
-        }
-        const st = styles[variant] ?? styles.note
-        return (
-          <div key={idx} className={cn(CARD, 'p-4 sm:p-5 flex gap-3 sm:gap-4')}>
-            <span className={cn('w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0', st.chipBg)}>
-              <Icon kind={st.icon} className={cn('w-5 h-5', st.text)} />
-            </span>
-            <div>
-              <p className={cn('font-extrabold text-xs mb-1.5 uppercase tracking-wider', st.text)}>{st.label}</p>
-              <p className="text-sm font-semibold leading-relaxed whitespace-pre-line text-[#0D2B32]">{s.text}</p>
-            </div>
-          </div>
-        )
-      }
-
-      case 'comparison':
-        return (
-          <div key={idx} className={cn(CARD, 'overflow-hidden')}>
-            <div className="px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8 flex items-center gap-2">
-              <Icon kind="compare" className="w-4 h-4 text-[#4E7169]" />
-              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.comparison}</span>
-            </div>
-            {s.text && <p className="px-4 sm:px-5 pt-4 text-sm font-semibold text-[#4E7169] leading-relaxed">{s.text}</p>}
-            <div className="grid grid-cols-1 sm:grid-cols-2">
-              <div className="p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-[#0D2B32]/8">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="w-5 h-5 rounded-full bg-[#E15B71]/20 border border-[#E15B71]/40 flex items-center justify-center"><Icon kind="x" className="w-3 h-3 text-[#E15B71]" /></span>
-                  <span className="text-xs font-extrabold text-[#E15B71] uppercase">{s.before_label ?? (lang === 'ar' ? 'قبل' : lang === 'fr' ? 'Avant' : 'Before')}</span>
-                </div>
-                <pre className="text-xs font-mono text-[#E15B71]/90 bg-[#E15B71]/5 border border-[#E15B71]/15 rounded-2xl p-3 sm:p-4 whitespace-pre-wrap break-words leading-relaxed overflow-x-auto max-w-full">{s.before}</pre>
-              </div>
-              <div className="p-4 sm:p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="w-5 h-5 rounded-full bg-[#17D9C0]/20 border border-[#17D9C0]/40 flex items-center justify-center"><Icon kind="check" className="w-3 h-3" style={{ color: '#0F9B87' }} /></span>
-                  <span className="text-xs font-extrabold text-[#0F9B87] uppercase">{s.after_label ?? (lang === 'ar' ? 'بعد' : lang === 'fr' ? 'Après' : 'After')}</span>
-                </div>
-                <pre className="text-xs font-mono text-[#0F9B87] bg-[#17D9C0]/5 border border-[#17D9C0]/15 rounded-2xl p-3 sm:p-4 whitespace-pre-wrap break-words leading-relaxed overflow-x-auto max-w-full">{s.after}</pre>
-              </div>
-            </div>
-          </div>
-        )
-
-      case 'checklist': {
-        const checks  = s.checks ?? []
-        const states  = checkState[idx] ?? Array(checks.length).fill(false)
-        const allDone = checks.every((_, i) => states[i])
-        return (
-          <div key={idx} className={cn(CARD, 'p-4 sm:p-6')}>
-            <SectionEyebrow icon="checklist" label={t.checklist} color={allDone ? 'bg-[#17D9C0]/15 text-[#0F9B87]' : 'bg-[#0D2B32]/6 text-[#4E7169]'} />
-            {s.text && <p className="text-sm font-semibold text-[#4E7169] mb-4 leading-relaxed">{s.text}</p>}
-            <div className="space-y-2 sm:space-y-3">
-              {checks.map((item, i) => (
-                <button key={i} onClick={() => toggleCheck(idx, i, checks.length)}
-                  aria-pressed={!!states[i]}
-                  className={cn('w-full flex items-center gap-3 px-3 sm:px-4 py-3 rounded-2xl border text-sm font-semibold text-start transition-all',
-                    states[i] ? 'bg-[#17D9C0]/10 border-[#17D9C0]/30 text-[#0F9B87]' : 'bg-[#EAF7F4]/40 border-[#0D2B32]/8 text-[#4E7169] hover:border-[#0D2B32]/20 hover:text-[#0D2B32]')}>
-                  <span className={cn('w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border-2 transition-all', states[i] ? 'bg-[#17D9C0] border-[#17D9C0] text-white' : 'border-[#0D2B32]/20')}>
-                    {states[i] && <Icon kind="check" className="w-3 h-3" />}
-                  </span>
-                  <span className={cn(states[i] && 'line-through opacity-70')}>{item}</span>
-                </button>
-              ))}
-            </div>
-            {allDone && (
-              <p className="text-xs font-extrabold text-[#0F9B87] mt-4 flex items-center gap-1.5">
-                <Icon kind="partyPop" className="w-3.5 h-3.5" /> {lang === 'ar' ? 'أحسنت! اكتملت جميع العناصر' : lang === 'fr' ? 'Bravo ! Tout est coché !' : 'All done!'}
+              <h2 style={{ color: '#F6F3EA', marginBottom: 14 }}>What happens when a partner leans in</h2>
+              <p style={{ color: '#B7C9C5', lineHeight: 1.7, marginBottom: 22 }}>
+                We ran a national coding &amp; AI competition with 8 school and
+                training-center partners. The pattern was clear: where a partner
+                actively promoted it to their students, turnout followed. One
+                training-center partnership alone brought real, sustained
+                participation — proof the model works when a partner is
+                engaged, not just signed up.
               </p>
-            )}
-          </div>
-        )
-      }
-
-      case 'video': {
-        const embedUrl = s.url ? getVideoEmbed(s.url) : null
-        return (
-          <div key={idx} className={cn(CARD, 'overflow-hidden')}>
-            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8">
-              <Icon kind="play" className="w-4 h-4 text-[#4E7169]" />
-              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.video}</span>
-              {s.caption && <span className="text-xs text-[#4E7169]/70 font-semibold ml-auto truncate max-w-[50%] sm:max-w-[60%]">{s.caption}</span>}
-            </div>
-            {embedUrl ? (
-              <div className="relative bg-black" style={{ paddingBottom: '56.25%' }}>
-                <iframe src={embedUrl} className="absolute inset-0 w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen title={s.caption ?? 'Lesson video'} loading="lazy" />
-              </div>
-            ) : (
-              <div className="p-6 sm:p-8 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-4">
-                  <Icon kind="play" className="w-8 h-8" style={{ color: '#0F9B87' }} />
-                </div>
-                <a href={s.url} target="_blank" rel="noopener noreferrer"
-                  className={cn('inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm transition-all', PRIMARY_BTN)}>
-                  <Icon kind="play" className="w-4 h-4" /> {lang === 'ar' ? 'مشاهدة الفيديو' : lang === 'fr' ? 'Voir la vidéo' : 'Watch Video'}
-                </a>
-              </div>
-            )}
-          </div>
-        )
-      }
-
-      case 'website':
-        return <div key={idx}><WebsiteEmbed s={s} t={t} /></div>
-
-      case 'image':
-        return (
-          <div key={idx} className={cn(CARD, 'overflow-hidden')}>
-            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8">
-              <Icon kind="image" className="w-4 h-4 text-[#4E7169]" />
-              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.image}</span>
-            </div>
-            <div className="p-3 sm:p-4">
-              {s.src ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.src} alt={s.alt ?? 'Lesson diagram'} className="w-full rounded-2xl border border-[#0D2B32]/8 object-contain max-h-64 sm:max-h-96" />
-              ) : (
-                <div className="h-32 sm:h-40 bg-[#EAF7F4]/50 rounded-2xl flex items-center justify-center text-[#4E7169] text-sm font-semibold gap-2">
-                  <Icon kind="image" className="w-5 h-5" /> Image placeholder
-                </div>
-              )}
-            </div>
-            {(s.alt || s.text) && <p className="px-4 sm:px-5 pb-4 text-xs text-[#4E7169] font-semibold">{s.alt ?? s.text}</p>}
-          </div>
-        )
-
-      case 'external': {
-        const btnLabel = s.button_label ?? `Open on ${s.platform ?? 'external platform'}`
-        return (
-          <div key={idx} className={cn(CARD, 'overflow-hidden')}>
-            <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8 bg-[#EAF7F4]/40">
-              <Icon kind="external" className="w-4 h-4 text-[#0F9B87] flex-shrink-0" />
-              <span className="text-xs font-black text-[#4E7169] uppercase tracking-wider">{t.external}</span>
-              {s.platform && <span className="ml-auto text-xs font-bold text-[#4E7169] bg-white border border-[#0D2B32]/10 px-2 sm:px-2.5 py-0.5 rounded-full truncate max-w-[40%]">{s.platform}</span>}
-            </div>
-            <div className="p-4 sm:p-6">
-              {s.title && <h3 className="font-extrabold text-base mb-2 text-[#0D2B32]">{s.title}</h3>}
-              {s.text && <p className="text-sm font-semibold text-[#4E7169] leading-relaxed mb-4 sm:mb-5">{s.text}</p>}
-              <a href={s.url} target="_blank" rel="noopener noreferrer"
-                className={cn('group inline-flex items-center gap-3 px-5 sm:px-6 py-3.5 sm:py-4 rounded-2xl font-extrabold text-sm w-full justify-center transition-all', PRIMARY_BTN)}>
-                <Icon kind="external" className="w-5 h-5" />
-                <span className="truncate">{btnLabel}</span>
-                <Icon kind="chevronRight" className="w-4 h-4 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+              <a href="mailto:hello@plulai.com">
+                <button className="btn btn-cta">Book a demo &rarr;</button>
               </a>
-              <p className="text-center text-xs text-[#4E7169] font-semibold mt-4">{t.externalDone}</p>
             </div>
-            <div className="px-4 sm:px-5 py-3 border-t border-[#0D2B32]/6 bg-[#EAF7F4]/30">
-              <p className="text-xs text-[#4E7169]/80 font-semibold">{t.externalDesc}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              {[
+                { num: '8', label: 'School & training-center partners in our first competition' },
+                { num: '70', label: 'Participants from a single engaged training-center partner' },
+                { num: '40', label: 'Kids joined a 2-day in-person scouts pilot' },
+                { num: '3', label: 'Languages taught natively — Arabic, French, English' },
+              ].map((stat) => (
+                <div key={stat.label} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: '20px 16px' }}>
+                  <p style={{ color: '#1FB8A6', fontWeight: 700, fontSize: 26, margin: '0 0 6px' }}>{stat.num}</p>
+                  <p style={{ color: '#B7C9C5', fontSize: 13, margin: 0, lineHeight: 1.4 }}>{stat.label}</p>
+                </div>
+              ))}
             </div>
           </div>
-        )
-      }
-
-      case 'speed_quiz':       return <div key={idx}><SpeedQuizActivity s={s} t={t} onComplete={() => markActivityDone(idx)} /></div>
-      case 'fill_blank':       return <div key={idx}><FillBlankActivity s={s} t={t} onComplete={() => markActivityDone(idx)} /></div>
-      case 'drag_drop':        return <div key={idx}><DragDropActivity s={s} t={t} onComplete={() => markActivityDone(idx)} /></div>
-      case 'unscramble':       return <div key={idx}><UnscrambleActivity s={s} t={t} onComplete={() => markActivityDone(idx)} /></div>
-      case 'debug':            return <div key={idx}><DebugActivity s={s} t={t} onComplete={() => markActivityDone(idx)} /></div>
-      case 'timed_challenge':  return <div key={idx}><TimedChallengeActivity s={s} t={t} lessonTitle={lesson.title} onComplete={() => markActivityDone(idx)} /></div>
-      case 'remix':            return <div key={idx}><RemixActivity s={s} t={t} lessonTitle={lesson.title} onComplete={() => markActivityDone(idx)} /></div>
-      case 'submit_work':      return <div key={idx}><SubmitWorkActivity s={s} t={t} userId={userId} lessonId={lesson.id} onComplete={() => markActivityDone(idx)} /></div>
-
-      default: return null
-    }
-  }
-
-  const coachUrl = `/dashboard/coach?topic=${encodeURIComponent(skill?.title ?? '')}&lesson=${encodeURIComponent(lesson.title)}`
-  // Game/embed steps get more room; text steps stay narrow for readability.
-  const wideStep = isDone ? sections.some(s => s.type === 'website') : currentSection?.type === 'website'
-  const blockingItems = pendingActivities.map(({ s, i }) => ({ label: ACTIVITY_LABELS[s.type], index: i }))
-
-  const ghostBtn = 'flex items-center gap-1.5 px-4 py-3 rounded-2xl font-bold text-sm text-[#4E7169] hover:text-[#0D2B32] hover:bg-[#0D2B32]/5 disabled:opacity-0 disabled:pointer-events-none transition-all'
-
-  return (
-    <div className={cn('lesson-root w-full overflow-x-hidden transition-[max-width] duration-300', wideStep ? 'p-3 sm:p-5 lg:p-6 max-w-5xl' : 'p-4 sm:p-6 lg:p-10 max-w-3xl')} dir={dir}>
-      {/* ── Keyframes + a11y helpers, injected once ── */}
-      <style>{`
-        @keyframes slideInRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
-        @keyframes slideInLeft  { from { opacity:0; transform:translateX(-40px); } to { opacity:1; transform:translateX(0); } }
-        @keyframes xpFloat      { 0% { opacity:1; transform:translateY(0) scale(1); } 80% { opacity:1; } 100% { opacity:0; transform:translateY(-56px) scale(1.2); } }
-        @keyframes praiseIn     { 0% { opacity:0; transform:scale(0.7); } 20% { opacity:1; transform:scale(1.05); } 80% { opacity:1; transform:scale(1); } 100% { opacity:0; transform:scale(0.9); } }
-        @keyframes shake        { 0%,100%{transform:translateX(0)} 15%{transform:translateX(-8px)} 30%{transform:translateX(8px)} 45%{transform:translateX(-6px)} 60%{transform:translateX(6px)} 75%{transform:translateX(-3px)} 90%{transform:translateX(3px)} }
-        @keyframes comboPop     { 0%{transform:scale(1)} 50%{transform:scale(1.25)} 100%{transform:scale(1)} }
-        .card-shake { animation: shake 0.5s ease-in-out; }
-        .lesson-root button:focus-visible,
-        .lesson-root a:focus-visible,
-        .lesson-root summary:focus-visible,
-        .lesson-root [role="button"]:focus-visible { outline: 3px solid #17D9C0; outline-offset: 2px; }
-        @media (prefers-reduced-motion: reduce) {
-          .step-anim, .praise-anim, .xp-anim, .combo-anim, .card-shake { animation: none !important; }
-        }
-      `}</style>
-
-      {/* ── Toast ── */}
-      <div role="status" aria-live="polite" className={cn(
-        'fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:w-auto z-50 px-5 py-3 rounded-2xl bg-white border border-[#0D2B32]/10 text-[#0F9B87] font-bold text-sm shadow-xl transition-all duration-300 flex items-center gap-2',
-        toast ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'
-      )}>
-        {toast && <><Icon kind="sparkle" className="w-4 h-4 shrink-0" />{toast}</>}
-      </div>
-
-      {/* ── Praise overlay ── */}
-      {praiseMsg && (
-        <div className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center" aria-hidden>
-          <div
-            className="praise-anim font-extrabold text-3xl md:text-4xl text-[#0F9B87] drop-shadow-lg px-6 py-3 rounded-3xl bg-white/80 border border-[#17D9C0]/30 backdrop-blur-sm"
-            style={{ animation: 'praiseIn 1.5s ease forwards' }}
-          >
-            {praiseMsg}
-          </div>
-        </div>
-      )}
-
-      {/* ── Level-up overlay ── */}
-      {levelUp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D2B32]/60 backdrop-blur-sm px-4" onClick={() => setLevelUp(null)}>
-          <div className="bg-white border border-[#0D2B32]/10 rounded-3xl p-8 sm:p-10 text-center shadow-2xl w-full max-w-sm">
-            <div className="w-20 h-20 rounded-full bg-[#17D9C0]/15 flex items-center justify-center mx-auto mb-4 animate-bounce">
-              <Icon kind="partyPop" className="w-10 h-10" style={{ color: '#0F9B87' }} />
-            </div>
-            <h2 className="font-extrabold text-3xl sm:text-4xl text-[#0F9B87] mb-2">{levelUp}</h2>
-            <p className="text-[#4E7169] font-bold text-sm">{lang === 'ar' ? 'استمر، أنت لا يُوقف!' : lang === 'fr' ? 'Continue — inarrêtable !' : 'Keep going — unstoppable!'}</p>
-          </div>
-        </div>
-      )}
-
-      {/* ── Anchor used to scroll back to the top on every step change ── */}
-      <div ref={topRef} className="scroll-mt-4" />
-
-      {/* ── HUD: back | clickable progress segments | step count | combo ── */}
-      <div className="flex items-center gap-2 sm:gap-3 mb-5 sm:mb-6">
-        <Link href={`/dashboard/path/${skill?.id}`} aria-label={t.back}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-[#0D2B32]/10 hover:border-[#0D2B32]/25 transition-colors shrink-0">
-          <Icon kind="chevronLeft" className="w-5 h-5 text-[#4E7169] rtl:rotate-180" />
-        </Link>
-
-        {sections.length > 0 && !isDone && (
-          <>
-            <div className="flex-1 flex items-center gap-1"
-              role="progressbar" aria-valuemin={1} aria-valuemax={sections.length} aria-valuenow={currentStep + 1}
-              aria-label={`${t.stepLabel} ${currentStep + 1} / ${sections.length}`}>
-              {sections.map((_, i) => {
-                const reachable = i <= maxStep
-                return (
-                  <button key={i} type="button" disabled={!reachable} onClick={() => goToStep(i)}
-                    aria-label={`${t.stepLabel} ${i + 1}`} aria-current={i === currentStep ? 'step' : undefined}
-                    className="group flex-1 py-2 disabled:cursor-default">
-                    <span className={cn(
-                      'block h-2 w-full rounded-full transition-all duration-300',
-                      i === currentStep ? 'bg-[#0F9B87]' : i < currentStep ? 'bg-[#17D9C0]' : reachable ? 'bg-[#17D9C0]/50' : 'bg-[#0D2B32]/10',
-                      reachable && i !== currentStep && 'group-hover:h-3'
-                    )} />
-                  </button>
-                )
-              })}
-            </div>
-            <span className="text-xs font-extrabold text-[#4E7169] tabular-nums shrink-0">{currentStep + 1}/{sections.length}</span>
-          </>
-        )}
-
-        {wideStep && !isDone && (
-          <Link href={coachUrl} aria-label={t.askCoach} title={t.askCoach}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#17D9C0]/15 hover:bg-[#17D9C0]/25 transition-colors shrink-0">
-            <Icon kind="robot" className="w-4 h-4" style={{ color: '#0F9B87' }} />
-          </Link>
-        )}
-
-        {combo >= 2 && !isDone && (
-          <div className="combo-anim flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFB930]/15 border border-[#FFB930]/30 shrink-0" style={{ animation: 'comboPop 0.3s ease' }}>
-            <Icon kind="fire" className="w-3.5 h-3.5 text-[#B8790E]" />
-            <span className="text-xs font-extrabold text-[#B8790E]">{combo}x</span>
-          </div>
-        )}
-      </div>
-
-      {/* ── Lesson title ── */}
-      <div className="flex items-center gap-3 mb-5 sm:mb-6">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-[0_3px_0_rgba(13,43,50,0.18)]" style={{ backgroundColor: '#FF6B57' }}>
-          {lesson.emoji}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="font-extrabold text-lg sm:text-xl leading-tight text-[#0D2B32]">{lesson.title}</h1>
-          <span className="text-xs font-bold text-[#4E7169]">{t.lesson} {lessonIndex}/{totalLessons} · +{lesson.xp_reward} XP</span>
-        </div>
-        <div className="relative shrink-0 w-10 h-10" aria-hidden>
-          {xpBurst && (
-            <span key={xpBurst.id} className="xp-anim absolute bottom-0 left-1/2 -translate-x-1/2 font-extrabold text-sm text-[#0F9B87] pointer-events-none whitespace-nowrap" style={{ animation: 'xpFloat 1.2s ease-out forwards' }}>
-              +{xpBurst.amount} XP
-            </span>
-          )}
         </div>
       </div>
-
-      {/* ── AI Coach — slim strip ── */}
-      {!(wideStep && !isDone) && (
-      <Link href={coachUrl} className={cn(CARD, 'flex items-center gap-3 px-4 py-3 mb-5 sm:mb-6 hover:border-[#0D2B32]/20 transition-colors group')}>
-        <span className="w-8 h-8 rounded-xl bg-[#17D9C0]/15 flex items-center justify-center shrink-0">
-          <Icon kind="robot" className="w-4 h-4" style={{ color: '#0F9B87' }} />
-        </span>
-        <span className="flex-1 text-xs font-bold text-[#4E7169] group-hover:text-[#0D2B32] transition-colors">
-          {lang === 'ar' ? 'لديك سؤال؟ اسأل مدربك الذكي' : lang === 'fr' ? 'Une question ? Demande au Coach IA' : 'Confused? Ask your AI Coach'}
-        </span>
-        <Icon kind="chevronRight" className="w-3.5 h-3.5 text-[#4E7169]/60 shrink-0 rtl:rotate-180" />
-      </Link>
       )}
 
-      {/* ── CONTENT: one step at a time while learning, full scroll in review ── */}
-      {sections.length > 0 ? (
-        isDone ? (
-          <>
-            <p className="text-xs font-bold text-[#4E7169] mb-4 flex items-center gap-1.5">
-              <Icon kind="book" className="w-3.5 h-3.5" /> {t.reviewMode}
+      {/* ================= FAMILY PLANS (family only) ================= */}
+      {audience === 'family' && (
+      <div id="plans" className={styles.tracksSec} style={{ scrollMarginTop: 90 }}>
+        <div className="container">
+          <div className={styles.tracksHead}>
+            <p className="eyebrow">Family plan</p>
+            <h2>One plan, everything included</h2>
+            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
+              Try it free for 14 days. No commitment, cancel anytime before the
+              trial ends and you won&apos;t be charged.
             </p>
-            <div className="space-y-4 sm:space-y-5 mb-8 sm:mb-10">
-              {sections.map((s, i) => renderSection(s, i))}
-            </div>
-          </>
-        ) : (
-          <div
-            className={cn('step-anim mb-6 sm:mb-8', shaking && 'card-shake')}
-            key={animKey}
-            style={{ animation: `${slideDir === 'right' ? 'slideInRight' : 'slideInLeft'} 0.28s cubic-bezier(0.22,1,0.36,1) both` }}
-          >
-            {renderSection(sections[currentStep], currentStep)}
           </div>
-        )
-      ) : (
-        <div className={cn(CARD, 'p-8 text-center mb-8')}><p className="text-[#4E7169] font-semibold text-sm">Content loading...</p></div>
-      )}
 
-      {/* ── STICKY ACTION BAR: Back always available; Continue OR Mark Complete ── */}
-      {!isDone && sections.length > 0 && (
-        <div className="sticky bottom-3 z-30 mb-8 sm:mb-10 space-y-3" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-          {/* On the last step, tell the learner exactly what is still open — each item is a shortcut. */}
-          {isLastStep && blockingItems.length > 0 && (
-            <div className={cn(CARD, 'p-4')}>
-              <p className="text-xs font-bold text-[#4E7169] mb-2 uppercase tracking-wider">{t.finishFirst}</p>
-              <ul className="space-y-1.5">
-                {blockingItems.map((item) => (
-                  <li key={item.index}>
-                    <button type="button" onClick={() => goToStep(item.index)}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#0D2B32] bg-[#EAF7F4]/70 hover:bg-[#17D9C0]/15 transition-colors text-start">
-                      <Icon kind="lock" className="w-3.5 h-3.5 shrink-0" style={{ color: '#0F9B87' }} />
-                      <span className="flex-1 truncate">{item.label}</span>
-                      <span className="text-[#0F9B87] shrink-0">{t.jumpTo}</span>
-                      <Icon kind="chevronRight" className="w-3.5 h-3.5 text-[#0F9B87] shrink-0 rtl:rotate-180" />
-                    </button>
+          <div style={{ maxWidth: 380, margin: '44px auto 0' }}>
+            <div
+              style={{
+                background: '#0D2B32', borderRadius: 20, padding: '34px 30px',
+                boxShadow: '0 12px 26px rgba(13,43,50,0.18)', textAlign: 'center',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4,
+                  padding: '4px 12px', borderRadius: 999, background: '#D4A24C', color: '#402F12', marginBottom: 16,
+                }}
+              >
+                14-DAY FREE TRIAL
+              </span>
+              <p style={{ margin: '0 0 4px' }}>
+                <span style={{ fontWeight: 700, fontSize: 40, color: '#F6F3EA' }}>$70</span>
+                <span style={{ fontSize: 15, color: '#B7C9C5' }}> USD/month</span>
+              </p>
+              <p style={{ fontSize: 13, margin: '0 0 26px', color: '#B7C9C5' }}>
+                after your free trial ends — billed monthly, cancel anytime
+              </p>
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px', display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'left' }}>
+                {['The full path — Spark, Build, Think & Launch', 'Unlimited AI tutor', 'Weekly parent summary', 'Arabic, French & English'].map((f) => (
+                  <li key={f} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', fontSize: 14, color: '#F6F3EA' }}>
+                    <svg width={15} height={15} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
+                      <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    {f}
                   </li>
                 ))}
               </ul>
+              <a href="/auth/signup">
+                <button className="btn btn-cta btn-block">Start 14-day free trial &rarr;</button>
+              </a>
             </div>
-          )}
-
-          <div className="flex items-center justify-between gap-3 p-2.5 rounded-3xl bg-white/90 backdrop-blur border border-[#0D2B32]/8 shadow-[0_8px_30px_rgba(13,43,50,0.12)]">
-            <button type="button" onClick={() => goToStep(currentStep - 1)} disabled={currentStep === 0} className={ghostBtn}>
-              <Icon kind="chevronLeft" className="w-4 h-4 rtl:rotate-180" /> {t.prev}
-            </button>
-
-            {!isLastStep && !stepReady && (
-              <span className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-[#4E7169]">
-                <Icon kind="lock" className="w-3.5 h-3.5" /> {t.finishToContinue}
-              </span>
-            )}
-
-            {isLastStep ? (
-              <button onClick={markComplete} disabled={isPending || !canComplete}
-                className={cn('px-6 sm:px-8 py-3 rounded-2xl font-extrabold text-sm transition-all flex items-center justify-center gap-2',
-                  isPending ? 'opacity-50 cursor-not-allowed bg-[#0D2B32]/8 text-[#4E7169]' :
-                  !canComplete ? 'bg-[#0D2B32]/8 text-[#4E7169]/70 cursor-not-allowed' :
-                  SUCCESS_BTN)}>
-                {isPending ? <><Icon kind="hourglass" className="w-4 h-4" /> Saving...</> : <><Icon kind="check" className="w-4 h-4" /> {t.complete}</>}
-              </button>
-            ) : (
-              <button onClick={() => goToStep(currentStep + 1)} disabled={!stepReady}
-                title={!stepReady ? t.finishToContinue : undefined}
-                className={cn('flex items-center gap-2 px-6 sm:px-8 py-3 rounded-2xl font-extrabold text-sm transition-all',
-                  stepReady ? PRIMARY_BTN : 'bg-[#0D2B32]/8 text-[#4E7169]/60 cursor-not-allowed')}>
-                {t.cont} <Icon kind="chevronRight" className="w-4 h-4 rtl:rotate-180" />
-              </button>
-            )}
           </div>
-          {!isLastStep && !stepReady && (
-            <p className="sm:hidden text-center text-xs font-bold text-[#4E7169]">{t.finishToContinue}</p>
-          )}
-        </div>
-      )}
 
-      {isDone && (
-        <LessonCompletionPanel
-          userId={userId}
-          lessonId={lesson.id}
-          lessonTitle={lesson.title}
-          lessonEmoji={lesson.emoji}
-          xpEarned={lesson.xp_reward}
-          streak={streak}
-          skillId={skill.id}
-          skillTitle={skill.title}
-          nextLesson={nextLesson ?? null}
-          nextSkill={nextSkill ?? null}
-          lang={lang as 'en' | 'ar' | 'fr'}
-          finishedAllTracks={finishedAllTracks}
-          suggestedTracks={suggestedTracks}
-        />
-      )}
-
-      {/* Prev / Next lesson nav — only after finishing, so it never competes with the step buttons */}
-      {isDone && (
-        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-5 sm:pt-6 border-t border-[#0D2B32]/8">
-          {prevLesson ? (
-            <Link href={`/dashboard/path/${skill?.id}/lesson/${prevLesson.id}`}
-              className="flex items-center justify-center sm:justify-start gap-2 px-4 sm:px-5 py-3 rounded-2xl font-extrabold text-sm border-2 border-[#0D2B32]/10 text-[#4E7169] hover:text-[#0D2B32] hover:border-[#0D2B32]/25 transition-all truncate">
-              <Icon kind="chevronLeft" className="w-4 h-4 flex-shrink-0 rtl:rotate-180" /> <span className="truncate">{prevLesson.emoji} {prevLesson.title}</span>
-            </Link>
-          ) : (
-            <Link href={`/dashboard/path/${skill?.id}`} className="text-sm font-bold text-[#4E7169] hover:text-[#0D2B32] transition-colors text-center sm:text-left flex items-center gap-1.5">
-              <Icon kind="chevronLeft" className="w-4 h-4 rtl:rotate-180" /> {t.back}
-            </Link>
-          )}
-          {nextLesson ? (
-            <Link href={`/dashboard/path/${skill?.id}/lesson/${nextLesson.id}`}
-              className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm truncate transition-all', PRIMARY_BTN)}>
-              <span className="truncate">{nextLesson.emoji} {nextLesson.title}</span> <Icon kind="chevronRight" className="w-4 h-4 flex-shrink-0 rtl:rotate-180" />
-            </Link>
-          ) : nextSkill ? (
-            <Link href={`/dashboard/path/${nextSkill.id}/lesson/${nextSkill.lessonId}`}
-              className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm truncate transition-all', PRIMARY_BTN)}>
-              <span className="truncate">{nextSkill.emoji} {nextSkill.title}</span> <Icon kind="chevronRight" className="w-4 h-4 flex-shrink-0 rtl:rotate-180" />
-            </Link>
-          ) : (
-            <Link href={`/dashboard/path/${skill?.id}`}
-              className={cn('flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-2xl font-extrabold text-sm transition-all', SUCCESS_BTN)}>
-              <Icon kind="partyPop" className="w-4 h-4" /> {t.finish}
-            </Link>
-          )}
-        </div>
-      )}
-
-      {/* Feedback Modal */}
-      {showFeedback && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[#0D2B32]/60 backdrop-blur-sm p-3 sm:p-4" onClick={() => setShowFeedback(false)}>
-          <div className="bg-white border border-[#0D2B32]/10 rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-2xl animate-slide-up" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-            <LessonFeedback userId={userId} lessonId={lesson.id} lang={lang as 'en'|'ar'|'fr'} onDone={() => setShowFeedback(false)} onSkip={() => setShowFeedback(false)} />
+          <div style={{ maxWidth: 640, margin: '36px auto 0', textAlign: 'center' }}>
+            <p style={{ fontSize: 13, color: 'rgba(41,57,74,0.6)', lineHeight: 1.6 }}>
+              We collect only what&apos;s needed to run missions and track progress — never sold or
+              used for advertising. Questions about how we handle your child&apos;s data?{' '}
+              <a href="mailto:hello@plulai.com" style={{ color: '#1FB8A6', fontWeight: 600 }}>Email us</a>.
+            </p>
           </div>
         </div>
+      </div>
       )}
 
-      {shareCard && <ShareCardModal props={shareCard} onClose={() => setShareCard(null)} />}
-    </div>
+      {/* ================= PACKAGES (schools & training centers only) ================= */}
+      {audience === 'schools' && (
+      <div id="plans" className={styles.tracksSec} style={{ scrollMarginTop: 90 }}>
+        <div className="container">
+          <div className={styles.tracksHead}>
+            <p className="eyebrow">Schools &amp; training centers</p>
+            <h2>A package sized for your institution</h2>
+            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
+              Every plan includes the full path — Spark, Build, Think &amp; Launch —
+              and the admin dashboard. Pricing is scoped to seat count and term
+              length — book a demo for a quote.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24, marginTop: 44 }}>
+            {[
+              {
+                name: 'Classroom Pilot',
+                blurb: 'Try it with one class before deciding school-wide.',
+                seats: '1 classroom · up to 35 seats',
+                features: ['The full path — all 4 stages', 'One term', 'Teacher onboarding session'],
+                cta: 'Start a pilot',
+                highlight: false,
+              },
+              {
+                name: 'School-wide',
+                blurb: 'The most common setup for a full school rollout.',
+                seats: '50–1,000 seats',
+                features: ['The full path — all 4 stages', 'Admin dashboard', 'Teacher training + support', 'Full academic year'],
+                cta: 'Book a demo',
+                highlight: true,
+              },
+              {
+                name: 'District',
+                blurb: 'Multiple schools under one contract and dashboard.',
+                seats: '1,000+ seats',
+                features: ['Everything in School-wide', 'Multi-school reporting', 'Dedicated success contact'],
+                cta: 'Contact sales',
+                highlight: false,
+              },
+            ].map((pkg) => (
+              <div
+                key={pkg.name}
+                style={{
+                  position: 'relative',
+                  background: pkg.highlight ? '#0D2B32' : '#fff',
+                  border: pkg.highlight ? '1px solid rgba(212,162,76,0.35)' : '1px solid #E4E9E7',
+                  borderRadius: 20, padding: '30px 26px', display: 'flex', flexDirection: 'column',
+                  boxShadow: pkg.highlight ? '0 12px 26px rgba(13,43,50,0.18)' : '0 1px 2px rgba(13,43,50,0.04)',
+                }}
+              >
+                {pkg.highlight && (
+                  <span
+                    style={{
+                      position: 'absolute', top: -12, left: 26, fontSize: 11, fontWeight: 700, letterSpacing: 0.4,
+                      color: '#402F12', background: '#D4A24C', padding: '4px 12px', borderRadius: 999,
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    MOST POPULAR
+                  </span>
+                )}
+                <p style={{ fontWeight: 700, fontSize: 19, margin: '0 0 6px', color: pkg.highlight ? '#F6F3EA' : '#0D2B32' }}>
+                  {pkg.name}
+                </p>
+                <p style={{ fontSize: 13.5, margin: '0 0 4px', color: pkg.highlight ? '#1FB8A6' : '#5C7873', fontWeight: 600 }}>
+                  {pkg.seats}
+                </p>
+                <p style={{ fontSize: 14, lineHeight: 1.55, margin: '10px 0 20px', color: pkg.highlight ? '#B7C9C5' : 'rgba(41,57,74,0.7)' }}>
+                  {pkg.blurb}
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                  {pkg.features.map((f) => (
+                    <li key={f} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', fontSize: 13.5, color: pkg.highlight ? '#F6F3EA' : '#0D2B32' }}>
+                      <svg width={14} height={14} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
+                        <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <a href="mailto:hello@plulai.com">
+                  <button className={pkg.highlight ? 'btn btn-cta btn-block' : 'btn btn-outline btn-block'}>
+                    {pkg.cta} &rarr;
+                  </button>
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      )}
+
+      <div className={styles.divider}>
+        <svg viewBox="0 0 1440 70" preserveAspectRatio="none">
+          <path d="M0,40 C300,0 600,70 900,30 C1100,5 1300,45 1440,20 L1440,70 L0,70 Z" fill="#1FB8A6" />
+        </svg>
+      </div>
+
+      {/* ================= TESTIMONIALS ================= */}
+      {/* Names/quotes kept as-is — real customer proof shouldn't be rewritten.
+          City tags dropped rather than swapped for invented Gulf ones: these
+          are genuine Tunisian testimonials, and relabeling them "Doha" or
+          "Dubai" would be fabricating proof, not just softening a detail.
+          If real GCC testimonials exist, swap these in; until then this
+          section stays honest about what it actually has. */}
+      <div className={styles.testiSec}>
+        <div className="container">
+          <p className="eyebrow" style={{ textAlign: 'center', opacity: 0.7 }}>Loved by parents &amp; principals</p>
+          <h2 style={{ textAlign: 'center' }}>What people are saying</h2>
+
+          <div className={styles.testiCluster}>
+            <div className={styles.testiBubble}>
+              <p className={styles.stars} style={{ color: '#D4A24C' }}>★★★★★</p>
+              <p className={styles.testiQuote}>
+                &quot;My 9-year-old asks to do his mission after school. I never thought
+                I&apos;d see that with coding.&quot;
+              </p>
+              <div className={styles.testiPerson}>
+                <div className={styles.testiAvatar}>L</div>
+                <div>
+                  <p className={styles.testiName}>Layla M.</p>
+                  <p className={styles.testiRole}>Parent</p>
+                </div>
+              </div>
+            </div>
+            <div className={styles.testiBubble}>
+              <p className={styles.stars} style={{ color: '#D4A24C' }}>★★★★★</p>
+              <p className={styles.testiQuote}>
+                &quot;The Arabic and French aren&apos;t translated — they&apos;re
+                native. That alone sets it apart.&quot;
+              </p>
+              <div className={styles.testiPerson}>
+                <div className={styles.testiAvatar}>D</div>
+                <div>
+                  <p className={styles.testiName}>Dr. Khalid R.</p>
+                  <p className={styles.testiRole}>Principal</p>
+                </div>
+              </div>
+            </div>
+            <div className={styles.testiBubble}>
+              <p className={styles.stars} style={{ color: '#D4A24C' }}>★★★★★</p>
+              <p className={styles.testiQuote}>
+                &quot;He built his first working game in two weeks. The AI tutor is more
+                patient than I ever am.&quot;
+              </p>
+              <div className={styles.testiPerson}>
+                <div className={styles.testiAvatar}>S</div>
+                <div>
+                  <p className={styles.testiName}>Sara A.</p>
+                  <p className={styles.testiRole}>Parent</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= SECURITY & COMPLIANCE (schools only) ================= */}
+      {audience === 'schools' && (
+      <div className={styles.tracksSec}>
+        <div className="container">
+          <div className={styles.tracksHead}>
+            <p className="eyebrow">Security &amp; compliance</p>
+            <h2>Data your IT team can sign off on</h2>
+            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
+              Built with student privacy as a default, not an add-on.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24, marginTop: 44 }}>
+            {[
+              {
+                title: 'Student data stays protected',
+                desc: 'Student accounts collect only what\u2019s needed to run missions and track progress \u2014 never sold or used for advertising.',
+              },
+              {
+                title: 'Role-based access',
+                desc: 'Teachers see their own classes, admins see the school, and students see only their own work.',
+              },
+              {
+                title: 'Regional hosting options',
+                desc: 'Data residency options available for institutions with regional requirements.',
+              },
+              {
+                title: 'A named point of contact',
+                desc: 'Institution plans get a dedicated contact for data and security questions \u2014 not a support queue.',
+              },
+            ].map((item) => (
+              <div key={item.title} style={{ background: '#fff', border: '1px solid #E4E9E7', borderRadius: 18, padding: '24px 22px' }}>
+                <div
+                  style={{
+                    width: 36, height: 36, borderRadius: 10, background: '#EAF6F3',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+                  }}
+                >
+                  <svg width={17} height={17} viewBox="0 0 20 20">
+                    <path d="M10 2 L17 5 V10 C17 14 14 17 10 18 C6 17 3 14 3 10 V5 Z" fill="#1FB8A6" />
+                  </svg>
+                </div>
+                <p style={{ fontWeight: 700, fontSize: 15.5, color: '#0D2B32', margin: '0 0 8px' }}>{item.title}</p>
+                <p style={{ fontSize: 13.5, color: 'rgba(41,57,74,0.7)', lineHeight: 1.55, margin: 0 }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(41,57,74,0.6)', marginTop: 28 }}>
+            Questions for your IT or procurement team? <a href="mailto:hello@plulai.com" style={{ color: '#1FB8A6', fontWeight: 600 }}>Email us</a> for our data handling documentation.
+          </p>
+        </div>
+      </div>
+      )}
+
+      {/* ================= FAQ ================= */}
+      <div className={styles.tracksSec}>
+        <div className="container" style={{ maxWidth: 760 }}>
+          <div className={styles.tracksHead}>
+            <p className="eyebrow">FAQ</p>
+            <h2>Common questions from families &amp; schools</h2>
+          </div>
+
+          <div style={{ marginTop: 40, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              {
+                q: 'Can my child use Plulai on their own at home?',
+                a: 'Yes \u2014 the Family plans are built for exactly that. Missions are self-paced and the AI tutor adapts to your child, so no classroom or teacher is required.',
+                for: 'family',
+              },
+              {
+                q: 'Is there a plan for more than one child?',
+                a: 'Yes \u2014 the Family plan covers up to 3 children on one subscription, with separate progress tracking for each child and one shared parent dashboard.',
+                for: 'family',
+              },
+              {
+                q: 'What devices or browsers do we need?',
+                a: 'Plulai runs in any modern browser \u2014 Chrome, Safari, or Edge \u2014 on Chromebooks, laptops, or tablets. No installation required.',
+                for: 'common',
+              },
+              {
+                q: 'How is student data handled?',
+                a: 'We collect only what\u2019s needed to run missions and track progress. Data is never sold or used for advertising.',
+                for: 'common',
+              },
+              {
+                q: 'Can missions fit inside a normal class period?',
+                a: 'Yes \u2014 missions are paced in 30\u201345 minute sessions, built to fit inside a standard class period without extra scheduling.',
+                for: 'schools',
+              },
+              {
+                q: 'How long does onboarding take for schools?',
+                a: 'Most schools go from demo to a live pilot classroom within a week, and to full rollout within a month. A short teacher training session is included.',
+                for: 'schools',
+              },
+              {
+                q: 'How does billing work for institutions?',
+                a: 'Institution plans are billed per seat count and term length, with flexible invoicing. Book a demo and we\u2019ll put together a quote for your school.',
+                for: 'schools',
+              },
+              {
+                q: 'Do teachers need a coding background?',
+                a: 'No. Teachers get a short onboarding session and the missions are designed to run themselves \u2014 the AI tutor handles most of the one-on-one guidance.',
+                for: 'schools',
+              },
+            ].filter((item) => item.for === 'common' || item.for === audience).map((item, i) => {
+              const isOpen = openFaq === i
+              return (
+                <div key={item.q} style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', overflow: 'hidden' }}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(isOpen ? null : i)}
+                    aria-expanded={isOpen}
+                    style={{
+                      width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer',
+                      padding: '18px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      fontSize: 15, fontWeight: 600, color: '#0D2B32', fontFamily: 'inherit',
+                    }}
+                  >
+                    {item.q}
+                    <span
+                      style={{
+                        transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)', transition: 'transform .2s ease',
+                        fontSize: 20, color: '#1FB8A6', flexShrink: 0, marginLeft: 12, lineHeight: 1,
+                      }}
+                    >
+                      +
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <p style={{ margin: 0, padding: '0 20px 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>
+                      {item.a}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ================= FINAL CTA ================= */}
+      <div className={styles.finalCta} style={{ position: 'relative', overflow: 'hidden' }}>
+        <svg aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.05, pointerEvents: 'none' }}>
+          <defs>
+            <pattern id="finalcta-lattice" width="46" height="46" patternUnits="userSpaceOnUse">
+              <path d="M23 4 L42 23 L23 42 L4 23 Z" fill="none" stroke="#F6F3EA" strokeWidth={1} />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#finalcta-lattice)" />
+        </svg>
+        <div className="container" style={{ position: 'relative' }}>
+          {audience === 'family' ? (
+            <>
+              <h2 className={styles.finalCtaTitle}>Ready to give them a head start?</h2>
+              <p className={styles.finalCtaText}>
+                Join the families across MENA building their kids&apos; first pearl streak.
+              </p>
+              <div className={styles.finalCtas}>
+                <a href="/auth/signup">
+                  <button className="btn btn-cta">Start free trial &rarr;</button>
+                </a>
+                <a href="#plans">
+                  <button className="btn btn-outline btn-outline--on-dark">See family plans &rarr;</button>
+                </a>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className={styles.finalCtaTitle}>Ready to bring Plulai to your school?</h2>
+              <p className={styles.finalCtaText}>
+                Join the schools and training centers building the next generation of MENA creators.
+              </p>
+              <div className={styles.finalCtas}>
+                <a href="#audience">
+                  <button className="btn btn-cta">Book a demo &rarr;</button>
+                </a>
+                <a href="mailto:hello@plulai.com">
+                  <button className="btn btn-outline btn-outline--on-dark">Talk to our team &rarr;</button>
+                </a>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      </main>
+
+      {/* ================= FOOTER ================= */}
+      <footer className={styles.footer}>
+        <style>{`
+          @media (max-width: 640px) {
+            .footer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+          }
+        `}</style>
+        <div className="container">
+          <div className={`${styles.footerGrid} footer-grid`} style={{ gridTemplateColumns: '1.6fr repeat(3, 1fr)' }}>
+            <div>
+              <div className="wordmark">
+                <span className="brand-mark">/</span>
+                <span>Plulai</span>
+              </div>
+              <p className={styles.footerBrandText}>
+                Building tomorrow&apos;s builders, today — made for the MENA region.
+              </p>
+            </div>
+            <div className={styles.footerCol}>
+              <p className={styles.footerColTitle}>Product</p>
+              <a href="#tracks">The Path</a>
+              <a href="#plans">Pricing</a>
+            </div>
+            <div className={styles.footerCol}>
+              <p className={styles.footerColTitle}>For you</p>
+              <a href="#audience" onClick={() => setAudience('schools')}>For Schools</a>
+              <a href="#audience" onClick={() => setAudience('family')}>For Families</a>
+            </div>
+            <div className={styles.footerCol}>
+              <p className={styles.footerColTitle}>Company</p>
+              <a href="#">About</a>
+              <a href="/ar">العربية</a>
+            </div>
+          </div>
+          <div className={styles.footerBottom}>
+            <span>© 2026 Plulai Education.</span>
+            <span>Privacy · Terms</span>
+          </div>
+        </div>
+      </footer>
+    </>
   )
 }
