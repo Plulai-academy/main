@@ -408,7 +408,10 @@ function WebsiteEmbed({ s, t }: { s: Section; t: Record<string, string> }) {
   const openHref   = s.url ?? s.embed_url ?? ''
   const [loaded, setLoaded]       = useState(false)
   const [slow, setSlow]           = useState(false)
-  const [full, setFull]           = useState(false)
+  const wrapRef                   = useRef<HTMLDivElement | null>(null)
+  const [nativeFull, setNativeFull] = useState(false)   // browser Fullscreen API active
+  const [cssFull, setCssFull]       = useState(false)   // fallback (e.g. iPhone Safari)
+  const full = nativeFull || cssFull
   const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
@@ -418,20 +421,40 @@ function WebsiteEmbed({ s, t }: { s: Section; t: Record<string, string> }) {
     return () => clearTimeout(id)
   }, [src, reloadKey])
 
+  // Native fullscreen puts the frame above EVERYTHING (sidebar included) and
+  // keeps the same iframe alive, so the game's progress is not lost.
   useEffect(() => {
-    if (!full) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFull(false) }
+    const onChange = () => setNativeFull(document.fullscreenElement === wrapRef.current)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+
+  // Fallback overlay (browsers without element fullscreen): Esc closes it.
+  useEffect(() => {
+    if (!cssFull) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCssFull(false) }
     window.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prevOverflow }
-  }, [full])
+  }, [cssFull])
+
+  const toggleFull = async () => {
+    const el = wrapRef.current
+    if (!el) return
+    if (document.fullscreenElement) { await document.exitFullscreen().catch(() => {}); return }
+    if (cssFull) { setCssFull(false); return }
+    if (el.requestFullscreen) {
+      try { await el.requestFullscreen(); return } catch { /* fall through to overlay */ }
+    }
+    setCssFull(true)
+  }
 
   const frameHeight: string | number = s.height ?? 'min(78vh, 820px)'
   const iconBtn = 'w-9 h-9 rounded-xl flex items-center justify-center text-[#4E7169] hover:text-[#0D2B32] hover:bg-[#0D2B32]/5 transition-colors shrink-0'
 
   return (
-    <div className={full ? 'fixed inset-0 z-[60] bg-white flex flex-col' : cn(CARD, 'overflow-hidden')}>
+    <div ref={wrapRef} className={full ? cn('bg-white flex flex-col w-full h-full', cssFull && 'fixed inset-0 z-[9999]') : cn(CARD, 'overflow-hidden')}>
       {/* Header: title + caption on the left, tools on the right */}
       <div className="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-[#0D2B32]/8 bg-[#EAF7F4]/50">
         <span className="w-8 h-8 rounded-xl bg-[#17D9C0]/15 flex items-center justify-center shrink-0">
@@ -446,7 +469,7 @@ function WebsiteEmbed({ s, t }: { s: Section; t: Record<string, string> }) {
             <button type="button" onClick={() => setReloadKey(k => k + 1)} className={iconBtn} aria-label={t.reload} title={t.reload}>
               <Icon kind="refresh" className="w-4 h-4" />
             </button>
-            <button type="button" onClick={() => setFull(f => !f)} className={iconBtn}
+            <button type="button" onClick={toggleFull} className={iconBtn}
               aria-label={full ? t.exitFullscreen : t.fullscreen} title={full ? t.exitFullscreen : t.fullscreen}>
               <Icon kind={full ? 'x' : 'expand'} className="w-4 h-4" />
             </button>
