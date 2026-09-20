@@ -611,11 +611,13 @@ export default function LandingPage() {
       </div>
       )}
 
-      {/* ================= TRACKS: roadmap ================= */}
-      {/* A literal winding path now, not three separate tilted stickers with
-          a decorative squiggle behind them — the icon circles sit ON the
-          path and alternate high/low left→right, like a game world map
-          (the same move as the dashboard's pearl-diving route). */}
+      {/* ================= JOURNEY: roadmap ================= */}
+      {/* Reframed from "3 tracks" to the real shape of the 12-year path:
+          confidence/communication and design/marketing sit alongside
+          coding and AI, grouped into four stages so the road stays
+          readable instead of sprawling into 9 individual stops. Copy is
+          outcome-first ("you'll..."), not "what your students will
+          learn" — this section runs for both audiences, unchanged. */}
       <div id="tracks" className={styles.tracksSec} style={{ overflow: 'hidden' }}>
         <style>{`
           .curr-icon { transition: transform .2s ease; }
@@ -628,9 +630,9 @@ export default function LandingPage() {
         `}</style>
         <div className="container">
           <div className={styles.tracksHead} style={{ position: 'relative' }}>
-            <p className="eyebrow">Curriculum overview</p>
+            <p className="eyebrow">The 12-year path</p>
             <h2 style={{ display: 'inline-block', position: 'relative' }}>
-              What your students will learn
+              What they become, not just what they learn
               <svg
                 width="280" height="14" viewBox="0 0 280 14"
                 style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: -10 }}
@@ -639,9 +641,11 @@ export default function LandingPage() {
                 <path d="M4 8 Q40 -2 76 8 T148 8 T220 8 T276 8" stroke="#D4A24C" strokeWidth={3} fill="none" strokeLinecap="round" />
               </svg>
             </h2>
-            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '22px auto 0' }}>
-              Three tracks, one path — each lesson unlocks the next stop, sequenced
-              by age so it drops straight into a class period or after-school slot.
+            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 560, margin: '22px auto 0' }}>
+              Coding and AI get most of the attention — the path covers just as much
+              ground in the confidence to speak up, the design sense to make things
+              people actually want to use, and the money and marketing instincts to
+              turn an idea into something real.
             </p>
             <span
               style={{
@@ -651,99 +655,115 @@ export default function LandingPage() {
               }}
             >
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1FB8A6' }} />
-              Built for schools, sequenced lesson by lesson
+              Ages 6–18 · one continuous path, mission by mission
             </span>
           </div>
 
           {(() => {
-            const trackStops = [
+            const journeyStops = [
               {
-                stop: 'STOP 01', ages: 'Ages 8–16', title: 'Coding', color: '#1FB8A6', dark: '#0D2B32',
-                icon: <span className="font-mono" style={{ fontWeight: 700, fontSize: 22, color: '#fff' }}>{'{ }'}</span>,
-                desc: 'Blocks to real Python — students ship actual apps and games.',
-                tags: ['Logic', 'Python', 'Debugging'],
-                lessons: '180+ lessons',
-              },
-              {
-                stop: 'STOP 02', ages: 'Ages 10–16', title: 'AI & Future Tech', color: '#D4A24C', dark: '#402F12',
-                icon: <span className="font-mono" style={{ fontWeight: 700, fontSize: 22, color: '#402F12' }}>AI</span>,
-                desc: 'Prompting, data, and real ML basics — AI literacy from day one.',
-                tags: ['Prompting', 'Data', 'ML basics'],
-                lessons: '160+ lessons',
-              },
-              {
-                stop: 'STOP 03', ages: 'Ages 10–16', title: 'Entrepreneurship', color: '#053D35', dark: '#053D35',
+                title: 'Spark', color: '#FF6B57', dark: '#7A2E22',
                 icon: (
-                  <svg width={24} height={24} viewBox="0 0 20 20">
-                    <rect x="2" y="12" width="4" height="6" fill="#fff" />
-                    <rect x="8" y="7" width="4" height="11" fill="#fff" />
-                    <rect x="14" y="2" width="4" height="16" fill="#fff" />
+                  <svg width={22} height={22} viewBox="0 0 22 22">
+                    <path d="M11 0 L13 9 L22 11 L13 13 L11 22 L9 13 L0 11 L9 9 Z" fill="#fff" />
                   </svg>
                 ),
-                desc: 'A first small venture — pricing, marketing, and a real pitch.',
-                tags: ['Pricing', 'Marketing', 'Pitching'],
-                lessons: '140+ lessons',
+                outcome: "You'll find your voice — pitch an idea, speak up in a room, and stop being afraid to get it wrong.",
+                tags: ['Self-confidence', 'Communication', 'Creative thinking'],
+              },
+              {
+                title: 'Build', color: '#1FB8A6', dark: '#0D2B32',
+                icon: (
+                  <svg width={20} height={20} viewBox="0 0 20 20">
+                    <rect x="1.5" y="1.5" width="7" height="7" rx="1.5" fill="#fff" opacity={0.9} />
+                    <rect x="11.5" y="1.5" width="7" height="7" rx="1.5" fill="#fff" opacity={0.6} />
+                    <rect x="1.5" y="11.5" width="7" height="7" rx="1.5" fill="#fff" opacity={0.6} />
+                    <rect x="11.5" y="11.5" width="7" height="7" rx="1.5" fill="#fff" />
+                  </svg>
+                ),
+                outcome: "You'll turn what's in your head into something real — an app, a game, a design people actually want to use.",
+                tags: ['Coding', 'Game dev', 'UI/UX design'],
+              },
+              {
+                title: 'Think', color: '#D4A24C', dark: '#402F12',
+                icon: <span className="font-mono" style={{ fontWeight: 700, fontSize: 19, color: '#402F12' }}>AI</span>,
+                outcome: "You'll get fluent with AI and with money — how to use both, instead of being used by them.",
+                tags: ['AI & future tech', 'Financial literacy'],
+              },
+              {
+                title: 'Launch', color: '#053D35', dark: '#053D35',
+                icon: (
+                  <svg width={20} height={20} viewBox="0 0 20 20">
+                    <path d="M10 1c3 2 4.5 6 3.5 10.5l-2 1.5-1.5-2c-1-.5-2-.5-3 0l-1.5 2-2-1.5C2.5 7 4 3 7 1c1-.6 2-.6 3 0Z" fill="#fff" />
+                    <circle cx="10" cy="7" r="1.6" fill="#053D35" />
+                  </svg>
+                ),
+                outcome: "You'll take an idea all the way to a pitch — priced, marketed, and presented like you mean it.",
+                tags: ['Entrepreneurship', 'Marketing', 'Pitching'],
               },
             ]
-            const SWING = 38 // px — how far the path/icons rise and dip
+            const SWING = 36 // px — how far the path/icons rise and dip
 
             return (
-              <div style={{ position: 'relative', marginTop: 76, paddingBottom: 24 }}>
+              <div style={{ position: 'relative', marginTop: 76, paddingBottom: 8 }}>
                 {/* the road itself — anchors line up with the icon centers below */}
                 <svg
                   className="curr-path"
-                  viewBox="0 0 1000 170" preserveAspectRatio="none"
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 170, zIndex: 0 }}
+                  viewBox="0 0 1000 155" preserveAspectRatio="none"
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 155, zIndex: 0 }}
                   aria-hidden
                 >
                   <path
-                    d="M167,106 C280,106 320,30 500,30 C680,30 720,106 833,106"
+                    d="M125,99 C230,99 270,27 375,27 C480,27 520,99 625,99 C730,99 770,27 875,27"
                     stroke="#CFE3DF" strokeWidth={3} strokeDasharray="2 13" strokeLinecap="round" fill="none"
                   />
-                  {trackStops.map((s, i) => (
-                    <circle key={s.title} cx={i === 1 ? 500 : i === 0 ? 167 : 833} cy={i === 1 ? 30 : 106} r={5} fill={s.color} />
+                  {journeyStops.map((s, i) => (
+                    <circle key={s.title} cx={125 + i * 250} cy={i % 2 === 0 ? 99 : 27} r={5} fill={s.color} />
                   ))}
                 </svg>
 
                 <div
                   className="curr-row"
-                  style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 32 }}
+                  style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 22 }}
                 >
-                  {trackStops.map((s, i) => {
+                  {journeyStops.map((s, i) => {
                     const offset = i % 2 === 0 ? SWING : -SWING
                     return (
                       <div
                         key={s.title}
                         className="curr-col"
-                        style={{ width: 240, textAlign: 'center', transform: `translateY(${offset}px)` }}
+                        style={{ width: 210, textAlign: 'center', transform: `translateY(${offset}px)` }}
                       >
-                        <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, letterSpacing: 0.4, color: 'rgba(41,57,74,0.5)', marginBottom: 10 }}>
-                          {s.stop} · {s.ages}
+                        <span style={{ display: 'inline-block', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, color: 'rgba(41,57,74,0.5)', marginBottom: 10 }}>
+                          MISSION SET 0{i + 1}
                         </span>
                         <div
                           className="curr-icon"
                           style={{
-                            width: 84, height: 84, margin: '0 auto 18px', borderRadius: '50%',
+                            width: 74, height: 74, margin: '0 auto 16px', borderRadius: '50%',
                             background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
                             boxShadow: `0 10px 22px ${s.color}4d, 0 0 0 6px #fff, 0 0 0 7px #E4E9E7`,
                           }}
                         >
                           {s.icon}
                         </div>
-                        <p style={{ fontWeight: 700, fontSize: 18, color: '#0D2B32', margin: '0 0 8px' }}>{s.title}</p>
-                        <p style={{ color: 'rgba(41,57,74,0.7)', fontSize: 13.5, lineHeight: 1.55, margin: '0 0 14px' }}>{s.desc}</p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginBottom: 14 }}>
+                        <p style={{ fontWeight: 700, fontSize: 17, color: '#0D2B32', margin: '0 0 8px' }}>{s.title}</p>
+                        <p style={{ color: 'rgba(41,57,74,0.7)', fontSize: 13, lineHeight: 1.55, margin: '0 0 14px' }}>{s.outcome}</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
                           {s.tags.map((t) => (
-                            <span key={t} style={{ fontSize: 11.5, fontWeight: 600, color: s.dark, background: `${s.color}1a`, padding: '4px 10px', borderRadius: 999 }}>
+                            <span key={t} style={{ fontSize: 11, fontWeight: 600, color: s.dark, background: `${s.color}1a`, padding: '4px 10px', borderRadius: 999 }}>
                               {t}
                             </span>
                           ))}
                         </div>
-                        <p style={{ fontWeight: 700, fontSize: 13, color: s.color, margin: 0 }}>{s.lessons} →</p>
                       </div>
                     )
                   })}
                 </div>
+
+                <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(41,57,74,0.5)', marginTop: 8 }}>
+                  …plus new missions every year, in whatever skill turns out to matter next.
+                </p>
               </div>
             )
           })()}
