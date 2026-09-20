@@ -2001,12 +2001,14 @@ export default function LessonViewClient({
   }
 
   const coachUrl = `/dashboard/coach?topic=${encodeURIComponent(skill?.title ?? '')}&lesson=${encodeURIComponent(lesson.title)}`
+  // Game/embed steps get more room; text steps stay narrow for readability.
+  const wideStep = isDone ? sections.some(s => s.type === 'website') : currentSection?.type === 'website'
   const blockingItems = pendingActivities.map(({ s, i }) => ({ label: ACTIVITY_LABELS[s.type], index: i }))
 
   const ghostBtn = 'flex items-center gap-1.5 px-4 py-3 rounded-2xl font-bold text-sm text-[#4E7169] hover:text-[#0D2B32] hover:bg-[#0D2B32]/5 disabled:opacity-0 disabled:pointer-events-none transition-all'
 
   return (
-    <div className="lesson-root p-4 sm:p-6 lg:p-10 max-w-3xl w-full overflow-x-hidden" dir={dir}>
+    <div className={cn('lesson-root p-4 sm:p-6 lg:p-10 w-full overflow-x-hidden transition-[max-width] duration-300', wideStep ? 'max-w-5xl' : 'max-w-3xl')} dir={dir}>
       {/* ── Keyframes + a11y helpers, injected once ── */}
       <style>{`
         @keyframes slideInRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
