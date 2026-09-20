@@ -2008,7 +2008,7 @@ export default function LessonViewClient({
   const ghostBtn = 'flex items-center gap-1.5 px-4 py-3 rounded-2xl font-bold text-sm text-[#4E7169] hover:text-[#0D2B32] hover:bg-[#0D2B32]/5 disabled:opacity-0 disabled:pointer-events-none transition-all'
 
   return (
-    <div className={cn('lesson-root p-4 sm:p-6 lg:p-10 w-full overflow-x-hidden transition-[max-width] duration-300', wideStep ? 'max-w-5xl' : 'max-w-3xl')} dir={dir}>
+    <div className={cn('lesson-root w-full overflow-x-hidden transition-[max-width] duration-300', wideStep ? 'p-3 sm:p-5 lg:p-6 max-w-5xl' : 'p-4 sm:p-6 lg:p-10 max-w-3xl')} dir={dir}>
       {/* ── Keyframes + a11y helpers, injected once ── */}
       <style>{`
         @keyframes slideInRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
@@ -2094,6 +2094,13 @@ export default function LessonViewClient({
           </>
         )}
 
+        {wideStep && !isDone && (
+          <Link href={coachUrl} aria-label={t.askCoach} title={t.askCoach}
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#17D9C0]/15 hover:bg-[#17D9C0]/25 transition-colors shrink-0">
+            <Icon kind="robot" className="w-4 h-4" style={{ color: '#0F9B87' }} />
+          </Link>
+        )}
+
         {combo >= 2 && !isDone && (
           <div className="combo-anim flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFB930]/15 border border-[#FFB930]/30 shrink-0" style={{ animation: 'comboPop 0.3s ease' }}>
             <Icon kind="fire" className="w-3.5 h-3.5 text-[#B8790E]" />
@@ -2121,6 +2128,7 @@ export default function LessonViewClient({
       </div>
 
       {/* ── AI Coach — slim strip ── */}
+      {!(wideStep && !isDone) && (
       <Link href={coachUrl} className={cn(CARD, 'flex items-center gap-3 px-4 py-3 mb-5 sm:mb-6 hover:border-[#0D2B32]/20 transition-colors group')}>
         <span className="w-8 h-8 rounded-xl bg-[#17D9C0]/15 flex items-center justify-center shrink-0">
           <Icon kind="robot" className="w-4 h-4" style={{ color: '#0F9B87' }} />
@@ -2130,6 +2138,7 @@ export default function LessonViewClient({
         </span>
         <Icon kind="chevronRight" className="w-3.5 h-3.5 text-[#4E7169]/60 shrink-0 rtl:rotate-180" />
       </Link>
+      )}
 
       {/* ── CONTENT: one step at a time while learning, full scroll in review ── */}
       {sections.length > 0 ? (
