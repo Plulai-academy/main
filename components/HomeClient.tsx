@@ -1,85 +1,197 @@
 // File: HomeClient.tsx
 // Placement: components/HomeClient.tsx
 //
-// This is the full interactive homepage — everything that used to live
-// directly in app/page.tsx. It's now a Client Component imported by a
-// thin Server Component app/page.tsx, so that page.tsx can also render
-// <CountryBanner /> (a Server Component using cookies()) as a sibling.
-// A Client Component can't import a Server Component that uses
-// server-only APIs directly — this split is what makes both work
-// together correctly.
-//
-// 'use client' because the mobile nav menu and audience toggle need
-// local state.
+// Redesign notes
+//  - FONTS: untouched. No font is imported or set here; every element inherits
+//    the font your site already uses (buttons are forced to `inherit` too).
+//  - One scoped stylesheet (`pl-` prefix) – no dependency on page.module.css
+//    or global .btn/.container classes.
+//  - Visual language: dark teal "night" hero with glow, a light sheet that
+//    slides over it, soft-shadow cards, timeline connectors, one dark
+//    showcase for projects, one dark closing card. White/cream alternate
+//    automatically between those moments.
 
 'use client'
 
-import { useState } from 'react'
-import styles from '@/app/page.module.css'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 
-const partners = [
-  { name: 'Partner 1', file: 'p1.png' },
-  { name: 'Partner 2', file: 'p2.png' },
-  { name: 'Partner 3', file: 'p3.png' },
-  { name: 'Partner 4', file: 'p4.png' },
-  { name: 'Partner 5', file: 'p5.png' },
-  { name: 'Partner 6', file: 'p6.png' },
-  { name: 'Partner 7', file: 'p7.png' },
-  { name: 'Partner 8', file: 'p8.png' },
-  { name: 'Partner 9', file: 'p9.png' },
-  { name: 'Partner 10', file: 'p10.png' },
-  { name: 'Partner 10', file: 'p11.png' },
+/* ------------------------------ DATA ------------------------------ */
 
+const partners = Array.from({ length: 11 }, (_, i) => ({ name: `Partner ${i + 1}`, file: `p${i + 1}.png` }))
 
-
-]
 const projects = [
-  { file: '1.png', title: 'Watch With Friends', track: 'Coding', tagColor: 'reef', student: 'Sarah, age 15' },
-  { file: '2.png', title: 'Escape Game', track: 'Game', tagColor: 'reef', student: 'Kmar, age 15' },
-  { file: '3.png', title: 'country quizz', track: 'Game', tagColor: 'reef', student: 'Farah, age 15' },
-  { file: '4.png', title: 'Guess The Flag', track: 'Game', tagColor: 'reef', student: 'Mariam, age 12' },
-  { file: '5.png', title: 'Prescription reader', track: 'AI', tagColor: 'gold', student: 'Youssef, age 15' },
-  { file: '6.png', title: 'Event Management', track: 'Coding', tagColor: 'reef', student: 'Kmar , age 14' },
-  { file: '7.png', title: 'Sudoku', track: 'Game', tagColor: 'reef', student: 'Kamar, age 15' },
-  { file: '8.png', title: 'AI doctor', track: 'AI', tagColor: 'gold', student: 'Yassine, age 11' },
-  // { file: '9.png', title: 'Sticker Shop', track: 'Coding', tagColor: 'reef', student: 'Yousef, age 15' },
-  { file: '10.png', title: 'Coloring Game', track: 'Game', tagColor: 'reef', student: 'Kamar, age 15' },
-  { file: '11.png', title: 'Geological Assistant', track: 'AI', tagColor: 'gold', student: 'Ahmed, age 13' },
-  { file: '12.png', title: 'Game', track: 'Game', tagColor: 'reef', student: 'Abd Arrahman, age 12' },
-  { file: '13.png', title: 'Maze Game', track: 'Game', tagColor: 'reef', student: 'Serah , age 14' },
-  { file: '14.png', title: 'AI For Meditation', track: 'AI', tagColor: 'gold', student: 'Yahya, age 12' },
-  { file: '15.png', title: 'Football Game', track: 'Coding', tagColor: 'reef', student: 'Othman, age 10' },
-  { file: '17.png', title: 'AI DIY', track: 'AI', tagColor: 'gold', student: '' },
-  { file: '18.png', title: 'Sequences Game', track: 'Game', tagColor: 'reef', student: 'Mariam, age 14' },
-  { file: '19.png', title: 'Flag Quest', track: 'Coding', tagColor: 'reef', student: 'Farah, age 15' },
-  // { file: '20.png', title: '', track: 'Coding', tagColor: 'reef', student: '' } 
+  { file: '1.png', title: 'Watch With Friends', track: 'Coding', student: 'Sarah, 15' },
+  { file: '2.png', title: 'Escape Game', track: 'Game', student: 'Kmar, 15' },
+  { file: '3.png', title: 'Country Quiz', track: 'Game', student: 'Farah, 15' },
+  { file: '4.png', title: 'Guess The Flag', track: 'Game', student: 'Mariam, 12' },
+  { file: '5.png', title: 'Prescription Reader', track: 'AI', student: 'Youssef, 15' },
+  { file: '6.png', title: 'Event Management', track: 'Coding', student: 'Kmar, 14' },
+  { file: '7.png', title: 'Sudoku', track: 'Game', student: 'Kamar, 15' },
+  { file: '8.png', title: 'AI Doctor', track: 'AI', student: 'Yassine, 11' },
+  { file: '10.png', title: 'Coloring Game', track: 'Game', student: 'Kamar, 15' },
+  { file: '11.png', title: 'Geological Assistant', track: 'AI', student: 'Ahmed, 13' },
+  { file: '12.png', title: 'Game', track: 'Game', student: 'Abd Arrahman, 12' },
+  { file: '13.png', title: 'Maze Game', track: 'Game', student: 'Serah, 14' },
+  { file: '14.png', title: 'AI For Meditation', track: 'AI', student: 'Yahya, 12' },
+  { file: '15.png', title: 'Football Game', track: 'Coding', student: 'Othman, 10' },
+  { file: '17.png', title: 'AI DIY', track: 'AI', student: '' },
+  { file: '18.png', title: 'Sequences Game', track: 'Game', student: 'Mariam, 14' },
+  { file: '19.png', title: 'Flag Quest', track: 'Coding', student: 'Farah, 15' },
 ]
+
+const journey = [
+  { title: 'Spark', color: '#FF6B57', fg: '#FFFFFF', text: 'Find your voice: pitch an idea, speak up in a room, and stop being afraid to get it wrong.', tags: ['Self-confidence', 'Communication', 'Creative thinking'] },
+  { title: 'Build', color: '#1FB8A6', fg: '#0D2B32', text: "Turn what's in your head into something real: an app, a game, a design people want to use.", tags: ['Coding', 'Game dev', 'UI/UX design'] },
+  { title: 'Think', color: '#D4A24C', fg: '#0D2B32', text: 'Get fluent with AI and with money, so you use them instead of being used by them.', tags: ['AI & future tech', 'Financial literacy'] },
+  { title: 'Launch', color: '#0D2B32', fg: '#F6F3EA', text: 'Take an idea all the way to a pitch: priced, marketed, and presented like you mean it.', tags: ['Entrepreneurship', 'Marketing', 'Pitching'] },
+]
+
+const steps = [
+  { chip: '30 minutes', title: 'Book a demo', text: 'A 30-minute walkthrough of the student view, teacher view, and admin dashboard, tailored to your grades.' },
+  { chip: 'Free pilot', title: 'Pilot one classroom', text: 'Run a free pilot with a single class before committing school-wide. Full access, no pressure.' },
+  { chip: 'One short session', title: 'Train your teachers', text: 'A short onboarding session, no coding background needed. Teachers leave knowing the platform and dashboard.' },
+  { chip: 'Within a month', title: 'Roll out school-wide', text: "Scale to the full grade or school, with an admin dashboard that flags who's stuck before report cards do." },
+]
+
+const packages = [
+  { name: 'Classroom Pilot', seats: '1 classroom · up to 35 seats', blurb: 'Try it with one class before deciding school-wide.', features: ['The full path, all 4 stages', 'One term', 'Teacher onboarding session'], cta: 'Start a pilot', hi: false },
+  { name: 'School-wide', seats: '50–1,000 seats', blurb: 'The most common setup for a full school rollout.', features: ['The full path, all 4 stages', 'Admin dashboard', 'Teacher training and support', 'Full academic year'], cta: 'Book a demo', hi: true },
+  { name: 'District', seats: '1,000+ seats', blurb: 'Multiple schools under one contract and dashboard.', features: ['Everything in School-wide', 'Multi-school reporting', 'Dedicated success contact'], cta: 'Contact sales', hi: false },
+]
+
+const sec = (d: string) => (
+  <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d={d} />
+  </svg>
+)
+
+const security = [
+  { label: 'Privacy', color: '#1FB8A6', icon: sec('M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3'), title: 'Student data stays protected', text: "We collect only what's needed to run missions and track progress. Never sold, never used for advertising." },
+  { label: 'Access', color: '#FF6B57', icon: sec('M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM21 20v-1a4 4 0 0 0-3-3.9M16 4.1a3.5 3.5 0 0 1 0 6.8'), title: 'Role-based access', text: 'Teachers see their classes, admins see the school, students see only their own work.' },
+  { label: 'Hosting', color: '#D4A24C', icon: sec('M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z'), title: 'Regional hosting options', text: 'Data residency options for institutions with regional requirements.' },
+  { label: 'Support', color: '#0D2B32', icon: sec('M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v5H5a1 1 0 0 1-1-1zM20 14h-3v5h2a1 1 0 0 0 1-1zM17 19c0 1.5-2 2-5 2'), title: 'A named point of contact', text: 'Institution plans get a dedicated contact for data and security questions, not a support queue.' },
+]
+
+const testimonials = [
+  { q: "My 9-year-old asks to do his mission after school. I never thought I'd see that with coding.", n: 'Layla M.', r: 'Parent', i: 'L' },
+  { q: 'The Arabic and French aren\u2019t translated, they\u2019re native. That alone sets it apart.', n: 'Dr. Khalid R.', r: 'Principal', i: 'K' },
+  { q: 'He built his first working game in two weeks. The AI tutor is more patient than I ever am.', n: 'Sara A.', r: 'Parent', i: 'S' },
+]
+
+const faqs: { q: string; a: string; for: 'family' | 'schools' | 'common' }[] = [
+  { q: 'Can my child use Plulai on their own at home?', a: 'Yes. Missions are self-paced and the AI tutor adapts to your child, so no classroom or teacher is required.', for: 'family' },
+  { q: 'Is there a plan for more than one child?', a: 'Yes. The Family plan covers up to 3 children on one subscription, with separate progress for each child and one shared parent dashboard.', for: 'family' },
+  { q: 'What devices or browsers do we need?', a: 'Plulai runs in any modern browser (Chrome, Safari, or Edge) on Chromebooks, laptops, or tablets. Nothing to install.', for: 'common' },
+  { q: 'How is student data handled?', a: "We collect only what's needed to run missions and track progress. Data is never sold or used for advertising.", for: 'common' },
+  { q: 'Can missions fit inside a normal class period?', a: 'Yes. Missions run in 30–45 minute sessions, built to fit a standard class period.', for: 'schools' },
+  { q: 'How long does onboarding take?', a: 'Most schools go from demo to a live pilot classroom within a week, and to full rollout within a month. Teacher training is included.', for: 'schools' },
+  { q: 'How does billing work for institutions?', a: "Billing is per seat count and term length, with flexible invoicing. Book a demo and we'll put together a quote.", for: 'schools' },
+  { q: 'Do teachers need a coding background?', a: 'No. Teachers get a short onboarding session, and the AI tutor handles most one-on-one guidance.', for: 'schools' },
+]
+
+/* --------------------------- SHARED PIECES --------------------------- */
+
+function Section({
+  id, tone, title, sub, children,
+}: {
+  id?: string
+  tone: 'cream' | 'white'
+  title?: string
+  sub?: string
+  children: React.ReactNode
+}) {
+  return (
+    <section id={id} className={`pl-sec pl-${tone}`}>
+      <div className="pl-wrap">
+        {title && (
+          <header className="pl-head">
+            <h2>{title}</h2>
+            {sub && <p>{sub}</p>}
+          </header>
+        )}
+        {children}
+      </div>
+    </section>
+  )
+}
+
+const Check = ({ light }: { light?: boolean }) => (
+  <span className={`pl-check ${light ? 'light' : ''}`} aria-hidden>
+    <svg width={12} height={12} viewBox="0 0 16 16">
+      <path d="M3 8.5l3.2 3.2L13 4.8" stroke="currentColor" strokeWidth={2.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  </span>
+)
+
+const Arrow = () => (
+  <svg width={16} height={16} viewBox="0 0 16 16" aria-hidden>
+    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+
+const WHATSAPP_URL = `https://wa.me/97455548407?text=${encodeURIComponent("Hi Plulai, I'd like to start the family plan ($20/month).")}`
+
+const WhatsApp = () => (
+  <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <path d="M12.04 2a9.9 9.9 0 0 0-8.4 15.1L2 22l5.04-1.6A9.9 9.9 0 1 0 12.04 2Zm0 18a8.1 8.1 0 0 1-4.13-1.13l-.3-.18-2.99.95.97-2.9-.2-.31A8.1 8.1 0 1 1 12.04 20Zm4.45-6.06c-.24-.12-1.44-.71-1.66-.79-.22-.08-.39-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.8-.2-.47-.4-.41-.55-.42h-.47c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.1 3.64.57.25 1.02.4 1.37.5.58.18 1.1.16 1.51.1.46-.07 1.44-.59 1.64-1.16.2-.57.2-1.06.14-1.16-.06-.1-.22-.16-.46-.28Z" />
+  </svg>
+)
+
+function CountUp({ to, suffix = '' }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [v, setV] = useState(0)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setV(to); return }
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return
+      io.disconnect()
+      const t0 = performance.now()
+      const tick = (t: number) => {
+        const p = Math.min(1, (t - t0) / 1400)
+        setV(Math.round(to * (1 - Math.pow(1 - p, 3))))
+        if (p < 1) requestAnimationFrame(tick)
+      }
+      requestAnimationFrame(tick)
+    }, { threshold: 0.4 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [to])
+  return <span ref={ref}>{v.toLocaleString('en-US')}{suffix}</span>
+}
+
+
+/* ------------------------------ PAGE ------------------------------ */
+
 export default function LandingPage() {
   const [navOpen, setNavOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(0)
-  const [activeStep, setActiveStep] = useState(0)
-  // Schools/institutions are the primary motion — families are still fully served,
-  // just one tap away via the toggle below instead of the default landing state.
+  const [stage, setStage] = useState(0)
   const [audience, setAudience] = useState<'family' | 'schools'>('schools')
 
-  return (
-    <>
-      {/* Skip link — a11y + a small SEO signal that the page has a clear structure */}
-      <a
-        href="#main-content"
-        style={{
-          position: 'absolute', left: -9999, top: 0, zIndex: 100, background: '#0D2B32', color: '#F6F3EA',
-          padding: '10px 18px', borderRadius: 8, fontWeight: 700, fontSize: 14,
-        }}
-        onFocus={(e) => { e.currentTarget.style.left = '16px'; e.currentTarget.style.top = '16px' }}
-        onBlur={(e) => { e.currentTarget.style.left = '-9999px' }}
-      >
-        Skip to content
-      </a>
+  const schools = audience === 'schools'
+  const primaryCta = schools ? 'Book a demo' : 'Start free trial'
+  const primaryHref = schools ? 'mailto:hello@plulai.com' : '/auth/signup'
+  const secondary = schools
+    ? { label: 'Talk to our team', href: 'mailto:hello@plulai.com' }
+    : { label: 'See family plan', href: '#plans' }
 
-      {/* Structured data — helps search engines understand Plulai as an
-          education provider rather than guessing from prose alone. */}
+  // White/cream alternate in render order, skipping conditional sections.
+  let n = 0
+  const tone = () => (n++ % 2 ? 'white' : 'cream') as 'white' | 'cream'
+
+  const pick = (a: 'family' | 'schools') => { setAudience(a); setOpenFaq(0) }
+  const visibleFaqs = faqs.filter((f) => f.for === 'common' || f.for === audience)
+
+  return (
+    <div className="pl-root">
+      <style>{css}</style>
+
+      <a href="#main-content" className="pl-skip">Skip to content</a>
+
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
@@ -98,1535 +210,1041 @@ export default function LandingPage() {
         }}
       />
 
-      {/* ================= NAV ================= */}
-      <nav className={styles.nav}>
-        <div className="container">
-          <div className={styles.navRow}>
-            <a href="/" aria-label="Plulai home" style={{ display: 'flex', alignItems: 'center' }}>
-              <Image
-                src="/logo.png"
-                alt="Plulai"
-                width={132}
-                height={36}
-                priority
-                style={{ height: 'auto', width: 'auto', maxHeight: 36 }}
-              />
-            </a>
+      {/* ============ NAV (floating pill) ============ */}
+      <header className="pl-navwrap">
+        <nav className="pl-nav" aria-label="Main">
+          <a href="/" aria-label="Plulai home" className="pl-logo">
+            <Image src="/logo.png" alt="Plulai" width={132} height={36} priority style={{ height: 'auto', width: 'auto', maxHeight: 30 }} />
+          </a>
 
-            <div className={styles.navLinks} style={{ color: '#0D2B32' }}>
-              <a href="#tracks" style={{ color: '#0D2B32' }}>The Path</a>
-              <a href="#audience" onClick={() => setAudience('schools')} style={{ color: audience === 'schools' ? '#1FB8A6' : '#0D2B32' }}>For Schools</a>
-              <a href="#audience" onClick={() => setAudience('family')} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>For Families</a>
-              <a href="#plans" style={{ color: '#0D2B32' }}>Pricing</a>
-            </div>
-
-            <div className={styles.navRight}>
-              <a
-                href="/ar"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6, color: '#0D2B32',
-                  fontSize: 13.5, fontWeight: 700, padding: '7px 13px', borderRadius: 999,
-                  border: '1.5px solid rgba(13,43,50,0.14)',
-                }}
-              >
-                <svg width={14} height={14} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6}>
-                  <circle cx="10" cy="10" r="8" />
-                  <path d="M2 10h16M10 2c2.5 2.2 2.5 13.8 0 16M10 2c-2.5 2.2-2.5 13.8 0 16" />
-                </svg>
-                العربية
-              </a>
-              <a href="/auth/login" style={{ color: '#0D2B32' }}>Log in</a>
-              <a href="#audience">
-                <button className="btn btn-dark" style={{ padding: '11px 20px', fontSize: 14.5 }}>
-                  {audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;
-                </button>
-              </a>
-            </div>
-
-            <button
-              type="button"
-              className={styles.burger}
-              aria-label={navOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={navOpen}
-              onClick={() => setNavOpen((v) => !v)}
-            >
-              <span className={navOpen ? styles.burgerTopOpen : ''} />
-              <span className={navOpen ? styles.burgerMidOpen : ''} />
-              <span className={navOpen ? styles.burgerBotOpen : ''} />
-            </button>
+          <div className="pl-navlinks">
+            <a href="#path">The path</a>
+            <a href="#audience" onClick={() => pick('schools')} className={schools ? 'on' : ''}>For schools</a>
+            <a href="#audience" onClick={() => pick('family')} className={!schools ? 'on' : ''}>For families</a>
+            <a href="#plans">Pricing</a>
           </div>
 
-          <div className={`${styles.mobilePanel} ${navOpen ? styles.mobilePanelOpen : ''}`}>
-            <a href="#tracks" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>The Path</a>
-            <a href="#audience" onClick={() => { setAudience('schools'); setNavOpen(false) }} style={{ color: audience === 'schools' ? '#1FB8A6' : '#0D2B32' }}>For Schools</a>
-            <a href="#audience" onClick={() => { setAudience('family'); setNavOpen(false) }} style={{ color: audience === 'family' ? '#1FB8A6' : '#0D2B32' }}>For Families</a>
-            <a href="#plans" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Pricing</a>
-            <div className={styles.mobilePanelDivider} />
-            <a href="/auth/login" onClick={() => setNavOpen(false)} style={{ color: '#0D2B32' }}>Log in</a>
-            <a
-              href="/ar"
-              onClick={() => setNavOpen(false)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6, color: '#0D2B32',
-                fontSize: 13.5, fontWeight: 700, width: 'fit-content',
-              }}
-            >
-              <svg width={14} height={14} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6}>
-                <circle cx="10" cy="10" r="8" />
-                <path d="M2 10h16M10 2c2.5 2.2 2.5 13.8 0 16M10 2c-2.5 2.2-2.5 13.8 0 16" />
-              </svg>
-              العربية
-            </a>
-            <a href="#audience" onClick={() => setNavOpen(false)}>
-              <button className="btn btn-cta btn-block">{audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;</button>
-            </a>
+          <div className="pl-navright">
+            <a href="/ar" className="pl-lang" lang="ar" hrefLang="ar">العربية</a>
+            <a href="/auth/login" className="pl-login">Log in</a>
+            <a href={primaryHref} className="pl-btn pl-btn-primary pl-btn-sm">{primaryCta}</a>
           </div>
-        </div>
-      </nav>
+
+          <button
+            type="button" className="pl-burger" aria-label={navOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={navOpen} onClick={() => setNavOpen((v) => !v)}
+          >
+            <span className={navOpen ? 'x1' : ''} /><span className={navOpen ? 'x2' : ''} /><span className={navOpen ? 'x3' : ''} />
+          </button>
+        </nav>
+
+        {navOpen && (
+          <div className="pl-mobile">
+            <a href="#path" onClick={() => setNavOpen(false)}>The path</a>
+            <a href="#audience" onClick={() => { pick('schools'); setNavOpen(false) }}>For schools</a>
+            <a href="#audience" onClick={() => { pick('family'); setNavOpen(false) }}>For families</a>
+            <a href="#plans" onClick={() => setNavOpen(false)}>Pricing</a>
+            <a href="/auth/login">Log in</a>
+            <a href="/ar" lang="ar" hrefLang="ar">العربية</a>
+            <a href={primaryHref} className="pl-btn pl-btn-primary" onClick={() => setNavOpen(false)}>{primaryCta}</a>
+          </div>
+        )}
+      </header>
 
       <main id="main-content">
-      {/* ================= HERO ================= */}
-      <div className={styles.hero}>
-        <span aria-hidden className={styles.heroWatermark}>/</span>
-        <div className="container">
-          <div className={styles.heroGrid}>
+        {/* ============ HERO ============ */}
+        <section className="pl-hero">
+          <div className="pl-wrap pl-herogrid">
             <div>
-              <style>{`
-                @media (max-width: 480px) {
-                  .audience-toggle { flex-direction: column !important; border-radius: 14px !important; width: 100%; }
-                  .audience-toggle button { width: 100%; text-align: center; }
-                }
-              `}</style>
-              {/* Audience toggle — the rest of the page follows this choice */}
-              <div
-                role="tablist"
-                aria-label="Choose your audience"
-                className="audience-toggle"
-                style={{
-                  display: 'inline-flex', flexWrap: 'wrap', background: '#EEF2F1', borderRadius: 999,
-                  padding: 4, marginBottom: 22, gap: 2, maxWidth: '100%',
-                }}
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={audience === 'family'}
-                  onClick={() => setAudience('family')}
-                  style={{
-                    border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                    padding: '9px 18px', borderRadius: 999, fontSize: 13.5, fontWeight: 700,
-                    background: audience === 'family' ? '#0D2B32' : 'transparent',
-                    color: audience === 'family' ? '#F6F3EA' : '#5C7873',
-                    transition: 'background .15s ease',
-                  }}
-                >
-                  For Families
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={audience === 'schools'}
-                  onClick={() => setAudience('schools')}
-                  style={{
-                    border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                    padding: '9px 18px', borderRadius: 999, fontSize: 13.5, fontWeight: 700,
-                    background: audience === 'schools' ? '#0D2B32' : 'transparent',
-                    color: audience === 'schools' ? '#F6F3EA' : '#5C7873',
-                    transition: 'background .15s ease',
-                  }}
-                >
-                  For Schools &amp; Training Centers
-                </button>
+              <div className="pl-toggle" role="tablist" aria-label="Choose your audience">
+                <button type="button" role="tab" aria-selected={!schools} onClick={() => pick('family')}>For families</button>
+                <button type="button" role="tab" aria-selected={schools} onClick={() => pick('schools')}>For schools &amp; training centers</button>
               </div>
 
-              <div className={styles.statBadge}>
-                <span className={styles.statDot} />
-                11+ partners across the MENA region
-              </div>
-
-              {audience === 'family' ? (
-                <>
-                  <h1 className={styles.heroTitle}>
-                    Coding, AI, and the confidence to use them.
-                  </h1>
-                  <p className={styles.heroSub}>
-                    15 minutes a day. Real Arabic, French, or English. An AI coach
-                    that adapts to your kid — no classroom required.
-                  </p>
-                  <div className={styles.ctaRow} style={{ alignItems: 'center' }}>
-                    <a href="/auth/signup"><button className="btn btn-cta">Start free trial &rarr;</button></a>
-                    <a
-                      href="#plans"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: '#0D2B32' }}
-                    >
-                      See family plans &rarr;
-                    </a>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h1 className={styles.heroTitle}>
-                    A coding, AI &amp; life-skills curriculum your school can run.
-                  </h1>
-                  <p className={styles.heroSub}>
-                    30–45 minute class periods. Real Arabic, French, or English. An
-                    AI coach for every student, and a dashboard that flags who&apos;s
-                    stuck before report cards do.
-                  </p>
-                  <div className={styles.ctaRow} style={{ alignItems: 'center' }}>
-                    <a href="#audience"><button className="btn btn-cta">Book a demo &rarr;</button></a>
-                    <a
-                      href="mailto:hello@plulai.com"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 15, color: '#0D2B32' }}
-                    >
-                      Talk to our team &rarr;
-                    </a>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className={styles.heroVisual}>
-              <Image
-                src="/avatars/heroplulai.png"
-                alt="Marjan the camel, Plulai's mascot"
-                width={336}
-                height={336}
-                priority
-              />
-
-              <style>{`
-                @keyframes plulai-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: 0.7; } }
-                .streak-pulse { animation: plulai-pulse 1.8s ease-in-out infinite; }
-                @media (prefers-reduced-motion: reduce) { .streak-pulse { animation: none; } }
-              `}</style>
-              <div className={styles.floatBadge} style={{ top: 0, left: -10 }}>
-                <span className="pearl-dot pearl-dot--md streak-pulse" />
-                <div>
-                  <div className={styles.floatBadgeTitle}>4-pearl streak</div>
-                  <div className={styles.floatBadgeSub}>One more today</div>
-                </div>
-              </div>
-
-              <div className={styles.floatBadge} style={{ bottom: 20, right: -20 }}>
-                <svg width={20} height={20} viewBox="0 0 20 20">
-                  <path d="M10 2 L17 7 L17 18 L3 18 L3 7 Z" fill="#1FB8A6" />
-                </svg>
-                <div>
-                  <div className={styles.floatBadgeTitle}>Level 5 reached</div>
-                  <div className={styles.floatBadgeSub}>Faris · Coding</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.divider}>
-        <svg viewBox="0 0 1440 70" preserveAspectRatio="none">
-          <path d="M0,30 C240,80 480,0 720,25 C960,50 1200,10 1440,35 L1440,70 L0,70 Z" fill="#F6F3EA" />
-        </svg>
-      </div>
-
-      {/* ================= PARTNERS ================= */}
-      {/* Redesigned as a self-contained band (inline-styled, same pattern as
-          the Tracks/How-it-works/Case-study sections below) rather than the
-          old styles.partnersSec/partnerRow/partnerTile module classes, so it
-          no longer depends on CSS you can't see here. It picks up the same
-          "#F6F3EA" pearl-white the divider above already hands off to, and
-          borrows the alumni section's proven infinite-marquee technique —
-          a static wrapped grid doesn't scale gracefully once you're past
-          ~8 logos, and this list is already at 11. Logos run desaturated by
-          default (a quiet, uniform trust signal) and bloom to full colour on
-          hover; the whole strip pauses on hover too so a name can actually
-          be read. */}
-      <div style={{ background: '#F6F3EA', padding: '52px 0 60px', overflow: 'hidden' }}>
-        <style>{`
-          @keyframes plulai-partner-scroll {
-            from { transform: translateX(0); }
-            to { transform: translateX(-50%); }
-          }
-          .partner-marquee-track { animation: plulai-partner-scroll 32s linear infinite; }
-          .partner-marquee-wrap:hover .partner-marquee-track { animation-play-state: paused; }
-          .partner-tile { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-          .partner-tile:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(13,43,50,0.10); border-color: rgba(31,184,166,0.35) !important; }
-          .partner-tile img { filter: grayscale(1); opacity: 0.5; transition: filter .25s ease, opacity .25s ease; }
-          .partner-tile:hover img { filter: grayscale(0); opacity: 1; }
-          @media (prefers-reduced-motion: reduce) { .partner-marquee-track { animation: none; } }
-        `}</style>
-
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <span
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 15px',
-                borderRadius: 999, background: '#EAF6F3', color: '#0D2B32', fontSize: 12.5,
-                fontWeight: 700, letterSpacing: 0.3, marginBottom: 12,
-              }}
-            >
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1FB8A6' }} />
-              Trusted across the region
-            </span>
-            <p style={{ margin: 0, fontSize: 14.5, fontWeight: 600, color: 'rgba(41,57,74,0.6)' }}>
-              Used in real classrooms and programs
-            </p>
-          </div>
-        </div>
-
-        <div className="partner-marquee-wrap" style={{ position: 'relative' }}>
-          {/* edge fades so the strip reads as endless, not cut off */}
-          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 100, background: 'linear-gradient(90deg, #F6F3EA, rgba(246,243,234,0))', zIndex: 2, pointerEvents: 'none' }} />
-          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: 100, background: 'linear-gradient(270deg, #F6F3EA, rgba(246,243,234,0))', zIndex: 2, pointerEvents: 'none' }} />
-
-          <div
-            className="partner-marquee-track"
-            style={{ display: 'flex', width: 'max-content', gap: 18, padding: '4px 0' }}
-          >
-            {[...partners, ...partners].map((partner, i) => (
-              <div
-                key={`${partner.file}-${i}`}
-                className="partner-tile"
-                style={{
-                  flex: '0 0 auto', width: 156, height: 82, borderRadius: 16,
-                  background: '#fff', border: '1px solid #E4E9E7',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '16px 22px',
-                }}
-              >
-                <Image
-                  src={`/partners/${partner.file}`}
-                  alt={partner.name}
-                  width={120}
-                  height={48}
-                  style={{ width: 'auto', height: '100%', maxWidth: '100%', objectFit: 'contain' }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="container">
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 30 }}>
-            {['Schools', 'Scouts programs', 'Community and training centers'].map((label, i, arr) => (
-              <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(41,57,74,0.55)' }}>{label}</span>
-                {i < arr.length - 1 && <span aria-hidden style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(41,57,74,0.25)' }} />}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ================= AUDIENCE-SPECIFIC PITCH (Family / Schools) ================= */}
-      <div id="audience" className={styles.schoolsSec} style={{ scrollMarginTop: 90 }}>
-        <div className="container">
-          {audience === 'family' ? (
-            <div className={styles.schoolsGrid}>
-              <div>
-                <span className="pill">For Families</span>
-                <h2 style={{ marginTop: 18 }}>Learning that fits your family&apos;s schedule.</h2>
-                <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 460 }}>
-                  No classroom, no fixed timetable — just 15 minutes a day, whenever
-                  it works. Alone, with a sibling, or together with you.
-                </p>
-                <div className={styles.schoolsList}>
-                  <div className={styles.schoolsItem}>
-                    <b>Learn anytime, anywhere</b>
-                    <span>Self-paced missions your child can start and stop on their own.</span>
-                  </div>
-                  <div className={styles.schoolsItem}>
-                    <b>Arabic, French &amp; English</b>
-                    <span>A native trilingual curriculum, not translated from somewhere else.</span>
-                  </div>
-                  <div className={styles.schoolsItem}>
-                    <b>Weekly parent summary</b>
-                    <span>See what they learned and where they got stuck — no digging required.</span>
-                  </div>
-                </div>
-                <div className={styles.ctaRow}>
-                  <a href="/auth/signup">
-                    <button className="btn btn-dark">Start free trial &rarr;</button>
-                  </a>
-                  <a href="#plans">
-                    <button className="btn btn-outline">See family plans &rarr;</button>
-                  </a>
-                </div>
-              </div>
-
-              <div className={styles.dashMock}>
-                <div className={styles.dashBar}>
-                  <div className={styles.dashDot} />
-                  <div className={styles.dashDot} />
-                  <div className={styles.dashDot} />
-                </div>
-                <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>
-                  Faris&apos; week
-                </p>
-                <div className={styles.rosterRow}><span>Missions completed</span><span>5 / 5</span></div>
-                <div className={styles.rosterRow}><span>Current streak</span><span style={{ color: '#D4A24C' }}>4 pearls 🔥</span></div>
-                <div className={styles.rosterRow}><span>Track</span><span>Coding</span></div>
-                <div className={styles.rosterRow}>
-                  <span>Next up</span>
-                  <span style={{ color: '#1FB8A6' }}>Level 5</span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className={styles.schoolsGrid}>
-              <div>
-                <span className="pill">For Schools &amp; Institutions</span>
-                <h2 style={{ marginTop: 18 }}>Bring Plulai into your classroom.</h2>
-                <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 460 }}>
-                  A curriculum your teachers can run — with a dashboard that flags who&apos;s
-                  stuck before report cards do.
-                </p>
-                <div className={styles.schoolsList}>
-                  <div className={styles.schoolsItem}>
-                    <b>Bulk seats, 50–5,000</b>
-                    <span>Regional pricing, flexible billing.</span>
-                  </div>
-                  <div className={styles.schoolsItem}>
-                    <b>Arabic, French &amp; English curriculum</b>
-                    <span>Built for MENA classrooms, not translated from somewhere else.</span>
-                  </div>
-                  <div className={styles.schoolsItem}>
-                    <b>Dedicated support</b>
-                    <span>Onboarding, training, a named success contact.</span>
-                  </div>
-                </div>
-                <div className={styles.ctaRow}>
-                  <a href="/schools">
-                    <button className="btn btn-dark">Explore for schools &rarr;</button>
-                  </a>
-                  <a href="mailto:hello@plulai.com">
-                    <button className="btn btn-outline">Book a demo &rarr;</button>
-                  </a>
-                </div>
-              </div>
-
-              <div className={styles.dashMock}>
-                <div className={styles.dashBar}>
-                  <div className={styles.dashDot} />
-                  <div className={styles.dashDot} />
-                  <div className={styles.dashDot} />
-                </div>
-                <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>
-                  Grade 5B — Coding Track
-                </p>
-                <div className={styles.rosterRow}><span>Sara K.</span><span>80%</span></div>
-                <div className={styles.rosterRow}><span>Ali M.</span><span>45%</span></div>
-                <div className={styles.rosterRow}><span>Fatima R.</span><span>92%</span></div>
-                <div className={styles.rosterRow}>
-                  <span>Yousef A. <span style={{ color: '#D4A24C' }}>· stuck</span></span>
-                  <span>15%</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ================= HOW IT WORKS (schools only) ================= */}
-      {audience === 'schools' && (
-      <div className={styles.tracksSec}>
-        <style>{`
-          @media (max-width: 760px) {
-            .how-grid { grid-template-columns: 1fr !important; }
-            .how-tabs { flex-direction: row !important; overflow-x: auto; gap: 10px !important; padding-bottom: 6px; }
-            .how-tab { flex: 0 0 auto !important; white-space: nowrap; }
-          }
-        `}</style>
-        <div className="container">
-          <div className={styles.tracksHead}>
-            <p className="eyebrow">How it works</p>
-            <h2>From demo to full rollout</h2>
-            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
-              Most schools go from first call to a full classroom in under a month.
-            </p>
-          </div>
-
-          {(() => {
-            const steps = [
-              {
-                n: '01', title: 'Book a demo', color: '#1FB8A6',
-                desc: 'A 30-minute walkthrough tailored to your grade levels and goals — see the student view, the teacher view, and the admin dashboard.',
-                preview: (
-                  <>
-                    <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>This week</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 16 }}>
-                      {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, idx) => (
-                        <div
-                          key={d + idx}
-                          style={{
-                            aspectRatio: '1', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 11, fontWeight: 600,
-                            background: idx === 3 ? '#1FB8A6' : 'rgba(255,255,255,0.08)',
-                            color: idx === 3 ? '#0D2B32' : '#B7C9C5',
-                          }}
-                        >
-                          {d}
-                        </div>
-                      ))}
-                    </div>
-                    <div className={styles.rosterRow}><span>Demo · Wed, 10:00 AM</span><span style={{ color: '#1FB8A6' }}>Booked</span></div>
-                  </>
-                ),
-              },
-              {
-                n: '02', title: 'Pilot one classroom', color: '#D4A24C',
-                desc: 'Run a free pilot with a single class before committing school-wide — full access, no cost, no pressure to continue.',
-                preview: (
-                  <>
-                    <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>Grade 5B — Pilot</p>
-                    <div className={styles.rosterRow}><span>Sara K.</span><span>80%</span></div>
-                    <div className={styles.rosterRow}><span>Ali M.</span><span>45%</span></div>
-                    <div className={styles.rosterRow}><span>Fatima R.</span><span>92%</span></div>
-                  </>
-                ),
-              },
-              {
-                n: '03', title: 'Train your teachers', color: '#0D2B32',
-                desc: 'A short onboarding session — no coding background required. Teachers leave knowing the platform and the dashboard cold.',
-                preview: (
-                  <>
-                    <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>Onboarding checklist</p>
-                    {['Platform walkthrough', 'Grading & dashboard', 'Live Q&A session'].map((item) => (
-                      <div key={item} className={styles.rosterRow}>
-                        <span>{item}</span>
-                        <span style={{ color: '#1FB8A6' }}>✓</span>
-                      </div>
-                    ))}
-                  </>
-                ),
-              },
-              {
-                n: '04', title: 'Roll out school-wide', color: '#053D35',
-                desc: 'Scale to the full grade or school, with a dashboard for admins that flags who\u2019s stuck before report cards do.',
-                preview: (
-                  <>
-                    <p style={{ color: '#F6F3EA', fontWeight: 700, marginBottom: 14 }}>Rollout progress</p>
-                    {[{ g: 'Grade 4', v: 82 }, { g: 'Grade 5', v: 91 }, { g: 'Grade 6', v: 76 }].map((row) => (
-                      <div key={row.g} style={{ marginBottom: 10 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: '#B7C9C5', marginBottom: 4 }}>
-                          <span>{row.g}</span><span>{row.v}%</span>
-                        </div>
-                        <div style={{ height: 6, borderRadius: 4, background: 'rgba(255,255,255,0.1)' }}>
-                          <div style={{ height: 6, borderRadius: 4, width: `${row.v}%`, background: '#1FB8A6' }} />
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                ),
-              },
-            ]
-            const step = steps[activeStep]
-            return (
-              <div className="how-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.15fr', gap: 40, marginTop: 48, alignItems: 'start' }}>
-                <div className="how-tabs" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {steps.map((s, i) => {
-                    const active = i === activeStep
-                    return (
-                      <button
-                        key={s.n}
-                        type="button"
-                        className="how-tab"
-                        onClick={() => setActiveStep(i)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left',
-                          padding: '16px 18px', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
-                          border: active ? 'none' : '1px solid #E4E9E7',
-                          background: active ? '#0D2B32' : '#fff',
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 12.5, fontWeight: 700,
-                            background: active ? s.color : '#F1F5F4',
-                            color: active ? (s.color === '#D4A24C' ? '#402F12' : '#fff') : '#5C7873',
-                          }}
-                        >
-                          {s.n}
-                        </span>
-                        <span style={{ fontWeight: 700, fontSize: 14.5, color: active ? '#F6F3EA' : '#0D2B32' }}>
-                          {s.title}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-
-                <div>
-                  <div className={styles.dashMock}>
-                    <div className={styles.dashBar}>
-                      <div className={styles.dashDot} />
-                      <div className={styles.dashDot} />
-                      <div className={styles.dashDot} />
-                    </div>
-                    {step.preview}
-                  </div>
-                  <p style={{ fontSize: 14, lineHeight: 1.65, color: 'rgba(41,57,74,0.75)', marginTop: 20 }}>
-                    {step.desc}
-                  </p>
-                </div>
-              </div>
-            )
-          })()}
-
-          <div style={{ textAlign: 'center', marginTop: 40 }}>
-            <a href="#audience">
-              <button className="btn btn-cta">Book a demo &rarr;</button>
-            </a>
-          </div>
-        </div>
-      </div>
-      )}
-
-      {/* ================= JOURNEY: roadmap ================= */}
-      {/* Reframed from "3 tracks" to the real shape of the 12-year path:
-          confidence/communication and design/marketing sit alongside
-          coding and AI, grouped into four stages so the road stays
-          readable instead of sprawling into 9 individual stops. Copy is
-          outcome-first ("you'll..."), not "what your students will
-          learn" — this section runs for both audiences, unchanged. */}
-      <div id="tracks" className={styles.tracksSec} style={{ overflow: 'hidden' }}>
-        <style>{`
-          .curr-icon { transition: transform .2s ease; }
-          .curr-col:hover .curr-icon { transform: scale(1.07); }
-          @media (max-width: 760px) {
-            .curr-path { display: none; }
-            .curr-row { flex-direction: column !important; align-items: center !important; gap: 40px !important; }
-            .curr-col { transform: none !important; }
-          }
-        `}</style>
-        <div className="container">
-          <div className={styles.tracksHead} style={{ position: 'relative' }}>
-            <p className="eyebrow">The 12-year path</p>
-            <h2 style={{ display: 'inline-block', position: 'relative' }}>
-              What they become, not just what they learn
-              <svg
-                width="280" height="14" viewBox="0 0 280 14"
-                style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: -10 }}
-                aria-hidden
-              >
-                <path d="M4 8 Q40 -2 76 8 T148 8 T220 8 T276 8" stroke="#D4A24C" strokeWidth={3} fill="none" strokeLinecap="round" />
-              </svg>
-            </h2>
-            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 560, margin: '22px auto 0' }}>
-              Coding and AI get most of the attention — the path covers just as much
-              ground in the confidence to speak up, the design sense to make things
-              people actually want to use, and the money and marketing instincts to
-              turn an idea into something real.
-            </p>
-            <span
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 18,
-                padding: '7px 15px', borderRadius: 999, background: '#EAF6F3',
-                color: '#0D2B32', fontSize: 13, fontWeight: 600,
-              }}
-            >
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1FB8A6' }} />
-              Ages 6–18 · one continuous path, mission by mission
-            </span>
-          </div>
-
-          {(() => {
-            const journeyStops = [
-              {
-                title: 'Spark', color: '#FF6B57', dark: '#7A2E22',
-                icon: (
-                  <svg width={22} height={22} viewBox="0 0 22 22">
-                    <path d="M11 0 L13 9 L22 11 L13 13 L11 22 L9 13 L0 11 L9 9 Z" fill="#fff" />
-                  </svg>
-                ),
-                outcome: "You'll find your voice — pitch an idea, speak up in a room, and stop being afraid to get it wrong.",
-                tags: ['Self-confidence', 'Communication', 'Creative thinking'],
-              },
-              {
-                title: 'Build', color: '#1FB8A6', dark: '#0D2B32',
-                icon: (
-                  <svg width={20} height={20} viewBox="0 0 20 20">
-                    <rect x="1.5" y="1.5" width="7" height="7" rx="1.5" fill="#fff" opacity={0.9} />
-                    <rect x="11.5" y="1.5" width="7" height="7" rx="1.5" fill="#fff" opacity={0.6} />
-                    <rect x="1.5" y="11.5" width="7" height="7" rx="1.5" fill="#fff" opacity={0.6} />
-                    <rect x="11.5" y="11.5" width="7" height="7" rx="1.5" fill="#fff" />
-                  </svg>
-                ),
-                outcome: "You'll turn what's in your head into something real — an app, a game, a design people actually want to use.",
-                tags: ['Coding', 'Game dev', 'UI/UX design'],
-              },
-              {
-                title: 'Think', color: '#D4A24C', dark: '#402F12',
-                icon: <span className="font-mono" style={{ fontWeight: 700, fontSize: 19, color: '#402F12' }}>AI</span>,
-                outcome: "You'll get fluent with AI and with money — how to use both, instead of being used by them.",
-                tags: ['AI & future tech', 'Financial literacy'],
-              },
-              {
-                title: 'Launch', color: '#053D35', dark: '#053D35',
-                icon: (
-                  <svg width={20} height={20} viewBox="0 0 20 20">
-                    <path d="M10 1c3 2 4.5 6 3.5 10.5l-2 1.5-1.5-2c-1-.5-2-.5-3 0l-1.5 2-2-1.5C2.5 7 4 3 7 1c1-.6 2-.6 3 0Z" fill="#fff" />
-                    <circle cx="10" cy="7" r="1.6" fill="#053D35" />
-                  </svg>
-                ),
-                outcome: "You'll take an idea all the way to a pitch — priced, marketed, and presented like you mean it.",
-                tags: ['Entrepreneurship', 'Marketing', 'Pitching'],
-              },
-            ]
-            const SWING = 36 // px — how far the path/icons rise and dip
-
-            return (
-              <div style={{ position: 'relative', marginTop: 76, paddingBottom: 8 }}>
-                {/* the road itself — anchors line up with the icon centers below */}
-                <svg
-                  className="curr-path"
-                  viewBox="0 0 1000 155" preserveAspectRatio="none"
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 155, zIndex: 0 }}
-                  aria-hidden
-                >
-                  <path
-                    d="M125,99 C230,99 270,27 375,27 C480,27 520,99 625,99 C730,99 770,27 875,27"
-                    stroke="#CFE3DF" strokeWidth={3} strokeDasharray="2 13" strokeLinecap="round" fill="none"
-                  />
-                  {journeyStops.map((s, i) => (
-                    <circle key={s.title} cx={125 + i * 250} cy={i % 2 === 0 ? 99 : 27} r={5} fill={s.color} />
-                  ))}
-                </svg>
-
-                <div
-                  className="curr-row"
-                  style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 22 }}
-                >
-                  {journeyStops.map((s, i) => {
-                    const offset = i % 2 === 0 ? SWING : -SWING
-                    return (
-                      <div
-                        key={s.title}
-                        className="curr-col"
-                        style={{ width: 210, textAlign: 'center', transform: `translateY(${offset}px)` }}
-                      >
-                        <span style={{ display: 'inline-block', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, color: 'rgba(41,57,74,0.5)', marginBottom: 10 }}>
-                          MISSION SET 0{i + 1}
-                        </span>
-                        <div
-                          className="curr-icon"
-                          style={{
-                            width: 74, height: 74, margin: '0 auto 16px', borderRadius: '50%',
-                            background: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: `0 10px 22px ${s.color}4d, 0 0 0 6px #fff, 0 0 0 7px #E4E9E7`,
-                          }}
-                        >
-                          {s.icon}
-                        </div>
-                        <p style={{ fontWeight: 700, fontSize: 17, color: '#0D2B32', margin: '0 0 8px' }}>{s.title}</p>
-                        <p style={{ color: 'rgba(41,57,74,0.7)', fontSize: 13, lineHeight: 1.55, margin: '0 0 14px' }}>{s.outcome}</p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' }}>
-                          {s.tags.map((t) => (
-                            <span key={t} style={{ fontSize: 11, fontWeight: 600, color: s.dark, background: `${s.color}1a`, padding: '4px 10px', borderRadius: 999 }}>
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(41,57,74,0.5)', marginTop: 8 }}>
-                  …plus new missions every year, in whatever skill turns out to matter next.
-                </p>
-              </div>
-            )
-          })()}
-        </div>
-      </div>
-
-      {/* ================= ALUMNI PROJECTS ================= */}
-      {/* Second pass — the white portfolio-card version was competent but
-          generic; it could've been any coding bootcamp's site. This ties
-          back into the one identity that actually is Plulai's: the pearl
-          path. Projects are framed as treasure brought back from the
-          journey (dark display case, gold-pearl bullet before each
-          builder's name — the same "pearl" language the dashboard uses
-          for XP), the backdrop carries a faint geometric lattice, and it
-          runs straight into the dark "pearl path" section next with no
-          light-dark-light flicker in between — one continuous dark
-          passage telling the proof/outcome story. Closes on a CTA so the
-          proof doesn't just sit there — it pushes toward the trial. */}
-      <div style={{ position: 'relative', background: 'linear-gradient(135deg, #0D2B32 0%, #153B44 100%)', padding: '68px 0 64px', overflow: 'hidden' }}>
-        <svg aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.05 }}>
-          <defs>
-            <pattern id="alumni-lattice" width="46" height="46" patternUnits="userSpaceOnUse">
-              <path d="M23 4 L42 23 L23 42 L4 23 Z" fill="none" stroke="#F6F3EA" strokeWidth={1} />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#alumni-lattice)" />
-        </svg>
-
-        <style>{`
-          @keyframes plulai-project-scroll {
-            from { transform: translateX(0); }
-            to { transform: translateX(-50%); }
-          }
-          .project-marquee-track { animation: plulai-project-scroll 50s linear infinite; }
-          .project-marquee-wrap:hover .project-marquee-track { animation-play-state: paused; }
-          .project-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
-          .project-card:hover { transform: translateY(-5px); box-shadow: 0 16px 30px rgba(0,0,0,0.35); border-color: rgba(212,162,76,0.55) !important; }
-          .project-img { transition: transform .4s ease; }
-          .project-card:hover .project-img { transform: scale(1.06); }
-          @media (prefers-reduced-motion: reduce) {
-            .project-marquee-track { animation: none; }
-            .project-card, .project-img { transition: none; }
-          }
-        `}</style>
-
-        <div className="container" style={{ position: 'relative' }}>
-          <p className="eyebrow" style={{ color: '#8FA8A3' }}>Real missions, real treasure</p>
-          <h2 style={{ color: '#F6F3EA' }}>What they bring back from the path</h2>
-          <p style={{ color: '#8FA8A3', maxWidth: 480, marginTop: 10 }}>
-            Not stock screenshots — every project below was shipped by a real Plulai kid,
-            track and age included.
-          </p>
-        </div>
-
-        <div className="project-marquee-wrap" style={{ position: 'relative', marginTop: 36 }}>
-          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 90, background: 'linear-gradient(90deg, #0D2B32, rgba(13,43,50,0))', zIndex: 2, pointerEvents: 'none' }} />
-          <div aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: 90, background: 'linear-gradient(270deg, #0D2B32, rgba(13,43,50,0))', zIndex: 2, pointerEvents: 'none' }} />
-
-          <div
-            className="project-marquee-track"
-            style={{ display: 'flex', width: 'max-content', gap: 20, padding: '6px 4px 14px' }}
-          >
-            {[...projects, ...projects].map((project, i) => {
-              const tag = project.tagColor === 'gold'
-                ? { bg: '#D4A24C', fg: '#402F12' }
-                : { bg: '#1FB8A6', fg: '#fff' }
-              return (
-                <div
-                  key={`${project.file}-${i}`}
-                  className="project-card"
-                  style={{
-                    flex: '0 0 auto', width: 250, borderRadius: 18, background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(212,162,76,0.22)', overflow: 'hidden',
-                  }}
-                >
-                  <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', overflow: 'hidden', background: 'rgba(255,255,255,0.03)' }}>
-                    <Image
-                      src={`/projects/${project.file}`}
-                      alt={project.title}
-                      fill
-                      className="project-img"
-                      style={{ objectFit: 'cover' }}
-                      sizes="250px"
-                    />
-                    <span
-                      style={{
-                        position: 'absolute', top: 10, left: 10, fontSize: 11, fontWeight: 700,
-                        letterSpacing: 0.3, color: tag.fg, background: tag.bg,
-                        padding: '4px 10px', borderRadius: 999, boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
-                      }}
-                    >
-                      {project.track}
-                    </span>
-                  </div>
-                  <div style={{ padding: '13px 15px 15px' }}>
-                    <p style={{ fontWeight: 700, fontSize: 14.5, color: '#F6F3EA', margin: '0 0 6px' }}>{project.title}</p>
-                    {project.student && (
-                      <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#8FA8A3', margin: 0 }}>
-                        <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: '#D4A24C', flexShrink: 0 }} />
-                        {project.student}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: 40, position: 'relative' }}>
-          <a href="#audience">
-            <button className="btn btn-outline btn-outline--on-dark">See what they could build next &rarr;</button>
-          </a>
-        </div>
-      </div>
-
-      {/* ================= PATH SECTION: before / after ================= */}
-      <div className={styles.pathSec}>
-        <style>{`
-          @media (max-width: 760px) {
-            .ba-grid { grid-template-columns: 1fr !important; }
-            .ba-panel-before { border-radius: 20px 20px 0 0 !important; }
-            .ba-panel-after { border-radius: 0 0 20px 20px !important; }
-            .ba-divider-desktop { display: none !important; }
-            .ba-divider-mobile { display: flex !important; }
-          }
-        `}</style>
-        <div className="container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 4 }}>
-            <Image
-              src="/avatars/heroplulai.png"
-              alt=""
-              width={44}
-              height={44}
-              style={{ borderRadius: '50%', flexShrink: 0 }}
-              aria-hidden
-            />
-            <p className="eyebrow" style={{ margin: 0 }}>The pearl path</p>
-          </div>
-          <h2 style={{ color: 'var(--raw-pearlwhite)' }}>
-            {audience === 'family'
-              ? 'Watch them go from curious to confident'
-              : 'Watch your students go from hesitant to confident builders'}
-          </h2>
-          <p style={{ color: '#8FA8A3', maxWidth: 560 }}>
-            {audience === 'family'
-              ? "This isn't a points system \u2014 it's what actually changes over a few months of missions."
-              : "This is the shift schools notice \u2014 not a leaderboard, a real change in how students work."}
-          </p>
-
-          <div style={{ position: 'relative', marginTop: 56, maxWidth: 920, marginLeft: 'auto', marginRight: 'auto' }}>
-            <div className="ba-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-              {/* BEFORE */}
-              <div
-                className="ba-panel-before"
-                style={{
-                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: '20px 0 0 20px', padding: '40px 34px',
-                }}
-              >
-                <span
-                  style={{
-                    display: 'inline-block', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6,
-                    color: '#8FA8A3', background: 'rgba(255,255,255,0.06)', padding: '5px 13px',
-                    borderRadius: 999, marginBottom: 22,
-                  }}
-                >
-                  BEFORE
-                </span>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {(audience === 'family'
-                    ? ['Never touched a line of code', 'Quiet in a room, quick to give up', 'Screen time with nothing to show for it']
-                    : ['Hesitant, unsure where to start', 'Needs constant hand-holding', 'Engagement drops after week one']
-                  ).map((item) => (
-                    <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 15, color: '#8FA8A3', lineHeight: 1.5 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8FA8A3', marginTop: 8, flexShrink: 0 }} />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* AFTER */}
-              <div
-                className="ba-panel-after"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(31,184,166,0.14), rgba(212,162,76,0.07))',
-                  border: '1px solid rgba(31,184,166,0.4)', borderRadius: '0 20px 20px 0',
-                  padding: '40px 34px', boxShadow: '0 20px 50px rgba(31,184,166,0.12)',
-                }}
-              >
-                <span
-                  style={{
-                    display: 'inline-block', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6,
-                    color: '#0D2B32', background: '#1FB8A6', padding: '5px 13px',
-                    borderRadius: 999, marginBottom: 22,
-                  }}
-                >
-                  AFTER · 3 MONTHS LATER
-                </span>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {(audience === 'family'
-                    ? ['Pitches an idea without flinching', 'Ships their own app or game', 'Debugs mistakes without asking for help']
-                    : ['Speaks up and presents with confidence', 'Builds and ships real projects', 'Works through problems independently']
-                  ).map((item) => (
-                    <li key={item} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 15, color: '#F6F3EA', fontWeight: 600, lineHeight: 1.5 }}>
-                      <svg width={17} height={17} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
-                        <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* divider: circle w/ arrow, desktop only */}
-            <div
-              className="ba-divider-desktop"
-              style={{
-                position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                width: 56, height: 56, borderRadius: '50%', background: '#0D2B32', border: '3px solid #1FB8A6',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2,
-              }}
-            >
-              <svg width={22} height={22} viewBox="0 0 20 20">
-                <path d="M4 10 H16 M11 5 L16 10 L11 15" stroke="#1FB8A6" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-
-            {/* divider: arrow row, mobile only */}
-            <div
-              className="ba-divider-mobile"
-              style={{
-                display: 'none', justifyContent: 'center', alignItems: 'center',
-                background: '#0D2B32', borderTop: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)',
-                padding: '10px 0',
-              }}
-            >
-              <svg width={20} height={20} viewBox="0 0 20 20">
-                <path d="M10 4 V16 M5 11 L10 16 L15 11" stroke="#1FB8A6" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-          </div>
-
-          <div style={{ textAlign: 'center', marginTop: 48 }}>
-            <a href="#audience">
-              <button className="btn btn-cta">
-                {audience === 'family' ? 'Start free trial' : 'Book a demo'} &rarr;
-              </button>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* ================= STATS =================
-          Rebuilt self-contained (was styles.statsSec, unseen CSS) as a dark
-          luxury band matching the Alumni/Journey treatment. Also addresses
-          the open TODO: 9.2/10 "satisfaction" had no visible source and
-          read as invented precision, so it's dropped rather than kept as
-          a number nobody could defend if asked. Swap the two remaining
-          numbers for real, current ones whenever you have them. */}
-      <div style={{ position: 'relative', background: 'linear-gradient(135deg, #0D2B32 0%, #153B44 100%)', padding: '52px 0', overflow: 'hidden' }}>
-        <svg aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.05 }}>
-          <defs>
-            <pattern id="stats-lattice" width="46" height="46" patternUnits="userSpaceOnUse">
-              <path d="M23 4 L42 23 L23 42 L4 23 Z" fill="none" stroke="#F6F3EA" strokeWidth={1} />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#stats-lattice)" />
-        </svg>
-        <div className="container" style={{ position: 'relative' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '36px 64px', textAlign: 'center' }}>
-            {[
-              { num: '150+', label: 'Active learners' },
-              { num: '500+', label: 'Bite-sized missions' },
-              { num: '9+', label: 'Partner schools' },
-            ].map((s) => (
-              <div key={s.label}>
-                <div style={{ fontWeight: 700, fontSize: 34, color: '#D4A24C' }}>{s.num}</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#8FA8A3', marginTop: 4 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ================= CASE STUDY (schools only) ================= */}
-      {audience === 'schools' && (
-      <div className={styles.tracksSec}>
-        <style>{`
-          @media (max-width: 720px) {
-            .case-study-grid { grid-template-columns: 1fr !important; padding: 32px 24px !important; }
-          }
-        `}</style>
-        <div className="container">
-          <div
-            className="case-study-grid"
-            style={{
-              background: '#0D2B32', borderRadius: 28, padding: '48px 40px',
-              display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 40, alignItems: 'center',
-            }}
-          >
-            <div>
-              <span
-                style={{
-                  display: 'inline-block', fontSize: 12, fontWeight: 700, letterSpacing: 0.4,
-                  color: '#1FB8A6', background: 'rgba(31,184,166,0.12)', padding: '5px 12px', borderRadius: 999,
-                  marginBottom: 18,
-                }}
-              >
-                CASE STUDY
-              </span>
-              <h2 style={{ color: '#F6F3EA', marginBottom: 14 }}>What happens when a partner leans in</h2>
-              <p style={{ color: '#B7C9C5', lineHeight: 1.7, marginBottom: 22 }}>
-                We ran a national coding &amp; AI competition with 8 school and
-                training-center partners. The pattern was clear: where a partner
-                actively promoted it to their students, turnout followed. One
-                training-center partnership alone brought real, sustained
-                participation — proof the model works when a partner is
-                engaged, not just signed up.
+              <h1>
+                {schools ? (
+                  <><span className="pl-grad">Coding, AI and life-skills curriculum</span> your school can actually run.</>
+                ) : (
+                  <>Raise a kid who <span className="pl-grad">builds, not just scrolls.</span></>
+                )}
+              </h1>
+              <p className="pl-lead">
+                {schools
+                  ? "A complete curriculum for 30–45 minute class periods, taught natively in Arabic, French and English. Every student gets an AI coach, and teachers see who's stuck before report cards do."
+                  : 'Short daily missions in real Arabic, French or English, guided by an AI coach that adapts to your child. They build real apps and games. You get a weekly summary. No classroom needed.'}
               </p>
-              <a href="mailto:hello@plulai.com">
-                <button className="btn btn-cta">Book a demo &rarr;</button>
-              </a>
+              <div className="pl-row">
+                <a href={primaryHref} className="pl-btn pl-btn-primary pl-btn-lg">{primaryCta} <Arrow /></a>
+                <a href={secondary.href} className="pl-btn pl-btn-glass pl-btn-lg">{secondary.label}</a>
+              </div>
+              <ul className="pl-trust">
+                {(schools
+                  ? ['30–45 min sessions', 'Teacher dashboard', 'Free classroom pilot']
+                  : ['15 minutes a day', 'Weekly parent summary', '14-day free trial']
+                ).map((t) => (
+                  <li key={t}><Check light /> {t}</li>
+                ))}
+              </ul>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              {[
-                { num: '8', label: 'School & training-center partners in our first competition' },
-                { num: '70', label: 'Participants from a single engaged training-center partner' },
-                { num: '40', label: 'Kids joined a 2-day in-person scouts pilot' },
-                { num: '3', label: 'Languages taught natively — Arabic, French, English' },
-              ].map((stat) => (
-                <div key={stat.label} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: '20px 16px' }}>
-                  <p style={{ color: '#1FB8A6', fontWeight: 700, fontSize: 26, margin: '0 0 6px' }}>{stat.num}</p>
-                  <p style={{ color: '#B7C9C5', fontSize: 13, margin: 0, lineHeight: 1.4 }}>{stat.label}</p>
+
+            <div className="pl-herovisual">
+              <div className="pl-orb" aria-hidden />
+              <Image src="/avatars/heroplulai.png" alt="Marjan the camel, Plulai's mascot" width={380} height={380} priority />
+              <div className="pl-float pl-float-a">
+                <span className="pl-pearl" />
+                <div><b>4-pearl streak</b><small>One more today</small></div>
+              </div>
+              <div className="pl-float pl-float-b">
+                <span className="pl-badge-ico"><svg width={16} height={16} viewBox="0 0 20 20" aria-hidden><path d="M10 2l7 5v11H3V7z" fill="#0D2B32" /></svg></span>
+                <div><b>Level 5 reached</b><small>Faris · Coding</small></div>
+              </div>
+              <div className="pl-mission">
+                <small>Today&apos;s mission</small>
+                <b>Build a quiz game</b>
+                <div className="meta"><span>Coding · 12 min</span><span>3 / 5 steps</span></div>
+                <div className="pl-mbar"><div /></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ============ PROOF (light sheet over hero) ============ */}
+        <section className={`pl-sec pl-sheet pl-${tone()}`}>
+          <div className="pl-wrap">
+            <p className="pl-kicker">Used in real classrooms and programs</p>
+            <div className="pl-marquee">
+              <div className="pl-track" style={{ ['--dur' as string]: '36s' }}>
+                {[...partners, ...partners].map((p, i) => (
+                  <div key={`${p.file}-${i}`} className="pl-logo-tile">
+                    <Image src={`/partners/${p.file}`} alt={p.name} width={120} height={48} style={{ width: 'auto', height: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pl-strip">
+              <div className="pl-sitem">
+                <span className="pl-snum pl-snum-grad"><CountUp to={20000} suffix="+" /></span>
+                <span className="pl-slab"><b>Kids reached</b><small>Learned with Plulai</small></span>
+              </div>
+              <div className="pl-sitem">
+                <span className="pl-snum"><CountUp to={500} suffix="+" /></span>
+                <span className="pl-slab"><b>Bite-sized missions</b><small>First code to full pitch</small></span>
+              </div>
+              <div className="pl-sitem">
+                <span className="pl-snum"><CountUp to={partners.length} suffix="+" /></span>
+                <span className="pl-slab"><b>Partners in MENA</b><small>Schools &amp; centers</small></span>
+                <div className="pl-logostack" aria-hidden>
+                  {partners.slice(0, 3).map((p) => (
+                    <span key={p.file}>
+                      <Image src={`/partners/${p.file}`} alt="" width={28} height={28} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    </span>
+                  ))}
+                  <span className="more">+{partners.length - 3}</span>
                 </div>
+              </div>
+            </div>
+
+            <div className="pl-chips">
+              {['National coding & AI competition', '2-day in-person scouts pilot', 'Native Arabic, French & English'].map((c) => (
+                <span key={c} className="pl-chip"><i />{c}</span>
               ))}
             </div>
           </div>
-        </div>
-      </div>
-      )}
+        </section>
 
-      {/* ================= FAMILY PLANS (family only) ================= */}
-      {audience === 'family' && (
-      <div id="plans" className={styles.tracksSec} style={{ scrollMarginTop: 90 }}>
-        <div className="container">
-          <div className={styles.tracksHead}>
-            <p className="eyebrow">Family plan</p>
-            <h2>One plan, everything included</h2>
-            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
-              Try it free for 14 days. No commitment, cancel anytime before the
-              trial ends and you won&apos;t be charged.
-            </p>
-          </div>
-
-          <div style={{ maxWidth: 380, margin: '44px auto 0' }}>
-            <div
-              style={{
-                background: '#0D2B32', borderRadius: 20, padding: '34px 30px',
-                boxShadow: '0 12px 26px rgba(13,43,50,0.18)', textAlign: 'center',
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-block', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4,
-                  padding: '4px 12px', borderRadius: 999, background: '#D4A24C', color: '#402F12', marginBottom: 16,
-                }}
-              >
-                14-DAY FREE TRIAL
-              </span>
-              <p style={{ margin: '0 0 4px' }}>
-                <span style={{ fontWeight: 700, fontSize: 40, color: '#F6F3EA' }}>$70</span>
-                <span style={{ fontSize: 15, color: '#B7C9C5' }}> USD/month</span>
+        {/* ============ AUDIENCE PITCH ============ */}
+        <section id="audience" className={`pl-sec pl-${tone()}`}>
+          <div className="pl-wrap pl-split">
+            <div>
+              <h2 className="pl-h2">
+                {schools ? 'Bring Plulai into your classroom.' : "Learning that fits your family's schedule."}
+              </h2>
+              <p className="pl-sub">
+                {schools
+                  ? "A curriculum your teachers can run, with a dashboard that flags who's stuck before report cards do."
+                  : 'No timetable. Just 15 minutes a day, whenever it works: alone, with a sibling, or together with you.'}
               </p>
-              <p style={{ fontSize: 13, margin: '0 0 26px', color: '#B7C9C5' }}>
-                after your free trial ends — billed monthly, cancel anytime
-              </p>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px', display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'left' }}>
-                {['The full path — Spark, Build, Think & Launch', 'Unlimited AI tutor', 'Weekly parent summary', 'Arabic, French & English'].map((f) => (
-                  <li key={f} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', fontSize: 14, color: '#F6F3EA' }}>
-                    <svg width={15} height={15} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
-                      <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    {f}
-                  </li>
+              <ul className="pl-list">
+                {(schools
+                  ? [
+                      ['Bulk seats, 50–5,000', 'Regional pricing and flexible billing.'],
+                      ['Arabic, French & English', 'Built for MENA classrooms, not translated from somewhere else.'],
+                      ['Dedicated support', 'Onboarding, training, and a named success contact.'],
+                    ]
+                  : [
+                      ['Learn anytime, anywhere', 'Self-paced missions your child can start and stop on their own.'],
+                      ['Arabic, French & English', 'A native trilingual curriculum, not translated from somewhere else.'],
+                      ['Weekly parent summary', 'See what they learned and where they got stuck.'],
+                    ]
+                ).map(([b, s]) => (
+                  <li key={b}><Check /><div><b>{b}</b><span>{s}</span></div></li>
                 ))}
               </ul>
-              <a href="/auth/signup">
-                <button className="btn btn-cta btn-block">Start 14-day free trial &rarr;</button>
-              </a>
-            </div>
-          </div>
-
-          <div style={{ maxWidth: 640, margin: '36px auto 0', textAlign: 'center' }}>
-            <p style={{ fontSize: 13, color: 'rgba(41,57,74,0.6)', lineHeight: 1.6 }}>
-              We collect only what&apos;s needed to run missions and track progress — never sold or
-              used for advertising. Questions about how we handle your child&apos;s data?{' '}
-              <a href="mailto:hello@plulai.com" style={{ color: '#1FB8A6', fontWeight: 600 }}>Email us</a>.
-            </p>
-          </div>
-        </div>
-      </div>
-      )}
-
-      {/* ================= PACKAGES (schools & training centers only) ================= */}
-      {audience === 'schools' && (
-      <div id="plans" className={styles.tracksSec} style={{ scrollMarginTop: 90 }}>
-        <div className="container">
-          <div className={styles.tracksHead}>
-            <p className="eyebrow">Schools &amp; training centers</p>
-            <h2>A package sized for your institution</h2>
-            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
-              Every plan includes the full path — Spark, Build, Think &amp; Launch —
-              and the admin dashboard. Pricing is scoped to seat count and term
-              length — book a demo for a quote.
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24, marginTop: 44 }}>
-            {[
-              {
-                name: 'Classroom Pilot',
-                blurb: 'Try it with one class before deciding school-wide.',
-                seats: '1 classroom · up to 35 seats',
-                features: ['The full path — all 4 stages', 'One term', 'Teacher onboarding session'],
-                cta: 'Start a pilot',
-                highlight: false,
-              },
-              {
-                name: 'School-wide',
-                blurb: 'The most common setup for a full school rollout.',
-                seats: '50–1,000 seats',
-                features: ['The full path — all 4 stages', 'Admin dashboard', 'Teacher training + support', 'Full academic year'],
-                cta: 'Book a demo',
-                highlight: true,
-              },
-              {
-                name: 'District',
-                blurb: 'Multiple schools under one contract and dashboard.',
-                seats: '1,000+ seats',
-                features: ['Everything in School-wide', 'Multi-school reporting', 'Dedicated success contact'],
-                cta: 'Contact sales',
-                highlight: false,
-              },
-            ].map((pkg) => (
-              <div
-                key={pkg.name}
-                style={{
-                  position: 'relative',
-                  background: pkg.highlight ? '#0D2B32' : '#fff',
-                  border: pkg.highlight ? '1px solid rgba(212,162,76,0.35)' : '1px solid #E4E9E7',
-                  borderRadius: 20, padding: '30px 26px', display: 'flex', flexDirection: 'column',
-                  boxShadow: pkg.highlight ? '0 12px 26px rgba(13,43,50,0.18)' : '0 1px 2px rgba(13,43,50,0.04)',
-                }}
-              >
-                {pkg.highlight && (
-                  <span
-                    style={{
-                      position: 'absolute', top: -12, left: 26, fontSize: 11, fontWeight: 700, letterSpacing: 0.4,
-                      color: '#402F12', background: '#D4A24C', padding: '4px 12px', borderRadius: 999,
-                      boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-                    }}
-                  >
-                    MOST POPULAR
-                  </span>
-                )}
-                <p style={{ fontWeight: 700, fontSize: 19, margin: '0 0 6px', color: pkg.highlight ? '#F6F3EA' : '#0D2B32' }}>
-                  {pkg.name}
-                </p>
-                <p style={{ fontSize: 13.5, margin: '0 0 4px', color: pkg.highlight ? '#1FB8A6' : '#5C7873', fontWeight: 600 }}>
-                  {pkg.seats}
-                </p>
-                <p style={{ fontSize: 14, lineHeight: 1.55, margin: '10px 0 20px', color: pkg.highlight ? '#B7C9C5' : 'rgba(41,57,74,0.7)' }}>
-                  {pkg.blurb}
-                </p>
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-                  {pkg.features.map((f) => (
-                    <li key={f} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', fontSize: 13.5, color: pkg.highlight ? '#F6F3EA' : '#0D2B32' }}>
-                      <svg width={14} height={14} viewBox="0 0 16 16" style={{ marginTop: 3, flexShrink: 0 }}>
-                        <path d="M3 8 L7 12 L13 4" stroke="#1FB8A6" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <a href="mailto:hello@plulai.com">
-                  <button className={pkg.highlight ? 'btn btn-cta btn-block' : 'btn btn-outline btn-block'}>
-                    {pkg.cta} &rarr;
-                  </button>
+              <div className="pl-row">
+                <a href={schools ? '/schools' : '/auth/signup'} className="pl-btn pl-btn-dark">
+                  {schools ? 'Explore for schools' : 'Start free trial'} <Arrow />
+                </a>
+                <a href={schools ? 'mailto:hello@plulai.com' : '#plans'} className="pl-btn pl-btn-ghost">
+                  {schools ? 'Book a demo' : 'See family plan'}
                 </a>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      )}
-
-      <div className={styles.divider}>
-        <svg viewBox="0 0 1440 70" preserveAspectRatio="none">
-          <path d="M0,40 C300,0 600,70 900,30 C1100,5 1300,45 1440,20 L1440,70 L0,70 Z" fill="#1FB8A6" />
-        </svg>
-      </div>
-
-      {/* ================= TESTIMONIALS ================= */}
-      {/* Names/quotes kept as-is — real customer proof shouldn't be rewritten.
-          City tags dropped rather than swapped for invented Gulf ones: these
-          are genuine Tunisian testimonials, and relabeling them "Doha" or
-          "Dubai" would be fabricating proof, not just softening a detail.
-          If real GCC testimonials exist, swap these in; until then this
-          section stays honest about what it actually has. */}
-      <div className={styles.testiSec}>
-        <div className="container">
-          <p className="eyebrow" style={{ textAlign: 'center', opacity: 0.7 }}>Loved by parents &amp; principals</p>
-          <h2 style={{ textAlign: 'center' }}>What people are saying</h2>
-
-          <div className={styles.testiCluster}>
-            <div className={styles.testiBubble}>
-              <p className={styles.stars} style={{ color: '#D4A24C' }}>★★★★★</p>
-              <p className={styles.testiQuote}>
-                &quot;My 9-year-old asks to do his mission after school. I never thought
-                I&apos;d see that with coding.&quot;
-              </p>
-              <div className={styles.testiPerson}>
-                <div className={styles.testiAvatar}>L</div>
-                <div>
-                  <p className={styles.testiName}>Layla M.</p>
-                  <p className={styles.testiRole}>Parent</p>
-                </div>
-              </div>
             </div>
-            <div className={styles.testiBubble}>
-              <p className={styles.stars} style={{ color: '#D4A24C' }}>★★★★★</p>
-              <p className={styles.testiQuote}>
-                &quot;The Arabic and French aren&apos;t translated — they&apos;re
-                native. That alone sets it apart.&quot;
-              </p>
-              <div className={styles.testiPerson}>
-                <div className={styles.testiAvatar}>D</div>
-                <div>
-                  <p className={styles.testiName}>Dr. Khalid R.</p>
-                  <p className={styles.testiRole}>Principal</p>
-                </div>
-              </div>
-            </div>
-            <div className={styles.testiBubble}>
-              <p className={styles.stars} style={{ color: '#D4A24C' }}>★★★★★</p>
-              <p className={styles.testiQuote}>
-                &quot;He built his first working game in two weeks. The AI tutor is more
-                patient than I ever am.&quot;
-              </p>
-              <div className={styles.testiPerson}>
-                <div className={styles.testiAvatar}>S</div>
-                <div>
-                  <p className={styles.testiName}>Sara A.</p>
-                  <p className={styles.testiRole}>Parent</p>
-                </div>
+
+            <div className="pl-dashwrap">
+              <div className="pl-dash" aria-label="Product preview">
+                <div className="pl-dots"><i /><i /><i /></div>
+                <p className="pl-dashtitle">{schools ? 'Grade 5B · Coding track' : "Faris' week"}</p>
+                {(schools
+                  ? [['Sara K.', 80], ['Ali M.', 45], ['Fatima R.', 92], ['Yousef A.', 15]]
+                  : [['Missions completed', 100], ['Current streak', 80], ['Coding track', 62], ['Next: Level 5', 40]]
+                ).map(([a, v]) => {
+                  const stuck = schools && a === 'Yousef A.'
+                  return (
+                    <div key={a as string} className="pl-bar">
+                      <div className="pl-barhead">
+                        <span>{a}{stuck && <em>stuck</em>}</span>
+                        <span>{v}%</span>
+                      </div>
+                      <div className="pl-barbg"><div style={{ width: `${v}%`, background: stuck ? 'var(--pl-gold)' : 'var(--pl-teal)' }} /></div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* ================= SECURITY & COMPLIANCE (schools only) ================= */}
-      {audience === 'schools' && (
-      <div className={styles.tracksSec}>
-        <div className="container">
-          <div className={styles.tracksHead}>
-            <p className="eyebrow">Security &amp; compliance</p>
-            <h2>Data your IT team can sign off on</h2>
-            <p style={{ color: 'rgba(41,57,74,0.7)', maxWidth: 520, margin: '10px auto 0' }}>
-              Built with student privacy as a default, not an add-on.
-            </p>
-          </div>
+        {/* ============ HOW IT WORKS (schools) ============ */}
+        {schools && (
+          <Section tone={tone()} title="From demo to full rollout" sub="Most schools go from first call to a full classroom in under a month.">
+            <div className="pl-flow">
+              <ol className="pl-flowgrid">
+                {steps.map((st, i) => (
+                  <li key={st.title} className="pl-fstep" style={{ ['--c' as string]: journey[i].color }}>
+                    <span className="pl-fbar" />
+                    <div className="pl-fbody">
+                      <span className="pl-fnum">{i + 1}</span>
+                      <h3>{st.title}</h3>
+                      <p>{st.text}</p>
+                      <span className="pl-fchip">{st.chip}</span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <div className="pl-flowfoot">
+                <p>Free pilot first. No pressure to continue.</p>
+                <a href="mailto:hello@plulai.com" className="pl-btn pl-btn-primary pl-btn-sm">Book a demo <Arrow /></a>
+              </div>
+            </div>
+          </Section>
+        )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24, marginTop: 44 }}>
-            {[
-              {
-                title: 'Student data stays protected',
-                desc: 'Student accounts collect only what\u2019s needed to run missions and track progress \u2014 never sold or used for advertising.',
-              },
-              {
-                title: 'Role-based access',
-                desc: 'Teachers see their own classes, admins see the school, and students see only their own work.',
-              },
-              {
-                title: 'Regional hosting options',
-                desc: 'Data residency options available for institutions with regional requirements.',
-              },
-              {
-                title: 'A named point of contact',
-                desc: 'Institution plans get a dedicated contact for data and security questions \u2014 not a support queue.',
-              },
-            ].map((item) => (
-              <div key={item.title} style={{ background: '#fff', border: '1px solid #E4E9E7', borderRadius: 18, padding: '24px 22px' }}>
-                <div
-                  style={{
-                    width: 36, height: 36, borderRadius: 10, background: '#EAF6F3',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
-                  }}
+        {/* ============ THE PATH ============ */}
+        <Section id="path" tone={tone()} title="What they become, not just what they learn" sub="Ages 6–18, one continuous path. Coding and AI sit next to confidence, design, money, and marketing, so an idea can turn into something real.">
+          <div className="pl-path">
+            <div className="pl-pathtabs" role="tablist" aria-label="Stages of the path">
+              {journey.map((s, i) => (
+                <button
+                  key={s.title} type="button" role="tab" id={`stage-tab-${i}`}
+                  aria-selected={stage === i} aria-controls="stage-panel"
+                  className={`pl-pathtab ${stage === i ? 'on' : ''} ${i < stage ? 'done' : ''}`}
+                  style={{ ['--c' as string]: s.color, ['--fg' as string]: s.fg }}
+                  onClick={() => setStage(i)}
                 >
-                  <svg width={17} height={17} viewBox="0 0 20 20">
-                    <path d="M10 2 L17 5 V10 C17 14 14 17 10 18 C6 17 3 14 3 10 V5 Z" fill="#1FB8A6" />
-                  </svg>
+                  <span className="pl-pathnode">{i + 1}</span>
+                  <span className="pl-pathname">{s.title}</span>
+                </button>
+              ))}
+            </div>
+
+            {(() => {
+              const s = journey[stage]
+              return (
+                <div key={s.title} id="stage-panel" role="tabpanel" aria-labelledby={`stage-tab-${stage}`} className="pl-panel">
+                  <div className="pl-panelcopy">
+                    <span className="pl-tag">Stage {stage + 1} of {journey.length}</span>
+                    <h3>{s.title}</h3>
+                    <p className="pl-panelsub">{s.text}</p>
+                    <button type="button" className="pl-btn pl-btn-dark pl-btn-sm" onClick={() => setStage((stage + 1) % journey.length)}>
+                      {stage < journey.length - 1 ? 'Next stage' : 'Start over'} <Arrow />
+                    </button>
+                  </div>
+                  <div className="pl-panelvis" style={{ ['--c' as string]: s.color, ['--fg' as string]: s.fg }}>
+                    <span className="pl-bignum" aria-hidden>0{stage + 1}</span>
+                    <p className="pl-skillhead">What they practice</p>
+                    <ul>{s.tags.map((t) => <li key={t}><Check />{t}</li>)}</ul>
+                  </div>
                 </div>
-                <p style={{ fontWeight: 700, fontSize: 15.5, color: '#0D2B32', margin: '0 0 8px' }}>{item.title}</p>
-                <p style={{ fontSize: 13.5, color: 'rgba(41,57,74,0.7)', lineHeight: 1.55, margin: 0 }}>{item.desc}</p>
+              )
+            })()}
+          </div>
+          <p className="pl-foot">Plus new missions every year, in whatever skill turns out to matter next.</p>
+        </Section>
+
+        {/* ============ PROJECTS ============ */}
+        <section className={`pl-sec pl-${tone()} pl-flush`}>
+          <div className="pl-wrap">
+            <header className="pl-head">
+              <h2>What they bring back from the path</h2>
+              <p>Every project below was shipped by a real Plulai kid, with track and age.</p>
+            </header>
+          </div>
+          <div className="pl-marquee">
+            <div className="pl-track" style={{ ['--dur' as string]: '60s', gap: 20 }}>
+              {[...projects, ...projects].map((p, i) => (
+                <figure key={`${p.file}-${i}`} className="pl-proj">
+                  <Image src={`/projects/${p.file}`} alt={p.title} fill sizes="260px" style={{ objectFit: 'cover' }} />
+                  <span className={`pl-pill ${p.track === 'AI' ? 'gold' : ''}`}>{p.track}</span>
+                  <figcaption>
+                    <b>{p.title}</b>
+                    {p.student && <small>{p.student}</small>}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+          <div className="pl-wrap pl-center" style={{ marginTop: 44 }}>
+            <a href={primaryHref} className="pl-btn pl-btn-dark pl-btn-lg">{primaryCta} <Arrow /></a>
+          </div>
+        </section>
+
+        {/* ============ BEFORE / AFTER ============ */}
+        <Section
+          tone={tone()}
+          title={schools ? 'Watch your students go from hesitant to confident builders' : 'Watch them go from curious to confident'}
+          sub={schools ? 'The shift schools notice is not a leaderboard. It is a real change in how students work.' : "Not a points system. It's what actually changes over a few months of missions."}
+        >
+          <div className="pl-ba">
+            <div className="pl-card pl-before">
+              <span className="pl-tag">Before</span>
+              <ul>
+                {(schools
+                  ? ['Hesitant, unsure where to start', 'Needs constant hand-holding', 'Engagement drops after week one']
+                  : ['Never touched a line of code', 'Quiet in a room, quick to give up', 'Screen time with nothing to show for it']
+                ).map((t) => <li key={t}><i />{t}</li>)}
+              </ul>
+            </div>
+            <div className="pl-ba-arrow" aria-hidden><Arrow /></div>
+            <div className="pl-card pl-after">
+              <span className="pl-tag pl-tag-teal">After 3 months</span>
+              <ul>
+                {(schools
+                  ? ['Speaks up and presents with confidence', 'Builds and ships real projects', 'Works through problems independently']
+                  : ['Pitches an idea without flinching', 'Ships their own app or game', 'Debugs mistakes without asking for help']
+                ).map((t) => <li key={t}><Check light />{t}</li>)}
+              </ul>
+            </div>
+          </div>
+        </Section>
+
+        {/* ============ CASE STUDY (schools) ============ */}
+        {schools && (
+          <Section tone={tone()}>
+            <div className="pl-case">
+              <div className="pl-glow pl-glow-sm" aria-hidden />
+              <div style={{ position: 'relative' }}>
+                <span className="pl-tag pl-tag-teal">Case study</span>
+                <h2 className="pl-h2" style={{ color: 'var(--pl-cream)', marginTop: 16 }}>What happens when a partner leans in</h2>
+                <p className="pl-sub" style={{ color: 'var(--pl-muted-d)' }}>
+                  We ran a national coding and AI competition with 8 school and training-center partners.
+                  Where a partner actively promoted it to students, turnout followed. One training-center
+                  partnership alone brought real, sustained participation.
+                </p>
+                <a href="mailto:hello@plulai.com" className="pl-btn pl-btn-primary" style={{ marginTop: 26 }}>Book a demo <Arrow /></a>
               </div>
+              <div className="pl-casestats" style={{ position: 'relative' }}>
+                {[
+                  ['8', 'School and training-center partners in our first competition'],
+                  ['70', 'Participants from a single engaged training-center partner'],
+                  ['40', 'Kids in a 2-day in-person scouts pilot'],
+                  ['3', 'Languages taught natively: Arabic, French, English'],
+                ].map(([num, label]) => (
+                  <div key={label}><b>{num}</b><span>{label}</span></div>
+                ))}
+              </div>
+            </div>
+          </Section>
+        )}
+
+        {/* ============ PRICING ============ */}
+        {schools ? (
+          <Section
+            id="plans" tone={tone()}
+            title="A package sized for your institution"
+            sub="Every plan includes the full path and the admin dashboard. Pricing is scoped to seat count and term length, so book a demo for a quote."
+          >
+            <div className="pl-grid pl-grid-3 pl-plans">
+              {packages.map((p) => (
+                <div key={p.name} className={`pl-card pl-plan ${p.hi ? 'hi' : ''}`}>
+                  {p.hi && <span className="pl-flag">Most popular</span>}
+                  <h3>{p.name}</h3>
+                  <small>{p.seats}</small>
+                  <p>{p.blurb}</p>
+                  <ul>{p.features.map((f) => <li key={f}><Check light={p.hi} />{f}</li>)}</ul>
+                  <a href="mailto:hello@plulai.com" className={`pl-btn pl-btn-block ${p.hi ? 'pl-btn-primary' : 'pl-btn-ghost'}`}>{p.cta}</a>
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : (
+          <Section
+            id="plans" tone={tone()}
+            title="One plan, everything included"
+            sub="Try it free for 14 days. Cancel anytime before the trial ends and you won't be charged."
+          >
+            <div className="pl-card pl-plan hi pl-single">
+              <span className="pl-flag">14-day free trial</span>
+              <p className="pl-price"><b>$20</b> USD / month</p>
+              <small>after your trial, billed monthly, cancel anytime</small>
+              <ul>
+                {['The full path: Spark, Build, Think & Launch', 'Unlimited AI tutor', 'Weekly parent summary', 'Arabic, French & English'].map((f) => (
+                  <li key={f}><Check light />{f}</li>
+                ))}
+              </ul>
+              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="pl-btn pl-btn-wa pl-btn-block"><WhatsApp /> Start on WhatsApp</a>
+            </div>
+            <p className="pl-foot" style={{ maxWidth: 560, marginInline: 'auto' }}>
+              We collect only what&apos;s needed to run missions and track progress, never sold or used for advertising.{' '}
+              <a href="mailto:hello@plulai.com" className="pl-link">Questions about your child&apos;s data?</a>
+            </p>
+          </Section>
+        )}
+
+        {/* ============ TESTIMONIALS ============ */}
+        <Section tone={tone()} title="What parents and principals say">
+          <div className="pl-grid pl-grid-3">
+            {testimonials.map((t) => (
+              <figure key={t.n} className="pl-card pl-quote">
+                <span className="pl-qmark" aria-hidden>&ldquo;</span>
+                <blockquote>{t.q}</blockquote>
+                <figcaption>
+                  <span className="pl-avatar">{t.i}</span>
+                  <span><b>{t.n}</b><small>{t.r}</small></span>
+                </figcaption>
+              </figure>
             ))}
           </div>
-          <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(41,57,74,0.6)', marginTop: 28 }}>
-            Questions for your IT or procurement team? <a href="mailto:hello@plulai.com" style={{ color: '#1FB8A6', fontWeight: 600 }}>Email us</a> for our data handling documentation.
-          </p>
-        </div>
-      </div>
-      )}
+        </Section>
 
-      {/* ================= FAQ ================= */}
-      <div className={styles.tracksSec}>
-        <div className="container" style={{ maxWidth: 760 }}>
-          <div className={styles.tracksHead}>
-            <p className="eyebrow">FAQ</p>
-            <h2>Common questions from families &amp; schools</h2>
-          </div>
+        {/* ============ SECURITY (schools) ============ */}
+        {schools && (
+          <section id="security" className={`pl-sec pl-${tone()}`}>
+            <div className="pl-wrap pl-secwrap">
+              <div className="pl-seccard">
+                <span className="pl-shield" aria-hidden>
+                  <svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z" /><path d="M8.5 12l2.5 2.5L15.5 10" /></svg>
+                </span>
+                <h2>Data your IT team can sign off on</h2>
+                <p>Student privacy is the default, not an add-on.</p>
+                <ul>
+                  {['Never sold, never used for advertising', 'Every role sees only what it needs', 'Regional hosting when you require it'].map((t) => (
+                    <li key={t}><Check />{t}</li>
+                  ))}
+                </ul>
+                <a href="mailto:hello@plulai.com?subject=Data%20handling%20documentation" className="pl-btn pl-btn-primary">
+                  Request our documentation <Arrow />
+                </a>
+              </div>
 
-          <div style={{ marginTop: 40, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {[
-              {
-                q: 'Can my child use Plulai on their own at home?',
-                a: 'Yes \u2014 the Family plans are built for exactly that. Missions are self-paced and the AI tutor adapts to your child, so no classroom or teacher is required.',
-                for: 'family',
-              },
-              {
-                q: 'Is there a plan for more than one child?',
-                a: 'Yes \u2014 the Family plan covers up to 3 children on one subscription, with separate progress tracking for each child and one shared parent dashboard.',
-                for: 'family',
-              },
-              {
-                q: 'What devices or browsers do we need?',
-                a: 'Plulai runs in any modern browser \u2014 Chrome, Safari, or Edge \u2014 on Chromebooks, laptops, or tablets. No installation required.',
-                for: 'common',
-              },
-              {
-                q: 'How is student data handled?',
-                a: 'We collect only what\u2019s needed to run missions and track progress. Data is never sold or used for advertising.',
-                for: 'common',
-              },
-              {
-                q: 'Can missions fit inside a normal class period?',
-                a: 'Yes \u2014 missions are paced in 30\u201345 minute sessions, built to fit inside a standard class period without extra scheduling.',
-                for: 'schools',
-              },
-              {
-                q: 'How long does onboarding take for schools?',
-                a: 'Most schools go from demo to a live pilot classroom within a week, and to full rollout within a month. A short teacher training session is included.',
-                for: 'schools',
-              },
-              {
-                q: 'How does billing work for institutions?',
-                a: 'Institution plans are billed per seat count and term length, with flexible invoicing. Book a demo and we\u2019ll put together a quote for your school.',
-                for: 'schools',
-              },
-              {
-                q: 'Do teachers need a coding background?',
-                a: 'No. Teachers get a short onboarding session and the missions are designed to run themselves \u2014 the AI tutor handles most of the one-on-one guidance.',
-                for: 'schools',
-              },
-            ].filter((item) => item.for === 'common' || item.for === audience).map((item, i) => {
-              const isOpen = openFaq === i
+              <div className="pl-secgrid">
+                {security.map((x) => (
+                  <div key={x.title} className="pl-seccell" style={{ ['--c' as string]: x.color }}>
+                    <span className="pl-secico">{x.icon}</span>
+                    <small>{x.label}</small>
+                    <h3>{x.title}</h3>
+                    <p>{x.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ============ FAQ ============ */}
+        <Section tone={tone()} title="Common questions from families and schools">
+          <div className="pl-faq">
+            {visibleFaqs.map((f, i) => {
+              const open = openFaq === i
               return (
-                <div key={item.q} style={{ border: '1px solid #E4E9E7', borderRadius: 14, background: '#fff', overflow: 'hidden' }}>
-                  <button
-                    type="button"
-                    onClick={() => setOpenFaq(isOpen ? null : i)}
-                    aria-expanded={isOpen}
-                    style={{
-                      width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer',
-                      padding: '18px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      fontSize: 15, fontWeight: 600, color: '#0D2B32', fontFamily: 'inherit',
-                    }}
-                  >
-                    {item.q}
-                    <span
-                      style={{
-                        transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)', transition: 'transform .2s ease',
-                        fontSize: 20, color: '#1FB8A6', flexShrink: 0, marginLeft: 12, lineHeight: 1,
-                      }}
-                    >
-                      +
-                    </span>
+                <div key={f.q} className={`pl-faqitem ${open ? 'open' : ''}`}>
+                  <button type="button" aria-expanded={open} onClick={() => setOpenFaq(open ? null : i)}>
+                    {f.q}
+                    <span aria-hidden>+</span>
                   </button>
-                  {isOpen && (
-                    <p style={{ margin: 0, padding: '0 20px 18px', fontSize: 14, lineHeight: 1.6, color: 'rgba(41,57,74,0.7)' }}>
-                      {item.a}
-                    </p>
-                  )}
+                  {open && <p>{f.a}</p>}
                 </div>
               )
             })}
           </div>
-        </div>
-      </div>
+        </Section>
 
-      {/* ================= FINAL CTA ================= */}
-      <div className={styles.finalCta} style={{ position: 'relative', overflow: 'hidden' }}>
-        <svg aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.05, pointerEvents: 'none' }}>
-          <defs>
-            <pattern id="finalcta-lattice" width="46" height="46" patternUnits="userSpaceOnUse">
-              <path d="M23 4 L42 23 L23 42 L4 23 Z" fill="none" stroke="#F6F3EA" strokeWidth={1} />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#finalcta-lattice)" />
-        </svg>
-        <div className="container" style={{ position: 'relative' }}>
-          {audience === 'family' ? (
-            <>
-              <h2 className={styles.finalCtaTitle}>Ready to give them a head start?</h2>
-              <p className={styles.finalCtaText}>
-                Join the families across MENA building their kids&apos; first pearl streak.
-              </p>
-              <div className={styles.finalCtas}>
-                <a href="/auth/signup">
-                  <button className="btn btn-cta">Start free trial &rarr;</button>
-                </a>
-                <a href="#plans">
-                  <button className="btn btn-outline btn-outline--on-dark">See family plans &rarr;</button>
-                </a>
+        {/* ============ FINAL CTA (dark card) ============ */}
+        <section className={`pl-sec pl-${tone()}`} style={{ paddingTop: 24 }}>
+          <div className="pl-wrap">
+            <div className="pl-final">
+              <div className="pl-glow pl-glow-sm" aria-hidden />
+              <div style={{ position: 'relative' }}>
+                <h2>{schools ? 'Ready to bring Plulai to your school?' : 'Ready to give them a head start?'}</h2>
+                <p>
+                  {schools
+                    ? 'Join the schools and training centers building the next generation of MENA creators.'
+                    : "Join the families across MENA building their kids' first pearl streak."}
+                </p>
+                <div className="pl-row" style={{ justifyContent: 'center' }}>
+                  <a href={primaryHref} className="pl-btn pl-btn-primary pl-btn-lg">{primaryCta} <Arrow /></a>
+                  <a href={secondary.href} className="pl-btn pl-btn-glass pl-btn-lg">{secondary.label}</a>
+                </div>
               </div>
-            </>
-          ) : (
-            <>
-              <h2 className={styles.finalCtaTitle}>Ready to bring Plulai to your school?</h2>
-              <p className={styles.finalCtaText}>
-                Join the schools and training centers building the next generation of MENA creators.
-              </p>
-              <div className={styles.finalCtas}>
-                <a href="#audience">
-                  <button className="btn btn-cta">Book a demo &rarr;</button>
-                </a>
-                <a href="mailto:hello@plulai.com">
-                  <button className="btn btn-outline btn-outline--on-dark">Talk to our team &rarr;</button>
-                </a>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      </main>
-
-      {/* ================= FOOTER ================= */}
-      <footer className={styles.footer}>
-        <style>{`
-          @media (max-width: 640px) {
-            .footer-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
-          }
-        `}</style>
-        <div className="container">
-          <div className={`${styles.footerGrid} footer-grid`} style={{ gridTemplateColumns: '1.6fr repeat(3, 1fr)' }}>
-            <div>
-              <div className="wordmark">
-                <span className="brand-mark">/</span>
-                <span>Plulai</span>
-              </div>
-              <p className={styles.footerBrandText}>
-                Building tomorrow&apos;s builders, today — made for the MENA region.
-              </p>
-            </div>
-            <div className={styles.footerCol}>
-              <p className={styles.footerColTitle}>Product</p>
-              <a href="#tracks">The Path</a>
-              <a href="#plans">Pricing</a>
-            </div>
-            <div className={styles.footerCol}>
-              <p className={styles.footerColTitle}>For you</p>
-              <a href="#audience" onClick={() => setAudience('schools')}>For Schools</a>
-              <a href="#audience" onClick={() => setAudience('family')}>For Families</a>
-            </div>
-            <div className={styles.footerCol}>
-              <p className={styles.footerColTitle}>Company</p>
-              <a href="#">About</a>
-              <a href="/ar">العربية</a>
             </div>
           </div>
-          <div className={styles.footerBottom}>
+        </section>
+      </main>
+
+      {/* ============ FOOTER ============ */}
+      <footer className="pl-footer">
+        <div className="pl-wrap">
+          <div className="pl-footgrid">
+            <div>
+              <p className="pl-wordmark">Plulai</p>
+              <p className="pl-footnote">Building tomorrow&apos;s builders, today. Made for the MENA region.</p>
+            </div>
+            <div>
+              <h4>Product</h4>
+              <a href="#path">The path</a>
+              <a href="#plans">Pricing</a>
+            </div>
+            <div>
+              <h4>For you</h4>
+              <a href="#audience" onClick={() => pick('schools')}>For schools</a>
+              <a href="#audience" onClick={() => pick('family')}>For families</a>
+            </div>
+            <div>
+              <h4>Company</h4>
+              <a href="#">About</a>
+              <a href="/ar" lang="ar" hrefLang="ar">العربية</a>
+            </div>
+          </div>
+          <div className="pl-footbottom">
             <span>© 2026 Plulai Education.</span>
             <span>Privacy · Terms</span>
           </div>
         </div>
       </footer>
-    </>
+    </div>
   )
 }
+
+/* ------------------------------ STYLES ------------------------------ */
+/* No font-family is declared anywhere: text inherits your site font. */
+
+const css = `
+.pl-root {
+  --pl-ink: #0D2B32; --pl-ink-2: #153B44; --pl-teal: #1FB8A6; --pl-teal-d: #12907F;
+  --pl-gold: #D4A24C; --pl-cream: #F6F3EA; --pl-white: #FFFFFF; --pl-line: #E4E9E7;
+  --pl-muted: #4F6B66; --pl-muted-d: #9DB5B0;
+  --pl-shadow: 0 1px 2px rgba(13,43,50,.04), 0 12px 32px rgba(13,43,50,.07);
+  --pl-shadow-lg: 0 2px 4px rgba(13,43,50,.05), 0 24px 56px rgba(13,43,50,.14);
+  color: var(--pl-ink); background: var(--pl-cream);
+}
+.pl-root *, .pl-root *::before, .pl-root *::after { box-sizing: border-box; }
+.pl-root button, .pl-root a { font-family: inherit; }
+.pl-root a:focus-visible, .pl-root button:focus-visible { outline: 3px solid var(--pl-teal); outline-offset: 3px; }
+.pl-wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.pl-center { text-align: center; }
+
+/* sections */
+.pl-sec { padding: 104px 0; scroll-margin-top: 90px; position: relative; }
+.pl-cream { background: var(--pl-cream); --fade: #F6F3EA; }
+.pl-white { background: var(--pl-white); --fade: #FFFFFF; }
+.pl-dark { background: var(--pl-ink); color: var(--pl-cream); overflow: hidden; }
+.pl-flush { padding-bottom: 96px; }
+.pl-head { max-width: 700px; margin: 0 auto 60px; text-align: center; }
+.pl-head h2, .pl-h2 { font-size: clamp(30px, 4.2vw, 46px); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; margin: 0; }
+.pl-head p, .pl-sub { font-size: 17.5px; line-height: 1.65; color: var(--pl-muted); margin: 18px 0 0; max-width: 520px; }
+.pl-head p { margin-inline: auto; max-width: 580px; }
+.pl-dark .pl-head p { color: var(--pl-muted-d); }
+.pl-foot { text-align: center; font-size: 14.5px; color: var(--pl-muted); margin: 40px 0 0; line-height: 1.6; }
+.pl-link { color: var(--pl-teal-d); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.pl-kicker { text-align: center; font-size: 15px; font-weight: 600; color: var(--pl-muted); margin: 0 0 28px; }
+.pl-tag { display: inline-block; font-size: 12.5px; font-weight: 700; padding: 6px 14px; border-radius: 999px; background: rgba(13,43,50,.07); color: var(--pl-muted); margin-bottom: 22px; }
+.pl-tag-teal { background: rgba(31,184,166,.16); color: var(--pl-teal); }
+.pl-glow { position: absolute; width: 720px; height: 720px; border-radius: 50%; top: -360px; left: 50%; transform: translateX(-50%); background: radial-gradient(circle, rgba(31,184,166,.22), transparent 65%); pointer-events: none; }
+.pl-glow-sm { width: 420px; height: 420px; top: -200px; left: auto; right: -80px; transform: none; }
+
+/* buttons */
+.pl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 24px; border-radius: 999px; font-size: 15px; font-weight: 700; border: 1.5px solid transparent; cursor: pointer; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease; }
+.pl-btn:hover { transform: translateY(-2px); }
+.pl-btn svg { transition: transform .15s ease; }
+.pl-btn:hover svg { transform: translateX(3px); }
+.pl-btn-primary { background: var(--pl-teal); color: var(--pl-ink); box-shadow: 0 8px 20px rgba(31,184,166,.32); }
+.pl-btn-primary:hover { background: #2BD2BE; }
+.pl-btn-dark { background: var(--pl-ink); color: var(--pl-cream); box-shadow: 0 8px 20px rgba(13,43,50,.22); }
+.pl-btn-ghost { background: transparent; color: var(--pl-ink); border-color: rgba(13,43,50,.22); }
+.pl-btn-ghost:hover { border-color: var(--pl-ink); }
+.pl-btn-glass { background: rgba(255,255,255,.08); color: var(--pl-cream); border-color: rgba(255,255,255,.22); }
+.pl-btn-glass:hover { background: rgba(255,255,255,.14); }
+.pl-btn-sm { padding: 9px 18px; font-size: 14px; box-shadow: none; }
+.pl-btn-lg { padding: 16px 30px; font-size: 16px; }
+.pl-btn-block { width: 100%; }
+.pl-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+
+/* cards & grids */
+.pl-card { background: var(--pl-white); border: 1px solid var(--pl-line); border-radius: 24px; padding: 30px 26px; box-shadow: var(--pl-shadow); }
+.pl-white .pl-card { background: var(--pl-cream); border-color: transparent; box-shadow: none; }
+.pl-card h3 { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 10px; }
+.pl-card p { font-size: 14.5px; line-height: 1.65; color: var(--pl-muted); margin: 0; }
+.pl-grid { display: grid; gap: 22px; }
+.pl-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.pl-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.pl-split { display: grid; grid-template-columns: 1.05fr 1fr; gap: 72px; align-items: center; }
+.pl-check { display: inline-flex; flex-shrink: 0; width: 20px; height: 20px; margin-top: 2px; border-radius: 50%; align-items: center; justify-content: center; background: rgba(31,184,166,.16); color: var(--pl-teal-d); }
+.pl-check.light { background: rgba(31,184,166,.2); color: var(--pl-teal); }
+
+/* nav */
+.pl-skip { position: absolute; left: -9999px; top: 0; z-index: 100; background: var(--pl-ink); color: var(--pl-cream); padding: 10px 18px; border-radius: 8px; font-weight: 700; }
+.pl-skip:focus { left: 16px; top: 16px; }
+.pl-navwrap { position: sticky; top: 0; z-index: 50; height: 0; }
+.pl-nav { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 20px; max-width: 1072px; margin: 14px auto 0; padding: 9px 12px 9px 24px; border-radius: 999px; background: rgba(13,43,50,.78); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.1); box-shadow: 0 10px 30px rgba(13,43,50,.25); }
+.pl-logo { display: flex; align-items: center; background: #F6F3EA; border-radius: 999px; padding: 6px 14px; }
+.pl-navlinks { display: flex; gap: 6px; }
+.pl-navlinks a { color: #C9D8D5; font-size: 14.5px; font-weight: 600; text-decoration: none; padding: 8px 14px; border-radius: 999px; transition: background .15s ease, color .15s ease; }
+.pl-navlinks a:hover { color: #fff; background: rgba(255,255,255,.08); }
+.pl-navlinks a.on { color: var(--pl-ink); background: var(--pl-cream); }
+.pl-navright { display: flex; align-items: center; gap: 14px; }
+.pl-login { color: #C9D8D5; font-size: 14.5px; font-weight: 600; text-decoration: none; }
+.pl-login:hover { color: #fff; }
+.pl-lang { font-size: 14px; font-weight: 700; color: var(--pl-cream); text-decoration: none; padding: 7px 13px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.2); }
+.pl-burger { display: none; width: 44px; height: 44px; background: none; border: 0; cursor: pointer; flex-direction: column; justify-content: center; gap: 5px; padding: 11px; }
+.pl-burger span { display: block; height: 2px; background: var(--pl-cream); border-radius: 2px; transition: transform .2s ease, opacity .2s ease; }
+.pl-burger .x1 { transform: translateY(7px) rotate(45deg); }
+.pl-burger .x2 { opacity: 0; }
+.pl-burger .x3 { transform: translateY(-7px) rotate(-45deg); }
+.pl-mobile { display: none; flex-direction: column; gap: 2px; margin: 8px 16px 0; padding: 14px 20px 20px; border-radius: 24px; background: rgba(13,43,50,.96); box-shadow: 0 16px 40px rgba(13,43,50,.35); }
+.pl-mobile a { color: var(--pl-cream); font-weight: 600; text-decoration: none; padding: 12px 0; }
+.pl-mobile a.pl-btn { margin-top: 10px; color: var(--pl-ink); }
+
+/* hero */
+.pl-hero { position: relative; background: linear-gradient(160deg, #0D2B32 0%, #153B44 60%, #0F3A40 100%); color: var(--pl-cream); padding: 168px 0 168px; overflow: hidden; }
+.pl-hero::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(246,243,234,.09) 1px, transparent 1px); background-size: 28px 28px; mask-image: radial-gradient(ellipse at 70% 40%, #000, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at 70% 40%, #000, transparent 70%); }
+.pl-hero::after { content: ''; position: absolute; width: 620px; height: 620px; border-radius: 50%; right: -120px; top: -120px; background: radial-gradient(circle, rgba(31,184,166,.28), transparent 65%); pointer-events: none; }
+.pl-herogrid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
+.pl-hero h1 { font-size: clamp(38px, 5.6vw, 66px); font-weight: 800; line-height: 1.04; letter-spacing: -0.035em; margin: 0; }
+.pl-lead { font-size: 18.5px; line-height: 1.65; color: #B7CCC8; max-width: 540px; margin: 24px 0 0; }
+.pl-toggle { display: inline-flex; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 4px; margin-bottom: 30px; max-width: 100%; }
+.pl-toggle button { border: 0; cursor: pointer; font-size: 13.5px; font-weight: 700; padding: 9px 18px; border-radius: 999px; background: transparent; color: #B7CCC8; transition: background .15s ease; }
+.pl-toggle button[aria-selected='true'] { background: var(--pl-cream); color: var(--pl-ink); }
+.pl-trust { list-style: none; display: flex; flex-wrap: wrap; gap: 10px 24px; padding: 0; margin: 34px 0 0; font-size: 14px; font-weight: 600; color: #C9D8D5; }
+.pl-trust li { display: flex; align-items: center; gap: 8px; }
+.pl-trust .pl-check { margin: 0; }
+.pl-herovisual { position: relative; display: flex; justify-content: center; align-items: center; }
+.pl-herovisual img { position: relative; max-width: 100%; height: auto; filter: drop-shadow(0 24px 40px rgba(0,0,0,.35)); }
+.pl-orb { position: absolute; width: 82%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(31,184,166,.5), rgba(31,184,166,.08) 70%); border: 1px solid rgba(255,255,255,.12); }
+.pl-float { position: absolute; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.96); color: var(--pl-ink); border-radius: 16px; padding: 11px 16px; box-shadow: 0 16px 36px rgba(0,0,0,.28); }
+.pl-float b { display: block; font-size: 13.5px; }
+.pl-float small { font-size: 12px; color: var(--pl-muted); }
+.pl-float-a { top: 8px; left: -4px; }
+.pl-float-b { bottom: 28px; right: -4px; }
+.pl-pearl { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff, var(--pl-gold)); animation: pl-pulse 1.8s ease-in-out infinite; }
+.pl-badge-ico { width: 28px; height: 28px; border-radius: 9px; background: var(--pl-teal); display: flex; align-items: center; justify-content: center; }
+@keyframes pl-pulse { 50% { transform: scale(1.25); opacity: .75; } }
+
+/* sheet that slides over the hero */
+.pl-sheet { margin-top: -72px; border-radius: 44px 44px 0 0; padding-top: 80px; z-index: 2; }
+
+/* marquees */
+.pl-marquee { position: relative; overflow: hidden; }
+.pl-marquee::before, .pl-marquee::after { content: ''; position: absolute; top: 0; bottom: 0; width: 100px; z-index: 2; pointer-events: none; }
+.pl-marquee::before { left: 0; } .pl-marquee::after { right: 0; }
+.pl-marquee::before { background: linear-gradient(90deg, var(--fade, #fff), transparent); }
+.pl-marquee::after { background: linear-gradient(270deg, var(--fade, #fff), transparent); }
+.pl-fade-dark::before { background: linear-gradient(90deg, var(--pl-ink), transparent); }
+.pl-fade-dark::after { background: linear-gradient(270deg, var(--pl-ink), transparent); }
+.pl-track { display: flex; gap: 16px; width: max-content; padding: 8px 0 14px; animation: pl-scroll var(--dur, 40s) linear infinite; }
+.pl-marquee:hover .pl-track { animation-play-state: paused; }
+@keyframes pl-scroll { to { transform: translateX(-50%); } }
+.pl-logo-tile { flex: 0 0 auto; width: 160px; height: 84px; padding: 16px 24px; border-radius: 18px; border: 1px solid var(--pl-line); background: #fff; box-shadow: var(--pl-shadow); display: flex; align-items: center; justify-content: center; }
+.pl-logo-tile img { filter: grayscale(1); opacity: .6; transition: filter .2s ease, opacity .2s ease; }
+.pl-logo-tile:hover img { filter: none; opacity: 1; }
+
+/* stats */
+.pl-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 52px 0 0; }
+.pl-stat { background: var(--pl-white); border-radius: 24px; padding: 30px 24px; text-align: center; box-shadow: var(--pl-shadow); }
+.pl-stat dt { font-size: clamp(34px, 4vw, 48px); font-weight: 800; letter-spacing: -0.03em; color: var(--pl-ink); }
+.pl-stat dd { margin: 4px 0 0; font-size: 14.5px; font-weight: 600; color: var(--pl-muted); }
+
+/* pitch */
+.pl-list { list-style: none; padding: 0; margin: 30px 0 0; display: flex; flex-direction: column; gap: 20px; }
+.pl-list li { display: flex; gap: 14px; }
+.pl-list b { display: block; font-size: 16px; margin-bottom: 2px; }
+.pl-list span { font-size: 14.5px; color: var(--pl-muted); line-height: 1.55; }
+.pl-dashwrap { position: relative; }
+.pl-dashwrap::before { content: ''; position: absolute; inset: -24px; border-radius: 40px; background: radial-gradient(circle at 70% 30%, rgba(31,184,166,.25), transparent 65%); }
+.pl-dash { position: relative; background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); border-radius: 28px; padding: 28px; box-shadow: var(--pl-shadow-lg); color: var(--pl-cream); }
+.pl-dots { display: flex; gap: 6px; margin-bottom: 20px; }
+.pl-dots i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.2); }
+.pl-dashtitle { font-weight: 800; font-size: 17px; margin: 0 0 22px; }
+.pl-bar + .pl-bar { margin-top: 18px; }
+.pl-barhead { display: flex; justify-content: space-between; font-size: 14px; color: #C9D8D5; margin-bottom: 8px; font-weight: 600; }
+.pl-barhead em { font-style: normal; font-size: 11.5px; font-weight: 700; color: #402F12; background: var(--pl-gold); padding: 2px 8px; border-radius: 999px; margin-left: 8px; }
+.pl-barbg { height: 8px; border-radius: 6px; background: rgba(255,255,255,.1); overflow: hidden; }
+.pl-barbg div { height: 100%; border-radius: 6px; }
+
+/* timeline (steps + path) */
+.pl-timeline { list-style: none; padding: 0; margin: 0; position: relative; }
+.pl-timeline::before { content: ''; position: absolute; top: 27px; left: 12%; right: 12%; height: 2px; background: repeating-linear-gradient(90deg, #BFD6D1 0 8px, transparent 8px 16px); }
+.pl-step { position: relative; padding-top: 44px; }
+.pl-node { position: absolute; top: -27px; left: 26px; width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; background: var(--pl-ink); color: var(--pl-cream); box-shadow: 0 0 0 6px var(--pl-cream), 0 10px 20px rgba(13,43,50,.2); }
+.pl-white .pl-node { box-shadow: 0 0 0 6px var(--pl-white), 0 10px 20px rgba(13,43,50,.2); }
+.pl-node-c { background: var(--c); color: #fff; }
+.pl-step:has(.pl-node-c) { border-top: 0; }
+.pl-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+.pl-tags span { font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 999px; background: rgba(13,43,50,.07); color: var(--pl-ink); }
+
+/* projects */
+.pl-proj { position: relative; margin: 0; flex: 0 0 auto; width: 260px; aspect-ratio: 4 / 3.3; border-radius: 22px; overflow: hidden; background: var(--pl-ink-2); border: 1px solid rgba(255,255,255,.12); transition: transform .25s ease, border-color .25s ease; }
+.pl-proj:hover { transform: translateY(-6px); border-color: rgba(212,162,76,.6); }
+.pl-proj::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(8,28,33,.92)); }
+.pl-pill { position: absolute; top: 12px; left: 12px; z-index: 2; font-size: 11.5px; font-weight: 700; padding: 4px 11px; border-radius: 999px; background: var(--pl-teal); color: var(--pl-ink); }
+.pl-pill.gold { background: var(--pl-gold); color: #402F12; }
+.pl-proj figcaption { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 14px 16px; }
+.pl-proj b { display: block; font-size: 15px; color: #fff; }
+.pl-proj small { display: block; margin-top: 3px; font-size: 12.5px; color: #B7CCC8; }
+
+/* before / after */
+.pl-ba { display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: stretch; max-width: 960px; margin: 0 auto; }
+.pl-ba ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 16px; }
+.pl-ba li { display: flex; gap: 12px; align-items: flex-start; font-size: 16px; line-height: 1.5; }
+.pl-before li { color: var(--pl-muted); }
+.pl-before li i { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #C5D3D0; flex-shrink: 0; margin-top: 2px; }
+.pl-ba-arrow { align-self: center; width: 46px; height: 46px; border-radius: 50%; background: var(--pl-ink); color: var(--pl-teal); display: flex; align-items: center; justify-content: center; box-shadow: var(--pl-shadow); }
+.pl-card.pl-after { background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); border-color: transparent; color: var(--pl-cream); box-shadow: var(--pl-shadow-lg); }
+.pl-after li { font-weight: 700; }
+
+/* case study */
+.pl-case { position: relative; overflow: hidden; display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); border-radius: 36px; padding: 60px 52px; box-shadow: var(--pl-shadow-lg); }
+.pl-case .pl-h2 { font-size: clamp(26px, 3.4vw, 38px); }
+.pl-casestats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.pl-casestats > div { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); border-radius: 20px; padding: 22px 18px; }
+.pl-casestats b { display: block; font-size: 36px; font-weight: 800; letter-spacing: -0.03em; color: var(--pl-teal); margin-bottom: 6px; }
+.pl-casestats span { font-size: 13px; line-height: 1.45; color: #B7CCC8; }
+
+/* pricing */
+.pl-plans { align-items: stretch; }
+.pl-plan { position: relative; display: flex; flex-direction: column; padding: 34px 28px; }
+.pl-plan small { font-size: 13.5px; font-weight: 700; color: var(--pl-teal-d); }
+.pl-plan > p { margin: 12px 0 22px; }
+.pl-plan ul { list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.pl-plan li { display: flex; gap: 10px; font-size: 14.5px; }
+.pl-card.pl-plan.hi { background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); border-color: rgba(212,162,76,.45); color: var(--pl-cream); box-shadow: var(--pl-shadow-lg); transform: translateY(-8px); }
+.pl-plan.hi p, .pl-plan.hi li { color: #C9D8D5; }
+.pl-plan.hi small { color: var(--pl-teal); }
+.pl-flag { position: absolute; top: -13px; left: 28px; font-size: 12px; font-weight: 800; padding: 5px 14px; border-radius: 999px; background: var(--pl-gold); color: #402F12; }
+.pl-single { max-width: 420px; margin: 0 auto; text-align: center; padding-top: 44px; }
+.pl-single li { text-align: left; }
+.pl-single .pl-flag { left: 50%; transform: translateX(-50%); }
+.pl-price { font-size: 15px; color: #C9D8D5 !important; margin: 0 0 4px !important; }
+.pl-price b { font-size: 52px; font-weight: 800; letter-spacing: -0.03em; color: var(--pl-cream); }
+.pl-single small { margin-bottom: 26px; }
+
+/* testimonials, security, faq */
+.pl-quote { position: relative; margin: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 26px; padding-top: 48px; }
+.pl-qmark { position: absolute; top: 12px; left: 24px; font-size: 72px; line-height: 1; font-weight: 800; color: var(--pl-teal); opacity: .5; }
+.pl-quote blockquote { margin: 0; font-size: 17.5px; line-height: 1.6; font-weight: 600; }
+.pl-quote figcaption { display: flex; align-items: center; gap: 12px; }
+.pl-quote b { display: block; font-size: 14.5px; }
+.pl-quote small { font-size: 13px; color: var(--pl-muted); }
+.pl-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--pl-ink); color: var(--pl-cream); display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.pl-icon { display: flex; width: 42px; height: 42px; border-radius: 12px; background: rgba(31,184,166,.16); align-items: center; justify-content: center; margin-bottom: 16px; }
+.pl-faq { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.pl-faqitem { background: #fff; border: 1px solid var(--pl-line); border-radius: 18px; overflow: hidden; box-shadow: var(--pl-shadow); transition: border-color .2s ease; }
+.pl-white .pl-faqitem { background: var(--pl-cream); border-color: transparent; box-shadow: none; }
+.pl-faqitem.open { border-color: rgba(31,184,166,.5); }
+.pl-faqitem button { width: 100%; text-align: left; background: none; border: 0; cursor: pointer; padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 16px; font-weight: 700; color: var(--pl-ink); }
+.pl-faqitem button span { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; line-height: 1; background: rgba(31,184,166,.16); color: var(--pl-teal-d); transition: transform .2s ease; }
+.pl-faqitem.open button span { transform: rotate(45deg); }
+.pl-faqitem p { margin: 0; padding: 0 22px 22px; font-size: 15px; line-height: 1.7; color: var(--pl-muted); }
+
+/* final CTA + footer */
+.pl-final { position: relative; overflow: hidden; text-align: center; background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); color: var(--pl-cream); border-radius: 40px; padding: 84px 32px; box-shadow: var(--pl-shadow-lg); }
+.pl-final h2 { font-size: clamp(30px, 4.4vw, 48px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin: 0; }
+.pl-final p { font-size: 18px; color: #B7CCC8; max-width: 520px; margin: 18px auto 0; line-height: 1.6; }
+.pl-footer { background: var(--pl-ink); color: var(--pl-cream); }
+.pl-footgrid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 40px; padding: 64px 0 44px; }
+.pl-wordmark { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 10px; }
+.pl-footnote { font-size: 14.5px; color: var(--pl-muted-d); line-height: 1.6; max-width: 280px; margin: 0; }
+.pl-footer h4 { font-size: 14px; font-weight: 800; margin: 0 0 14px; color: var(--pl-cream); }
+.pl-footer a { display: block; color: var(--pl-muted-d); font-size: 14.5px; text-decoration: none; padding: 5px 0; }
+.pl-footer a:hover { color: var(--pl-cream); }
+.pl-footbottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 24px 0 36px; border-top: 1px solid rgba(255,255,255,.1); font-size: 13px; color: var(--pl-muted-d); }
+
+/* responsive */
+@media (max-width: 1000px) {
+  .pl-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .pl-timeline::before { display: none; }
+  .pl-step { margin-top: 20px; }
+  .pl-navlinks, .pl-navright { display: none; }
+  .pl-burger { display: flex; }
+  .pl-mobile { display: flex; }
+  .pl-nav { margin: 12px 16px 0; padding: 7px 8px 7px 14px; }
+}
+@media (max-width: 800px) {
+  .pl-sec { padding: 76px 0; }
+  .pl-hero { padding: 128px 0 132px; }
+  .pl-herogrid, .pl-split, .pl-case { grid-template-columns: 1fr; }
+  .pl-split { gap: 48px; }
+  .pl-grid-3, .pl-stats { grid-template-columns: 1fr; }
+  .pl-herovisual { order: -1; max-width: 300px; margin: 0 auto; }
+  .pl-ba { grid-template-columns: 1fr; }
+  .pl-ba-arrow { transform: rotate(90deg); margin: 0 auto; }
+  .pl-case { padding: 40px 26px; }
+  .pl-card.pl-plan.hi { transform: none; }
+  .pl-footgrid { grid-template-columns: 1fr 1fr; }
+  .pl-sheet { border-radius: 32px 32px 0 0; }
+}
+@media (max-width: 520px) {
+  .pl-grid-4, .pl-casestats { grid-template-columns: 1fr; }
+  .pl-toggle { flex-direction: column; border-radius: 18px; width: 100%; }
+  .pl-btn-lg { width: 100%; }
+  .pl-float-a { left: -8px; } .pl-float-b { right: -8px; }
+  .pl-final { padding: 56px 22px; border-radius: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-track, .pl-pearl { animation: none; }
+  .pl-btn, .pl-proj { transition: none; }
+}
+/* ---- v3 additions ---- */
+.pl-grad { background: linear-gradient(90deg, #4FE0CD, #F0C46E); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pl-float-b { bottom: 110px; right: -10px; }
+.pl-mission { position: absolute; left: -14px; bottom: -12px; width: 240px; padding: 14px 16px; border-radius: 18px; background: rgba(255,255,255,.97); color: var(--pl-ink); box-shadow: 0 18px 40px rgba(0,0,0,.3); }
+.pl-mission small { display: block; font-size: 11.5px; font-weight: 700; color: var(--pl-teal-d); margin-bottom: 2px; }
+.pl-mission b { display: block; font-size: 15px; margin-bottom: 10px; }
+.pl-mission .meta { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--pl-muted); margin-bottom: 7px; }
+.pl-mbar { height: 7px; border-radius: 6px; background: #E4E9E7; overflow: hidden; }
+.pl-mbar div { height: 100%; width: 60%; border-radius: 6px; background: var(--pl-teal); }
+
+/* proof panel */
+.pl-proof { margin-top: 56px; background: #fff; border-radius: 32px; padding: 46px 40px 32px; box-shadow: var(--pl-shadow-lg); }
+.pl-proofhead { text-align: center; margin-bottom: 38px; }
+.pl-proofhead h3 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.pl-proofhead p { margin: 6px 0 0; font-size: 15px; color: var(--pl-muted); }
+.pl-proof .pl-stats { margin: 0; gap: 0; }
+.pl-proof .pl-stat { background: none; box-shadow: none; border-radius: 0; padding: 4px 32px; text-align: left; display: flex; flex-direction: column; }
+.pl-proof .pl-stat + .pl-stat { border-left: 1px solid var(--pl-line); }
+.pl-statico { width: 48px; height: 48px; border-radius: 15px; background: rgba(31,184,166,.14); color: var(--pl-teal-d); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+.pl-statnum { font-size: clamp(42px, 5vw, 62px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: var(--pl-ink); font-variant-numeric: tabular-nums; }
+.pl-statlabel { display: block; margin-top: 10px; font-size: 16.5px; font-weight: 800; }
+.pl-stat p { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--pl-muted); }
+.pl-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 36px; padding-top: 26px; border-top: 1px solid var(--pl-line); }
+.pl-chip { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; padding: 8px 15px; border-radius: 999px; background: var(--pl-cream); }
+.pl-chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--pl-teal); }
+
+/* path: interactive stages */
+.pl-path { max-width: 980px; margin: 0 auto; }
+.pl-pathtabs { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); margin-bottom: 40px; }
+.pl-pathtabs::before { content: ''; position: absolute; top: 27px; left: 12.5%; right: 12.5%; height: 3px; border-radius: 2px; background: #D5E3E0; }
+.pl-pathtab { position: relative; background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 0; color: var(--pl-muted); font-size: 15.5px; font-weight: 700; }
+.pl-pathnode { position: relative; z-index: 1; width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800; background: #fff; color: var(--pl-muted); border: 3px solid #D5E3E0; transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.pl-pathtab:hover .pl-pathnode { border-color: var(--c); }
+.pl-pathtab.done .pl-pathnode, .pl-pathtab.on .pl-pathnode { background: var(--c); border-color: var(--c); color: var(--fg); }
+.pl-pathtab.on .pl-pathnode { transform: scale(1.12); box-shadow: 0 0 0 7px color-mix(in srgb, var(--c) 22%, transparent); }
+.pl-pathtab.on .pl-pathname { color: var(--pl-ink); }
+.pl-panel { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; background: #fff; border-radius: 34px; padding: 14px; box-shadow: var(--pl-shadow-lg); animation: pl-in .35s ease; }
+.pl-white .pl-panel { background: var(--pl-cream); box-shadow: none; }
+.pl-panelcopy { padding: 34px 30px 30px 34px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+.pl-panelcopy h3 { font-size: clamp(36px, 5vw, 54px); font-weight: 800; letter-spacing: -0.035em; line-height: 1; margin: 0 0 16px; }
+.pl-panelsub { font-size: 17.5px; line-height: 1.65; color: var(--pl-muted); margin: 0 0 28px; }
+.pl-panelvis { position: relative; overflow: hidden; border-radius: 24px; background: var(--c); color: var(--fg); padding: 34px 30px; display: flex; flex-direction: column; justify-content: flex-end; min-height: 330px; }
+.pl-panelvis::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.22) 1.4px, transparent 1.6px); background-size: 22px 22px; mask-image: linear-gradient(160deg, #000, transparent 70%); -webkit-mask-image: linear-gradient(160deg, #000, transparent 70%); }
+.pl-bignum { position: absolute; top: 4px; right: 22px; font-size: 128px; font-weight: 800; line-height: 1; letter-spacing: -0.05em; opacity: .2; }
+.pl-skillhead { position: relative; font-size: 13.5px; font-weight: 700; opacity: .8; margin: 0 0 12px; }
+.pl-panelvis ul { position: relative; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.pl-panelvis li { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.22); font-weight: 700; font-size: 15.5px; }
+.pl-panelvis .pl-check { margin: 0; background: rgba(255,255,255,.35); color: inherit; }
+@keyframes pl-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* projects on light background */
+.pl-proj { border: 0; box-shadow: var(--pl-shadow); }
+.pl-proj:hover { box-shadow: var(--pl-shadow-lg); }
+
+/* whatsapp button */
+.pl-btn-wa { background: #25D366; color: #06361A; box-shadow: 0 8px 20px rgba(37,211,102,.35); }
+.pl-btn-wa:hover { background: #2EE274; }
+
+/* final CTA headline colour: change --pl-final-title to taste */
+.pl-final { --pl-final-title: #E9B95F; }
+.pl-final h2 { color: var(--pl-final-title); }
+
+@media (max-width: 800px) {
+  .pl-proof { padding: 34px 22px 24px; border-radius: 26px; }
+  .pl-proof .pl-stats { grid-template-columns: 1fr; gap: 28px; }
+  .pl-proof .pl-stat { padding: 0; }
+  .pl-proof .pl-stat + .pl-stat { border-left: 0; border-top: 1px solid var(--pl-line); padding-top: 28px; }
+  .pl-panel { grid-template-columns: 1fr; }
+  .pl-panelcopy { padding: 24px 18px 8px; }
+  .pl-bignum { font-size: 92px; }
+}
+@media (max-width: 520px) {
+  .pl-pathname { font-size: 13px; }
+  .pl-pathnode { width: 44px; height: 44px; font-size: 16px; }
+  .pl-pathtabs::before { top: 22px; }
+  .pl-mission { display: none; }
+  .pl-float-b { bottom: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-panel { animation: none; }
+}
+/* ---- v4: proof bento + security ---- */
+.pl-proofhead { margin: 44px auto 0; }
+.pl-bento { margin-top: 36px; display: grid; grid-template-columns: 1.15fr 1fr; grid-template-rows: auto auto; gap: 20px; }
+.pl-bcard { position: relative; overflow: hidden; background: #fff; border: 1px solid var(--pl-line); border-radius: 30px; padding: 32px 30px; box-shadow: var(--pl-shadow); }
+.pl-bnum { display: block; font-size: clamp(48px, 6vw, 72px); font-weight: 800; letter-spacing: -0.045em; line-height: 1; font-variant-numeric: tabular-nums; color: var(--pl-ink); }
+.pl-blabel { display: block; margin-top: 12px; font-size: 18px; font-weight: 800; }
+.pl-bcard p { margin: 6px 0 0; font-size: 14.5px; line-height: 1.55; color: var(--pl-muted); }
+.pl-bcard-main { grid-row: span 2; display: flex; flex-direction: column; justify-content: space-between; min-height: 400px; padding: 42px 38px; border: 0; color: var(--pl-cream); background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); box-shadow: var(--pl-shadow-lg); }
+.pl-bcard-main::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(246,243,234,.1) 1.4px, transparent 1.6px); background-size: 24px 24px; mask-image: radial-gradient(ellipse at 80% 20%, #000, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at 80% 20%, #000, transparent 70%); }
+.pl-bcard-main::after { content: ''; position: absolute; width: 420px; height: 420px; right: -140px; top: -160px; border-radius: 50%; background: radial-gradient(circle, rgba(31,184,166,.35), transparent 65%); }
+.pl-bcard-main .pl-bnum { font-size: clamp(76px, 11vw, 132px); background: linear-gradient(90deg, #4FE0CD, #F0C46E); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pl-bcard-main p { color: #B7CCC8; max-width: 300px; }
+.pl-ages { position: relative; z-index: 1; margin-top: 36px; }
+.pl-ages small { display: block; font-size: 13px; font-weight: 700; color: #B7CCC8; margin-bottom: 12px; }
+.pl-agetrack { height: 10px; border-radius: 6px; background: linear-gradient(90deg, #FF6B57, #D4A24C, #1FB8A6); }
+.pl-agelabels { display: flex; justify-content: space-between; margin-top: 10px; font-size: 13px; font-weight: 800; color: var(--pl-cream); }
+.pl-stagechips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.pl-stagechips span { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; padding: 6px 12px; border-radius: 999px; background: var(--pl-cream); }
+.pl-stagechips i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.pl-logostack { display: flex; margin-top: 22px; }
+.pl-logostack span { width: 46px; height: 46px; padding: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--pl-line); margin-left: -10px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.pl-logostack span:first-child { margin-left: 0; }
+.pl-logostack .more { background: var(--pl-ink); color: var(--pl-cream); font-size: 12.5px; font-weight: 800; padding: 0; box-shadow: 0 0 0 2px #fff; }
+
+.pl-secwrap { display: grid; grid-template-columns: 5fr 7fr; gap: 24px; align-items: stretch; }
+.pl-seccard { position: relative; overflow: hidden; display: flex; flex-direction: column; border-radius: 32px; padding: 44px 38px; color: var(--pl-cream); background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); box-shadow: var(--pl-shadow-lg); }
+.pl-seccard::after { content: ''; position: absolute; width: 380px; height: 380px; right: -140px; top: -140px; border-radius: 50%; background: radial-gradient(circle, rgba(31,184,166,.32), transparent 65%); }
+.pl-seccard > * { position: relative; z-index: 1; }
+.pl-shield { width: 68px; height: 68px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: var(--pl-teal); background: rgba(31,184,166,.16); border: 1px solid rgba(31,184,166,.4); margin-bottom: 28px; }
+.pl-seccard h2 { font-size: clamp(28px, 3.4vw, 38px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 14px; }
+.pl-seccard > p { font-size: 16.5px; line-height: 1.6; color: #B7CCC8; margin: 0 0 26px; }
+.pl-seccard ul { list-style: none; padding: 0; margin: 0 0 34px; display: flex; flex-direction: column; gap: 14px; font-size: 15px; font-weight: 700; }
+.pl-seccard li { display: flex; align-items: center; gap: 12px; }
+.pl-seccard li .pl-check { margin: 0; }
+.pl-seccard .pl-btn { margin-top: auto; align-self: flex-start; }
+.pl-secgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.pl-seccell { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--pl-line); border-radius: 26px; padding: 28px 24px; box-shadow: var(--pl-shadow); transition: transform .2s ease, box-shadow .2s ease; }
+.pl-seccell:hover { transform: translateY(-4px); box-shadow: var(--pl-shadow-lg); }
+.pl-white .pl-seccell { background: var(--pl-cream); border-color: transparent; box-shadow: none; }
+.pl-secico { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); margin-bottom: 20px; }
+.pl-seccell small { font-size: 12.5px; font-weight: 700; color: var(--pl-muted); margin-bottom: 6px; }
+.pl-seccell h3 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 8px; }
+.pl-seccell p { font-size: 14.5px; line-height: 1.6; color: var(--pl-muted); margin: 0; }
+
+@media (max-width: 1000px) {
+  .pl-secwrap { grid-template-columns: 1fr; }
+}
+@media (max-width: 800px) {
+  .pl-bento { grid-template-columns: 1fr; }
+  .pl-bcard-main { grid-row: auto; min-height: 340px; padding: 34px 26px; }
+  .pl-seccard { padding: 36px 26px; }
+}
+@media (max-width: 520px) {
+  .pl-secgrid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-seccell { transition: none; }
+}
+/* ---- v5: compact proof ---- */
+.pl-sheet { padding-bottom: 72px; }
+.pl-proofhead { margin-top: 32px; }
+.pl-proofhead h3 { font-size: 22px; }
+.pl-bento { margin-top: 24px; gap: 14px; }
+.pl-bcard { padding: 22px 24px; border-radius: 24px; }
+.pl-bnum { font-size: clamp(36px, 4.4vw, 50px); }
+.pl-blabel { margin-top: 8px; font-size: 16px; }
+.pl-bcard p { font-size: 13.5px; }
+.pl-bcard-main { min-height: 0; padding: 28px 28px; }
+.pl-bcard-main .pl-bnum { font-size: clamp(56px, 8vw, 88px); }
+.pl-ages { margin-top: 22px; }
+.pl-ages small { margin-bottom: 8px; font-size: 12.5px; }
+.pl-agetrack { height: 8px; }
+.pl-agelabels { margin-top: 8px; font-size: 12.5px; }
+.pl-logostack { margin-top: 14px; }
+.pl-logostack span { width: 40px; height: 40px; padding: 7px; }
+.pl-chips { margin-top: 24px; padding-top: 0; border-top: 0; }
+@media (max-width: 800px) {
+  .pl-bcard-main { min-height: 0; padding: 26px 22px; }
+}
+/* ---- v6: slim proof strip ---- */
+.pl-sheet { padding-bottom: 56px; }
+.pl-strip { margin-top: 26px; display: grid; grid-template-columns: repeat(3, 1fr); border-radius: 22px; overflow: hidden; color: var(--pl-cream); background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); box-shadow: var(--pl-shadow-lg); }
+.pl-sitem { display: flex; align-items: center; gap: 14px; padding: 18px 24px; min-width: 0; }
+.pl-sitem + .pl-sitem { border-left: 1px solid rgba(255,255,255,.1); }
+.pl-snum { font-size: clamp(30px, 3.4vw, 40px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.pl-snum-grad { background: linear-gradient(90deg, #4FE0CD, #F0C46E); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pl-slab b { display: block; font-size: 14.5px; font-weight: 800; }
+.pl-slab small { display: block; margin-top: 2px; font-size: 12.5px; color: var(--pl-muted-d); }
+.pl-strip .pl-logostack { margin: 0 0 0 auto; }
+.pl-strip .pl-logostack span { width: 32px; height: 32px; padding: 5px; margin-left: -8px; }
+.pl-strip .pl-logostack span:first-child { margin-left: 0; }
+.pl-strip .pl-logostack .more { background: var(--pl-teal); color: var(--pl-ink); font-size: 11.5px; padding: 0; }
+.pl-chips { margin-top: 18px; gap: 8px; }
+.pl-chip { font-size: 12.5px; padding: 6px 12px; }
+@media (max-width: 800px) {
+  .pl-strip { grid-template-columns: 1fr; }
+  .pl-sitem + .pl-sitem { border-left: 0; border-top: 1px solid rgba(255,255,255,.1); }
+}
+/* ---- v7: rollout steps + light security card ---- */
+.pl-roll { list-style: none; padding: 0; margin: 0 auto; max-width: 980px; position: relative; display: flex; flex-direction: column; gap: 30px; }
+.pl-roll::before { content: ''; position: absolute; top: 28px; bottom: 28px; left: 50%; width: 3px; transform: translateX(-50%); background: repeating-linear-gradient(180deg, #BFD6D1 0 8px, transparent 8px 16px); }
+.pl-rstep { position: relative; display: grid; grid-template-columns: 1fr 64px 1fr; align-items: center; }
+.pl-rtext { order: 1; padding: 8px 14px 8px 0; }
+.pl-rnode { order: 2; justify-self: center; position: relative; z-index: 1; width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800; background: var(--pl-ink); color: var(--pl-cream); box-shadow: 0 0 0 7px var(--pl-cream), 0 10px 20px rgba(13,43,50,.2); }
+.pl-white .pl-rnode { box-shadow: 0 0 0 7px #fff, 0 10px 20px rgba(13,43,50,.2); }
+.pl-rprev { order: 3; background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); color: var(--pl-cream); border-radius: 24px; padding: 22px 24px; box-shadow: var(--pl-shadow-lg); }
+.pl-rstep:nth-child(even) .pl-rtext { order: 3; padding: 8px 0 8px 14px; }
+.pl-rstep:nth-child(even) .pl-rprev { order: 1; }
+.pl-rchip { display: inline-block; font-size: 12.5px; font-weight: 700; padding: 5px 12px; border-radius: 999px; margin-bottom: 12px; background: rgba(31,184,166,.16); color: var(--pl-teal-d); }
+.pl-rtext h3 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; }
+.pl-rtext p { font-size: 16px; line-height: 1.65; color: var(--pl-muted); margin: 0; max-width: 400px; }
+.pl-rprev h4 { font-size: 15px; font-weight: 800; margin: 0 0 16px; }
+.pl-rprev .pl-bar + .pl-bar { margin-top: 14px; }
+.pl-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 12px; }
+.pl-cal span { aspect-ratio: 1; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: rgba(255,255,255,.08); color: #B7CCC8; }
+.pl-cal span.on { background: var(--pl-teal); color: var(--pl-ink); }
+.pl-mrow { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-top: 1px solid rgba(255,255,255,.1); font-size: 13.5px; font-weight: 600; color: #C9D8D5; }
+.pl-mrow .ok { color: var(--pl-teal); font-weight: 800; }
+@media (max-width: 800px) {
+  .pl-roll::before { left: 27px; transform: none; }
+  .pl-rstep { grid-template-columns: 54px 1fr; column-gap: 18px; align-items: start; }
+  .pl-rnode { grid-column: 1; grid-row: 1; }
+  .pl-rtext, .pl-rstep:nth-child(even) .pl-rtext { grid-column: 2; grid-row: 1; padding: 4px 0 0; }
+  .pl-rprev, .pl-rstep:nth-child(even) .pl-rprev { grid-column: 2; grid-row: 2; margin-top: 16px; }
+}
+
+.pl-seccard { color: var(--pl-ink); background: linear-gradient(160deg, #E8F6F3, #F6F3EA); border: 1px solid rgba(31,184,166,.28); box-shadow: var(--pl-shadow); }
+.pl-seccard::after { background: radial-gradient(circle, rgba(31,184,166,.2), transparent 65%); }
+.pl-shield { color: var(--pl-teal-d); background: #fff; border: 1px solid rgba(31,184,166,.35); box-shadow: 0 8px 20px rgba(31,184,166,.18); }
+.pl-seccard > p { color: var(--pl-muted); }
+/* ---- v8: rollout as one clean four-column card ---- */
+.pl-flow { max-width: 1040px; margin: 0 auto; overflow: hidden; border-radius: 30px; background: #fff; box-shadow: var(--pl-shadow-lg); }
+.pl-white .pl-flow { background: var(--pl-cream); box-shadow: none; }
+.pl-flowgrid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); }
+.pl-fstep { display: flex; flex-direction: column; }
+.pl-fbar { height: 6px; background: var(--c); }
+.pl-fbody { display: flex; flex-direction: column; flex: 1; padding: 28px 24px 26px; }
+.pl-fstep + .pl-fstep .pl-fbody { border-left: 1px solid var(--pl-line); }
+.pl-white .pl-fstep + .pl-fstep .pl-fbody { border-left-color: rgba(13,43,50,.1); }
+.pl-fnum { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; font-size: 17px; font-weight: 800; color: var(--pl-ink); background: color-mix(in srgb, var(--c) 18%, transparent); }
+.pl-fbody h3 { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 10px; }
+.pl-fbody p { flex: 1; font-size: 14.5px; line-height: 1.65; color: var(--pl-muted); margin: 0; }
+.pl-fchip { align-self: flex-start; margin-top: 22px; font-size: 12.5px; font-weight: 700; padding: 5px 12px; border-radius: 999px; color: var(--pl-ink); background: color-mix(in srgb, var(--c) 18%, transparent); }
+.pl-flowfoot { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 28px; color: var(--pl-cream); background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); }
+.pl-flowfoot p { margin: 0; font-size: 15px; font-weight: 600; }
+@media (max-width: 1000px) {
+  .pl-flowgrid { grid-template-columns: 1fr 1fr; }
+  .pl-fstep:nth-child(3) .pl-fbody { border-left: 0; }
+}
+@media (max-width: 560px) {
+  .pl-flowgrid { grid-template-columns: 1fr; }
+  .pl-fstep + .pl-fstep .pl-fbody { border-left: 0; }
+}
+`
