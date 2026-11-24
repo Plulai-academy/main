@@ -79,14 +79,23 @@ const testimonials = [
   { q: 'He built his first working game in two weeks. The AI tutor is more patient than I ever am.', n: 'Sara A.', r: 'Parent', i: 'S' },
 ]
 
-// Founder block. To show a photo, put the file in /public and set photo: '/founder.jpg'.
+// Founder block (details from Mohamed's CV). To show a photo, put the file in /public and set photo: '/founder.jpg'.
 const FOUNDER = {
   name: 'Mohamed Zouari',
   initials: 'MZ',
-  role: 'Founder, Plulai Consulting FZCO',
+  badge: 'Founder & CEO',
+  role: 'Founder & CEO, Plulai Consulting FZCO',
   photo: '',
-  bio: 'Mohamed Zouari founded Plulai to give kids across the MENA region a real path into coding, AI and life skills, taught natively in Arabic, French and English.',
-  facts: ['Based in the UAE', 'Serving the MENA region', 'Arabic · French · English'],
+  linkedin: 'https://linkedin.com/in/mohamed-zouari-ab7196207',
+  site: 'https://mohamedzouari.netlify.app',
+  bio: 'Mohamed is a Python developer and tech entrepreneur from Tunisia. He has been building apps and games and leading hackathons and bootcamps since 2023, and started a tech club for high school students in Sfax. He founded Plulai to give kids across the MENA region a real path into coding, AI and life skills, in Arabic, French and English.',
+  highlights: [
+    { title: 'Founder & CEO, Plulai', sub: 'Since January 2025' },
+    { title: 'Educator', sub: 'Harvard Business Impact Education' },
+    { title: 'Delta Residency 2025', sub: 'Top 15 out of 1,500' },
+    { title: 'Tech club founder', sub: 'For Sfax high school students' },
+  ],
+  learning: ['Stanford × Y Combinator', 'MIT', 'Google', 'IBM', 'University of Helsinki', 'Unity'],
 }
 
 const faqs: { q: string; a: string; for: 'family' | 'schools' | 'common' }[] = [
@@ -214,7 +223,7 @@ export default function LandingPage() {
             logo: 'https://plulai.com/logo.png',
             description: 'A coding, AI, and life-skills curriculum for kids and schools, taught natively in Arabic, French, and English.',
             legalName: 'Plulai Consulting FZCO',
-            founder: { '@type': 'Person', name: 'Mohamed Zouari', jobTitle: 'Founder' },
+            founder: { '@type': 'Person', name: 'Mohamed Zouari', jobTitle: 'Founder & CEO', sameAs: ['https://linkedin.com/in/mohamed-zouari-ab7196207', 'https://mohamedzouari.netlify.app'] },
             address: { '@type': 'PostalAddress', addressLocality: 'Dubai', addressCountry: 'AE' },
             areaServed: 'MENA',
             availableLanguage: ['ar', 'fr', 'en'],
@@ -650,18 +659,25 @@ export default function LandingPage() {
                 ) : (
                   <span className="pl-initials" aria-hidden>{FOUNDER.initials}</span>
                 )}
-                <span className="pl-whobadge">Founder</span>
+                <span className="pl-whobadge">{FOUNDER.badge}</span>
               </div>
               <div className="pl-whocopy">
                 <span className="pl-tag">Meet the founder</span>
                 <h2 className="pl-h2">{FOUNDER.name}</h2>
                 <p className="pl-frole">{FOUNDER.role}</p>
                 <p className="pl-sub">{FOUNDER.bio}</p>
+                <ul className="pl-hl">
+                  {FOUNDER.highlights.map((h) => (
+                    <li key={h.title}><b>{h.title}</b><span>{h.sub}</span></li>
+                  ))}
+                </ul>
+                <p className="pl-learnlabel">Learning from</p>
                 <div className="pl-whochips">
-                  {FOUNDER.facts.map((f) => <span key={f} className="pl-chip"><i />{f}</span>)}
+                  {FOUNDER.learning.map((f) => <span key={f} className="pl-chip"><i />{f}</span>)}
                 </div>
                 <div className="pl-row">
-                  <a href="mailto:hello@plulai.com" className="pl-btn pl-btn-dark">Get in touch <Arrow /></a>
+                  <a href={FOUNDER.linkedin} target="_blank" rel="noopener noreferrer" className="pl-btn pl-btn-dark">LinkedIn <Arrow /></a>
+                  <a href={FOUNDER.site} target="_blank" rel="noopener noreferrer" className="pl-btn pl-btn-ghost">Portfolio</a>
                 </div>
               </div>
             </div>
@@ -1315,4 +1331,21 @@ const css = `
 .pl-entity { display: flex; gap: 10px; align-items: flex-start; margin: 22px 0 0; max-width: 320px; font-size: 13px; line-height: 1.5; color: var(--pl-muted-d); }
 .pl-entity svg { flex-shrink: 0; margin-top: 2px; color: var(--pl-teal); }
 .pl-entity b { display: block; font-size: 14px; color: var(--pl-cream); }
+/* ---- v10: richer founder block ---- */
+.pl-who { align-items: stretch; }
+.pl-whophoto { aspect-ratio: auto; min-height: 460px; }
+.pl-whocopy { padding: 22px 30px 22px 0; }
+.pl-hl { list-style: none; padding: 0; margin: 24px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pl-hl li { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; border: 1px solid rgba(13,43,50,.1); border-radius: 16px; }
+.pl-hl b { font-size: 15px; font-weight: 800; }
+.pl-hl span { font-size: 13px; color: var(--pl-muted); }
+.pl-learnlabel { margin: 22px 0 10px; font-size: 13px; font-weight: 700; color: var(--pl-muted); }
+.pl-learnlabel + .pl-whochips { margin-top: 0; }
+@media (max-width: 800px) {
+  .pl-whophoto { min-height: 240px; aspect-ratio: auto; }
+  .pl-whocopy { padding: 20px 14px 18px; }
+}
+@media (max-width: 520px) {
+  .pl-hl { grid-template-columns: 1fr; }
+}
 `
