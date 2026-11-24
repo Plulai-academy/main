@@ -50,7 +50,7 @@ const journey = [
 const steps = [
   { chip: '30 minutes', title: 'Book a demo', text: 'A 30-minute walkthrough of the student view, teacher view, and admin dashboard, tailored to your grades.' },
   { chip: 'Free pilot', title: 'Pilot one classroom', text: 'Run a free pilot with a single class before committing school-wide. Full access, no pressure.' },
-  { chip: 'One short session', title: 'Train your teachers', text: 'A short onboarding session, no coding background needed. Teachers leave knowing the platform and dashboard.' },
+  { chip: 'Taught by Plulai', title: 'Plulai teachers lead the class', text: 'Our teachers run the sessions in Arabic, French or English, with an AI coach supporting every student.' },
   { chip: 'Within a month', title: 'Roll out school-wide', text: "Scale to the full grade or school, with an admin dashboard that flags who's stuck before report cards do." },
 ]
 
@@ -78,6 +78,16 @@ const testimonials = [
   { q: 'The Arabic and French aren\u2019t translated, they\u2019re native. That alone sets it apart.', n: 'Dr. Khalid R.', r: 'Principal', i: 'K' },
   { q: 'He built his first working game in two weeks. The AI tutor is more patient than I ever am.', n: 'Sara A.', r: 'Parent', i: 'S' },
 ]
+
+// Founder block. To show a photo, put the file in /public and set photo: '/founder.jpg'.
+const FOUNDER = {
+  name: 'Mohamed Zouari',
+  initials: 'MZ',
+  role: 'Founder, Plulai Consulting FZCO',
+  photo: '',
+  bio: 'Mohamed Zouari founded Plulai to give kids across the MENA region a real path into coding, AI and life skills, taught natively in Arabic, French and English.',
+  facts: ['Based in the UAE', 'Serving the MENA region', 'Arabic · French · English'],
+}
 
 const faqs: { q: string; a: string; for: 'family' | 'schools' | 'common' }[] = [
   { q: 'Can my child use Plulai on their own at home?', a: 'Yes. Missions are self-paced and the AI tutor adapts to your child, so no classroom or teacher is required.', for: 'family' },
@@ -188,7 +198,7 @@ export default function LandingPage() {
 
   return (
     <div className="pl-root">
-      <style>{css}</style>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
 
       <a href="#main-content" className="pl-skip">Skip to content</a>
 
@@ -203,6 +213,9 @@ export default function LandingPage() {
             url: 'https://plulai.com',
             logo: 'https://plulai.com/logo.png',
             description: 'A coding, AI, and life-skills curriculum for kids and schools, taught natively in Arabic, French, and English.',
+            legalName: 'Plulai Consulting FZCO',
+            founder: { '@type': 'Person', name: 'Mohamed Zouari', jobTitle: 'Founder' },
+            address: { '@type': 'PostalAddress', addressLocality: 'Dubai', addressCountry: 'AE' },
             areaServed: 'MENA',
             availableLanguage: ['ar', 'fr', 'en'],
             sameAs: [],
@@ -627,6 +640,34 @@ export default function LandingPage() {
           </div>
         </Section>
 
+        {/* ============ FOUNDER ============ */}
+        <section id="founder" className={`pl-sec pl-${tone()}`}>
+          <div className="pl-wrap">
+            <div className="pl-who">
+              <div className="pl-whophoto">
+                {FOUNDER.photo ? (
+                  <Image src={FOUNDER.photo} alt={`${FOUNDER.name}, founder of Plulai`} fill sizes="(max-width: 800px) 100vw, 40vw" style={{ objectFit: 'cover' }} />
+                ) : (
+                  <span className="pl-initials" aria-hidden>{FOUNDER.initials}</span>
+                )}
+                <span className="pl-whobadge">Founder</span>
+              </div>
+              <div className="pl-whocopy">
+                <span className="pl-tag">Meet the founder</span>
+                <h2 className="pl-h2">{FOUNDER.name}</h2>
+                <p className="pl-frole">{FOUNDER.role}</p>
+                <p className="pl-sub">{FOUNDER.bio}</p>
+                <div className="pl-whochips">
+                  {FOUNDER.facts.map((f) => <span key={f} className="pl-chip"><i />{f}</span>)}
+                </div>
+                <div className="pl-row">
+                  <a href="mailto:hello@plulai.com" className="pl-btn pl-btn-dark">Get in touch <Arrow /></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ============ SECURITY (schools) ============ */}
         {schools && (
           <section id="security" className={`pl-sec pl-${tone()}`}>
@@ -708,6 +749,10 @@ export default function LandingPage() {
             <div>
               <p className="pl-wordmark">Plulai</p>
               <p className="pl-footnote">Building tomorrow&apos;s builders, today. Made for the MENA region.</p>
+              <p className="pl-entity">
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>
+                <span><b>Plulai Consulting FZCO</b>A UAE company · DTEC, Dubai Silicon Oasis (DSO), Dubai</span>
+              </p>
             </div>
             <div>
               <h4>Product</h4>
@@ -721,12 +766,12 @@ export default function LandingPage() {
             </div>
             <div>
               <h4>Company</h4>
-              <a href="#">About</a>
+              <a href="#founder">About the founder</a>
               <a href="/ar" lang="ar" hrefLang="ar">العربية</a>
             </div>
           </div>
           <div className="pl-footbottom">
-            <span>© 2026 Plulai Education.</span>
+            <span>© 2026 Plulai Consulting FZCO. All rights reserved.</span>
             <span>Privacy · Terms</span>
           </div>
         </div>
@@ -749,6 +794,7 @@ const css = `
 }
 .pl-root *, .pl-root *::before, .pl-root *::after { box-sizing: border-box; }
 .pl-root button, .pl-root a { font-family: inherit; }
+.pl-root :is(h1, h2, h3, h4) { color: inherit; }
 .pl-root a:focus-visible, .pl-root button:focus-visible { outline: 3px solid var(--pl-teal); outline-offset: 3px; }
 .pl-wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
 .pl-center { text-align: center; }
@@ -829,7 +875,7 @@ const css = `
 .pl-hero::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(246,243,234,.09) 1px, transparent 1px); background-size: 28px 28px; mask-image: radial-gradient(ellipse at 70% 40%, #000, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at 70% 40%, #000, transparent 70%); }
 .pl-hero::after { content: ''; position: absolute; width: 620px; height: 620px; border-radius: 50%; right: -120px; top: -120px; background: radial-gradient(circle, rgba(31,184,166,.28), transparent 65%); pointer-events: none; }
 .pl-herogrid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
-.pl-hero h1 { font-size: clamp(38px, 5.6vw, 66px); font-weight: 800; line-height: 1.04; letter-spacing: -0.035em; margin: 0; }
+.pl-hero h1 { color: var(--pl-cream); font-size: clamp(38px, 5.6vw, 66px); font-weight: 800; line-height: 1.04; letter-spacing: -0.035em; margin: 0; }
 .pl-lead { font-size: 18.5px; line-height: 1.65; color: #B7CCC8; max-width: 540px; margin: 24px 0 0; }
 .pl-toggle { display: inline-flex; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 4px; margin-bottom: 30px; max-width: 100%; }
 .pl-toggle button { border: 0; cursor: pointer; font-size: 13.5px; font-weight: 700; padding: 9px 18px; border-radius: 999px; background: transparent; color: #B7CCC8; transition: background .15s ease; }
@@ -1247,4 +1293,26 @@ const css = `
   .pl-flowgrid { grid-template-columns: 1fr; }
   .pl-fstep + .pl-fstep .pl-fbody { border-left: 0; }
 }
+/* ---- v9: founder + footer entity ---- */
+.pl-who { display: grid; grid-template-columns: 5fr 7fr; gap: 44px; align-items: center; background: #fff; border-radius: 36px; padding: 16px; box-shadow: var(--pl-shadow-lg); }
+.pl-white .pl-who { background: var(--pl-cream); box-shadow: none; }
+.pl-whophoto { position: relative; overflow: hidden; border-radius: 26px; aspect-ratio: 4 / 4.4; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); }
+.pl-whophoto::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(246,243,234,.12) 1.4px, transparent 1.6px); background-size: 24px 24px; mask-image: radial-gradient(ellipse at 70% 20%, #000, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at 70% 20%, #000, transparent 70%); }
+.pl-whophoto::after { content: ''; position: absolute; width: 360px; height: 360px; right: -120px; top: -120px; border-radius: 50%; background: radial-gradient(circle, rgba(31,184,166,.35), transparent 65%); }
+.pl-initials { position: relative; z-index: 1; font-size: clamp(84px, 12vw, 150px); font-weight: 800; letter-spacing: -0.05em; background: linear-gradient(90deg, #4FE0CD, #F0C46E); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pl-whobadge { position: absolute; z-index: 2; left: 18px; bottom: 18px; font-size: 13px; font-weight: 800; padding: 8px 15px; border-radius: 999px; background: rgba(255,255,255,.96); color: var(--pl-ink); }
+.pl-whocopy { padding: 16px 30px 16px 0; }
+.pl-whocopy .pl-h2 { font-size: clamp(32px, 4.4vw, 48px); }
+.pl-frole { margin: 10px 0 0; font-size: 16px; font-weight: 700; color: var(--pl-teal-d); }
+.pl-whocopy .pl-sub { max-width: 540px; }
+.pl-whochips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.pl-whochips .pl-chip { background: rgba(31,184,166,.14); }
+@media (max-width: 800px) {
+  .pl-who { grid-template-columns: 1fr; gap: 8px; }
+  .pl-whophoto { aspect-ratio: 16 / 10; }
+  .pl-whocopy { padding: 20px 14px 18px; }
+}
+.pl-entity { display: flex; gap: 10px; align-items: flex-start; margin: 22px 0 0; max-width: 320px; font-size: 13px; line-height: 1.5; color: var(--pl-muted-d); }
+.pl-entity svg { flex-shrink: 0; margin-top: 2px; color: var(--pl-teal); }
+.pl-entity b { display: block; font-size: 14px; color: var(--pl-cream); }
 `
