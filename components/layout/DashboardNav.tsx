@@ -1,20 +1,15 @@
 'use client'
 // components/layout/DashboardNav.tsx
 //
-// REDESIGN v2 — same nav, same routes, same props, same logic. The
-// previous version kept a dark navy sidebar (#16323A) next to the light
-// mint dashboard content, which is why it "didn't feel like the
-// dashboard" — two different surfaces bolted together. This version
-// puts the sidebar on the SAME light surface as the dashboard itself:
-//   - Sidebar background: white, sitting on the app's mint page
-//     background (#EAF6F1) — no separate dark chrome.
-//   - Active state: a white rounded card with a coral left accent bar
-//     and coral icon, closer to "a place on the map you're standing"
-//     than a corporate selected-tab.
-//   - Trimmed back from v1: gem balance is now a small compact chip
-//     near the logo instead of its own full-width card; the bottom
-//     profile caption is simpler (avatar + name only, no separate
-//     bordered block).
+// REDESIGN v3 — same props, same routes, same language/RTL logic. Only the
+// look changed. It stays on the dashboard's own mint surface, and:
+//   - uses the real Plulai logo (public/logo.png) instead of an icon + text
+//   - every item gets an icon tile; the active one fills with coral
+//   - gem balance is a compact chip next to the logo (opens the shop)
+//   - the profile row at the bottom is now a card that links to /dashboard/profile
+//   - the mobile bar keeps its height but uses a pill behind the active icon
+//   - aria-current, focus rings and labels were added for accessibility
+// Fonts are not set here, so everything inherits your app font.
 
 import Link from 'next/link'
 import Image from 'next/image'
@@ -40,6 +35,7 @@ function NavIcon({ name, className }: { name: string; className?: string }) {
     strokeWidth: 1.8,
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
   }
   switch (name) {
     case 'home':
@@ -89,7 +85,7 @@ function NavIcon({ name, className }: { name: string; className?: string }) {
 
 function GemIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} width={14} height={14} viewBox="0 0 20 20" fill="none">
+    <svg className={className} width={14} height={14} viewBox="0 0 20 20" fill="none" aria-hidden>
       <path d="M4 8 L10 2 L16 8 L10 18 Z" fill="#7C6FFF" />
       <path d="M4 8 L16 8 L10 18 Z" fill="#9B90FF" />
       <path d="M10 2 L7 8 L13 8 Z" fill="#B4ABFF" />
@@ -117,84 +113,98 @@ export default function DashboardNav({ profile, userId, balance }: Props) {
   const gradeLabel =
     lang === 'ar' ? `عمر ${profile?.age}` : lang === 'fr' ? `${profile?.age} ans` : `Age ${profile?.age}`
 
+  const gemsLabel = lang === 'ar' ? 'الجواهر' : lang === 'fr' ? 'Gemmes' : 'Gems'
+  const menuLabel = lang === 'ar' ? 'القائمة الرئيسية' : lang === 'fr' ? 'Navigation principale' : 'Main navigation'
+
   return (
     <>
-      {/* Desktop sidebar (lg and up) — sits on the app's own mint background */}
+      {/* ============ Desktop sidebar (lg and up) ============ */}
       <aside
         dir={dir}
-        className="hidden lg:flex w-64 flex-shrink-0 fixed inset-y-0 left-0 z-40 flex-col bg-[#EAF6F1] border-r border-[#D8E9E3] py-7 px-5"
+        className="hidden lg:flex w-64 flex-shrink-0 fixed inset-y-0 left-0 z-40 flex-col bg-[#EAF6F1] border-r border-[#D8E9E3] pt-7 pb-5 px-4"
       >
         {/* Logo + gem balance */}
-        <div className="mb-8 flex items-center justify-between px-1">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-white shadow-[0_2px_8px_rgba(22,50,58,0.08)] flex items-center justify-center overflow-hidden shrink-0">
-              <Image src="/logo.png" alt="" width={24} height={24} className="object-contain" />
-            </div>
-            <span className="text-[#16323A] font-extrabold text-xl tracking-tight">Plulai</span>
-          </div>
+        <div className="mb-7 flex items-center justify-between gap-2 px-1.5">
+          <Link href="/dashboard" aria-label="Plulai" className="flex items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6E52]/50">
+            <Image src="/logo.png" alt="Plulai" width={132} height={36} priority className="h-8 w-auto" />
+          </Link>
           {balance != null && (
             <Link
               href="/dashboard/shop"
-              className="flex items-center gap-1 bg-white rounded-full pl-1.5 pr-2 py-1 shadow-[0_2px_8px_rgba(22,50,58,0.08)]"
+              aria-label={`${gemsLabel}: ${balance}`}
+              className="flex items-center gap-1.5 rounded-full bg-white py-1 pl-2 pr-2.5 shadow-[0_2px_8px_rgba(22,50,58,0.08)] ring-1 ring-[#E1EEE9] transition hover:shadow-[0_4px_12px_rgba(22,50,58,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6E52]/50"
             >
               <GemIcon />
-              <span className="text-[#16323A] text-[12px] font-extrabold">{balance}</span>
+              <span className="text-[#16323A] text-[12.5px] font-extrabold tabular-nums">{balance}</span>
             </Link>
           )}
         </div>
 
         {/* Nav items */}
-        <nav className="flex flex-col gap-1.5 flex-1">
+        <nav aria-label={menuLabel} className="flex flex-1 flex-col gap-1.5">
           {NAV_ITEMS.map(item => {
             const active = isActive(item.href)
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-2xl font-bold text-[15px] transition-all',
+                  'group flex items-center gap-3 rounded-2xl px-2.5 py-2 text-[15px] font-bold transition-all',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6E52]/50',
                   active
-                    ? 'bg-white text-[#16323A] shadow-[0_2px_10px_rgba(22,50,58,0.08)]'
+                    ? 'bg-white text-[#16323A] shadow-[0_4px_14px_rgba(22,50,58,0.08)]'
                     : 'text-[#5B7B78] hover:bg-white/60 hover:text-[#16323A]'
                 )}
               >
-                {active && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-[#FF6E52]" />
-                )}
-                <NavIcon
-                  name={item.key}
-                  className={cn('w-[19px] h-[19px] shrink-0', active ? 'text-[#FF6E52]' : '')}
-                />
-                {getLabel(item)}
+                <span
+                  className={cn(
+                    'grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-colors',
+                    active
+                      ? 'bg-[#FF6E52] text-white shadow-[0_6px_14px_rgba(255,110,82,0.35)]'
+                      : 'bg-white/70 text-[#5B7B78] group-hover:bg-white group-hover:text-[#FF6E52]'
+                  )}
+                >
+                  <NavIcon name={item.key} className="h-[19px] w-[19px]" />
+                </span>
+                <span className="flex-1 truncate">{getLabel(item)}</span>
+                {active && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF6E52]" aria-hidden />}
               </Link>
             )
           })}
         </nav>
 
-        {/* Bottom profile row */}
+        {/* Bottom profile card */}
         {profile && (
-          <div className="pt-4 border-t border-[#D8E9E3] px-1 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-white shadow-[0_2px_8px_rgba(22,50,58,0.08)] flex items-center justify-center overflow-hidden shrink-0">
+          <Link
+            href="/dashboard/profile"
+            className="mt-4 flex items-center gap-3 rounded-2xl bg-white p-2.5 shadow-[0_2px_10px_rgba(22,50,58,0.07)] ring-1 ring-[#E1EEE9] transition hover:shadow-[0_6px_16px_rgba(22,50,58,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6E52]/50"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#EAF6F1] ring-2 ring-white">
               {profile.avatar ? (
-                <Image src={profile.avatar} alt="" width={32} height={32} className="object-cover w-full h-full" />
+                <Image src={profile.avatar} alt="" width={40} height={40} className="h-full w-full object-cover" />
               ) : (
-                <span className="text-[#16323A] text-xs font-extrabold">
+                <span className="text-[#16323A] text-sm font-extrabold">
                   {profile.display_name?.[0]?.toUpperCase()}
                 </span>
               )}
             </div>
-            <div className="min-w-0">
-              <div className="text-[#16323A] text-[13px] font-bold truncate">{profile.display_name}</div>
-              <div className="text-[11px] font-medium text-[#7C9995]">{gradeLabel}</div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[13.5px] font-extrabold text-[#16323A]">{profile.display_name}</div>
+              <div className="text-[11.5px] font-semibold text-[#7C9995]">{gradeLabel}</div>
             </div>
-          </div>
+            <svg className={cn('h-4 w-4 shrink-0 text-[#9BB5B1]', dir === 'rtl' && '-scale-x-100')} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M6 3l5 5-5 5" />
+            </svg>
+          </Link>
         )}
       </aside>
 
-      {/* Mobile bottom bar (below lg) — same light surface */}
+      {/* ============ Mobile bottom bar (below lg) ============ */}
       <nav
         dir={dir}
-        className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch justify-around bg-white border-t border-[#E4EDE9] px-1 pt-1.5"
+        aria-label={menuLabel}
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch justify-around rounded-t-3xl border-t border-[#E4EDE9] bg-white/95 px-2 pt-1.5 shadow-[0_-8px_24px_rgba(22,50,58,0.08)] backdrop-blur"
         style={{ paddingBottom: 'max(6px, env(safe-area-inset-bottom))' }}
       >
         {NAV_ITEMS.map(item => {
@@ -203,23 +213,25 @@ export default function DashboardNav({ profile, userId, balance }: Props) {
             <Link
               key={item.href}
               href={item.href}
-              className="relative flex-1 flex flex-col items-center justify-center gap-1 py-1.5"
+              aria-current={active ? 'page' : undefined}
+              className="flex flex-1 flex-col items-center justify-center gap-0.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6E52]/50 rounded-2xl"
             >
-              <NavIcon
-                name={item.key}
-                className={cn('w-5 h-5', active ? 'text-[#FF6E52]' : 'text-[#9BB5B1]')}
-              />
               <span
                 className={cn(
-                  'text-[10px] font-semibold leading-none',
+                  'grid h-8 w-12 place-items-center rounded-full transition-colors',
+                  active ? 'bg-[#FF6E52]/10 text-[#FF6E52]' : 'text-[#9BB5B1]'
+                )}
+              >
+                <NavIcon name={item.key} className="h-5 w-5" />
+              </span>
+              <span
+                className={cn(
+                  'max-w-full truncate text-[10.5px] font-bold leading-none',
                   active ? 'text-[#FF6E52]' : 'text-[#9BB5B1]'
                 )}
               >
                 {getLabel(item)}
               </span>
-              {active && (
-                <span className="absolute -top-0.5 w-8 h-[3px] rounded-full bg-[#FF6E52]" />
-              )}
             </Link>
           )
         })}
