@@ -18,6 +18,10 @@ const FOUNDER = {
   linkedin: 'https://linkedin.com/in/mohamed-zouari-ab7196207',
   site: 'https://mohamedzouari.netlify.app',
   bio: 'Mohamed is a Python developer and tech entrepreneur from Tunisia. He has been building apps and games and leading hackathons and bootcamps since 2023, and started a tech club for high school students in Sfax. He founded Plulai to give kids across the MENA region a real path into coding, AI and life skills, in Arabic, French and English.',
+  quote: {
+    lead: "I'm building Plulai to help every kid achieve their dreams.",
+    follow: "Whoever doesn't chase their own dreams ends up spending their life working for someone else's.",
+  },
   highlights: [
     { title: 'Founder & CEO, Plulai', sub: 'Since January 2025' },
     { title: 'Educator', sub: 'Harvard Business Impact Education' },
@@ -169,6 +173,16 @@ export default function AboutClient() {
                 </div>
               </div>
             </div>
+
+            <figure className="pl-motto">
+              <span className="pl-mq" aria-hidden>&ldquo;</span>
+              <div>
+                <blockquote>
+                  {FOUNDER.quote.lead} <span className="pl-grad">{FOUNDER.quote.follow}</span>
+                </blockquote>
+                <figcaption><b>{FOUNDER.name}</b> · Founder &amp; CEO, Plulai</figcaption>
+              </div>
+            </figure>
           </div>
         </section>
 

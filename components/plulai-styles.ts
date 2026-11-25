@@ -606,4 +606,16 @@ export const css = `
   .pl-twocol, .pl-certs { grid-template-columns: 1fr; }
   .pl-aboutTop { padding-top: 112px; }
 }
+/* ---- v12: founder motto ---- */
+.pl-motto { position: relative; overflow: hidden; margin: 24px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: start; border-radius: 32px; padding: 44px 48px; color: var(--pl-cream); background: linear-gradient(160deg, var(--pl-ink), var(--pl-ink-2)); box-shadow: var(--pl-shadow-lg); }
+.pl-motto::after { content: ''; position: absolute; width: 420px; height: 420px; right: -150px; top: -180px; border-radius: 50%; background: radial-gradient(circle, rgba(31,184,166,.3), transparent 65%); }
+.pl-motto > * { position: relative; z-index: 1; }
+.pl-mq { font-size: 110px; line-height: .8; font-weight: 800; background: linear-gradient(180deg, #4FE0CD, #F0C46E); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pl-motto blockquote { margin: 0; font-size: clamp(22px, 3vw, 32px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.28; }
+.pl-motto figcaption { margin-top: 20px; font-size: 14.5px; color: #B7CCC8; }
+.pl-motto figcaption b { color: var(--pl-cream); }
+@media (max-width: 800px) {
+  .pl-motto { grid-template-columns: 1fr; gap: 6px; padding: 32px 24px; border-radius: 26px; }
+  .pl-mq { font-size: 80px; }
+}
 `
