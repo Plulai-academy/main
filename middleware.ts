@@ -51,6 +51,7 @@ export async function middleware(request: NextRequest) {
     pathname === '/schools' ||
     pathname === '/comp' ||
     pathname === '/blog' ||
+    pathname === '/about' ||
     pathname === '/blog/[slug]' ||
     // Country SEO landing pages — added alongside the geo-redirect above.
     // Without these, an unauthenticated visitor landing here via redirect

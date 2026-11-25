@@ -618,4 +618,51 @@ export const css = `
   .pl-motto { grid-template-columns: 1fr; gap: 6px; padding: 32px 24px; border-radius: 26px; }
   .pl-mq { font-size: 80px; }
 }
+/* ---- RTL (Arabic page): everything below only applies under .pl-rtl ---- */
+.pl-rtl, .pl-rtl * { letter-spacing: 0 !important; }
+.pl-rtl h1, .pl-rtl h2, .pl-rtl h3 { line-height: 1.3; }
+.pl-rtl .pl-hero h1 { line-height: 1.25; }
+.pl-rtl .pl-arrow { transform: scaleX(-1); }
+.pl-rtl .pl-btn:hover .pl-arrow { transform: scaleX(-1) translateX(3px); }
+.pl-rtl .pl-hero::before { mask-image: radial-gradient(ellipse at 30% 40%, #000, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at 30% 40%, #000, transparent 70%); }
+.pl-rtl .pl-hero::after { right: auto; left: -120px; }
+.pl-rtl .pl-float-a { left: auto; right: -4px; }
+.pl-rtl .pl-float-b { right: auto; left: -10px; }
+.pl-rtl .pl-mission { left: auto; right: -14px; }
+.pl-rtl .pl-track { animation-name: pl-scroll-rtl; }
+@keyframes pl-scroll-rtl { to { transform: translateX(50%); } }
+.pl-rtl .pl-sitem + .pl-sitem { border-left: 0; border-right: 1px solid rgba(255,255,255,.1); }
+.pl-rtl .pl-strip .pl-logostack { margin: 0 auto 0 0; }
+.pl-rtl .pl-strip .pl-logostack span { margin-left: 0; margin-right: -8px; }
+.pl-rtl .pl-strip .pl-logostack span:first-child { margin-right: 0; }
+.pl-rtl .pl-livetime { margin-left: 0; margin-right: auto; text-align: left; }
+.pl-rtl .pl-weekcard::after, .pl-rtl .pl-seccard::after { right: auto; left: -140px; }
+.pl-rtl .pl-glow-sm { right: auto; left: -80px; }
+.pl-rtl .pl-fstep + .pl-fstep .pl-fbody { border-left: 0; border-right: 1px solid var(--pl-line); }
+.pl-rtl.pl-root .pl-white .pl-fstep + .pl-fstep .pl-fbody { border-right-color: rgba(13,43,50,.1); }
+.pl-rtl .pl-panelcopy { padding: 34px 34px 30px 30px; }
+.pl-rtl .pl-bignum { right: auto; left: 22px; }
+.pl-rtl .pl-flag { left: auto; right: 28px; }
+.pl-rtl .pl-single .pl-flag { right: auto; left: 50%; }
+.pl-rtl .pl-single li { text-align: right; }
+.pl-rtl .pl-qmark { left: auto; right: 24px; }
+.pl-rtl .pl-faqitem button { text-align: right; }
+.pl-rtl .pl-barhead em { margin-left: 0; margin-right: 8px; }
+@media (max-width: 1000px) {
+  .pl-rtl .pl-fstep:nth-child(3) .pl-fbody { border-right: 0; }
+}
+@media (max-width: 800px) {
+  .pl-rtl .pl-ba-arrow .pl-arrow { transform: none; }
+  .pl-rtl .pl-panelcopy { padding: 24px 18px 8px; }
+}
+@media (max-width: 560px) {
+  .pl-rtl .pl-fstep + .pl-fstep .pl-fbody { border-right: 0; }
+}
+@media (max-width: 520px) {
+  .pl-rtl .pl-livetime { margin-right: 62px; margin-left: 0; text-align: right; }
+  .pl-rtl .pl-mission { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-rtl .pl-track { animation: none; }
+}
 `
