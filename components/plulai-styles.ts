@@ -12,6 +12,8 @@ export const css = `
   color: var(--pl-ink); background: var(--pl-cream);
 }
 .pl-root *, .pl-root *::before, .pl-root *::after { box-sizing: border-box; }
+.pl-root { overflow-x: clip; max-width: 100%; }
+html, body { max-width: 100%; }
 .pl-root button, .pl-root a { font-family: inherit; }
 .pl-root :is(h1, h2, h3, h4) { color: inherit; }
 .pl-root a:focus-visible, .pl-root button:focus-visible { outline: 3px solid var(--pl-teal); outline-offset: 3px; }

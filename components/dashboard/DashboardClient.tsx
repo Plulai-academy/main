@@ -291,7 +291,7 @@ export default function DashboardClient({
   )
 
   return (
-    <div dir={dir} className="min-h-[100dvh] bg-[#FBF5EC] px-4 pb-28 pt-[max(1rem,env(safe-area-inset-top))] sm:px-8 lg:px-10 lg:pb-10 lg:pt-8">
+    <div dir={dir} className="min-h-[100dvh] w-full max-w-full overflow-x-hidden bg-[#FBF5EC] px-4 pb-28 pt-[max(1rem,env(safe-area-inset-top))] sm:px-8 lg:px-10 lg:pb-10 lg:pt-8">
 
       {/* Toast */}
       <div
