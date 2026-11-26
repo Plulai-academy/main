@@ -14,8 +14,9 @@
 // routes. Projects and Rewards are NEW entries in this mock, so check the
 // two hrefs marked "CHECK" below point to real pages.
 //
-// LOGO: the sidebar is dark, so /logo.png is turned white with a CSS
-// filter. If you have a white version, set LOGO_LIGHT and remove the filter.
+// LOGO: the real /logo.png (original colours) sits on a light pill so it
+// stays readable on the dark sidebar. If you later get a white logo file,
+// you can drop the pill and point LOGO at it.
 //
 // `balance` is no longer shown here (gems moved to the dashboard header,
 // like in the mock) but the prop is kept so existing callers don't break.
@@ -27,7 +28,7 @@ import { cn } from '@/lib/utils'
 import type { Language } from '@/lib/openrouter'
 
 const ICON_BASE  = '/icons'
-const LOGO_LIGHT = '/logo.png'
+const LOGO       = '/logo.png'
 
 const NAV_ITEMS = [
   { key:'home',      href:'/dashboard',             icon:'nav-home.png',      en:'Home',      ar:'الرئيسية',     fr:'Accueil'      },
@@ -82,9 +83,9 @@ export default function DashboardNav({ profile }: Props) {
         <Link
           href="/dashboard"
           aria-label="Plulai"
-          className="relative z-10 mb-10 ms-1.5 flex items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          className="relative z-10 mb-9 inline-flex self-start items-center rounded-2xl bg-[#FFFCF7] px-4 py-2.5 shadow-[0_6px_16px_rgba(0,0,0,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
         >
-          <Image src={LOGO_LIGHT} alt="Plulai" width={140} height={40} priority className="h-10 w-auto brightness-0 invert" />
+          <Image src={LOGO} alt="Plulai" width={140} height={40} priority className="h-8 w-auto" />
         </Link>
 
         <nav aria-label={menuLabel} className="relative z-10 flex flex-col gap-1.5">

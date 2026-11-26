@@ -263,8 +263,35 @@ export default function DashboardClient({
 
   const hasBoard = classNews.length > 0 || !!className
 
+  // Header pieces, rendered compact on phones and larger from `sm` up
+  const chipBase = 'flex items-center rounded-full bg-[#FFFCF7] shadow-[0_3px_12px_rgba(11,59,68,0.08)] ring-1 ring-[#F0E7DA]'
+  const streakChip = (small: boolean) => (
+    <div className={cn(chipBase, small ? 'gap-1.5 py-1.5 pe-3 ps-2' : 'gap-2 py-2 pe-5 ps-2.5')} title={t.streakMsg(streak)}>
+      <Png name="game-streak" size={28} className={small ? 'h-5 w-5' : 'h-7 w-7'} />
+      <span className={cn('font-extrabold tabular-nums text-[#0B3B44]', small ? 'text-[14px]' : 'text-[20px]')}>{streak}</span>
+    </div>
+  )
+  const gemChip = (small: boolean) => (
+    <div className={cn(chipBase, small ? 'gap-1.5 py-1.5 pe-3 ps-2' : 'gap-2 py-2 pe-5 ps-2.5')}>
+      <Png name="game-gem" size={30} className={small ? 'h-5 w-5' : 'h-[30px] w-[30px]'} />
+      <span className={cn('font-extrabold tabular-nums text-[#0B3B44]', small ? 'text-[14px]' : 'text-[20px]')}>{fmt(xp)}</span>
+    </div>
+  )
+  const bell = (small: boolean) => (
+    <Link
+      href={NOTIFICATIONS_HREF}
+      aria-label={t.notifications}
+      className={cn(chipBase, 'relative justify-center', small ? 'h-10 w-10' : 'h-[58px] w-[58px]')}
+    >
+      <Png name="nav-notifications" size={30} className={small ? 'h-[22px] w-[22px]' : 'h-[30px] w-[30px]'} />
+      {notificationCount > 0 && (
+        <span className={cn('absolute h-2.5 w-2.5 rounded-full bg-[#FF4B3E] ring-2 ring-[#FFFCF7]', small ? 'end-2 top-2' : 'end-3.5 top-3.5')} />
+      )}
+    </Link>
+  )
+
   return (
-    <div dir={dir} className="min-h-screen bg-[#FBF5EC] px-5 pb-28 pt-6 sm:px-8 lg:px-10 lg:pb-10 lg:pt-8">
+    <div dir={dir} className="min-h-[100dvh] bg-[#FBF5EC] px-4 pb-28 pt-[max(1rem,env(safe-area-inset-top))] sm:px-8 lg:px-10 lg:pb-10 lg:pt-8">
 
       {/* Toast */}
       <div
@@ -283,49 +310,40 @@ export default function DashboardClient({
       <div className="mx-auto max-w-6xl">
 
         {/* ── Header ─────────────────────────────────────── */}
-        <header className="mb-6 flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-4">
-            <Link
-              href="/dashboard/profile"
-              aria-label={profile?.display_name ?? 'Profile'}
-              className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-white shadow-[0_4px_14px_rgba(11,59,68,0.15)] ring-[3px] ring-white sm:h-[68px] sm:w-[68px]"
-            >
-              <Image
-                src={profile?.avatar || '/avatars/marjanhi.png'}
-                alt=""
-                fill
-                sizes="68px"
-                className="object-cover"
-              />
+        <header className="mb-5 sm:mb-6">
+          {/* phones: logo on the left, streak / gems / bell on the right */}
+          <div className="mb-4 flex items-center justify-between gap-2 sm:hidden">
+            <Link href="/dashboard" aria-label="Plulai" className="shrink-0">
+              <Image src="/logo.png" alt="Plulai" width={110} height={30} priority className="h-7 w-auto" />
             </Link>
-            <div className="min-w-0">
-              <h1 className="truncate text-[24px] font-extrabold leading-tight text-[#0B3B44] sm:text-[34px]">{t.headline}</h1>
-              <p className="truncate text-[14px] font-medium text-[#5E7F83] sm:text-[17px]">{t.subhead}</p>
+            <div className="flex items-center gap-2">
+              {streakChip(true)}
+              {gemChip(true)}
+              {bell(true)}
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <div
-              className="flex items-center gap-1.5 rounded-full bg-[#FFFCF7] py-1.5 pe-3.5 ps-2.5 shadow-[0_3px_12px_rgba(11,59,68,0.08)] ring-1 ring-[#F0E7DA] sm:gap-2 sm:py-2 sm:pe-5"
-              title={t.streakMsg(streak)}
-            >
-              <Png name="game-streak" size={28} className="h-6 w-6 sm:h-7 sm:w-7" />
-              <span className="text-[15px] font-extrabold tabular-nums text-[#0B3B44] sm:text-[20px]">{streak}</span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3.5 sm:gap-4">
+              <Link
+                href="/dashboard/profile"
+                aria-label={profile?.display_name ?? 'Profile'}
+                className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-white shadow-[0_4px_14px_rgba(11,59,68,0.15)] ring-[3px] ring-white sm:h-[68px] sm:w-[68px]"
+              >
+                <Image src={profile?.avatar || '/avatars/marjanhi.png'} alt="" fill sizes="68px" className="object-cover" />
+              </Link>
+              <div className="min-w-0">
+                <h1 className="text-[24px] font-extrabold leading-tight text-[#0B3B44] sm:text-[34px]">{t.headline}</h1>
+                <p className="text-[14px] font-medium leading-snug text-[#5E7F83] sm:text-[17px]">{t.subhead}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 rounded-full bg-[#FFFCF7] py-1.5 pe-3.5 ps-2.5 shadow-[0_3px_12px_rgba(11,59,68,0.08)] ring-1 ring-[#F0E7DA] sm:gap-2 sm:py-2 sm:pe-5">
-              <Png name="game-gem" size={30} className="h-6 w-6 sm:h-[30px] sm:w-[30px]" />
-              <span className="text-[15px] font-extrabold tabular-nums text-[#0B3B44] sm:text-[20px]">{fmt(xp)}</span>
+
+            {/* tablet / desktop */}
+            <div className="hidden shrink-0 items-center gap-3 sm:flex">
+              {streakChip(false)}
+              {gemChip(false)}
+              {bell(false)}
             </div>
-            <Link
-              href={NOTIFICATIONS_HREF}
-              aria-label={t.notifications}
-              className="relative hidden h-12 w-12 items-center justify-center rounded-full bg-[#FFFCF7] shadow-[0_3px_12px_rgba(11,59,68,0.08)] ring-1 ring-[#F0E7DA] sm:flex sm:h-[58px] sm:w-[58px]"
-            >
-              <Png name="nav-notifications" size={30} className="h-[26px] w-[26px] sm:h-[30px] sm:w-[30px]" />
-              {notificationCount > 0 && (
-                <span className="absolute end-3 top-3 h-3 w-3 rounded-full bg-[#FF4B3E] ring-2 ring-[#FFFCF7]" />
-              )}
-            </Link>
           </div>
         </header>
 
@@ -334,34 +352,34 @@ export default function DashboardClient({
 
           {/* Mission card */}
           {nextLesson ? (
-            <section className="relative min-h-[340px] overflow-hidden rounded-[32px] bg-gradient-to-br from-[#0B5A62] via-[#0B4B55] to-[#093F49] p-7 pe-[42%] text-white shadow-[0_18px_40px_rgba(11,59,68,0.28)] sm:min-h-[400px] sm:p-10 sm:pe-[44%]">
+            <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0B5A62] via-[#0B4B55] to-[#093F49] p-6 text-white shadow-[0_18px_40px_rgba(11,59,68,0.28)] sm:min-h-[400px] sm:rounded-[32px] sm:p-10 sm:pe-[44%]">
               <div
                 aria-hidden
                 className="pointer-events-none absolute -end-10 top-0 h-full w-3/5"
                 style={{ background: 'radial-gradient(circle at 60% 40%, rgba(45,212,191,0.28), transparent 65%)' }}
               />
 
-              {/* artwork */}
+              {/* artwork: tablet / desktop */}
               <Image
                 src={HERO_ART}
                 alt=""
                 width={380}
                 height={380}
                 priority
-                className="pointer-events-none absolute -bottom-2 end-0 w-[44%] max-w-[360px] select-none drop-shadow-[0_18px_30px_rgba(0,0,0,0.3)] sm:end-2"
+                className="pointer-events-none absolute -bottom-2 end-2 hidden w-[44%] max-w-[360px] select-none drop-shadow-[0_18px_30px_rgba(0,0,0,0.3)] sm:block"
               />
               <Png name="game-robot" size={96} className="pointer-events-none absolute end-[3%] top-[6%] hidden h-20 w-20 sm:block lg:h-24 lg:w-24" />
               <Png name="game-laptop" size={96} className="pointer-events-none absolute bottom-[4%] end-[40%] hidden h-20 w-20 sm:block lg:h-24 lg:w-24" />
 
-              <div className="relative">
-                <span className="mb-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[12.5px] font-extrabold uppercase tracking-wide ring-1 ring-white/15 sm:text-[14px]" style={{ background: 'rgba(255,255,255,0.12)' }}>
-                  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <div className="relative z-10">
+                <span className="mb-4 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] font-extrabold uppercase tracking-wide ring-1 ring-white/15 sm:mb-5 sm:px-4 sm:py-2 sm:text-[14px]" style={{ background: 'rgba(255,255,255,0.12)' }}>
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.2" fill="currentColor" />
                   </svg>
                   {t.nextMission}
                 </span>
 
-                <h2 className="text-[30px] font-extrabold leading-[1.08] tracking-tight sm:text-[48px]">
+                <h2 className="text-[30px] font-extrabold leading-[1.1] tracking-tight sm:text-[48px] sm:leading-[1.08]">
                   {titleHead && <>{titleHead} </>}
                   <span className="relative inline-block italic text-[#FFC21A]">
                     {titleLast}
@@ -371,7 +389,7 @@ export default function DashboardClient({
                   </span>
                 </h2>
 
-                <div className="mt-6 flex flex-wrap items-center gap-2">
+                <div className="mt-5 flex flex-wrap items-center gap-2 sm:mt-6">
                   {assignmentPillParts.length > 0 && (
                     <span className="rounded-full bg-[#FFC21A] px-3 py-1 font-mono text-xs font-semibold text-[#402F12]">
                       {assignmentPillParts.join(' · ')}
@@ -392,13 +410,20 @@ export default function DashboardClient({
 
                 <Link
                   href={missionHref}
-                  className="mt-7 inline-flex items-center gap-3 rounded-full bg-[#FF6B4F] px-7 py-4 text-[16px] font-extrabold text-white shadow-[0_10px_24px_rgba(255,107,79,0.45)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:text-[18px]"
+                  className="mt-6 flex w-full items-center justify-center gap-3 rounded-full bg-[#FF6B4F] px-7 py-4 text-[17px] font-extrabold text-white shadow-[0_10px_24px_rgba(255,107,79,0.45)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:mt-7 sm:inline-flex sm:w-auto sm:text-[18px]"
                 >
                   {isNew ? t.startAdv : t.continueAdv}
                   <svg className="h-5 w-5 rtl:-scale-x-100" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M3 10h13M11 5l5 5-5 5" />
                   </svg>
                 </Link>
+              </div>
+
+              {/* artwork: phones, rising from the bottom edge */}
+              <div className="relative -mb-6 mt-3 flex justify-center sm:hidden" aria-hidden>
+                <Png name="game-robot" size={64} className="absolute start-1 top-2 h-12 w-12" />
+                <Png name="game-laptop" size={64} className="absolute end-1 top-6 h-12 w-12" />
+                <Image src={HERO_ART} alt="" width={240} height={240} className="relative w-44 translate-y-4 select-none drop-shadow-[0_14px_22px_rgba(0,0,0,0.3)]" />
               </div>
             </section>
           ) : (
@@ -526,12 +551,12 @@ export default function DashboardClient({
             {t.exploreWorlds}
           </h2>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
             {WORLDS.map(w => (
               <Link
                 key={w.key}
                 href={w.href}
-                className="group relative block overflow-hidden rounded-[28px] shadow-[0_6px_22px_rgba(11,59,68,0.1)] ring-1 ring-[#F0E7DA] transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
+                className="group relative block min-w-[78%] snap-start overflow-hidden rounded-[28px] shadow-[0_6px_22px_rgba(11,59,68,0.1)] sm:min-w-0 ring-1 ring-[#F0E7DA] transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
               >
                 <div className="relative h-44 sm:h-48" style={{ background: w.bg }}>
                   {w.art ? (
